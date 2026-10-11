@@ -1,0 +1,4404 @@
+{
+ "chain": "st-hubert",
+ "country": "CA",
+ "source": {
+  "url": "https://www.st-hubert.com/fr/informations-nutritionnelles.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "frites",
+   "name": "Frites",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "198 g",
+     "label": "198 g",
+     "calories": 510,
+     "proteinG": 6,
+     "carbsG": 67,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 0,
+      "sodiumMg": 30,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "frites-repas-enfant",
+   "name": "Frites – Repas enfant",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "120 g",
+     "label": "120 g",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 41,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 20,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "frites-de-patates-douces-sans-tartinade",
+   "name": "Frites de patates douces, sans tartinade",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "175 g",
+     "label": "175 g",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 47,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 450,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "legumes-de-saison",
+   "name": "Légumes de saison",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "156 g",
+     "label": "156 g",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 9,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 340,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pain-grille",
+   "name": "Pain grillé",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "31 g",
+     "label": "31 g",
+     "calories": 80,
+     "proteinG": 3,
+     "carbsG": 14,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 125,
+      "saturatedFatG": 0.2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pain-grille-maritimes",
+   "name": "Pain grillé (maritimes)",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "30 g",
+     "label": "30 g",
+     "calories": 80,
+     "proteinG": 3,
+     "carbsG": 14,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 100,
+      "saturatedFatG": 0.2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine",
+   "name": "Poutine",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "398 g",
+     "label": "398 g",
+     "calories": 850,
+     "proteinG": 25,
+     "carbsG": 77,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 1,
+      "sodiumMg": 1230,
+      "saturatedFatG": 16,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "puree-de-pommes-de-terre",
+   "name": "Purée de pommes de terre",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "194 g",
+     "label": "194 g",
+     "calories": 120,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 690,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "riz-aux-legumes",
+   "name": "Riz aux légumes",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "170 g",
+     "label": "170 g",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 49,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 620,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "salade-cesar-st-hubert",
+   "name": "Salade César St-Hubert",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "112g",
+     "label": "112g",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 5,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 209,
+      "saturatedFatG": 4,
+      "cholesterolMg": 23
+     }
+    },
+    {
+     "size": "245 g",
+     "label": "245 g",
+     "calories": 564,
+     "proteinG": 12,
+     "carbsG": 13,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 559,
+      "saturatedFatG": 11,
+      "cholesterolMg": 62
+     }
+    }
+   ]
+  },
+  {
+   "id": "salade-de-chou-cremeuse",
+   "name": "Salade de chou crémeuse",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "110 g",
+     "label": "110 g",
+     "calories": 158,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 219,
+      "saturatedFatG": 1,
+      "cholesterolMg": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "salade-de-chou-traditionnelle",
+   "name": "Salade de chou traditionnelle",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "110 g",
+     "label": "110 g",
+     "calories": 110,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-legumes",
+   "name": "Brochette de légumes",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "78 g",
+     "label": "78 g",
+     "calories": 80,
+     "proteinG": 0.8,
+     "carbsG": 13,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 9,
+      "sodiumMg": 267,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "salade-maison",
+   "name": "Salade maison",
+   "category": "À-côtés",
+   "sizes": [
+    {
+     "size": "80 g",
+     "label": "80 g",
+     "calories": 121,
+     "proteinG": 2,
+     "carbsG": 5,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2.3,
+      "sodiumMg": 201,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "170 g",
+     "label": "170 g",
+     "calories": 215,
+     "proteinG": 3,
+     "carbsG": 9,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 392,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creme-de-poulet",
+   "name": "Crème de poulet",
+   "category": "Soupes (sans biscuits soda)",
+   "sizes": [
+    {
+     "size": "285 g",
+     "label": "285 g",
+     "calories": 160,
+     "proteinG": 11,
+     "carbsG": 18,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 710,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-et-nouilles",
+   "name": "Poulet et nouilles",
+   "category": "Soupes (sans biscuits soda)",
+   "sizes": [
+    {
+     "size": "285 g",
+     "label": "285 g",
+     "calories": 130,
+     "proteinG": 10,
+     "carbsG": 17,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 780,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-burger-poitrine-croustillante",
+   "name": "Club burger - Poitrine croustillante",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "254 g",
+     "label": "254 g",
+     "calories": 570,
+     "proteinG": 27,
+     "carbsG": 45,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1050,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-burger-poitrine-grillee",
+   "name": "Club burger - Poitrine grillée",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "245 g",
+     "label": "245 g",
+     "calories": 420,
+     "proteinG": 32,
+     "carbsG": 30,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 970,
+      "saturatedFatG": 5,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "st-burger-original",
+   "name": "St-Burger original",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "273 g",
+     "label": "273 g",
+     "calories": 560,
+     "proteinG": 21,
+     "carbsG": 48,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 1250,
+      "saturatedFatG": 3,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "st-burger-piri-piri",
+   "name": "St-Burger piri-piri",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "323 g",
+     "label": "323 g",
+     "calories": 710,
+     "proteinG": 22,
+     "carbsG": 50,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 1860,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-filets-croustillants",
+   "name": "Wrap St-Hubert - Filets croustillants",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "207 g",
+     "label": "207 g",
+     "calories": 590,
+     "proteinG": 22,
+     "carbsG": 45,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 920,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-poitrine-grillee",
+   "name": "Wrap St-Hubert - Poitrine grillée",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "232 g",
+     "label": "232 g",
+     "calories": 500,
+     "proteinG": 32,
+     "carbsG": 33,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 1,
+      "sodiumMg": 1000,
+      "saturatedFatG": 8,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-filets-croustillants-cesar",
+   "name": "Wrap St-Hubert - Filets croustillants - César",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "263 g",
+     "label": "263 g",
+     "calories": 861,
+     "proteinG": 27,
+     "carbsG": 56,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1183,
+      "saturatedFatG": 9,
+      "cholesterolMg": 66
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-poitrine-grillee-cesar",
+   "name": "Wrap St-Hubert - Poitrine grillée -César",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "261 g",
+     "label": "261 g",
+     "calories": 709,
+     "proteinG": 34,
+     "carbsG": 40,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1163,
+      "saturatedFatG": 8,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-filets-croustillants-thaie",
+   "name": "Wrap St-Hubert - Filets croustillants - Thaie",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "263 g",
+     "label": "263 g",
+     "calories": 758,
+     "proteinG": 27,
+     "carbsG": 76,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 24,
+      "sodiumMg": 1372,
+      "saturatedFatG": 7,
+      "cholesterolMg": 52
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-poitrine-grillee-thaie",
+   "name": "Wrap St-Hubert - Poitrine grillée - Thaie",
+   "category": "Burgers, Sandwichs & wrap (sans accompag",
+   "sizes": [
+    {
+     "size": "261 g",
+     "label": "261 g",
+     "calories": 606,
+     "proteinG": 34,
+     "carbsG": 60,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 20,
+      "sodiumMg": 1352,
+      "saturatedFatG": 7,
+      "cholesterolMg": 91
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-aux-cotes-levees",
+   "name": "Poutine aux côtes levées",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "707 g",
+     "label": "707 g",
+     "calories": 1503,
+     "proteinG": 56,
+     "carbsG": 106,
+     "fatG": 95,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 13,
+      "sodiumMg": 2581,
+      "saturatedFatG": 35,
+      "cholesterolMg": 219
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-viande-blanche-sans-mayonnaise",
+   "name": "Club sandwich – Viande blanche (sans mayonnaise)",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "342 g",
+     "label": "342 g",
+     "calories": 630,
+     "proteinG": 44,
+     "carbsG": 61,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1150,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-viande-brune-sans-mayonnaise",
+   "name": "Club sandwich – Viande brune (sans mayonnaise)",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "342 g",
+     "label": "342 g",
+     "calories": 640,
+     "proteinG": 38,
+     "carbsG": 61,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1150,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "filet-de-poulet-croustillant",
+   "name": "Filet de poulet croustillant",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "39 g",
+     "label": "39 g",
+     "calories": 100,
+     "proteinG": 5,
+     "carbsG": 6,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 140,
+      "saturatedFatG": 0.4,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-viande-blanche",
+   "name": "Hot chicken – Viande blanche",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "450 g",
+     "label": "450 g",
+     "calories": 440,
+     "proteinG": 38,
+     "carbsG": 58,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1640,
+      "saturatedFatG": 1,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-viande-brune",
+   "name": "Hot chicken – Viande brune",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "450 g",
+     "label": "450 g",
+     "calories": 460,
+     "proteinG": 33,
+     "carbsG": 58,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1640,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "pate-au-poulet",
+   "name": "Pâté au poulet",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "425 g",
+     "label": "425 g",
+     "calories": 690,
+     "proteinG": 29,
+     "carbsG": 67,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 1720,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-reguliere",
+   "name": "Poutine régulière",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "487 g",
+     "label": "487 g",
+     "calories": 950,
+     "proteinG": 26,
+     "carbsG": 90,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 1,
+      "sodiumMg": 1560,
+      "saturatedFatG": 17,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-st-hubert",
+   "name": "Poutine St-Hubert",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "596 g",
+     "label": "596 g",
+     "calories": 1210,
+     "proteinG": 36,
+     "carbsG": 110,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 4,
+      "sodiumMg": 2660,
+      "saturatedFatG": 19,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-au-poulet-viande-blanche",
+   "name": "Poutine au poulet – Viande blanche",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "627 g",
+     "label": "627 g",
+     "calories": 1240,
+     "proteinG": 66,
+     "carbsG": 92,
+     "fatG": 68,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 2110,
+      "saturatedFatG": 25,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-au-poulet-viande-brune",
+   "name": "Poutine au poulet – Viande brune",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "627 g",
+     "label": "627 g",
+     "calories": 1260,
+     "proteinG": 61,
+     "carbsG": 92,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 2110,
+      "saturatedFatG": 26,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "vol-au-vent-au-poulet-jardiniere",
+   "name": "Vol-au-vent au poulet jardinière",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "305 g",
+     "label": "305 g",
+     "calories": 370,
+     "proteinG": 21,
+     "carbsG": 35,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "quesadillas-au-poulet-roti",
+   "name": "Quesadillas au poulet rôti",
+   "category": "Classiques (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "357 g",
+     "label": "357 g",
+     "calories": 903,
+     "proteinG": 54,
+     "carbsG": 45,
+     "fatG": 502,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4.3,
+      "sodiumMg": 1627,
+      "saturatedFatG": 21,
+      "cholesterolMg": 163
+     }
+    }
+   ]
+  },
+  {
+   "id": "delice-aux-pommes-nouveau",
+   "name": "Délice aux pommes - NOUVEAU",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "270g",
+     "label": "270g",
+     "calories": 600,
+     "proteinG": 6,
+     "carbsG": 85,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 53,
+      "sodiumMg": 300,
+      "saturatedFatG": 12,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "gateau-au-chocolat",
+   "name": "Gâteau au chocolat",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "202 g",
+     "label": "202 g",
+     "calories": 610,
+     "proteinG": 10,
+     "carbsG": 77,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 52,
+      "sodiumMg": 500,
+      "saturatedFatG": 11,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "gateau-aux-carottes",
+   "name": "Gâteau aux carottes",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "284 g",
+     "label": "284 g",
+     "calories": 957,
+     "proteinG": 9,
+     "carbsG": 109,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 75,
+      "sodiumMg": 957,
+      "saturatedFatG": 20,
+      "cholesterolMg": 58
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownies-mini-1-3-sac",
+   "name": "Brownies (mini 1/3 sac)",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "91 g",
+     "label": "91 g",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 36,
+      "sodiumMg": 160,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie-midigo",
+   "name": "Brownie – MidiGO",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "94 g",
+     "label": "94 g",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 51,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 41,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie-sauce-chocolat",
+   "name": "Brownie, sauce chocolat",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "147 g",
+     "label": "147 g",
+     "calories": 590,
+     "proteinG": 7,
+     "carbsG": 78,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 62,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "creme-glacee-midigo",
+   "name": "Crème glacée – MidiGo",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "105 g",
+     "label": "105 g",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 28,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 5,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "gateau-vanille-coulis-de-fraises",
+   "name": "Gâteau vanillé, coulis de fraises",
+   "sizes": [
+    {
+     "size": "119 g",
+     "label": "119 g",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 43,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 270,
+      "saturatedFatG": 1,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "gateau-vanille-sauce-sucre-a-la-creme",
+   "name": "Gâteau vanillé, sauce sucre à la crème",
+   "sizes": [
+    {
+     "size": "119 g",
+     "label": "119 g",
+     "calories": 400,
+     "proteinG": 3,
+     "carbsG": 59,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 290,
+      "saturatedFatG": 4,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "l-extase",
+   "name": "L'extase",
+   "sizes": [
+    {
+     "size": "288 g",
+     "label": "288 g",
+     "calories": 830,
+     "proteinG": 6,
+     "carbsG": 114,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 88,
+      "sodiumMg": 560,
+      "saturatedFatG": 11,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-grand-frisson-coulis-chocolat",
+   "name": "Le grand frisson, coulis chocolat",
+   "sizes": [
+    {
+     "size": "218 g",
+     "label": "218 g",
+     "calories": 450,
+     "proteinG": 3,
+     "carbsG": 64,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 640,
+      "saturatedFatG": 13,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-grand-frisson-sauce-sucre-a-la-creme",
+   "name": "Le grand frisson, sauce sucre à la crème",
+   "sizes": [
+    {
+     "size": "218 g",
+     "label": "218 g",
+     "calories": 490,
+     "proteinG": 3,
+     "carbsG": 71,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 25,
+      "saturatedFatG": 15,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-new-yorkais",
+   "name": "Le new-yorkais",
+   "sizes": [
+    {
+     "size": "181 g",
+     "label": "181 g",
+     "calories": 460,
+     "proteinG": 8,
+     "carbsG": 41,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 37,
+      "sodiumMg": 300,
+      "saturatedFatG": 18,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "millefeuille-coulis-chocolat",
+   "name": "Millefeuille, coulis chocolat",
+   "sizes": [
+    {
+     "size": "150 g",
+     "label": "150 g",
+     "calories": 420,
+     "proteinG": 3,
+     "carbsG": 58,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 620,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pouding-chomeur-midigo",
+   "name": "Pouding chômeur - MidiGO",
+   "sizes": [
+    {
+     "size": "150 g",
+     "label": "150 g",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 71,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 54,
+      "sodiumMg": 150,
+      "saturatedFatG": 0.2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pouding-chomeur",
+   "name": "Pouding chômeur",
+   "sizes": [
+    {
+     "size": "431 g",
+     "label": "431 g",
+     "calories": 880,
+     "proteinG": 6,
+     "carbsG": 184,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 148,
+      "sodiumMg": 310,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "sucre-a-la-creme-st-hubert",
+   "name": "Sucre à la crème St-Hubert",
+   "sizes": [
+    {
+     "size": "40 g",
+     "label": "40 g",
+     "calories": 150,
+     "proteinG": 0.4,
+     "carbsG": 31,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 20,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "tarte-au-sucre",
+   "name": "Tarte au sucre",
+   "sizes": [
+    {
+     "size": "163 g",
+     "label": "163 g",
+     "calories": 540,
+     "proteinG": 3,
+     "carbsG": 86,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 62,
+      "sodiumMg": 340,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "ailes-de-poulet-sans-sauce-6-un",
+   "name": "Ailes de poulet, sans sauce (6 un)",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "222 g",
+     "label": "222 g",
+     "calories": 450,
+     "proteinG": 42,
+     "carbsG": 2,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1030,
+      "saturatedFatG": 9,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "batonnets-de-fromage-sans-sauce-4-un",
+   "name": "Bâtonnets de fromage, sans sauce (4 un)",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "117 g",
+     "label": "117 g",
+     "calories": 400,
+     "proteinG": 18,
+     "carbsG": 23,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1270,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-croustillantes",
+   "name": "Côtes levées croustillantes",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "5 morceaux",
+     "label": "5 morceaux",
+     "calories": 480,
+     "proteinG": 26,
+     "carbsG": 8,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 950,
+      "saturatedFatG": 14,
+      "cholesterolMg": 130
+     }
+    },
+    {
+     "size": "10 morceaux",
+     "label": "10 morceaux",
+     "calories": 1069,
+     "proteinG": 55,
+     "carbsG": 33,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 23,
+      "sodiumMg": 6474,
+      "saturatedFatG": 29,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "minirouleaux-de-printemps-sans-sauce-4-un",
+   "name": "Minirouleaux de printemps, sans sauce (4 un)",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "98 g",
+     "label": "98 g",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 28,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 390,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nachos-gratines",
+   "name": "Nachos gratinés",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "1 4 portion",
+     "label": "1/4 portion",
+     "calories": 389,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3.5,
+      "sugarG": 3,
+      "sodiumMg": 802,
+      "saturatedFatG": 10,
+      "cholesterolMg": 43
+     }
+    }
+   ]
+  },
+  {
+   "id": "la-sauvagine-fondante",
+   "name": "La sauvagine fondante",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "313 g",
+     "label": "313 g",
+     "calories": 990,
+     "proteinG": 33,
+     "carbsG": 92,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 33,
+      "sodiumMg": 1120,
+      "saturatedFatG": 32,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "nachos-gratines-au-poulet-grille",
+   "name": "Nachos gratinés au poulet grillé",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "1 4 portion",
+     "label": "1/4 portion",
+     "calories": 416,
+     "proteinG": 18,
+     "carbsG": 29,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3.5,
+      "sugarG": 2.7,
+      "sodiumMg": 897,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pique-assiette-frites-de-patates-douces",
+   "name": "Pique-assiette – Frites de patates douces",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "175 g",
+     "label": "175 g",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 47,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 450,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pique-assiette-rondelles-d-oignon",
+   "name": "Pique-assiette – Rondelles d'oignon",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "84 g",
+     "label": "84 g",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 730,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lanieres-vegetales-croustillantes-6-un",
+   "name": "Lanières végétales croustillantes (6 un)",
+   "category": "Végétarien (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "137 g",
+     "label": "137 g",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 22,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 550,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-st-hubert-vege",
+   "name": "Poutine St-Hubert Végé",
+   "category": "Végétarien (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "649 g",
+     "label": "649 g",
+     "calories": 1360,
+     "proteinG": 48,
+     "carbsG": 115,
+     "fatG": 80,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 2370,
+      "saturatedFatG": 25,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-vege",
+   "name": "Wrap St-Hubert Végé",
+   "category": "Végétarien (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "212 g",
+     "label": "212 g",
+     "calories": 620,
+     "proteinG": 20,
+     "carbsG": 48,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 1,
+      "sodiumMg": 850,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-vege-cesar",
+   "name": "Wrap St-Hubert Végé - César",
+   "category": "Végétarien (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "212 g",
+     "label": "212 g",
+     "calories": 717,
+     "proteinG": 20,
+     "carbsG": 48,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 897,
+      "saturatedFatG": 7,
+      "cholesterolMg": 24
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-st-hubert-vege-thaie",
+   "name": "Wrap St-Hubert Végé - Thaie",
+   "category": "Végétarien (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "212 g",
+     "label": "212 g",
+     "calories": 629,
+     "proteinG": 20,
+     "carbsG": 65,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 17,
+      "sodiumMg": 1058,
+      "saturatedFatG": 6,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "animalerie-5-un",
+   "name": "Animalerie (5 un)",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "91 g",
+     "label": "91 g",
+     "calories": 270,
+     "proteinG": 9,
+     "carbsG": 13,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 310,
+      "saturatedFatG": 2,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "laniere-vegetales-croustillantes-4-un",
+   "name": "Lanière végétales croustillantes (4 un)",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "91 g",
+     "label": "91 g",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 370,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ovni",
+   "name": "OVNI",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "178 g",
+     "label": "178 g",
+     "calories": 470,
+     "proteinG": 17,
+     "carbsG": 43,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 860,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-heros",
+   "name": "Super héros",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "93 g",
+     "label": "93 g",
+     "calories": 220,
+     "proteinG": 19,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 230,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-a-gogo",
+   "name": "Wrap-à-gogo",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "111 g",
+     "label": "111 g",
+     "calories": 310,
+     "proteinG": 11,
+     "carbsG": 31,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 600,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "zootine",
+   "name": "Zootine",
+   "category": "Menu enfant (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "411 g",
+     "label": "411 g",
+     "calories": 890,
+     "proteinG": 28,
+     "carbsG": 70,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1400,
+      "saturatedFatG": 15,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuit-a-l-avoine-tag-on-the-go",
+   "name": "Biscuit à l'avoine (Tag-on-the-Go)",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "50 g",
+     "label": "50 g",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 12,
+      "sodiumMg": 150,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie",
+   "name": "Brownie",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "206 g",
+     "label": "206 g",
+     "calories": 600,
+     "proteinG": 6,
+     "carbsG": 84,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 70,
+      "sodiumMg": 180,
+      "saturatedFatG": 18,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "coupe-amusante-clown",
+   "name": "Coupe amusante (Clown)",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "159 g",
+     "label": "159 g",
+     "calories": 400,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 10,
+      "saturatedFatG": 16,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "crete-glacee",
+   "name": "Crête glacée",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "49 g",
+     "label": "49 g",
+     "calories": 170,
+     "proteinG": 1,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 25,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourde-de-fruit",
+   "name": "Gourde de fruit",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "90 g",
+     "label": "90 g",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gateau-vanille-sauce-sucre-a-la-creme-menu-enfant",
+   "name": "Gâteau vanillé, sauce sucre à la crème (Menu enfant)",
+   "category": "Menu enfant, desserts",
+   "sizes": [
+    {
+     "size": "99 g",
+     "label": "99 g",
+     "calories": 340,
+     "proteinG": 2,
+     "carbsG": 49,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 280,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-poulet-avec-sauce",
+   "name": "Brochette de poulet (avec sauce)",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "170 g",
+     "label": "170 g",
+     "calories": 230,
+     "proteinG": 21,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 920,
+      "saturatedFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "poitrine-grillee-texane-avec-sauce",
+   "name": "Poitrine grillée texane (avec sauce)",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "137 g",
+     "label": "137 g",
+     "calories": 140,
+     "proteinG": 20,
+     "carbsG": 8,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 760,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "poitrine-grillee-a-l-orientale-avec-sauce",
+   "name": "Poitrine grillée à l'orientale (avec sauce)",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "166 g",
+     "label": "166 g",
+     "calories": 190,
+     "proteinG": 20,
+     "carbsG": 19,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 910,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-poulet-tikka-masala-avec-sauce",
+   "name": "Brochette de poulet tikka masala (avec sauce)",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "206 g",
+     "label": "206 g",
+     "calories": 430,
+     "proteinG": 28,
+     "carbsG": 7,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 1260,
+      "saturatedFatG": 3,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-poulet-piri-piri-avec-sauce",
+   "name": "Brochette de poulet piri-piri (avec sauce)",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "206 g",
+     "label": "206 g",
+     "calories": 500,
+     "proteinG": 27,
+     "carbsG": 3,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1220,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-roti",
+   "name": "Poulet rôti",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "cuisse",
+     "label": "Cuisse",
+     "calories": 320,
+     "proteinG": 27,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 330,
+      "saturatedFatG": 6,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "demi poulet",
+     "label": "Demi poulet",
+     "calories": 770,
+     "proteinG": 83,
+     "carbsG": 0,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 920,
+      "saturatedFatG": 13,
+      "cholesterolMg": 265
+     }
+    },
+    {
+     "size": "double",
+     "label": "Double cuisse",
+     "calories": 630,
+     "proteinG": 54,
+     "carbsG": 0,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 660,
+      "saturatedFatG": 13,
+      "cholesterolMg": 200
+     }
+    },
+    {
+     "size": "poitrine",
+     "label": "Poitrine",
+     "calories": 400,
+     "proteinG": 56,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 580,
+      "saturatedFatG": 5,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-roti-piri-piri",
+   "name": "Poulet rôti piri-piri",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "cuisse",
+     "label": "Cuisse",
+     "calories": 440,
+     "proteinG": 27,
+     "carbsG": 1,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 620,
+      "saturatedFatG": 7,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "demi poulet",
+     "label": "Demi poulet",
+     "calories": 1020,
+     "proteinG": 83,
+     "carbsG": 2,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1500,
+      "saturatedFatG": 15,
+      "cholesterolMg": 265
+     }
+    },
+    {
+     "size": "double",
+     "label": "Double cuisse",
+     "calories": 880,
+     "proteinG": 54,
+     "carbsG": 2,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1250,
+      "saturatedFatG": 15,
+      "cholesterolMg": 200
+     }
+    },
+    {
+     "size": "poitrine",
+     "label": "Poitrine",
+     "calories": 530,
+     "proteinG": 56,
+     "carbsG": 1,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 870,
+      "saturatedFatG": 6,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-roti-tikka-masala",
+   "name": "Poulet rôti tikka masala",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "cuisse",
+     "label": "Cuisse",
+     "calories": 410,
+     "proteinG": 27,
+     "carbsG": 3,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 640,
+      "saturatedFatG": 7,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "poitrine",
+     "label": "Poitrine",
+     "calories": 500,
+     "proteinG": 56,
+     "carbsG": 3,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 880,
+      "saturatedFatG": 6,
+      "cholesterolMg": 165
+     }
+    },
+    {
+     "size": "demi poulet",
+     "label": "Demi poulet",
+     "calories": 970,
+     "proteinG": 84,
+     "carbsG": 5,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1540,
+      "saturatedFatG": 14,
+      "cholesterolMg": 265
+     }
+    },
+    {
+     "size": "double",
+     "label": "Double cuisse",
+     "calories": 830,
+     "proteinG": 54,
+     "carbsG": 5,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1280,
+      "saturatedFatG": 14,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-roti-asiatique-piquante",
+   "name": "Poulet rôti - asiatique piquante",
+   "category": "Poulet (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "double",
+     "label": "double cuisse",
+     "calories": 732,
+     "proteinG": 54,
+     "carbsG": 24,
+     "fatG": 405,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 18,
+      "sodiumMg": 1560,
+      "saturatedFatG": 13,
+      "cholesterolMg": 201
+     }
+    },
+    {
+     "size": "cuisse",
+     "label": "cuisse",
+     "calories": 366,
+     "proteinG": 27,
+     "carbsG": 12,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 9,
+      "sodiumMg": 780,
+      "saturatedFatG": 6.3,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "demi poulet",
+     "label": "demi-poulet",
+     "calories": 872,
+     "proteinG": 84,
+     "carbsG": 24,
+     "fatG": 419,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 18,
+      "sodiumMg": 1815,
+      "saturatedFatG": 13,
+      "cholesterolMg": 264
+     }
+    },
+    {
+     "size": "poitrine",
+     "label": "poitrine",
+     "calories": 453,
+     "proteinG": 56,
+     "carbsG": 12,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 1023,
+      "saturatedFatG": 45,
+      "cholesterolMg": 163
+     }
+    }
+   ]
+  },
+  {
+   "id": "cesar-st-hubert-proteines-au-choix",
+   "name": "César St-Hubert (Protéines au choix)",
+   "category": "Salades",
+   "sizes": [
+    {
+     "size": "315 g",
+     "label": "315 g",
+     "calories": 658,
+     "proteinG": 14,
+     "carbsG": 20,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 3,
+      "sodiumMg": 652,
+      "saturatedFatG": 12,
+      "cholesterolMg": 67
+     }
+    }
+   ]
+  },
+  {
+   "id": "maison-proteines-au-choix",
+   "name": "Maison (Protéines au choix)",
+   "category": "Salades",
+   "sizes": [
+    {
+     "size": "270 g",
+     "label": "270 g",
+     "calories": 310,
+     "proteinG": 7,
+     "carbsG": 14,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 450,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bangkok-proteines-au-choix",
+   "name": "Bangkok (Protéines au choix)",
+   "category": "Salades",
+   "sizes": [
+    {
+     "size": "320 g",
+     "label": "320 g",
+     "calories": 570,
+     "proteinG": 7,
+     "carbsG": 81,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 54,
+      "sodiumMg": 1160,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-bol-st-hub-sans-sauce-proteines-au-choix",
+   "name": "Le Bol St-Hub - Sans sauce (Protéines au choix)",
+   "category": "Bols St-Hubert (Protéines au choix)",
+   "sizes": [
+    {
+     "size": "380 g",
+     "label": "380 g",
+     "calories": 540,
+     "proteinG": 19,
+     "carbsG": 59,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1000,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-bol-st-hub-whisky-bbq-proteines-au-choix",
+   "name": "Le Bol St-Hub - Whisky BBQ (Protéines au choix)",
+   "category": "Bols St-Hubert (Protéines au choix)",
+   "sizes": [
+    {
+     "size": "400 g",
+     "label": "400 g",
+     "calories": 570,
+     "proteinG": 19,
+     "carbsG": 67,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 13,
+      "sodiumMg": 1250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-bol-st-hub-avec-sauce-piri-piri-proteines-au-choix",
+   "name": "Le Bol St-Hub - Avec sauce piri-piri (Protéines au choix)",
+   "category": "Bols St-Hubert (Protéines au choix)",
+   "sizes": [
+    {
+     "size": "400 g",
+     "label": "400 g",
+     "calories": 630,
+     "proteinG": 19,
+     "carbsG": 60,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1240,
+      "saturatedFatG": 11,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-bol-st-hub-avec-sauce-tikka-masala-proteines-au-choix",
+   "name": "Le Bol St-Hub - Avec sauce tikka masala (Protéines au choix)",
+   "category": "Bols St-Hubert (Protéines au choix)",
+   "sizes": [
+    {
+     "size": "400 g",
+     "label": "400 g",
+     "calories": 610,
+     "proteinG": 19,
+     "carbsG": 61,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-demie-sauce-originale",
+   "name": "Côtes levées – Demie, sauce originale",
+   "category": "Côtes levées de porc, Saucisses & steak ",
+   "sizes": [
+    {
+     "size": "244 g",
+     "label": "244 g",
+     "calories": 581,
+     "proteinG": 27,
+     "carbsG": 29,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 23,
+      "sodiumMg": 3393,
+      "saturatedFatG": 14,
+      "cholesterolMg": 129
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-demie-sauce-whisky-bbq",
+   "name": "Côtes levées – Demie, sauce whisky BBQ",
+   "sizes": [
+    {
+     "size": "demie",
+     "label": "Demie",
+     "calories": 625,
+     "proteinG": 27,
+     "carbsG": 39,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 32,
+      "sodiumMg": 3425,
+      "saturatedFatG": 14,
+      "cholesterolMg": 129
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-demie-sauce-pommes-a-jules",
+   "name": "Côtes levées – Demie, sauce pommes à Jules",
+   "sizes": [
+    {
+     "size": "demie",
+     "label": "Demie",
+     "calories": 597,
+     "proteinG": 27,
+     "carbsG": 35,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 26,
+      "sodiumMg": 2696,
+      "saturatedFatG": 14,
+      "cholesterolMg": 129
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-demie-sauce-asiatique-piquante",
+   "name": "Côtes levées – Demie, sauce asiatique piquante",
+   "sizes": [
+    {
+     "size": "demie",
+     "label": "Demie",
+     "calories": 635,
+     "proteinG": 27,
+     "carbsG": 44,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 3760,
+      "saturatedFatG": 14,
+      "cholesterolMg": 129
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-de-b-uf-angus",
+   "name": "Steak de bœuf Angus*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 42,
+     "carbsG": 1,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1310,
+      "saturatedFatG": 5,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "filets-epices-nashville-sans-accompagnement",
+   "name": "Filets épicés Nashville (sans accompagnement)",
+   "category": "Filets épicés Nashville (sans accompagne",
+   "sizes": [
+    {
+     "size": "3 filets",
+     "label": "3 Filets",
+     "calories": 480,
+     "proteinG": 14,
+     "carbsG": 19,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 810,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 filets",
+     "label": "4 Filets",
+     "calories": 640,
+     "proteinG": 19,
+     "carbsG": 25,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1080,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "6 filets",
+     "label": "6 Filets",
+     "calories": 960,
+     "proteinG": 28,
+     "carbsG": 38,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1620,
+      "saturatedFatG": 9,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-crevettes-originale",
+   "name": "Brochette de crevettes (Originale)",
+   "category": "Poisson et fruits de mer (sans accompagn",
+   "sizes": [
+    {
+     "size": "2 un",
+     "label": "2 un",
+     "calories": 480,
+     "proteinG": 32,
+     "carbsG": 8,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 2160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-crevettes-tikka-masala",
+   "name": "Brochette de crevettes (Tikka Masala)",
+   "category": "Poisson et fruits de mer (sans accompagn",
+   "sizes": [
+    {
+     "size": "2 un",
+     "label": "2 un",
+     "calories": 160,
+     "proteinG": 16,
+     "carbsG": 3,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 1,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-crevettes-piri-piri",
+   "name": "Brochette de crevettes (Piri-Piri)",
+   "category": "Poisson et fruits de mer (sans accompagn",
+   "sizes": [
+    {
+     "size": "2 un",
+     "label": "2 un",
+     "calories": 190,
+     "proteinG": 16,
+     "carbsG": 1,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 530,
+      "saturatedFatG": 1,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "p-tit-burger-au-poulet-croustillant-et-cornichons",
+   "name": "P’tit burger au poulet croustillant et cornichons",
+   "category": "Les Éconos (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 20.3,
+     "carbsG": 40,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1110,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-a-la-salade-de-poulet",
+   "name": "Sandwich à la salade de poulet",
+   "category": "Les Éconos (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 735,
+     "proteinG": 34,
+     "carbsG": 50,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 2.3,
+      "sugarG": 0.5,
+      "sodiumMg": 1092,
+      "saturatedFatG": 9,
+      "cholesterolMg": 87
+     }
+    }
+   ]
+  },
+  {
+   "id": "8-croquettes-de-poulet-en-forme-d-animaux",
+   "name": "8 croquettes de poulet en forme d’animaux",
+   "category": "Les Éconos (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 429,
+     "proteinG": 13.8,
+     "carbsG": 20,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7.5,
+      "sodiumMg": 490,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 37.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "p-tite-poutine-st-hubert",
+   "name": "P'tite poutine St-Hubert",
+   "category": "Les Éconos (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 936,
+     "proteinG": 26.2,
+     "carbsG": 90,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 7.1,
+      "sugarG": 5.6,
+      "sodiumMg": 2204,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-bbq",
+   "name": "Sandwich BBQ",
+   "category": "NOUVEAUX PLATS EXCLUSIFS AU DÎNER (SANS ",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 28,
+     "carbsG": 7.4,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 0.6,
+      "sodiumMg": 1256,
+      "saturatedFatG": 2.3,
+      "cholesterolMg": 79
+     }
+    }
+   ]
+  },
+  {
+   "id": "riz-au-poulet",
+   "name": "Riz au poulet",
+   "category": "NOUVEAUX PLATS EXCLUSIFS AU DÎNER (SANS ",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 35,
+     "carbsG": 99,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 43,
+      "sodiumMg": 1630,
+      "saturatedFatG": 3,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-au-beurre-et-pain-pinsa-nouveau",
+   "name": "Poulet au beurre et pain Pinsa - NOUVEAU",
+   "category": "NOUVEAUX PLATS EXCLUSIFS AU DÎNER (SANS ",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 59,
+     "carbsG": 16,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 1230,
+      "saturatedFatG": 16,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-thai",
+   "name": "Burger thaï",
+   "category": "Casino Charlevoix (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 22,
+     "carbsG": 75,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 34,
+      "sodiumMg": 1370,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-ailes-et-erable",
+   "name": "Poutine ailes et érable",
+   "category": "Casino Charlevoix (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1440,
+     "proteinG": 66,
+     "carbsG": 98,
+     "fatG": 89,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 33,
+      "sodiumMg": 3360,
+      "saturatedFatG": 32,
+      "cholesterolMg": 320
+     }
+    }
+   ]
+  },
+  {
+   "id": "oeufs-benedictine",
+   "name": "Oeufs Bénédictine",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 33,
+     "carbsG": 38,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 390
+     }
+    }
+   ]
+  },
+  {
+   "id": "oeufs-benedictine-bacon-et-fromage-suisse",
+   "name": "Oeufs Bénédictine bacon et fromage suisse",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 36,
+     "carbsG": 35,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 1170,
+      "saturatedFatG": 15,
+      "cholesterolMg": 395
+     }
+    }
+   ]
+  },
+  {
+   "id": "oeufs-benedictine-saumon-fume",
+   "name": "Oeufs Bénédictine saumon fumé",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 31,
+     "carbsG": 38,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 990,
+      "saturatedFatG": 7,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "plateau-mediterraneen",
+   "name": "Plateau Méditerranéen",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 29,
+     "carbsG": 112,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 50,
+      "sodiumMg": 770,
+      "saturatedFatG": 11,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cassolette-st-hubert-fromage-cantonnier-sans-viandes-voir-pe",
+   "name": "Cassolette St-Hubert fromage Cantonnier (sans viandes - voir Petits Extras)",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 23,
+     "carbsG": 62,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1080,
+      "saturatedFatG": 12,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "cassolette-st-hubert-fromage-chevre-sans-viandes-voir-petits",
+   "name": "Cassolette St-Hubert fromage Chèvre (sans viandes - voir Petits Extras)",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 22,
+     "carbsG": 63,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1020,
+      "saturatedFatG": 11,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepes-nature",
+   "name": "Crêpes Nature",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "3un",
+     "label": "3un",
+     "calories": 1015,
+     "proteinG": 27,
+     "carbsG": 137,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 49,
+      "sodiumMg": 1694,
+      "saturatedFatG": 6,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepes-aux-fraises-et-sucre-a-la-creme",
+   "name": "Crêpes aux fraises et sucre à la crème",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "2un",
+     "label": "2un",
+     "calories": 1129,
+     "proteinG": 19,
+     "carbsG": 166,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 122,
+      "sodiumMg": 874,
+      "saturatedFatG": 31,
+      "cholesterolMg": 194
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepes-chocobanane",
+   "name": "Crêpes chocobanane",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "2un",
+     "label": "2un",
+     "calories": 1376,
+     "proteinG": 21,
+     "carbsG": 196,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 131,
+      "sodiumMg": 1155,
+      "saturatedFatG": 49,
+      "cholesterolMg": 159
+     }
+    }
+   ]
+  },
+  {
+   "id": "gaufre-belge-aux-fruits-des-champs",
+   "name": "Gaufre Belge aux fruits des champs",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 922,
+     "proteinG": 12,
+     "carbsG": 117,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 59,
+      "sodiumMg": 634,
+      "saturatedFatG": 11,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "gaufre-belge-aux-pommes-caramelisees",
+   "name": "Gaufre Belge aux pommes caramélisées",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 757,
+     "proteinG": 12,
+     "carbsG": 109,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3.9,
+      "sugarG": 71,
+      "sodiumMg": 65,
+      "saturatedFatG": 7,
+      "cholesterolMg": 128
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-dejeuner-sans-viandes-voir-petits-extras",
+   "name": "Poutine déjeuner (sans viandes - voir Petits Extras)",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1520,
+     "proteinG": 47,
+     "carbsG": 122,
+     "fatG": 93,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 9,
+      "sodiumMg": 2390,
+      "saturatedFatG": 29,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-dejeuner-construction",
+   "name": "Poutine déjeuner Construction",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1870,
+     "proteinG": 66,
+     "carbsG": 129,
+     "fatG": 120,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 10,
+      "sodiumMg": 3580,
+      "saturatedFatG": 38,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-dejeuner-de-luxe",
+   "name": "Burger déjeuner de luxe",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 621,
+     "proteinG": 31,
+     "carbsG": 45,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1217,
+      "saturatedFatG": 5,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-dejeuner-jambon",
+   "name": "Burger déjeuner Jambon",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 31,
+     "carbsG": 33,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1430,
+      "saturatedFatG": 6,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "oeuf-miroir-poche-sans-viandes-voir-petits-extras",
+   "name": "Oeuf miroir/poché (sans viandes - voir Petits Extras)",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "1 un",
+     "label": "1 un",
+     "calories": 69,
+     "proteinG": 5,
+     "carbsG": 1,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 57,
+      "saturatedFatG": 1,
+      "cholesterolMg": 172
+     }
+    },
+    {
+     "size": "2 un",
+     "label": "2 un",
+     "calories": 131,
+     "proteinG": 11,
+     "carbsG": 2,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 115,
+      "saturatedFatG": 3,
+      "cholesterolMg": 344
+     }
+    }
+   ]
+  },
+  {
+   "id": "assiette-brunch-2-oeufs-miroir-poche-sans-viandes-voir-petit",
+   "name": "Assiette Brunch - (2) Oeufs miroir/poché (sans viandes - voir Petits Extras)",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 131,
+     "proteinG": 11,
+     "carbsG": 2,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 115,
+      "saturatedFatG": 3,
+      "cholesterolMg": 344
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-dejeuner",
+   "name": "Club Sandwich Déjeuner",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 15,
+     "carbsG": 63,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 994,
+      "saturatedFatG": 6,
+      "cholesterolMg": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "pain-dore-avec-sirop-d-erable",
+   "name": "Pain Doré avec sirop d'érable",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "2un",
+     "label": "2un",
+     "calories": 470,
+     "proteinG": 25,
+     "carbsG": 60,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 35,
+      "sodiumMg": 600,
+      "saturatedFatG": 5,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-dejeuner",
+   "name": "Wrap Déjeuner",
+   "category": "Déjeuner Gaspé (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 28,
+     "carbsG": 49,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 4,
+      "sodiumMg": 1130,
+      "saturatedFatG": 10,
+      "cholesterolMg": 420
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-dejeuner-madrid",
+   "name": "Wrap Déjeuner - Madrid",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 21,
+     "carbsG": 43,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1070,
+      "saturatedFatG": 9,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-dejeuner-blt",
+   "name": "Wrap Déjeuner BLT",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 22,
+     "carbsG": 44,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1070,
+      "saturatedFatG": 9,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-dejeuner",
+   "name": "Burger déjeuner",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 20,
+     "carbsG": 33,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1030,
+      "saturatedFatG": 7,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-dejeuner-blt",
+   "name": "Burger déjeuner BLT",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 20,
+     "carbsG": 34,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 1030,
+      "saturatedFatG": 7,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "grill-cheese",
+   "name": "Grill Cheese",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 22,
+     "carbsG": 4,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 1200,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "bouchees-de-pommes-de-terre-taters",
+   "name": "Bouchées de pommes de terre Taters",
+   "category": "Déjeuner Madrid (sans accompagnement)",
+   "sizes": [
+    {
+     "size": "portion",
+     "label": "portion",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 33,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 840,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "salade-de-poulet-roti",
+   "name": "Salade de poulet rôti",
+   "category": "Menu Choix Sensé",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 38,
+     "carbsG": 24,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 18,
+      "sodiumMg": 1120,
+      "saturatedFatG": 9,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-roti-et-legumes",
+   "name": "Poulet rôti et légumes",
+   "category": "Menu Choix Sensé",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 29,
+     "carbsG": 21,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 820,
+      "saturatedFatG": 2,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "bol-de-crevettes",
+   "name": "Bol de crevettes",
+   "category": "Menu Choix Sensé",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 29,
+     "carbsG": 61,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 6,
+      "sodiumMg": 1230,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "biscuit-soda-pour-soupe",
+   "name": "Biscuit soda pour soupe",
+   "group": "add-on",
+   "unit": "5.6 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.5,
+    "carbsG": 5,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 45,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "vinaigrette-satay-epicee-au-beurre-de-soya",
+   "name": "Vinaigrette satay épicée au beurre de soya",
+   "group": "dressing",
+   "unit": "50g",
+   "per": {
+    "calories": 200,
+    "proteinG": 2,
+    "carbsG": 18,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 15,
+     "sodiumMg": 250,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-soja-kikkoman",
+   "name": "Sauce soja Kikkoman",
+   "group": "sauce",
+   "unit": "6g",
+   "per": {
+    "calories": 4,
+    "proteinG": 0.5,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 211,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "beurre",
+   "name": "Beurre",
+   "group": "other",
+   "unit": "5.5 g",
+   "per": {
+    "calories": 40,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 40,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "creme-sure",
+   "name": "Crème sûre",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 90,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 20,
+     "saturatedFatG": 5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "mayonnaise-epicee",
+   "name": "Mayonnaise épicée",
+   "group": "sauce",
+   "unit": "40 g",
+   "per": {
+    "calories": 260,
+    "proteinG": 0.2,
+    "carbsG": 1,
+    "fatG": 29,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 280,
+     "saturatedFatG": 4,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "mayonnaise-sachet",
+   "name": "Mayonnaise, sachet",
+   "group": "sauce",
+   "unit": "11 g",
+   "per": {
+    "calories": 80,
+    "proteinG": 0.1,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 55,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "sauce-aigre-douce-coupelle",
+   "name": "Sauce aigre-douce, coupelle",
+   "group": "sauce",
+   "unit": "25 g",
+   "per": {
+    "calories": 50,
+    "proteinG": 0.1,
+    "carbsG": 11,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 125,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-ailes-de-poulet",
+   "name": "Sauce ailes de poulet",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 0.3,
+    "carbsG": 21,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 770,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-barbecue-st-hubert",
+   "name": "Sauce barbecue St-Hubert",
+   "group": "sauce",
+   "unit": "120 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 940,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "sauce-whisky-bbq",
+   "name": "Sauce whisky BBQ",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 1,
+    "carbsG": 22,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 19,
+     "sodiumMg": 680,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-bbq-coupelle",
+   "name": "Sauce BBQ, coupelle",
+   "group": "sauce",
+   "per": {
+    "calories": 35,
+    "proteinG": 0.2,
+    "carbsG": 8,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-fruitee-coupelle",
+   "name": "Sauce fruitée, coupelle",
+   "group": "sauce",
+   "unit": "21 g",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 7,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 10,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-miel-coupelle",
+   "name": "Sauce miel, coupelle",
+   "group": "sauce",
+   "unit": "21g",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 22,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 19,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-marinara-pour-batonnets-de-fromage",
+   "name": "Sauce marinara pour bâtonnets de fromage",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 45,
+    "proteinG": 0.4,
+    "carbsG": 5,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 210,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-moutarde-coupelle",
+   "name": "Sauce moutarde, coupelle",
+   "group": "sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 0.4,
+    "carbsG": 6,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 230,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-piri-piri",
+   "name": "Sauce piri-piri",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 280,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 29,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 640,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-poivre-et-brandy-pour-steak-de-b-uf-angus",
+   "name": "Sauce poivre et brandy pour steak de bœuf Angus",
+   "group": "sauce",
+   "unit": "40 g",
+   "per": {
+    "calories": 15,
+    "proteinG": 0.4,
+    "carbsG": 2,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 220,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-tartare-fish-and-chips",
+   "name": "Sauce tartare (fish and chips)",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 290,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 350,
+     "saturatedFatG": 3,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "sauce-thaie-pour-minirouleaux-de-printemps",
+   "name": "Sauce thaïe pour minirouleaux de printemps",
+   "group": "sauce",
+   "unit": "40 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 0.4,
+    "carbsG": 28,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 26,
+     "sodiumMg": 440,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-tikka-masala",
+   "name": "Sauce tikka masala",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 210,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 21,
+    "micros": {
+     "sugarG": 3,
+     "sodiumMg": 680,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-vege-st-hubert-sauce-hot-chicken",
+   "name": "Sauce végé St-Hubert (sauce hot chicken)",
+   "group": "sauce",
+   "unit": "120 g",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 500,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tartinade-aux-poivrons-rouges",
+   "name": "Tartinade aux poivrons rouges",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 340,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 37,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 510,
+     "saturatedFatG": 3,
+     "cholesterolMg": 45
+    }
+   }
+  },
+  {
+   "id": "vinaigrette-balsamique-blanc",
+   "name": "Vinaigrette balsamique blanc",
+   "group": "dressing",
+   "unit": "50 g",
+   "per": {
+    "calories": 250,
+    "proteinG": 0.3,
+    "carbsG": 6,
+    "fatG": 25,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 310,
+     "saturatedFatG": 2,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "vinaigrette-cesar",
+   "name": "Vinaigrette césar",
+   "group": "dressing",
+   "unit": "40 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 0.4,
+    "carbsG": 1,
+    "fatG": 26,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 180,
+     "saturatedFatG": 2,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "vinaigrette-maison",
+   "name": "Vinaigrette maison",
+   "group": "dressing",
+   "unit": "44 g",
+   "per": {
+    "calories": 180,
+    "proteinG": 0.1,
+    "carbsG": 3,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 380,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-classique",
+   "name": "Sauce classique",
+   "group": "sauce",
+   "unit": "55 g",
+   "per": {
+    "calories": 59,
+    "proteinG": 0.7,
+    "carbsG": 13,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 0.9,
+     "sugarG": 10,
+     "sodiumMg": 650,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-creme-glacee-vanille",
+   "name": "Sundae à personnaliser - Crème glacée vanille",
+   "group": "topping",
+   "unit": "100 g",
+   "per": {
+    "calories": 190,
+    "proteinG": 1,
+    "carbsG": 25,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 23,
+     "saturatedFatG": 6,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-coulis-de-fraises",
+   "name": "Sundae à personnaliser - Coulis de fraises",
+   "group": "sauce",
+   "unit": "30 g",
+   "per": {
+    "calories": 35,
+    "proteinG": 0.2,
+    "carbsG": 8,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-sauce-fudge-chocolatee",
+   "name": "Sundae à personnaliser - Sauce fudge chocolatée",
+   "group": "sauce",
+   "unit": "30 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 1,
+    "carbsG": 17,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 55,
+     "saturatedFatG": 4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-sauce-sucre-a-la-creme",
+   "name": "Sundae à personnaliser - Sauce sucre à la crème",
+   "group": "sauce",
+   "unit": "30 g",
+   "per": {
+    "calories": 90,
+    "proteinG": 0.5,
+    "carbsG": 17,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 16,
+     "sodiumMg": 10,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-perles-chocolatees",
+   "name": "Sundae à personnaliser - Perles chocolatées",
+   "group": "topping",
+   "unit": "5 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.3,
+    "carbsG": 3,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 15,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-chocolat-m-and-m-mini",
+   "name": "Sundae à personnaliser - Chocolat M&M mini",
+   "group": "topping",
+   "unit": "5 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.3,
+    "carbsG": 4,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 4,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sundae-a-personnaliser-vermicelle-arc-en-ciel",
+   "name": "Sundae à personnaliser -Vermicelle arc-en-ciel",
+   "group": "topping",
+   "unit": "5 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 0,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "poitrine-de-poulet-rotie",
+   "name": "Poitrine de poulet rôtie",
+   "group": "protein",
+   "unit": "166 g",
+   "per": {
+    "calories": 243,
+    "proteinG": 49,
+    "carbsG": 0,
+    "fatG": 3.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 274,
+     "saturatedFatG": 1,
+     "cholesterolMg": 124
+    }
+   }
+  },
+  {
+   "id": "poitrine-de-poulet-grillee",
+   "name": "Poitrine de poulet grillée",
+   "group": "protein",
+   "unit": "106 g",
+   "per": {
+    "calories": 109,
+    "proteinG": 20,
+    "carbsG": 0,
+    "fatG": 3,
+    "micros": {
+     "sugarG": 0,
+     "sodiumMg": 380,
+     "saturatedFatG": 1,
+     "cholesterolMg": 69
+    }
+   }
+  },
+  {
+   "id": "filets-de-poitrine-croustillants-3-un",
+   "name": "Filets de poitrine croustillants (3 un)",
+   "group": "protein",
+   "unit": "162 g",
+   "per": {
+    "calories": 391,
+    "proteinG": 20,
+    "carbsG": 24,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 6,
+     "sodiumMg": 600,
+     "saturatedFatG": 2,
+     "cholesterolMg": 45
+    }
+   }
+  },
+  {
+   "id": "lanieres-vege-croustillantes",
+   "name": "Lanières végé croustillantes",
+   "group": "protein",
+   "unit": "178 g",
+   "per": {
+    "calories": 155,
+    "proteinG": 18,
+    "carbsG": 25,
+    "fatG": 25,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 627,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-oeuf-miroir",
+   "name": "(1) Oeuf miroir",
+   "group": "add-on",
+   "unit": "1 un",
+   "per": {
+    "calories": 69,
+    "proteinG": 5,
+    "carbsG": 1,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 57,
+     "saturatedFatG": 1,
+     "cholesterolMg": 172
+    }
+   }
+  },
+  {
+   "id": "jambon-effiloche",
+   "name": "Jambon effiloché",
+   "group": "add-on",
+   "unit": "90 g",
+   "per": {
+    "calories": 108,
+    "proteinG": 14,
+    "carbsG": 4,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 675,
+     "saturatedFatG": 1,
+     "cholesterolMg": 45
+    }
+   }
+  },
+  {
+   "id": "3-bacon",
+   "name": "(3) Bacon",
+   "group": "add-on",
+   "unit": "3 tranches",
+   "per": {
+    "calories": 98,
+    "proteinG": 8,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 435,
+     "saturatedFatG": 3,
+     "cholesterolMg": 23
+    }
+   }
+  },
+  {
+   "id": "2-saucisses",
+   "name": "(2) Saucisses",
+   "group": "add-on",
+   "unit": "2 saucisses",
+   "per": {
+    "calories": 240,
+    "proteinG": 7,
+    "carbsG": 5,
+    "fatG": 21,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 560,
+     "saturatedFatG": 6,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "feves-au-lard",
+   "name": "Fèves au lard",
+   "group": "add-on",
+   "unit": "90 g",
+   "per": {
+    "calories": 137,
+    "proteinG": 6,
+    "carbsG": 22,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 6,
+     "sodiumMg": 353,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roties-blanc-ou-brun",
+   "name": "Rôties (Blanc ou Brun)",
+   "group": "bread",
+   "unit": "90 g",
+   "per": {
+    "calories": 279,
+    "proteinG": 7,
+    "carbsG": 39,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 4,
+     "sodiumMg": 422,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tartinades-2-unites-fraises-framboises-marmelade",
+   "name": "Tartinades 2 unités (fraises-framboises-marmelade)",
+   "group": "other",
+   "unit": "2 unités",
+   "per": {
+    "calories": 69,
+    "proteinG": 0,
+    "carbsG": 17,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pomme-de-terre",
+   "name": "Pomme de terre",
+   "group": "add-on",
+   "unit": "192 g",
+   "per": {
+    "calories": 311,
+    "proteinG": 4,
+    "carbsG": 53,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 0,
+     "sodiumMg": 447,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sirop-d-erable-pur",
+   "name": "Sirop d'érable pur",
+   "group": "syrup",
+   "unit": "60 g",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 26,
+     "sodiumMg": 5,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pain-de-menage-blanc",
+   "name": "Pain de ménage, blanc",
+   "group": "bread",
+   "unit": "113 g",
+   "per": {
+    "calories": 260,
+    "proteinG": 9,
+    "carbsG": 51,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 3,
+     "sodiumMg": 410,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "creton-1-un",
+   "name": "Creton (1 un)",
+   "group": "add-on",
+   "unit": "1 un",
+   "per": {
+    "calories": 45,
+    "proteinG": 4,
+    "carbsG": 1,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 180,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  }
+ ]
+}

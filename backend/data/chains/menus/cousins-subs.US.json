@@ -1,0 +1,2494 @@
+{
+ "chain": "cousins-subs",
+ "country": "US",
+ "source": {
+  "url": "https://www.cousinssubs.com/api/media/file/Nutritional-Information-2026-05-21.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "chicken-cheese-steak-sub",
+   "name": "Chicken Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 490,
+     "proteinG": 38,
+     "carbsG": 44,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1280,
+      "saturatedFatG": 8,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-cheese-steak-sub",
+   "name": "Steak Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 510,
+     "proteinG": 45,
+     "carbsG": 46,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1350,
+      "saturatedFatG": 9,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-philly-sub",
+   "name": "Chicken Philly Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 560,
+     "proteinG": 35,
+     "carbsG": 49,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1480,
+      "saturatedFatG": 10,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-philly-sub",
+   "name": "Steak Philly Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 570,
+     "proteinG": 42,
+     "carbsG": 50,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1560,
+      "saturatedFatG": 10,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-bacon-cheddar-sub",
+   "name": "Chicken Bacon Cheddar Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 560,
+     "proteinG": 42,
+     "carbsG": 45,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1270,
+      "saturatedFatG": 10,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-bacon-cheddar-sub",
+   "name": "Steak Bacon Cheddar Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 580,
+     "proteinG": 48,
+     "carbsG": 46,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1350,
+      "saturatedFatG": 11,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-wi-cheese-steak-sub",
+   "name": "Chicken WI Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 710,
+     "proteinG": 46,
+     "carbsG": 47,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1800,
+      "saturatedFatG": 16,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-wi-cheese-steak-sub",
+   "name": "Steak WI Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 730,
+     "proteinG": 52,
+     "carbsG": 49,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1870,
+      "saturatedFatG": 16,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "dbl-chicken-cheese-steak-sub",
+   "name": "Dbl Chicken Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 740,
+     "proteinG": 66,
+     "carbsG": 44,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1940,
+      "saturatedFatG": 16,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "dbl-steak-cheese-steak-sub",
+   "name": "Dbl Steak Cheese Steak Sub",
+   "category": "Grilled to Order Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 770,
+     "proteinG": 79,
+     "carbsG": 47,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 2090,
+      "saturatedFatG": 17,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sub",
+   "name": "Club Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 620,
+     "proteinG": 36,
+     "carbsG": 47,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1710,
+      "saturatedFatG": 9,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-special-sub",
+   "name": "Italian Special Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 810,
+     "proteinG": 37,
+     "carbsG": 47,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 2090,
+      "saturatedFatG": 17,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-melt-sub",
+   "name": "Pepperoni Melt Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 670,
+     "proteinG": 30,
+     "carbsG": 46,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1770,
+      "saturatedFatG": 12,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-and-provolone-sub",
+   "name": "Meatball & Provolone Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 740,
+     "proteinG": 40,
+     "carbsG": 55,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 1950,
+      "saturatedFatG": 17,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna-sub",
+   "name": "Tuna Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 610,
+     "proteinG": 26,
+     "carbsG": 45,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 960,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "blt-sub",
+   "name": "BLT Sub",
+   "category": "Classics Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 630,
+     "proteinG": 23,
+     "carbsG": 43,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-provolone-sub",
+   "name": "Ham & Provolone Sub",
+   "category": "Deli Fresh Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 590,
+     "proteinG": 29,
+     "carbsG": 46,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1470,
+      "saturatedFatG": 9,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-breast-sub",
+   "name": "Turkey Breast Sub",
+   "category": "Deli Fresh Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 500,
+     "proteinG": 24,
+     "carbsG": 46,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1250,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-sub",
+   "name": "Veggie Sub",
+   "category": "Deli Fresh Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 320,
+     "proteinG": 17,
+     "carbsG": 46,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 650,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "roast-beef-and-cheddar-sub",
+   "name": "Roast Beef & Cheddar Sub",
+   "category": "Deli Fresh Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 700,
+     "proteinG": 42,
+     "carbsG": 46,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1060,
+      "saturatedFatG": 11,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheddar-deluxe-sub",
+   "name": "Chicken Cheddar Deluxe Sub",
+   "category": "Deli Fresh Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 710,
+     "proteinG": 41,
+     "carbsG": 47,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1740,
+      "saturatedFatG": 12,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "provolone-sub",
+   "name": "Provolone Sub",
+   "category": "Secret Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 640,
+     "proteinG": 26,
+     "carbsG": 45,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1100,
+      "saturatedFatG": 14,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "genoa-and-cheese-sub",
+   "name": "Genoa & Cheese Sub",
+   "category": "Secret Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 650,
+     "proteinG": 25,
+     "carbsG": 44,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1310,
+      "saturatedFatG": 13,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-veggie-sub",
+   "name": "Hot Veggie Sub",
+   "category": "Secret Subs",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 550,
+     "proteinG": 26,
+     "carbsG": 49,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1050,
+      "saturatedFatG": 11,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheese-steak-bowl",
+   "name": "Chicken Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 280,
+     "proteinG": 30,
+     "carbsG": 6,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 840,
+      "saturatedFatG": 8,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-cheese-steak-bowl",
+   "name": "Steak Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 290,
+     "proteinG": 36,
+     "carbsG": 7,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 920,
+      "saturatedFatG": 8,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-philly-bowl",
+   "name": "Chicken Philly Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 350,
+     "proteinG": 27,
+     "carbsG": 12,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sodiumMg": 1050,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-philly-bowl",
+   "name": "Steak Philly Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 360,
+     "proteinG": 34,
+     "carbsG": 13,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sodiumMg": 1120,
+      "saturatedFatG": 9,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-bacon-cheddar-bowl",
+   "name": "Chicken Bacon Cheddar Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 350,
+     "proteinG": 33,
+     "carbsG": 7,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 840,
+      "saturatedFatG": 9,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-bacon-cheddar-bowl",
+   "name": "Steak Bacon Cheddar Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 370,
+     "proteinG": 40,
+     "carbsG": 8,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 910,
+      "saturatedFatG": 10,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-wi-cheese-steak-bowl",
+   "name": "Chicken WI Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 500,
+     "proteinG": 38,
+     "carbsG": 10,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sodiumMg": 1370,
+      "saturatedFatG": 15,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-wi-cheese-steak-bowl",
+   "name": "Steak WI Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 520,
+     "proteinG": 44,
+     "carbsG": 11,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sodiumMg": 1440,
+      "saturatedFatG": 15,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "dbl-chicken-cheese-steak-bowl",
+   "name": "Dbl Chicken Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 530,
+     "proteinG": 58,
+     "carbsG": 6,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1510,
+      "saturatedFatG": 15,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "dbl-steak-cheese-steak-bowl",
+   "name": "Dbl Steak Cheese Steak Bowl",
+   "category": "Grilled to Order Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 560,
+     "proteinG": 71,
+     "carbsG": 9,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1650,
+      "saturatedFatG": 16,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-bowl",
+   "name": "Club Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 210,
+     "proteinG": 28,
+     "carbsG": 9,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1500,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-special-bowl",
+   "name": "Italian Special Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 410,
+     "proteinG": 28,
+     "carbsG": 8,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1650,
+      "saturatedFatG": 13,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-melt-bowl",
+   "name": "Pepperoni Melt Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 260,
+     "proteinG": 21,
+     "carbsG": 7,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1170,
+      "saturatedFatG": 8,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-and-provolone-bowl",
+   "name": "Meatball & Provolone Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 540,
+     "proteinG": 32,
+     "carbsG": 18,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1520,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna-bowl",
+   "name": "Tuna Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 400,
+     "proteinG": 18,
+     "carbsG": 6,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 530,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "blt-bowl",
+   "name": "BLT Bowl",
+   "category": "Classics Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 220,
+     "proteinG": 14,
+     "carbsG": 5,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sodiumMg": 650,
+      "saturatedFatG": 6,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-provolone-bowl",
+   "name": "Ham & Provolone Bowl",
+   "category": "Deli Fresh Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 190,
+     "proteinG": 20,
+     "carbsG": 7,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1010,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-breast-bowl",
+   "name": "Turkey Breast Bowl",
+   "category": "Deli Fresh Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 100,
+     "proteinG": 19,
+     "carbsG": 8,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 740,
+      "saturatedFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-bowl",
+   "name": "Veggie Bowl",
+   "category": "Deli Fresh Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 110,
+     "proteinG": 8,
+     "carbsG": 7,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 210,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "roast-beef-and-cheddar-bowl",
+   "name": "Roast Beef & Cheddar Bowl",
+   "category": "Deli Fresh Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 290,
+     "proteinG": 33,
+     "carbsG": 8,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 460,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheddar-deluxe-bowl",
+   "name": "Chicken Cheddar Deluxe Bowl",
+   "category": "Deli Fresh Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 300,
+     "proteinG": 32,
+     "carbsG": 8,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1130,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "provolone-bowl",
+   "name": "Provolone Bowl",
+   "category": "Secret Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 230,
+     "proteinG": 17,
+     "carbsG": 6,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 500,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "genoa-and-cheese-bowl",
+   "name": "Genoa & Cheese Bowl",
+   "category": "Secret Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 240,
+     "proteinG": 16,
+     "carbsG": 6,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 870,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-veggie-bowl",
+   "name": "Hot Veggie Bowl",
+   "category": "Secret Bowls",
+   "sizes": [
+    {
+     "size": "7 5",
+     "label": "7.5\"",
+     "calories": 340,
+     "proteinG": 18,
+     "carbsG": 11,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 620,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-fries",
+   "name": "French Fries",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 470,
+     "proteinG": 6,
+     "carbsG": 57,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 420,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chili-cheese-fries",
+   "name": "Chili Cheese Fries",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 26,
+     "carbsG": 80,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 1770,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "wi-cheese-curds",
+   "name": "WI Cheese Curds",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 680,
+     "proteinG": 30,
+     "carbsG": 13,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 860,
+      "saturatedFatG": 27,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 1380,
+     "proteinG": 61,
+     "carbsG": 26,
+     "fatG": 113,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1730,
+      "saturatedFatG": 54,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-cousins-plain",
+   "name": "Chips - Cousins Plain",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 23,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 300,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-cousins-sc-and-onion",
+   "name": "Chips - Cousins SC & Onion",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 23,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 330,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-cousins-bbq",
+   "name": "Chips - Cousins BBQ",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 24,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 310,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-party-size-plain",
+   "name": "Chips - Party Size Plain",
+   "category": "Fries, Curds, Chips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1800,
+     "proteinG": 12,
+     "carbsG": 180,
+     "fatG": 120,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 12,
+      "sodiumMg": 2400,
+      "saturatedFatG": 18,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chili",
+   "name": "Chili",
+   "category": "Soups & Chili",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "BOWL",
+     "calories": 380,
+     "proteinG": 25,
+     "carbsG": 32,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 11,
+      "sodiumMg": 1290,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "cup",
+     "label": "CUP",
+     "calories": 240,
+     "proteinG": 16,
+     "carbsG": 20,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 820,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "broccoli-cheese",
+   "name": "Broccoli Cheese",
+   "category": "Soups & Chili",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "BOWL",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 12,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "cup",
+     "label": "CUP",
+     "calories": 140,
+     "proteinG": 3,
+     "carbsG": 8,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 750,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip",
+   "name": "Chocolate Chip",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 27,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 18,
+      "sodiumMg": 220,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "pb-w-reese-s-pieces",
+   "name": "PB W/Reese's Pieces",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 22,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 10,
+      "sodiumMg": 180,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-choc-chunk-macadamia",
+   "name": "White Choc. Chunk Macadamia",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 135,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "wi-mac-and-cheese",
+   "name": "WI Mac & Cheese",
+   "category": "Mac & Chz",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "BOWL",
+     "calories": 410,
+     "proteinG": 19,
+     "carbsG": 36,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 1460,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "cup",
+     "label": "CUP",
+     "calories": 290,
+     "proteinG": 13,
+     "carbsG": 25,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 1020,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 135,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke",
+   "name": "Coke",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 116,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 116,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-coke",
+   "name": "Cherry Coke",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 122,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 122,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-fruit-punch",
+   "name": "Hi-C Fruit Punch",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 123,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 120,
+      "sodiumMg": 150,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-pink-lemonade",
+   "name": "Hi-C Pink Lemonade",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 114,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 109,
+      "sodiumMg": 280,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-c-orange",
+   "name": "Hi-C Orange",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 131,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 127,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 82,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mello-yellow",
+   "name": "Mello Yellow",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 123,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 123,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 77,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-lemonade",
+   "name": "Minute Maid Lemonade",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 115,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 109,
+      "sodiumMg": 280,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fanta-orange",
+   "name": "Fanta Orange",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 122,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 122,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barqs-root-beer",
+   "name": "Barqs Root Beer",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 130,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 130,
+      "sodiumMg": 200,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 81,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 81,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprecher-root-beer",
+   "name": "Sprecher Root Beer",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 275,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 112,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 112,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-sprite-zero",
+   "name": "Diet Sprite Zero",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr. Pepper",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-dr-pepper",
+   "name": "Diet Dr. Pepper",
+   "category": "Fountain Drinks",
+   "sizes": [
+    {
+     "size": "lg",
+     "label": "LG",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "reg",
+     "label": "REG",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake",
+   "name": "Vanilla Shake",
+   "category": "Shakes & Floats",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 510,
+     "proteinG": 9,
+     "carbsG": 68,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 56,
+      "sodiumMg": 160,
+      "saturatedFatG": 16,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 14,
+     "carbsG": 105,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 87,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake",
+   "name": "Chocolate Shake",
+   "category": "Shakes & Floats",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 650,
+     "proteinG": 8,
+     "carbsG": 109,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 91,
+      "sodiumMg": 170,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 13,
+     "carbsG": 165,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 138,
+      "sodiumMg": 270,
+      "saturatedFatG": 21,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shake",
+   "name": "Strawberry Shake",
+   "category": "Shakes & Floats",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 550,
+     "proteinG": 8,
+     "carbsG": 79,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 160,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 14,
+     "carbsG": 130,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-shake",
+   "name": "Mint Shake",
+   "category": "Shakes & Floats",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 540,
+     "proteinG": 8,
+     "carbsG": 81,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 160,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 14,
+     "carbsG": 134,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 87,
+      "sodiumMg": 260,
+      "saturatedFatG": 21,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "float-w-o-soda",
+   "name": "Float W/O Soda",
+   "category": "Shakes & Floats",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 27,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 70,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 6,
+     "carbsG": 44,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 115,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-provolone",
+   "name": "Ham & Provolone",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 16,
+     "carbsG": 31,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 880,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-breast",
+   "name": "Turkey Breast",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 16,
+     "carbsG": 31,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 850,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "salami-and-provolone",
+   "name": "Salami & Provolone",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 30,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 800,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna",
+   "name": "Tuna",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 30,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 560,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "meatball-and-provolone",
+   "name": "Meatball & Provolone",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 19,
+     "carbsG": 35,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 970,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie",
+   "name": "Veggie",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 31,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 410,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-special",
+   "name": "Italian Special",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 18,
+     "carbsG": 31,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "club",
+   "name": "Club",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 20,
+     "carbsG": 31,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 980,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "provolone",
+   "name": "Provolone",
+   "category": "Kid's Subs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 16,
+     "carbsG": 30,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 690,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "cheese-sauce-on-the-side",
+   "name": "Cheese Sauce on the Side",
+   "group": "sauce",
+   "unit": "57g",
+   "per": {
+    "calories": 110,
+    "proteinG": 5,
+    "carbsG": 3,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sodiumMg": 530,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "mayonnaise",
+   "name": "Mayonnaise",
+   "group": "sauce",
+   "unit": "1 oz.",
+   "per": {
+    "calories": 203,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 170,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "oil",
+   "name": "Oil",
+   "group": "sauce",
+   "unit": ".5 oz.",
+   "per": {
+    "calories": 132,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lettuce",
+   "name": "Lettuce",
+   "group": "topping",
+   "unit": "1 oz.",
+   "per": {
+    "calories": 4,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 3,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "spring-mix",
+   "name": "Spring Mix",
+   "group": "topping",
+   "unit": "1 oz.",
+   "per": {
+    "calories": 7,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 8,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "onions",
+   "name": "Onions",
+   "group": "topping",
+   "unit": ".5 oz.",
+   "per": {
+    "calories": 6,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tomatoes",
+   "name": "Tomatoes",
+   "group": "topping",
+   "unit": "3 slices",
+   "per": {
+    "calories": 6,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bacon",
+   "name": "Bacon",
+   "group": "topping",
+   "unit": "2 slices",
+   "per": {
+    "calories": 80,
+    "proteinG": 5,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 250,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 20
+    }
+   }
+  }
+ ]
+}

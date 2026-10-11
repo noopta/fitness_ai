@@ -1,0 +1,545 @@
+{
+ "chain": "nandos",
+ "country": "CA",
+ "source": {
+  "url": "https://assets.ctfassets.net/xlzobf9ybr6d/kYavOsQXH0B1uwA5v1yB4/db96790e480517cc0bc8b2b0aaaf9907/153634_Nan_Nutritionals_Allergen_Guide_v2_Jun2025_11x8.5_web.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "coleslaw",
+   "name": "Coleslaw",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 440,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 620,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 14,
+      "sodiumMg": 1310,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "shareable",
+     "label": "Shareable",
+     "calories": 1240,
+     "proteinG": 6,
+     "carbsG": 45,
+     "fatG": 115,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 29,
+      "sodiumMg": 2610,
+      "saturatedFatG": 9,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "flame-grilled-corn-on-the-cob",
+   "name": "Flame-Grilled Corn on the Cob",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 32,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 30,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 310,
+     "proteinG": 9,
+     "carbsG": 62,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 60,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-mashed-potatoes",
+   "name": "Garlic Mashed Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 610,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 470,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 1220,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "golden-cauliflower",
+   "name": "Golden Cauliflower",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 5,
+     "carbsG": 23,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 16,
+      "sodiumMg": 410,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 420,
+     "proteinG": 10,
+     "carbsG": 47,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 32,
+      "sodiumMg": 830,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-fries",
+   "name": "PERi-Fries",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 48,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 1480,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 610,
+     "proteinG": 7,
+     "carbsG": 70,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 0,
+      "sodiumMg": 2171,
+      "saturatedFatG": 2.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-honey-sweet-potatoes",
+   "name": "PERi Honey Sweet Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 8,
+     "carbsG": 53,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 22,
+      "sodiumMg": 780,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 13,
+     "carbsG": 94,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 42,
+      "sodiumMg": 1030,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-mac",
+   "name": "PERi Mac",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 33,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 690,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 6,
+     "carbsG": 66,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 1390,
+      "saturatedFatG": 15,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-wedges",
+   "name": "PERi-Wedges",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 4,
+     "carbsG": 48,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 620,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 660,
+     "proteinG": 6,
+     "carbsG": 82,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 0,
+      "sodiumMg": 940,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spiced-rice",
+   "name": "Spiced Rice",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 44,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 650,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 480,
+     "proteinG": 8,
+     "carbsG": 89,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 1290,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "shareable",
+     "label": "Shareable",
+     "calories": 970,
+     "proteinG": 16,
+     "carbsG": 178,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 2580,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-caesar",
+   "name": "Spicy Caesar",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 7,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 520,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 590,
+     "proteinG": 11,
+     "carbsG": 18,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1360,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-bread",
+   "name": "Garlic Bread",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 7,
+     "carbsG": 47,
+     "fatG": 31.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 730,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-halloumi-cheese-sticks-and-dip-a-k-a-chilli-jam",
+   "name": "Grilled Halloumi Cheese Sticks & Dip (a.k.a. Chilli Jam)",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 33,
+     "carbsG": 33,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 1670,
+      "saturatedFatG": 28,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "hummus-and-pita-with-peri-peri-drizzle",
+   "name": "Hummus and Pita with PERi-PERi Drizzle",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 20,
+     "carbsG": 97,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 3,
+      "sodiumMg": 1370,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-peri-whole-wings-with-peri-ranch-5",
+   "name": "PERi-PERi Whole Wings with PERi Ranch (5)",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 38,
+     "carbsG": 5,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 850,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "peri-peri-whole-wings-with-peri-ranch-10",
+   "name": "PERi-PERi Whole Wings with PERi Ranch (10)",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 76,
+     "carbsG": 10,
+     "fatG": 142,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 1700,
+      "saturatedFatG": 9,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-mixed-olives",
+   "name": "Spicy Mixed Olives",
+   "category": "Snacks & Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1360,
+      "saturatedFatG": 4.7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

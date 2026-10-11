@@ -1,0 +1,1475 @@
+{
+ "chain": "old-spaghetti-factory",
+ "country": "US",
+ "source": {
+  "url": "https://www.osf.com/about/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "sicilian-garlic-cheese-bread",
+   "name": "Sicilian Garlic Cheese Bread",
+   "sizes": [
+    {
+     "size": "454g",
+     "label": "454g",
+     "calories": 1330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 91,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "manager-s-favorite-marinara-clam-sauce",
+   "name": "Manager's Favorite - Marinara/Clam Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1150,
+     "proteinG": 37,
+     "carbsG": 179,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 13,
+      "sodiumMg": 1380,
+      "saturatedFatG": 16,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "manager-s-favorite-mushroom-mizithra-cheese-and-browned-butt",
+   "name": "Manager's Favorite - Mushroom/Mizithra Cheese & Browned Butter",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1510,
+     "proteinG": 48,
+     "carbsG": 175,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 15,
+      "sodiumMg": 2530,
+      "saturatedFatG": 34,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "manager-s-favorite-clam-meat-sauce",
+   "name": "Manager's Favorite - Clam/Meat Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1220,
+     "proteinG": 46,
+     "carbsG": 179,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 11,
+      "sodiumMg": 1620,
+      "saturatedFatG": 18,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-clam-mizithra-cheese-and-brown-butter",
+   "name": "Hearty Clam/Mizithra Cheese & Brown Butter",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1620,
+     "proteinG": 53,
+     "carbsG": 172,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 2500,
+      "saturatedFatG": 49,
+      "cholesterolMg": 280
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-marinara-meat-sauce",
+   "name": "Hearty Marinara/Meat Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1010,
+     "proteinG": 40,
+     "carbsG": 179,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 17,
+      "sodiumMg": 1530,
+      "saturatedFatG": 3,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-marinara-mushroom-sauce",
+   "name": "Hearty Marinara/Mushroom Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1020,
+     "proteinG": 33,
+     "carbsG": 181,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 20,
+      "sodiumMg": 1370,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-meat-mizithra-cheese-and-brown-butter",
+   "name": "Hearty Meat/Mizithra Cheese & Brown Butter",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1480,
+     "proteinG": 55,
+     "carbsG": 172,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 12,
+      "sodiumMg": 2650,
+      "saturatedFatG": 36,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-mushroom-clam-sauce",
+   "name": "Hearty Mushroom/Clam Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1240,
+     "proteinG": 39,
+     "carbsG": 181,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 14,
+      "sodiumMg": 1460,
+      "saturatedFatG": 16,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-mushroom-meat-sauce",
+   "name": "Hearty Mushroom/Meat Sauce",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1100,
+     "proteinG": 41,
+     "carbsG": 182,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 19,
+      "sodiumMg": 1610,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-marinara-mizithra-cheese-and-brown-butter",
+   "name": "Hearty Marinara/Mizithra Cheese & Brown Butter",
+   "category": "Hearty Meal - Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "hearty",
+     "label": "Hearty",
+     "calories": 1410,
+     "proteinG": 47,
+     "carbsG": 172,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 13,
+      "sodiumMg": 2410,
+      "saturatedFatG": 34,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-sauce",
+   "name": "Marinara Sauce",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 74,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 650,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 310,
+     "proteinG": 10,
+     "carbsG": 59,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 390,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "gluten sensitive",
+     "label": "Gluten Sensitive",
+     "calories": 490,
+     "proteinG": 9,
+     "carbsG": 103,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 770,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "rich-meat-sauce",
+   "name": "Rich Meat Sauce",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 460,
+     "proteinG": 21,
+     "carbsG": 74,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 880,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 59,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 530,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-clam-sauce",
+   "name": "White Clam Sauce",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 580,
+     "proteinG": 19,
+     "carbsG": 74,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 730,
+      "saturatedFatG": 14,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 420,
+     "proteinG": 14,
+     "carbsG": 59,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 440,
+      "saturatedFatG": 8,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-sauce",
+   "name": "Mushroom Sauce",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 500,
+     "proteinG": 14,
+     "carbsG": 76,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 740,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 61,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 450,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mizithra-cheese-and-browned-butter",
+   "name": "Mizithra Cheese & Browned Butter",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 870,
+     "proteinG": 28,
+     "carbsG": 66,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1760,
+      "saturatedFatG": 33,
+      "cholesterolMg": 160
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 620,
+     "proteinG": 20,
+     "carbsG": 55,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1100,
+      "saturatedFatG": 22,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "pot-pourri",
+   "name": "Pot Pourri",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 660,
+     "proteinG": 24,
+     "carbsG": 74,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1340,
+      "saturatedFatG": 17,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 530,
+     "proteinG": 18,
+     "carbsG": 60,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 890,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-spaghetti-vesuvius",
+   "name": "Spicy Spaghetti Vesuvius",
+   "category": "Pasta Classic Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 60,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 840,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 48,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 560,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-meat-sauce",
+   "name": "Marinara/Meat Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 420,
+     "proteinG": 17,
+     "carbsG": 74,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 770,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 330,
+     "proteinG": 13,
+     "carbsG": 59,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 460,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-mushroom-sauce",
+   "name": "Marinara/Mushroom Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 460,
+     "proteinG": 14,
+     "carbsG": 76,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 710,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 340,
+     "proteinG": 11,
+     "carbsG": 60,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 420,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-clam-sauce",
+   "name": "Marinara/Clam Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 490,
+     "proteinG": 16,
+     "carbsG": 74,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 690,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 370,
+     "proteinG": 12,
+     "carbsG": 59,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 420,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-mizithra-cheese-and-browned-butter",
+   "name": "Marinara/Mizithra Cheese & Browned Butter",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 560,
+     "proteinG": 20,
+     "carbsG": 70,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1090,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 480,
+     "proteinG": 16,
+     "carbsG": 57,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 860,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-clam-sauce",
+   "name": "Mushroom/Clam Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 570,
+     "proteinG": 17,
+     "carbsG": 75,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 750,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 410,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 450,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-meat-sauce",
+   "name": "Mushroom/Meat Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 500,
+     "proteinG": 18,
+     "carbsG": 76,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 830,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 360,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 490,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-mizithra-cheese-and-browned-butter",
+   "name": "Mushroom/Mizithra Cheese & Browned Butter",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 630,
+     "proteinG": 21,
+     "carbsG": 72,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1160,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 510,
+     "proteinG": 17,
+     "carbsG": 58,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 890,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "clam-meat-sauce",
+   "name": "Clam/Meat Sauce",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 530,
+     "proteinG": 20,
+     "carbsG": 74,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 810,
+      "saturatedFatG": 9,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 390,
+     "proteinG": 15,
+     "carbsG": 59,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 490,
+      "saturatedFatG": 5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "clam-mizithra-cheese-and-browned-butter",
+   "name": "Clam/Mizithra Cheese & Browned Butter",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 670,
+     "proteinG": 23,
+     "carbsG": 70,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1140,
+      "saturatedFatG": 20,
+      "cholesterolMg": 120
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 540,
+     "proteinG": 18,
+     "carbsG": 57,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 880,
+      "saturatedFatG": 16,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "meat-mizithra-cheese-and-browned-butter",
+   "name": "Meat/Mizithra Cheese & Browned Butter",
+   "category": "Manager Favorite Entrees",
+   "sizes": [
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 600,
+     "proteinG": 24,
+     "carbsG": 70,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1210,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 500,
+     "proteinG": 19,
+     "carbsG": 57,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 930,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-smoked-mozzarella-panini-with-chips",
+   "name": "Chicken Smoked Mozzarella Panini with Chips",
+   "category": "Lunch - Sandwiches with Chips",
+   "sizes": [
+    {
+     "size": "whole",
+     "label": "Whole",
+     "calories": 1340,
+     "proteinG": 51,
+     "carbsG": 92,
+     "fatG": 88,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 5,
+      "sodiumMg": 1840,
+      "saturatedFatG": 29,
+      "cholesterolMg": 155
+     }
+    },
+    {
+     "size": "half",
+     "label": "Half",
+     "calories": 810,
+     "proteinG": 27,
+     "carbsG": 61,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1030,
+      "saturatedFatG": 16,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-meatball-panini-with-chips",
+   "name": "Spicy Meatball Panini with Chips",
+   "category": "Lunch - Sandwiches with Chips",
+   "sizes": [
+    {
+     "size": "whole",
+     "label": "Whole",
+     "calories": 1700,
+     "proteinG": 64,
+     "carbsG": 97,
+     "fatG": 119,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 2630,
+      "saturatedFatG": 41,
+      "cholesterolMg": 240
+     }
+    },
+    {
+     "size": "half",
+     "label": "Half",
+     "calories": 990,
+     "proteinG": 34,
+     "carbsG": 63,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1430,
+      "saturatedFatG": 22,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo",
+   "name": "Fettuccine Alfredo",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 610,
+     "proteinG": 15,
+     "carbsG": 56,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 400,
+      "saturatedFatG": 23,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "spinach-and-cheese-ravioli",
+   "name": "Spinach and Cheese Ravioli",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 310,
+     "proteinG": 14,
+     "carbsG": 37,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 670,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "spinach-tortellini-with-alfredo-sauce",
+   "name": "Spinach Tortellini with Alfredo Sauce",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 530,
+     "proteinG": 16,
+     "carbsG": 48,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 730,
+      "saturatedFatG": 18,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-cheese-sandwich",
+   "name": "Grilled Cheese Sandwich",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids and Senior",
+     "calories": 600,
+     "proteinG": 16,
+     "carbsG": 57,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1110,
+      "saturatedFatG": 19,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-macaroni-and-cheese",
+   "name": "Kid's Macaroni and Cheese",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 390,
+     "proteinG": 15,
+     "carbsG": 59,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 490,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-meaty-mac-and-cheese",
+   "name": "Kid's Meaty Mac and Cheese",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 450,
+     "proteinG": 19,
+     "carbsG": 63,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 840,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-spaghetti-plain-no-sauce",
+   "name": "Kid's Spaghetti (Plain - No Sauce)",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 260,
+     "proteinG": 9,
+     "carbsG": 53,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-spaghetti-with-brown-butter",
+   "name": "Kid's Spaghetti with Brown Butter",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 470,
+     "proteinG": 9,
+     "carbsG": 53,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 5,
+      "saturatedFatG": 15,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "senior-italian-sausage-with-meat-sauce",
+   "name": "Senior Italian Sausage with Meat Sauce",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 680,
+     "proteinG": 30,
+     "carbsG": 61,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 1260,
+      "saturatedFatG": 12,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "senior-sicilian-meatballs",
+   "name": "Senior Sicilian Meatballs",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 790,
+     "proteinG": 51,
+     "carbsG": 66,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1620,
+      "saturatedFatG": 11,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "senior-chicken-caesar-salad",
+   "name": "Senior Chicken Caesar Salad",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 860,
+     "proteinG": 47,
+     "carbsG": 20,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1350,
+      "saturatedFatG": 13,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "senior-caesar-salad",
+   "name": "Senior Caesar Salad",
+   "category": "Kids and Senior - Entrees",
+   "sizes": [
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 550,
+     "proteinG": 15,
+     "carbsG": 15,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1050,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-penne-angel-hair",
+   "name": "Fettuccine/Penne/Angel Hair",
+   "category": "Pasta Only",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 15,
+     "carbsG": 84,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti",
+   "name": "Spaghetti",
+   "category": "Pasta Only",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 17,
+     "carbsG": 95,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 320,
+     "proteinG": 11,
+     "carbsG": 64,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gluten-free-pasta",
+   "name": "Gluten Free Pasta",
+   "category": "Pasta Only",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 91,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "lunch",
+     "label": "Lunch",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 68,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 57,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "farfalle-protein-pasta",
+   "name": "Farfalle (Protein Pasta)",
+   "category": "Pasta Only",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 38,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 2,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-fettuccine-penne",
+   "name": "Spaghetti/Fettuccine/Penne",
+   "category": "Pasta Only",
+   "sizes": [
+    {
+     "size": "senior",
+     "label": "Senior",
+     "calories": 260,
+     "proteinG": 9,
+     "carbsG": 53,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad-with-creamy-pesto-no-croutons",
+   "name": "House Salad with Creamy Pesto - no croutons",
+   "category": "Gluten Sensitive",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 5,
+      "saturatedFatG": 3,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "house-salad-with-balsamic-vinaigrette-no-croutons",
+   "name": "House Salad with Balsamic Vinaigrette - no croutons",
+   "category": "Gluten Sensitive",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 150,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "meat-sauce",
+   "name": "Meat Sauce",
+   "category": "Gluten Sensitive",
+   "sizes": [
+    {
+     "size": "gluten sensitive",
+     "label": "Gluten Sensitive",
+     "calories": 580,
+     "proteinG": 18,
+     "carbsG": 103,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1050,
+      "saturatedFatG": 3,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "clam-sauce",
+   "name": "Clam Sauce",
+   "category": "Gluten Sensitive",
+   "sizes": [
+    {
+     "size": "gluten sensitive",
+     "label": "Gluten Sensitive",
+     "calories": 750,
+     "proteinG": 0,
+     "carbsG": 103,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sodiumMg": 870,
+      "saturatedFatG": 18,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

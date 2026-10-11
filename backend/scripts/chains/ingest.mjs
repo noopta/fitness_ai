@@ -141,6 +141,8 @@ if (isPdf && process.env.CHAIN_PDF_MODE !== 'text') {
     if (badRate(r) > 0.25) {
       try { const r2 = await ask(data, 'MEDIUM', RECHECK); console.log(`  pages ${a}-${b}: ${Math.round(badRate(r) * 100)}% rows inconsistent → recheck ${Math.round(badRate(r2) * 100)}%`); if (badRate(r2) < badRate(r)) r = r2; } catch { /* keep first read */ }
     }
+    // Pages we still can't read consistently are left out rather than dragging the good ones into review.
+    if (badRate(r) > 0.5) { console.log(`  pages ${a}-${b}: left out (still inconsistent)`); return; }
     results.push(r);
   };
   for (const [a, b] of ranges) await doRange(a, b);

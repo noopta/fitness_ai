@@ -1,0 +1,312 @@
+{
+ "chain": "chicken-salad-chick",
+ "country": "US",
+ "source": {
+  "url": "https://www.chickensaladchick.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "barbie-q-chicken-salad",
+   "name": "Barbie Q Chicken Salad",
+   "sizes": [
+    {
+     "size": "4 oz",
+     "label": "4 oz",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 710,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-lite-lemonade",
+   "name": "Minute Maid Lite Lemonade",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 85
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 38,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 65
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 77,
+      "sodiumMg": 130
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 102,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 102,
+      "sodiumMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade",
+   "name": "Strawberry Lemonade",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "sodiumMg": 25
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 88,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 83,
+      "sodiumMg": 55
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 117,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 111,
+      "sodiumMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-peach-tea",
+   "name": "Sweet Peach Tea",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 190
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 71,
+      "sodiumMg": 25
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 95,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 95,
+      "sodiumMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-tea",
+   "name": "Sweet Tea",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 10
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 74,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 71,
+      "sodiumMg": 25
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 98,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 95,
+      "sodiumMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-tea",
+   "name": "Unsweetened Tea",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 10
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 20
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "vitamin-water-xxx",
+   "name": "Vitamin Water XXX",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 16
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 31,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 31
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

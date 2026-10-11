@@ -1,0 +1,873 @@
+{
+ "chain": "cafe-rio",
+ "country": "US",
+ "source": {
+  "url": "https://www.caferio.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "black-beans",
+   "name": "Black Beans",
+   "category": "Beans & Rice",
+   "sizes": [
+    {
+     "size": "4 5oz",
+     "label": "4.5oz",
+     "calories": 180,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 1,
+      "sodiumMg": 240,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cilantro-lime-rice",
+   "name": "Cilantro Lime Rice",
+   "category": "Beans & Rice",
+   "sizes": [
+    {
+     "size": "4oz",
+     "label": "4oz",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pinto-beans",
+   "name": "Pinto Beans",
+   "category": "Beans & Rice",
+   "sizes": [
+    {
+     "size": "4 5oz",
+     "label": "4.5oz",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 31,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 1,
+      "sodiumMg": 240,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tortilla-soup-with-tortilla-strips",
+   "name": "Tortilla Soup with Tortilla Strips",
+   "category": "Toppings & Specials",
+   "sizes": [
+    {
+     "size": "1ea",
+     "label": "1ea",
+     "calories": 380,
+     "proteinG": 24,
+     "carbsG": 30,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 2070,
+      "saturatedFatG": 7,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-lime-pie",
+   "name": "Fresh Lime Pie",
+   "category": "Desserts & Drinks",
+   "sizes": [
+    {
+     "size": "1ea",
+     "label": "1ea",
+     "calories": 870,
+     "proteinG": 20,
+     "carbsG": 137,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 125,
+      "sodiumMg": 380,
+      "saturatedFatG": 13,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "horchata",
+   "name": "Horchata",
+   "category": "Desserts & Drinks",
+   "sizes": [
+    {
+     "size": "3floz",
+     "label": "3floz",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 15,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 20,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-limeade",
+   "name": "Mint Limeade",
+   "category": "Desserts & Drinks",
+   "sizes": [
+    {
+     "size": "3floz",
+     "label": "3floz",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 12,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tres-leches",
+   "name": "Tres Leches",
+   "category": "Desserts & Drinks",
+   "sizes": [
+    {
+     "size": "1ea",
+     "label": "1ea",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 180,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "12-inch-flour-tortilla",
+   "name": "12 inch Flour Tortilla",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 420,
+    "proteinG": 9,
+    "carbsG": 63,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 7,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "12-inch-wheat-tortilla",
+   "name": "12 inch Wheat Tortilla",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 390,
+    "proteinG": 10,
+    "carbsG": 58,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 5,
+     "saturatedFatG": 6,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "6-inch-corn-tortilla",
+   "name": "6 inch Corn Tortilla",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 13,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 135,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "6-inch-flour-tortilla",
+   "name": "6 inch Flour Tortilla",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 170,
+    "proteinG": 3,
+    "carbsG": 25,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "6-inch-wheat-tortilla",
+   "name": "6 inch Wheat Tortilla",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 190,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 0,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tortilla-chips",
+   "name": "Tortilla Chips",
+   "group": "add-on",
+   "unit": "2oz",
+   "per": {
+    "calories": 190,
+    "proteinG": 4,
+    "carbsG": 29,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 0,
+     "sodiumMg": 20,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tortilla-strips",
+   "name": "Tortilla Strips",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 10,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tostada-shell",
+   "name": "Tostada Shell",
+   "group": "bread",
+   "unit": "1ea",
+   "per": {
+    "calories": 90,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 15,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "carne-asada",
+   "name": "Carne Asada",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 120,
+    "proteinG": 12,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 80,
+     "saturatedFatG": 2,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "chile-roast-beef",
+   "name": "Chile Roast Beef",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 7,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 90,
+     "saturatedFatG": 2,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "baja-citrus-shrimp",
+   "name": "Baja Citrus Shrimp",
+   "group": "protein",
+   "unit": "4oz",
+   "per": {
+    "calories": 260,
+    "proteinG": 17,
+    "carbsG": 38,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 145,
+     "saturatedFatG": 1,
+     "cholesterolMg": 95
+    }
+   }
+  },
+  {
+   "id": "coconut-shrimp",
+   "name": "Coconut Shrimp",
+   "group": "protein",
+   "unit": "4oz",
+   "per": {
+    "calories": 230,
+    "proteinG": 10,
+    "carbsG": 32,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 6,
+     "sodiumMg": 135,
+     "saturatedFatG": 3,
+     "cholesterolMg": 46
+    }
+   }
+  },
+  {
+   "id": "fire-grilled-chicken",
+   "name": "Fire-Grilled Chicken",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 80,
+    "proteinG": 14,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 125,
+     "saturatedFatG": 0,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "fire-grilled-steak",
+   "name": "Fire-Grilled Steak",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 120,
+    "proteinG": 14,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 45,
+     "saturatedFatG": 2,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "pollo-asado",
+   "name": "Pollo Asado",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 12,
+    "carbsG": 2,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 180,
+     "saturatedFatG": 1,
+     "cholesterolMg": 65
+    }
+   }
+  },
+  {
+   "id": "shredded-chicken-breast",
+   "name": "Shredded Chicken Breast",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 80,
+    "proteinG": 8,
+    "carbsG": 1,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 440,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "sweet-pork-barbacoa",
+   "name": "Sweet Pork Barbacoa",
+   "group": "protein",
+   "unit": "2oz",
+   "per": {
+    "calories": 70,
+    "proteinG": 4,
+    "carbsG": 10,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 130,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "cilantro-lime-dressing",
+   "name": "Cilantro Lime Dressing",
+   "group": "dressing",
+   "unit": "1.5floz",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 11,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 320,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "creamy-tomatillo-dressing",
+   "name": "Creamy Tomatillo Dressing",
+   "group": "dressing",
+   "unit": "1.5floz",
+   "per": {
+    "calories": 150,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 210,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "green-chile-sauce-med",
+   "name": "Green Chile Sauce (Med)",
+   "group": "sauce",
+   "unit": "2floz",
+   "per": {
+    "calories": 40,
+    "proteinG": 1,
+    "carbsG": 9,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 330,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mango-salsa",
+   "name": "Mango Salsa",
+   "group": "sauce",
+   "unit": "2floz",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 200,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "red-chile-sauce-hot",
+   "name": "Red Chile Sauce (Hot)",
+   "group": "sauce",
+   "unit": "2floz",
+   "per": {
+    "calories": 45,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 350,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "habanero-hottest",
+   "name": "Habanero (Hottest)",
+   "group": "sauce",
+   "unit": "2floz",
+   "per": {
+    "calories": 30,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tomatillo-sauce-mild",
+   "name": "Tomatillo Sauce (Mild)",
+   "group": "sauce",
+   "unit": "2floz",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 160,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cabbage",
+   "name": "Cabbage",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 5,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cheddar-jack-blend",
+   "name": "Cheddar Jack Blend*",
+   "group": "cheese",
+   "unit": "2oz",
+   "per": {
+    "calories": 220,
+    "proteinG": 13,
+    "carbsG": 1,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 360,
+     "saturatedFatG": 11,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "cilantro",
+   "name": "Cilantro",
+   "group": "topping",
+   "unit": ".01oz",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cotija-cheese",
+   "name": "Cotija Cheese*",
+   "group": "cheese",
+   "unit": ".25oz",
+   "per": {
+    "calories": 25,
+    "proteinG": 1,
+    "carbsG": 0,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 100,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "guacamole",
+   "name": "Guacamole",
+   "group": "topping",
+   "unit": "1 oz",
+   "per": {
+    "calories": 40,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 160,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lettuce",
+   "name": "Lettuce",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lime-wedge",
+   "name": "Lime Wedge",
+   "group": "topping",
+   "unit": "1ea",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pico-de-gallo",
+   "name": "Pico de Gallo",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 70,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "queso",
+   "name": "Queso",
+   "group": "cheese",
+   "unit": "3floz",
+   "per": {
+    "calories": 130,
+    "proteinG": 5,
+    "carbsG": 6,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 550,
+     "saturatedFatG": 6,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "salsa-fresca",
+   "name": "Salsa Fresca",
+   "group": "sauce",
+   "unit": "1oz",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "shredded-jack-cheese",
+   "name": "Shredded Jack Cheese*",
+   "group": "cheese",
+   "unit": "2oz",
+   "per": {
+    "calories": 210,
+    "proteinG": 14,
+    "carbsG": 0,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 340,
+     "saturatedFatG": 11,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "sour-cream",
+   "name": "Sour Cream",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 15,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  }
+ ]
+}

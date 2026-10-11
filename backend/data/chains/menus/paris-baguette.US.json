@@ -1,0 +1,1181 @@
+{
+ "chain": "paris-baguette",
+ "country": "US",
+ "source": {
+  "url": "https://parisbaguette.com/wp-content/uploads/2026/09/2026-Fall-Nutrition-Chart-US.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "blueberry-chiffon-cake",
+   "name": "Blueberry Chiffon Cake",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 37,
+     "micros": {
+      "sugarG": 21,
+      "saturatedFatG": 22
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-cappuccino",
+   "name": "Macaron-Cappuccino",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 10,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-double-dark-chocolate",
+   "name": "Macaron-Double Dark Chocolate",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 5,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-green-tea",
+   "name": "Macaron-Green Tea",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 10,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-pistachio",
+   "name": "Macaron-Pistachio",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 10,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-raspberry-lemon",
+   "name": "Macaron-Raspberry Lemon",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 10,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-red-velvet",
+   "name": "Macaron-Red Velvet",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 15,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-salted-caramel",
+   "name": "Macaron-Salted Caramel",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 10,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaron-strawberry-shortcake",
+   "name": "Macaron-Strawberry Shortcake",
+   "category": "Grab & Go",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 10,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-soft-cream-two-tier-cake",
+   "name": "Strawberry Soft Cream Two Tier Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 15,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 45,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-soft-cream-three-tier-cake",
+   "name": "Strawberry Soft Cream Three Tier Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 14,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 45,
+      "saturatedFatG": 8,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-soft-cream-sheet-cake",
+   "name": "Strawberry Soft Cream Sheet Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 15,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 55,
+      "saturatedFatG": 7,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-soft-cream-celebration-cake",
+   "name": "Strawberry Soft Cream Celebration Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 30,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-celebration-cake",
+   "name": "Chocolate Celebration Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 17,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 65,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-buttercream-two-tier-cake",
+   "name": "Chocolate Buttercream Two Tier Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 16,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 60,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-layered-tuxedo-cake",
+   "name": "Double Layered Tuxedo Cake",
+   "category": "Specialty Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 13,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 45,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrot-cake",
+   "name": "Carrot Cake",
+   "category": "Cakes - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 7,
+     "carbsG": 57,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 39,
+      "sodiumMg": 290,
+      "saturatedFatG": 20,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-streusel-trifle",
+   "name": "Caramel Apple Streusel Trifle",
+   "category": "Cakes - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 45,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 130,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrot-cake-slice",
+   "name": "Carrot Cake Slice",
+   "category": "Cake Slices & Tarts - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 10,
+     "carbsG": 77,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 52,
+      "sodiumMg": 380,
+      "saturatedFatG": 27,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-streusel-trifle-cup",
+   "name": "Caramel Apple Streusel Trifle Cup",
+   "category": "Cake Slices & Tarts - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 3,
+     "carbsG": 54,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 140,
+      "saturatedFatG": 9,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-streusel-tart",
+   "name": "Pumpkin Streusel Tart",
+   "category": "Cake Slices & Tarts - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 5,
+     "carbsG": 51,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 250,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-streusel-tart",
+   "name": "Caramel Apple Streusel Tart",
+   "category": "Cake Slices & Tarts - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 4,
+     "carbsG": 64,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pecan-tart",
+   "name": "Pecan Tart",
+   "category": "Cake Slices & Tarts - Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 7,
+     "carbsG": 50,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 28,
+      "sodiumMg": 130,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-cheese-danish",
+   "name": "Pumpkin Cheese Danish",
+   "category": "Sweets & Pastries-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 5,
+     "carbsG": 43,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 310,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-cruffin",
+   "name": "Pumpkin Spice Cruffin",
+   "category": "Sweets & Pastries-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 260,
+      "saturatedFatG": 11,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-streusel-waffle",
+   "name": "Caramel Apple Streusel Waffle",
+   "category": "Sweets & Pastries-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 5,
+     "carbsG": 67,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 400,
+      "saturatedFatG": 15,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookies-and-cream-mochi-donut",
+   "name": "Cookies & Cream Mochi Donut",
+   "category": "Donuts-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 27,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-streusel-donut",
+   "name": "Caramel Apple Streusel Donut",
+   "category": "Donuts-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 290,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "pesto-chicken-pizzetta-with-goat-cheese",
+   "name": "Pesto Chicken Pizzetta with Goat Cheese",
+   "category": "Savories-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 19,
+     "carbsG": 24,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 650,
+      "saturatedFatG": 14,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-cranberry-and-goat-cheese-pastry-sandwich",
+   "name": "Turkey, Cranberry & Goat Cheese Pastry Sandwich",
+   "category": "Salads, Sandwiches & Wraps-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 22,
+     "carbsG": 51,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 1140,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-sausage-egg-and-cheddar-everything-breakfast-pastry-",
+   "name": "Chicken Sausage, Egg & Cheddar Everything Breakfast Pastry Sandwich",
+   "category": "Salads, Sandwiches & Wraps-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 20,
+     "carbsG": 27,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 770,
+      "saturatedFatG": 13,
+      "cholesterolMg": 270
+     }
+    }
+   ]
+  },
+  {
+   "id": "harvest-chicken-salad-with-goat-cheese",
+   "name": "Harvest Chicken Salad with Goat Cheese",
+   "category": "Salads, Sandwiches & Wraps-Seasonal",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 19,
+     "carbsG": 30,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 560,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-streusel-latte",
+   "name": "Pumpkin Streusel Latte",
+   "category": "Hot Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "12oz",
+     "label": "12oz",
+     "calories": 330,
+     "proteinG": 10,
+     "carbsG": 51,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 210,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 460,
+     "proteinG": 12,
+     "carbsG": 76,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 290,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 600,
+     "proteinG": 15,
+     "carbsG": 102,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 380,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-chai-oatmilk-latte",
+   "name": "Pumpkin Chai Oatmilk Latte",
+   "category": "Hot Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "12oz",
+     "label": "12oz",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 71,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 300,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 103,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 420,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 710,
+     "proteinG": 9,
+     "carbsG": 135,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 540,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-macchiato",
+   "name": "Caramel Apple Macchiato",
+   "category": "Hot Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "12oz",
+     "label": "12oz",
+     "calories": 310,
+     "proteinG": 8,
+     "carbsG": 52,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 160,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 380,
+     "proteinG": 10,
+     "carbsG": 63,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 190,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 460,
+     "proteinG": 12,
+     "carbsG": 74,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 230,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-matcha-latte",
+   "name": "Caramel Apple Matcha Latte",
+   "category": "Hot Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "12oz",
+     "label": "12oz",
+     "calories": 430,
+     "proteinG": 10,
+     "carbsG": 73,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 540,
+     "proteinG": 12,
+     "carbsG": 93,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 220,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 650,
+     "proteinG": 14,
+     "carbsG": 114,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 110,
+      "sodiumMg": 250,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-pumpkin-streusel-latte",
+   "name": "Iced Pumpkin Streusel Latte",
+   "category": "Iced Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 430,
+     "proteinG": 10,
+     "carbsG": 56,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 210,
+      "saturatedFatG": 14,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 560,
+     "proteinG": 12,
+     "carbsG": 81,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 300,
+      "saturatedFatG": 15,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 700,
+     "proteinG": 15,
+     "carbsG": 107,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 390,
+      "saturatedFatG": 17,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-pumpkin-chai-oatmilk-latte",
+   "name": "Iced Pumpkin Chai Oatmilk Latte",
+   "category": "Iced Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 71,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 310,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 103,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 430,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 710,
+     "proteinG": 9,
+     "carbsG": 135,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 550,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-sweet-cream-cold-brew",
+   "name": "Pumpkin Sweet Cream Cold Brew",
+   "category": "Iced Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 240,
+     "proteinG": 1,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 55,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 43,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 75,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 350,
+     "proteinG": 2,
+     "carbsG": 56,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 95,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-apple-macchiato",
+   "name": "Iced Caramel Apple Macchiato",
+   "category": "Iced Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 310,
+     "proteinG": 8,
+     "carbsG": 52,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 160,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 380,
+     "proteinG": 10,
+     "carbsG": 63,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 200,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 460,
+     "proteinG": 12,
+     "carbsG": 74,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 230,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-apple-matcha-latte",
+   "name": "Iced Caramel Apple Matcha Latte",
+   "category": "Iced Beverages-Seasonal",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 430,
+     "proteinG": 10,
+     "carbsG": 73,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 540,
+     "proteinG": 12,
+     "carbsG": 93,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 220,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 650,
+     "proteinG": 14,
+     "carbsG": 114,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 110,
+      "sodiumMg": 250,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

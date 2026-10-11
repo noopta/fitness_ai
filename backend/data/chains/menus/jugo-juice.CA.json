@@ -1,0 +1,1008 @@
+{
+ "chain": "jugo-juice",
+ "country": "CA",
+ "source": {
+  "url": "https://jugojuice.com/wp-content/uploads/2023/06/jj22_nat_003_nutrition-guide_en_apr21-v4.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "jugo-classico",
+   "name": "Jugo Classico®",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 267,
+     "proteinG": 2.5,
+     "carbsG": 66.3,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 4.7
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 157,
+     "proteinG": 1.4,
+     "carbsG": 39.1,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-magic",
+   "name": "Mango Magic®",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 303,
+     "proteinG": 1.1,
+     "carbsG": 73,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 3.2
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 175,
+     "proteinG": 0.8,
+     "carbsG": 42.2,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 2.2
+     }
+    }
+   ]
+  },
+  {
+   "id": "blushing-mango",
+   "name": "Blushing Mango®",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 307,
+     "proteinG": 1.1,
+     "carbsG": 74.2,
+     "fatG": 0.6,
+     "micros": {
+      "fiberG": 4.4
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 183,
+     "proteinG": 0.7,
+     "carbsG": 44.1,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 2.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "summer-strawberry",
+   "name": "Summer Strawberry",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 31.4,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 2.5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 237,
+     "proteinG": 2,
+     "carbsG": 57.5,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-and-chocolate",
+   "name": "Peanut Butter & Chocolate",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 350,
+     "proteinG": 12,
+     "carbsG": 39,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 5
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 200,
+     "proteinG": 6,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-banana",
+   "name": "Berry Banana",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 87,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-rush",
+   "name": "Raspberry Rush™",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 430,
+     "proteinG": 9,
+     "carbsG": 91,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mighty-kale",
+   "name": "Mighty Kale™",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 292,
+     "proteinG": 4,
+     "carbsG": 68.4,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 4.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-crush",
+   "name": "Blue Crush",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 95,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 60,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-force",
+   "name": "Dragon Force",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 219,
+     "proteinG": 2.9,
+     "carbsG": 51.9,
+     "fatG": 0.7,
+     "micros": {
+      "fiberG": 3.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "jugo-cold-brew",
+   "name": "Jugo Cold Brew",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 362,
+     "proteinG": 4.4,
+     "carbsG": 58.7,
+     "fatG": 9.7,
+     "micros": {
+      "fiberG": 6.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-matcha",
+   "name": "Vanilla Matcha",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 83,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "gold-digger",
+   "name": "Gold Digger",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 67,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-glow",
+   "name": "Green Glow",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 367,
+     "proteinG": 3.3,
+     "carbsG": 75.8,
+     "fatG": 7.9,
+     "micros": {
+      "fiberG": 6.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "kaleabunga",
+   "name": "Kaleabunga",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 305,
+     "proteinG": 4,
+     "carbsG": 71.5,
+     "fatG": 0.6,
+     "micros": {
+      "fiberG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "lavender-lover",
+   "name": "Lavender Lover",
+   "category": "Fresh Energy Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 310,
+     "proteinG": 7,
+     "carbsG": 68,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-protein",
+   "name": "Mocha Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 402,
+     "proteinG": 27.7,
+     "carbsG": 27.7,
+     "fatG": 0.6,
+     "micros": {
+      "fiberG": 6.8
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-protein",
+   "name": "Peanut Butter Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 440,
+     "proteinG": 32.5,
+     "carbsG": 50.7,
+     "fatG": 15.1,
+     "micros": {
+      "fiberG": 6.3
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-blueberry-protein",
+   "name": "Big Blueberry Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 322,
+     "proteinG": 27.4,
+     "carbsG": 45.6,
+     "fatG": 3.3,
+     "micros": {
+      "fiberG": 3.1
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-green-protein",
+   "name": "Tropical Green Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 366,
+     "proteinG": 25.7,
+     "carbsG": 62.5,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 4.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-power-protein",
+   "name": "Pink Power Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 400,
+     "proteinG": 26,
+     "carbsG": 68,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "morning-blend-protein",
+   "name": "Morning Blend Protein",
+   "category": "Protein Smoothies",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 540,
+     "proteinG": 28,
+     "carbsG": 93,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 8
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange",
+   "name": "Orange",
+   "category": "Fresh Pressed Juice",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 335,
+     "proteinG": 5.2,
+     "carbsG": 77.4,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1.5
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 195,
+     "proteinG": 3,
+     "carbsG": 45.1,
+     "fatG": 0.9,
+     "micros": {
+      "fiberG": 0.9
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple",
+   "name": "Apple",
+   "category": "Fresh Pressed Juice",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 90,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 52.5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1.8
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "category": "Fresh Pressed Juice",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 210,
+     "proteinG": 6,
+     "carbsG": 45,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 123,
+     "proteinG": 3.5,
+     "carbsG": 26.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1.8
+     }
+    }
+   ]
+  },
+  {
+   "id": "max-veg",
+   "name": "Max Veg®",
+   "category": "Fresh Pressed Juice",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 135,
+     "proteinG": 4.8,
+     "carbsG": 28.6,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 4.5
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 83,
+     "proteinG": 2.8,
+     "carbsG": 17.6,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 2.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "kale-aid",
+   "name": "Kale-Aid",
+   "category": "Fresh Pressed Juice",
+   "sizes": [
+    {
+     "size": "24 oz",
+     "label": "24 oz.",
+     "calories": 287,
+     "proteinG": 2.5,
+     "carbsG": 69.8,
+     "fatG": 0.6,
+     "micros": {
+      "fiberG": 2.8
+     }
+    },
+    {
+     "size": "14 oz",
+     "label": "14 oz.",
+     "calories": 160,
+     "proteinG": 1.2,
+     "carbsG": 38.5,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 1.6
+     }
+    }
+   ]
+  },
+  {
+   "id": "good-shot",
+   "name": "Good Shot",
+   "category": "Wellness Shot",
+   "sizes": [
+    {
+     "size": "2 oz",
+     "label": "2 oz.",
+     "calories": 28,
+     "proteinG": 0.6,
+     "carbsG": 7,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 0.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-avocado",
+   "name": "Chicken Avocado",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 23,
+     "carbsG": 36,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "crunchy-veggie",
+   "name": "Crunchy Veggie",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 8,
+     "carbsG": 41,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "falafel",
+   "name": "Falafel",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 14,
+     "carbsG": 53,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-bacon-club",
+   "name": "Turkey Bacon Club",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 21,
+     "carbsG": 30,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-chicken",
+   "name": "Thai Chicken",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 20,
+     "carbsG": 47,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "goa-chicken",
+   "name": "GOA Chicken",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 23,
+     "carbsG": 33,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna-avocado",
+   "name": "Tuna Avocado",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 12,
+     "carbsG": 31,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "three-cheese",
+   "name": "Three Cheese",
+   "category": "Grilled Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 16,
+     "carbsG": 47,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "cranberry-turkey",
+   "name": "Cranberry Turkey",
+   "category": "Grilled Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 19,
+     "carbsG": 50,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-melt",
+   "name": "Chicken Melt",
+   "category": "Grilled Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 15,
+     "carbsG": 50,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-pie-chia-pudding",
+   "name": "Apple Pie Chia Pudding",
+   "category": "Snacks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 421,
+     "proteinG": 5.8,
+     "carbsG": 43.7,
+     "fatG": 28.6,
+     "micros": {
+      "fiberG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "peaches-n-raspberry-overnight-oats",
+   "name": "Peaches n' Raspberry Overnight Oats",
+   "category": "Snacks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 11,
+     "carbsG": 76,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "yogurt-parfait",
+   "name": "Yogurt Parfait",
+   "category": "Snacks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 9,
+     "carbsG": 52,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 9
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "ground-flax",
+   "name": "Ground Flax",
+   "group": "add-on",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 40,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 2
+    }
+   }
+  },
+  {
+   "id": "hemp-hearts",
+   "name": "Hemp Hearts",
+   "group": "add-on",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 45,
+    "proteinG": 3,
+    "carbsG": 1,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0.9
+    }
+   }
+  },
+  {
+   "id": "chia-seeds",
+   "name": "Chia Seeds",
+   "group": "add-on",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 4
+    }
+   }
+  },
+  {
+   "id": "vanilla-whey-protein-scoop",
+   "name": "Vanilla Whey Protein (scoop)",
+   "group": "protein",
+   "unit": "scoop",
+   "per": {
+    "calories": 31,
+    "proteinG": 23,
+    "carbsG": 5,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1
+    }
+   }
+  },
+  {
+   "id": "vanilla-whey-protein-tbsp",
+   "name": "Vanilla Whey Protein (tbsp.)",
+   "group": "protein",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 13,
+    "proteinG": 5.4,
+    "carbsG": 1.2,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0.2
+    }
+   }
+  },
+  {
+   "id": "chocolate-whey-protein-scoop",
+   "name": "Chocolate Whey Protein (scoop)",
+   "group": "protein",
+   "unit": "scoop",
+   "per": {
+    "calories": 140,
+    "proteinG": 24,
+    "carbsG": 5,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 1
+    }
+   }
+  },
+  {
+   "id": "chocolate-whey-protein-tbsp",
+   "name": "Chocolate Whey Protein (tbsp.)",
+   "group": "protein",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 3,
+    "proteinG": 5.3,
+    "carbsG": 1.1,
+    "fatG": 0.7,
+    "micros": {
+     "fiberG": 0.2
+    }
+   }
+  },
+  {
+   "id": "vega-one-protein-scoop",
+   "name": "Vega One™ Protein (scoop)",
+   "group": "protein",
+   "unit": "scoop",
+   "per": {
+    "calories": 160,
+    "proteinG": 20,
+    "carbsG": 10,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 6
+    }
+   }
+  },
+  {
+   "id": "vega-one-protein-tbsp",
+   "name": "Vega One™ Protein (tbsp.)",
+   "group": "protein",
+   "unit": "tbsp.",
+   "per": {
+    "calories": 27,
+    "proteinG": 3.4,
+    "carbsG": 1.7,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1
+    }
+   }
+  }
+ ]
+}

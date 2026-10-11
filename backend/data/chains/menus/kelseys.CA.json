@@ -1,0 +1,3100 @@
+{
+ "chain": "kelseys",
+ "country": "CA",
+ "source": {
+  "url": "https://www.kelseys.ca/en/nutrition.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "loaded-nachos-half-pan",
+   "name": "Loaded Nachos Half Pan",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1230,
+     "proteinG": 59,
+     "carbsG": 112,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 13,
+      "sodiumMg": 2760,
+      "saturatedFatG": 29,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-nachos-full-pan",
+   "name": "Loaded Nachos Full Pan",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2410,
+     "proteinG": 116,
+     "carbsG": 217,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 22,
+      "sugarG": 23,
+      "sodiumMg": 5280,
+      "saturatedFatG": 58,
+      "cholesterolMg": 285
+     }
+    }
+   ]
+  },
+  {
+   "id": "four-cheese-spinach-dip-with-baked-pita",
+   "name": "Four Cheese Spinach Dip with Baked Pita",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 28,
+     "carbsG": 102,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 2040,
+      "saturatedFatG": 30,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "four-cheese-spinach-dip-with-fried-pita",
+   "name": "Four Cheese Spinach Dip with Fried Pita",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1100,
+     "proteinG": 28,
+     "carbsG": 102,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 2040,
+      "saturatedFatG": 31,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "quesadilla-with-cajun-chicken",
+   "name": "Quesadilla with Cajun Chicken",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 57,
+     "carbsG": 66,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 2550,
+      "saturatedFatG": 25,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "quesadilla-with-chili-spiced-ground-beef",
+   "name": "Quesadilla with Chili Spiced Ground Beef",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 55,
+     "carbsG": 69,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 13,
+      "sodiumMg": 2460,
+      "saturatedFatG": 31,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "quesadilla-with-cheese-and-veggie",
+   "name": "Quesadilla with Cheese and Veggie",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 42,
+     "carbsG": 65,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 2300,
+      "saturatedFatG": 25,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-rig-loaded-nachos-with-beef",
+   "name": "Big Rig Loaded Nachos with Beef",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 3160,
+     "proteinG": 159,
+     "carbsG": 239,
+     "fatG": 182,
+     "micros": {
+      "fiberG": 33,
+      "sugarG": 30,
+      "sodiumMg": 6170,
+      "saturatedFatG": 81,
+      "cholesterolMg": 415
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-rig-loaded-nachos-with-chicken",
+   "name": "Big Rig Loaded Nachos with Chicken",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2950,
+     "proteinG": 164,
+     "carbsG": 232,
+     "fatG": 155,
+     "micros": {
+      "fiberG": 31,
+      "sugarG": 28,
+      "sodiumMg": 6350,
+      "saturatedFatG": 69,
+      "cholesterolMg": 420
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-bbq-lettuce-wraps-with-beef-tenderloin",
+   "name": "Thai BBQ Lettuce Wraps with Beef Tenderloin",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 34,
+     "carbsG": 99,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 46,
+      "sodiumMg": 2290,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-bbq-lettuce-wraps-with-chicken",
+   "name": "Thai BBQ Lettuce Wraps with Chicken",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 44,
+     "carbsG": 115,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 46,
+      "sodiumMg": 3140,
+      "saturatedFatG": 9,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-bbq-lettuce-wraps-with-shrimp",
+   "name": "Thai BBQ Lettuce Wraps with Shrimp",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 17,
+     "carbsG": 99,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 46,
+      "sodiumMg": 2590,
+      "saturatedFatG": 3,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-pepper-calamari",
+   "name": "Lemon Pepper Calamari",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 36,
+     "carbsG": 94,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 17,
+      "sodiumMg": 3650,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 410
+     }
+    }
+   ]
+  },
+  {
+   "id": "feta-bruschetta-flatbread",
+   "name": "Feta Bruschetta Flatbread",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 23,
+     "carbsG": 71,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 1830,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-and-bacon-flatbread",
+   "name": "BBQ Chicken & Bacon Flatbread",
+   "category": "ON-RAMP APPIES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 41,
+     "carbsG": 92,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 2490,
+      "saturatedFatG": 13,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-wings-breaded-blue-cheese-dressing",
+   "name": "Original Wings, Breaded - Blue Cheese Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "10 piece",
+     "label": "10 Piece",
+     "calories": 1010,
+     "proteinG": 47,
+     "carbsG": 25,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1610,
+      "saturatedFatG": 16,
+      "cholesterolMg": 290
+     }
+    },
+    {
+     "size": "15 piece",
+     "label": "15 Piece",
+     "calories": 1420,
+     "proteinG": 70,
+     "carbsG": 36,
+     "fatG": 109,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 2090,
+      "saturatedFatG": 22,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-wings-breaded-peppercorn-ranch-dressing",
+   "name": "Original Wings, Breaded - Peppercorn Ranch Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "10 piece",
+     "label": "10 Piece",
+     "calories": 990,
+     "proteinG": 47,
+     "carbsG": 25,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1450,
+      "saturatedFatG": 15,
+      "cholesterolMg": 300
+     }
+    },
+    {
+     "size": "15 piece",
+     "label": "15 Piece",
+     "calories": 1400,
+     "proteinG": 70,
+     "carbsG": 35,
+     "fatG": 108,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1950,
+      "saturatedFatG": 21,
+      "cholesterolMg": 440
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-wings-non-breaded-blue-cheese-dressing",
+   "name": "Original Wings, Non-Breaded - Blue Cheese Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "10 piece",
+     "label": "10 Piece",
+     "calories": 890,
+     "proteinG": 45,
+     "carbsG": 5,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1180,
+      "saturatedFatG": 15,
+      "cholesterolMg": 290
+     }
+    },
+    {
+     "size": "15 piece",
+     "label": "15 Piece",
+     "calories": 1230,
+     "proteinG": 67,
+     "carbsG": 5,
+     "fatG": 104,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1450,
+      "saturatedFatG": 21,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-wings-non-breaded-peppercorn-ranch-dressing",
+   "name": "Original Wings, Non-Breaded - Peppercorn Ranch Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "10 piece",
+     "label": "10 Piece",
+     "calories": 870,
+     "proteinG": 45,
+     "carbsG": 4,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 990,
+      "saturatedFatG": 15,
+      "cholesterolMg": 300
+     }
+    },
+    {
+     "size": "15 piece",
+     "label": "15 Piece",
+     "calories": 1210,
+     "proteinG": 66,
+     "carbsG": 5,
+     "fatG": 103,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1260,
+      "saturatedFatG": 21,
+      "cholesterolMg": 440
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-bites-blue-cheese-dressing",
+   "name": "Crispy Chicken Bites - Blue Cheese Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 39,
+     "carbsG": 48,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 2030,
+      "saturatedFatG": 11,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-bites-peppercorn-ranch-dressing",
+   "name": "Crispy Chicken Bites - Peppercorn Ranch Dressing",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 39,
+     "carbsG": 47,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1830,
+      "saturatedFatG": 10,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "hand-breaded-chicken-tenders",
+   "name": "Hand-Breaded Chicken Tenders",
+   "category": "CHICKEN YOUR WAY (EXCLUDES SIDES, SEASON",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 36,
+     "carbsG": 54,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 1800,
+      "saturatedFatG": 4,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "beet-and-goat-cheese-salad",
+   "name": "Beet & Goat Cheese Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 36,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 23,
+      "sodiumMg": 860,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-beet-and-goat-cheese-salad",
+   "name": "Chicken, Beet & Goat Cheese Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 30,
+     "carbsG": 36,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 23,
+      "sodiumMg": 1270,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-beet-and-goat-cheese-salad",
+   "name": "Shrimp, Beet & Goat Cheese Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 19,
+     "carbsG": 37,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 23,
+      "sodiumMg": 1280,
+      "saturatedFatG": 5,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad",
+   "name": "Caesar Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 11,
+     "carbsG": 12,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 770,
+      "saturatedFatG": 10,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-salad",
+   "name": "Chicken Caesar Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 31,
+     "carbsG": 13,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-caesar-salad",
+   "name": "Shrimp Caesar Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 20,
+     "carbsG": 14,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1190,
+      "saturatedFatG": 10,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-beet-and-goat-cheese-salad",
+   "name": "Beef Tenderloin, Beet & Goat Cheese Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 37,
+     "carbsG": 37,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 23,
+      "sodiumMg": 970,
+      "saturatedFatG": 18,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-caesar-salad",
+   "name": "Beef Tenderloin Caesar Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 930,
+     "proteinG": 38,
+     "carbsG": 13,
+     "fatG": 81,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 880,
+      "saturatedFatG": 24,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-beet-and-goat-cheese-salad",
+   "name": "Salmon, Beet & Goat Cheese Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 41,
+     "carbsG": 37,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 23,
+      "sodiumMg": 1100,
+      "saturatedFatG": 9,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-caesar-salad",
+   "name": "Salmon Caesar Salad",
+   "category": "SMOOTH RIDING SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 0,
+     "carbsG": 13,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 2,
+      "sodiumMg": 1010,
+      "saturatedFatG": 15,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-and-blue-cheese-wedge-salad-with-blue-cheese",
+   "name": "Beef Tenderloin & Blue Cheese Wedge Salad with Blue Cheese Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 37,
+     "carbsG": 14,
+     "fatG": 87,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 1730,
+      "saturatedFatG": 27,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-and-blue-cheese-wedge-salad-with-ranch-dress",
+   "name": "Beef Tenderloin & Blue Cheese Wedge Salad with Ranch Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 37,
+     "carbsG": 13,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 1430,
+      "saturatedFatG": 26,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "1978-burger",
+   "name": "1978 Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 34,
+     "carbsG": 43,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1000,
+      "saturatedFatG": 24,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-dill-burger",
+   "name": "Big Dill Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 930,
+     "proteinG": 40,
+     "carbsG": 53,
+     "fatG": 67,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 1680,
+      "saturatedFatG": 27,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-bacon-and-cheese-burger",
+   "name": "Ultimate Bacon & Cheese Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 48,
+     "carbsG": 46,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1770,
+      "saturatedFatG": 32,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-melter-burger",
+   "name": "Mushroom Melter Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 46,
+     "carbsG": 48,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1590,
+      "saturatedFatG": 32,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "canadian-whisky-bacon-bbq-burger",
+   "name": "Canadian Whisky Bacon BBQ Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1050,
+     "proteinG": 42,
+     "carbsG": 55,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 1930,
+      "saturatedFatG": 31,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "highway-harvest-burger",
+   "name": "Highway Harvest Burger",
+   "category": "BURLY BURGERS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 37,
+     "carbsG": 50,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 1730,
+      "saturatedFatG": 18,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-club",
+   "name": "BBQ Chicken Club",
+   "category": "HEARTY HANDHELDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 35,
+     "carbsG": 80,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 25,
+      "sodiumMg": 1910,
+      "saturatedFatG": 15,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-bacon-and-swiss",
+   "name": "Beef Tenderloin, Bacon and Swiss",
+   "category": "HEARTY HANDHELDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 43,
+     "carbsG": 57,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1630,
+      "saturatedFatG": 22,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-wrap",
+   "name": "Chicken Caesar Wrap",
+   "category": "HEARTY HANDHELDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 34,
+     "carbsG": 96,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 15,
+      "sodiumMg": 2850,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "messy-fish-sandwich",
+   "name": "Messy Fish Sandwich",
+   "category": "HEARTY HANDHELDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 31,
+     "carbsG": 100,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 14,
+      "sodiumMg": 2580,
+      "saturatedFatG": 13,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-sandwich",
+   "name": "Buffalo Chicken Sandwich",
+   "category": "HEARTY HANDHELDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 55,
+     "carbsG": 90,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 18,
+      "sodiumMg": 3150,
+      "saturatedFatG": 15,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "balsamic-chicken",
+   "name": "Balsamic Chicken",
+   "category": "ROADHOUSE CLASSICS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 47,
+     "carbsG": 16,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1640,
+      "saturatedFatG": 7,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-fried-chicken",
+   "name": "Chicken Fried Chicken",
+   "category": "ROADHOUSE CLASSICS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 34,
+     "carbsG": 60,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 3120,
+      "saturatedFatG": 5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "salt-and-vinny-fish-and-chips",
+   "name": "Salt & Vinny Fish & Chips",
+   "category": "ROADHOUSE CLASSICS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1430,
+     "proteinG": 30,
+     "carbsG": 129,
+     "fatG": 93,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 21,
+      "sodiumMg": 3110,
+      "saturatedFatG": 9,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "2 piece",
+     "label": "2 Piece",
+     "calories": 2000,
+     "proteinG": 52,
+     "carbsG": 175,
+     "fatG": 125,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 22,
+      "sodiumMg": 4860,
+      "saturatedFatG": 13,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "mediterranean-salmon",
+   "name": "Mediterranean Salmon",
+   "category": "ROADHOUSE CLASSICS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 40,
+     "carbsG": 51,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1170,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "roadhouse-pork-schnitzel",
+   "name": "Roadhouse Pork Schnitzel",
+   "category": "ROADHOUSE CLASSICS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 51,
+     "carbsG": 40,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1050,
+      "saturatedFatG": 17,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "8oz-sirloin",
+   "name": "8oz Sirloin",
+   "category": "SIRLOIN STEAKS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 45,
+     "carbsG": 6,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 410,
+      "saturatedFatG": 8,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "10oz-sirloin",
+   "name": "10oz Sirloin",
+   "category": "SIRLOIN STEAKS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 57,
+     "carbsG": 6,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 430,
+      "saturatedFatG": 10,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "5oz-bacon-wrapped-sirloin",
+   "name": "5oz Bacon Wrapped Sirloin",
+   "category": "SIRLOIN STEAKS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 31,
+     "carbsG": 6,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 410,
+      "saturatedFatG": 7,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "full-rack-ribs",
+   "name": "Full Rack Ribs",
+   "category": "ROADHOUSE RIBS (EXCLUDES SIDES & SAUCES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1810,
+     "proteinG": 92,
+     "carbsG": 57,
+     "fatG": 133,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 45,
+      "sodiumMg": 1940,
+      "saturatedFatG": 45,
+      "cholesterolMg": 445
+     }
+    }
+   ]
+  },
+  {
+   "id": "half-rack-ribs",
+   "name": "Half Rack Ribs",
+   "category": "ROADHOUSE RIBS (EXCLUDES SIDES & SAUCES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 47,
+     "carbsG": 35,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 27,
+      "sodiumMg": 1290,
+      "saturatedFatG": 23,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "rib-and-wing",
+   "name": "Rib and Wing",
+   "category": "ROADHOUSE RIBS (EXCLUDES SIDES & SAUCES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1270,
+     "proteinG": 65,
+     "carbsG": 41,
+     "fatG": 93,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 28,
+      "sodiumMg": 1630,
+      "saturatedFatG": 27,
+      "cholesterolMg": 335
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parm-with-tomato-sauce",
+   "name": "Chicken Parm with Tomato Sauce",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 50,
+     "carbsG": 94,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 19,
+      "sodiumMg": 2160,
+      "saturatedFatG": 10,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parm-with-alfredo-sauce",
+   "name": "Chicken Parm with Alfredo Sauce",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 51,
+     "carbsG": 84,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 11,
+      "sodiumMg": 1930,
+      "saturatedFatG": 13,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "alfredo-chicken-pasta",
+   "name": "Alfredo Chicken Pasta",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 39,
+     "carbsG": 61,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1520,
+      "saturatedFatG": 12,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "alfredo-shrimp-pasta",
+   "name": "Alfredo Shrimp Pasta",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 28,
+     "carbsG": 62,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 7,
+      "sodiumMg": 1730,
+      "saturatedFatG": 11,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "crunchy-chicken-mac-n-cheese",
+   "name": "Crunchy Chicken Mac 'n' Cheese",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1440,
+     "proteinG": 85,
+     "carbsG": 98,
+     "fatG": 80,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 12,
+      "sodiumMg": 3330,
+      "saturatedFatG": 31,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-curry-bowl-with-rice-and-chicken",
+   "name": "Thai Curry Bowl with Rice and Chicken",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 32,
+     "carbsG": 64,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 15,
+      "sodiumMg": 1940,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-curry-bowl-with-rice-and-shrimp",
+   "name": "Thai Curry Bowl with Rice and Shrimp",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 21,
+     "carbsG": 65,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 15,
+      "sodiumMg": 1910,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-curry-bowl-with-noodles-and-chicken",
+   "name": "Thai Curry Bowl with Noodles and Chicken",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 46,
+     "carbsG": 129,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 15,
+      "sodiumMg": 2280,
+      "saturatedFatG": 17,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-curry-bowl-with-noodles-and-shrimp",
+   "name": "Thai Curry Bowl with Noodles and Shrimp",
+   "category": "BIG OL' BOWLS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1250,
+     "proteinG": 35,
+     "carbsG": 130,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 15,
+      "sodiumMg": 2260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-chicken-fajitas",
+   "name": "Cajun Chicken Fajitas",
+   "category": "SIZZLIN 'FAJITAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1480,
+     "proteinG": 96,
+     "carbsG": 122,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 18,
+      "sodiumMg": 3580,
+      "saturatedFatG": 19,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-shrimp-fajitas",
+   "name": "Cajun Shrimp Fajitas",
+   "category": "SIZZLIN 'FAJITAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1460,
+     "proteinG": 58,
+     "carbsG": 133,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 20,
+      "sodiumMg": 3670,
+      "saturatedFatG": 19,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-fajitas",
+   "name": "Veggie Fajitas",
+   "category": "SIZZLIN 'FAJITAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1350,
+     "proteinG": 44,
+     "carbsG": 138,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 23,
+      "sodiumMg": 3120,
+      "saturatedFatG": 19,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloin-fajitas",
+   "name": "Beef Tenderloin Fajitas",
+   "category": "SIZZLIN 'FAJITAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2170,
+     "proteinG": 94,
+     "carbsG": 132,
+     "fatG": 144,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 20,
+      "sodiumMg": 3050,
+      "saturatedFatG": 46,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "funnel-cake-fries-with-caramel-sauce",
+   "name": "Funnel Cake Fries with Caramel Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 7,
+     "carbsG": 124,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 62,
+      "sodiumMg": 720,
+      "saturatedFatG": 6,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "funnel-cake-fries-with-chocolate-sauce",
+   "name": "Funnel Cake Fries with Chocolate Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 7,
+     "carbsG": 124,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 63,
+      "sodiumMg": 740,
+      "saturatedFatG": 9,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "messy-cookie-sandwich",
+   "name": "Messy Cookie Sandwich",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1420,
+     "proteinG": 18,
+     "carbsG": 215,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 138,
+      "sodiumMg": 990,
+      "saturatedFatG": 27,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-cheesecake-with-caramel-sauce",
+   "name": "White Chocolate Cheesecake with Caramel Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 10,
+     "carbsG": 109,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 84,
+      "sodiumMg": 480,
+      "saturatedFatG": 27,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-cheesecake-with-chocolate-sauce",
+   "name": "White Chocolate Cheesecake with Chocolate Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 10,
+     "carbsG": 94,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 76,
+      "sodiumMg": 440,
+      "saturatedFatG": 28,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-lava-cake-with-caramel-sauce",
+   "name": "Chocolate Lava Cake with Caramel Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 9,
+     "carbsG": 104,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 75,
+      "sodiumMg": 470,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-lava-cake-with-chocolate-sauce",
+   "name": "Chocolate Lava Cake with Chocolate Sauce",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 9,
+     "carbsG": 103,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 78,
+      "sodiumMg": 510,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "butterfinger-crunch-ice-cream-cake",
+   "name": "Butterfinger® Crunch Ice Cream Cake",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 8,
+     "carbsG": 119,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 420,
+      "saturatedFatG": 25,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "hamburger",
+   "name": "Hamburger",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 20,
+     "carbsG": 42,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 490,
+      "saturatedFatG": 9,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-cheese",
+   "name": "Grilled Cheese",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 13,
+     "carbsG": 43,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 800,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "build-your-own-pasta-with-tomato-sauce",
+   "name": "Build Your Own Pasta - With Tomato Sauce",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 11,
+     "carbsG": 50,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 820,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "build-your-own-pasta-with-alfredo-sauce",
+   "name": "Build Your Own Pasta - With Alfredo Sauce",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 12,
+     "carbsG": 46,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 800,
+      "saturatedFatG": 2,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mac-and-cheese",
+   "name": "Mac & Cheese",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 23,
+     "carbsG": 49,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1460,
+      "saturatedFatG": 13,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-fingers",
+   "name": "Chicken Fingers",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 28,
+     "carbsG": 72,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 22,
+      "sodiumMg": 1750,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-pizza",
+   "name": "Cheese Pizza",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 12,
+     "carbsG": 36,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 790,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-nuggets-5-pc-select-locations",
+   "name": "Chicken Nuggets - 5 pc (Select Locations)",
+   "category": "KIDS (EXCLUDES SIDES)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 18,
+     "carbsG": 50,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 1010,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "kettle-chips",
+   "name": "Kettle Chips",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 3,
+     "carbsG": 39,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1260,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-cut-veggies",
+   "name": "Fresh Cut Veggies",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 1,
+     "carbsG": 5,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 350,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes",
+   "name": "Mashed Potatoes",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 630,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "fries",
+   "name": "Fries",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 0,
+      "sodiumMg": 250,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-push-pop",
+   "name": "Vanilla Push Pop",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 20,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-push-pop",
+   "name": "Chocolate Push Pop",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 13,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 25,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "messy-chocolate-chip-cookie",
+   "name": "Messy Chocolate Chip Cookie",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 9,
+     "carbsG": 122,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 78,
+      "sodiumMg": 550,
+      "saturatedFatG": 13,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "take-home-chocolate-chip-cookie",
+   "name": "Take Home Chocolate Chip Cookie",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 7,
+     "carbsG": 84,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 49,
+      "sodiumMg": 470,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-lemonade",
+   "name": "Pink Lemonade",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-pina-colada",
+   "name": "Strawberry Pina Colada",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 20,
+      "saturatedFatG": 6
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "mild-wing-sauce-4-piece-wings",
+   "name": "Mild Wing Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 0.5,
+    "carbsG": 15,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 420,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mild-wing-sauce-10-piece-wings",
+   "name": "Mild Wing Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 25,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 23,
+     "sodiumMg": 670,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mild-wing-sauce-15-piece-wings",
+   "name": "Mild Wing Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 190,
+    "proteinG": 1,
+    "carbsG": 37,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 34,
+     "sodiumMg": 1000,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-wing-sauce-4-piece-wings",
+   "name": "Medium Wing Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 60,
+    "proteinG": 0.2,
+    "carbsG": 10,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 690,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-wing-sauce-10-piece-wings",
+   "name": "Medium Wing Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 100,
+    "proteinG": 0.4,
+    "carbsG": 16,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 1100,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "medium-wing-sauce-15-piece-wings",
+   "name": "Medium Wing Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 150,
+    "proteinG": 1,
+    "carbsG": 24,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 21,
+     "sodiumMg": 1660,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-wing-sauce-4-piece-wings",
+   "name": "Hot Wing Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 50,
+    "proteinG": 0.4,
+    "carbsG": 6,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 640,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "hot-wing-sauce-10-piece-wings",
+   "name": "Hot Wing Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 1030,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "hot-wing-sauce-15-piece-wings",
+   "name": "Hot Wing Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 15,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 1540,
+     "saturatedFatG": 1,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "classic-bbq-sauce-4-piece-wings",
+   "name": "Classic BBQ Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 18,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 15,
+     "sodiumMg": 360,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "classic-bbq-sauce-10-piece-wings",
+   "name": "Classic BBQ Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 120,
+    "proteinG": 2,
+    "carbsG": 30,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 24,
+     "sodiumMg": 570,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "classic-bbq-sauce-15-piece-wings",
+   "name": "Classic BBQ Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 180,
+    "proteinG": 3,
+    "carbsG": 44,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 35,
+     "sodiumMg": 860,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-sauce-4-piece-wings",
+   "name": "Honey Garlic Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 80,
+    "proteinG": 0.3,
+    "carbsG": 20,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 18,
+     "sodiumMg": 230,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-sauce-10-piece-wings",
+   "name": "Honey Garlic Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 130,
+    "proteinG": 0.5,
+    "carbsG": 33,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 29,
+     "sodiumMg": 360,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-sauce-15-piece-wings",
+   "name": "Honey Garlic Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 200,
+    "proteinG": 1,
+    "carbsG": 49,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 44,
+     "sodiumMg": 540,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "apple-butter-4-piece-wings",
+   "name": "Apple Butter - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0.2,
+    "carbsG": 16,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 200,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "apple-butter-10-piece-wings",
+   "name": "Apple Butter - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0.3,
+    "carbsG": 25,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 23,
+     "sodiumMg": 320,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "apple-butter-15-piece-wings",
+   "name": "Apple Butter - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 160,
+    "proteinG": 0.4,
+    "carbsG": 38,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 35,
+     "sodiumMg": 470,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sweet-and-spicy-thai-sauce-4-piece-wings",
+   "name": "Sweet & Spicy Thai Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 0.2,
+    "carbsG": 28,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 26,
+     "sodiumMg": 590,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sweet-and-spicy-thai-sauce-10-piece-wings",
+   "name": "Sweet & Spicy Thai Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 170,
+    "proteinG": 0.2,
+    "carbsG": 45,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 42,
+     "sodiumMg": 940,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sweet-and-spicy-thai-sauce-15-piece-wings",
+   "name": "Sweet & Spicy Thai Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 260,
+    "proteinG": 0.4,
+    "carbsG": 67,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 63,
+     "sodiumMg": 1410,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-and-honey-wing-sauce-4-piece-wings",
+   "name": "Hot and Honey Wing Sauce - 4 Piece Wings",
+   "group": "sauce",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 70,
+    "proteinG": 0.3,
+    "carbsG": 13,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 430,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "hot-and-honey-wing-sauce-10-piece-wings",
+   "name": "Hot and Honey Wing Sauce - 10 Piece Wings",
+   "group": "sauce",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 110,
+    "proteinG": 1,
+    "carbsG": 21,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 19,
+     "sodiumMg": 690,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "hot-and-honey-wing-sauce-15-piece-wings",
+   "name": "Hot & Honey Wing Sauce - 15 Piece Wings",
+   "group": "sauce",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 32,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 28,
+     "sodiumMg": 1040,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sea-salt-and-black-pepper-4-piece-wings",
+   "name": "Sea Salt & Black Pepper - 4 Piece Wings",
+   "group": "topping",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.4,
+    "carbsG": 2,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1060,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sea-salt-and-black-pepper-10-piece-wings",
+   "name": "Sea Salt & Black Pepper - 10 Piece Wings",
+   "group": "topping",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 1700,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sea-salt-and-black-pepper-15-piece-wings",
+   "name": "Sea Salt & Black Pepper - 15 Piece Wings",
+   "group": "topping",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 20,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 2550,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sriracha-lime-seasoning-4-piece-wings",
+   "name": "Sriracha-Lime Seasoning - 4 Piece Wings",
+   "group": "topping",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 5,
+    "proteinG": 0.2,
+    "carbsG": 1,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 190,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sriracha-lime-seasoning-10-piece-wings",
+   "name": "Sriracha-Lime Seasoning - 10 Piece Wings",
+   "group": "topping",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.3,
+    "carbsG": 2,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 300,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sriracha-lime-seasoning-15-piece-wings",
+   "name": "Sriracha-Lime Seasoning - 15 Piece Wings",
+   "group": "topping",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 20,
+    "proteinG": 0.4,
+    "carbsG": 3,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 450,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cajun-spice-4-piece-wings",
+   "name": "Cajun Spice - 4 Piece Wings",
+   "group": "topping",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 0.5,
+    "carbsG": 2,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 510,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cajun-spice-10-piece-wings",
+   "name": "Cajun Spice - 10 Piece Wings",
+   "group": "topping",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 20,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 820,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cajun-spice-15-piece-wings",
+   "name": "Cajun Spice - 15 Piece Wings",
+   "group": "topping",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 30,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 1,
+     "sodiumMg": 1230,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-4-piece-wings",
+   "name": "Lemon Pepper - 4 Piece Wings",
+   "group": "topping",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.1,
+    "carbsG": 2,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 770,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-10-piece-wings",
+   "name": "Lemon Pepper - 10 Piece Wings",
+   "group": "topping",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 0.2,
+    "carbsG": 3,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 1230,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-15-piece-wings",
+   "name": "Lemon Pepper - 15 Piece Wings",
+   "group": "topping",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.3,
+    "carbsG": 5,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 1850,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "nashville-hot-chicken-spice-4-piece-wings",
+   "name": "Nashville Hot Chicken Spice - 4 Piece Wings",
+   "group": "topping",
+   "unit": "4 Piece Wings",
+   "per": {
+    "calories": 15,
+    "proteinG": 0.2,
+    "carbsG": 3,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 800,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "nashville-hot-chicken-spice-10-piece-wings",
+   "name": "Nashville Hot Chicken Spice - 10 Piece Wings",
+   "group": "topping",
+   "unit": "10 Piece Wings",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.3,
+    "carbsG": 5,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 1270,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "nashville-hot-chicken-spice-15-piece-wings",
+   "name": "Nashville Hot Chicken Spice - 15 Piece Wings",
+   "group": "topping",
+   "unit": "15 Piece Wings",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 1910,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "ace-bakery-bun",
+   "name": "ACE Bakery Bun",
+   "group": "bread",
+   "unit": "74 g",
+   "per": {
+    "calories": 220,
+    "proteinG": 7,
+    "carbsG": 37,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 2,
+     "sodiumMg": 400,
+     "saturatedFatG": 1,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "lettuce-leaves",
+   "name": "Lettuce Leaves",
+   "group": "bread",
+   "unit": "86 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 10,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "gluten-friendly-bun",
+   "name": "Gluten Friendly Bun",
+   "group": "bread",
+   "unit": "85 g",
+   "per": {
+    "calories": 250,
+    "proteinG": 5,
+    "carbsG": 40,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 8,
+     "sodiumMg": 570,
+     "saturatedFatG": 5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chuck-patties-2",
+   "name": "Chuck Patties (2)",
+   "group": "protein",
+   "unit": "154 g",
+   "per": {
+    "calories": 400,
+    "proteinG": 26,
+    "carbsG": 0,
+    "fatG": 37,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 95,
+     "saturatedFatG": 14,
+     "cholesterolMg": 95
+    }
+   }
+  },
+  {
+   "id": "plant-based-patties-2",
+   "name": "Plant-Based Patties (2)",
+   "group": "protein",
+   "unit": "155 g",
+   "per": {
+    "calories": 340,
+    "proteinG": 29,
+    "carbsG": 9,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 0,
+     "sodiumMg": 830,
+     "saturatedFatG": 9,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bacon-2-slices",
+   "name": "Bacon (2 Slices)",
+   "group": "protein",
+   "unit": "15 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 2,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 90,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "peameal-bacon-1-slice",
+   "name": "Peameal Bacon (1 Slice)",
+   "group": "protein",
+   "unit": "43 g",
+   "per": {
+    "calories": 45,
+    "proteinG": 6,
+    "carbsG": 1,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 320,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "american-cheese-slice",
+   "name": "American Cheese Slice",
+   "group": "cheese",
+   "unit": "16 g",
+   "per": {
+    "calories": 50,
+    "proteinG": 3,
+    "carbsG": 1,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 240,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "processed-swiss-cheese-slice",
+   "name": "Processed Swiss Cheese Slice",
+   "group": "cheese",
+   "unit": "20 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 4,
+    "carbsG": 1,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 300,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "roasted-mushrooms",
+   "name": "Roasted Mushrooms",
+   "group": "topping",
+   "unit": "85 g",
+   "per": {
+    "calories": 70,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 150,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,3102 @@
+{
+ "chain": "east-side-marios",
+ "country": "CA",
+ "source": {
+  "url": "https://www.eastsidemarios.com/en/nutrition.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "mozzarella-sticks",
+   "name": "Mozzarella Sticks",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 25,
+     "carbsG": 65,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 2310,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "budda-boomers",
+   "name": "Budda Boomers",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 24,
+     "carbsG": 127,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 11,
+      "sodiumMg": 1520,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-parmesan-chicken-wings",
+   "name": "Garlic Parmesan Chicken Wings",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1450,
+     "proteinG": 46,
+     "carbsG": 44,
+     "fatG": 123,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 2510,
+      "saturatedFatG": 21,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "bruschetta-flatbread",
+   "name": "Bruschetta Flatbread",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 38,
+     "carbsG": 108,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 25,
+      "sodiumMg": 2090,
+      "saturatedFatG": 21,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "gluten-friendly-bruschetta-flatbread",
+   "name": "Gluten-Friendly Bruschetta Flatbread",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 41,
+     "carbsG": 112,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 27,
+      "sodiumMg": 2300,
+      "saturatedFatG": 26,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-spinach-dip",
+   "name": "Cheesy Spinach Dip",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 24,
+     "carbsG": 59,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 2030,
+      "saturatedFatG": 20,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "calamari-al-diavolo",
+   "name": "Calamari al Diavolo",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 38,
+     "carbsG": 60,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 9,
+      "sodiumMg": 2330,
+      "saturatedFatG": 5,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-calamari-fritti",
+   "name": "Classic Calamari Fritti",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 36,
+     "carbsG": 49,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 4,
+      "sodiumMg": 1910,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "nonna-s-cheesy-garlic-bread",
+   "name": "Nonna's Cheesy Garlic Bread",
+   "category": "STARTERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 27,
+     "carbsG": 75,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1780,
+      "saturatedFatG": 16,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-salad",
+   "name": "Garden Salad",
+   "category": "SOUPS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 970,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "all you can eat",
+     "label": "All-You-Can-Eat",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 1050,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad",
+   "name": "Caesar Salad",
+   "category": "SOUPS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 10,
+     "carbsG": 14,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 790,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "all you can eat",
+     "label": "All-You-Can-Eat",
+     "calories": 540,
+     "proteinG": 11,
+     "carbsG": 15,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1020,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-wedding-soup",
+   "name": "Italian Wedding Soup",
+   "category": "SOUPS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 4,
+     "carbsG": 9,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 1030,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-garlic-tomato-soup",
+   "name": "Roasted Garlic Tomato Soup",
+   "category": "SOUPS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 890,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-potato-bacon-soup",
+   "name": "Creamy Potato Bacon Soup",
+   "category": "SOUPS & SALADS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 800,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "hell-s-kitchen-chicken",
+   "name": "Hell's Kitchen Chicken",
+   "category": "ENTRÉES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 41,
+     "carbsG": 60,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 11,
+      "sodiumMg": 2610,
+      "saturatedFatG": 7,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "baked-salmon-alfresto-bowl",
+   "name": "Baked Salmon Alfresto Bowl",
+   "category": "ENTRÉES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 44,
+     "carbsG": 43,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1410,
+      "saturatedFatG": 12,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-shrimp-scampi",
+   "name": "Chicken & Shrimp Scampi",
+   "category": "ENTRÉES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 48,
+     "carbsG": 39,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 7,
+      "sodiumMg": 2300,
+      "saturatedFatG": 14,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-tenders-and-fries",
+   "name": "Chicken Tenders & Fries",
+   "category": "ENTRÉES",
+   "sizes": [
+    {
+     "size": "5 pc",
+     "label": "5 pc",
+     "calories": 1100,
+     "proteinG": 34,
+     "carbsG": 119,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 34,
+      "sodiumMg": 2820,
+      "saturatedFatG": 4,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "mario-s-chicken-parmigiana",
+   "name": "Mario's Chicken Parmigiana",
+   "category": "MARIO'S PARMIGIANAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 61,
+     "carbsG": 101,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 17,
+      "sodiumMg": 1710,
+      "saturatedFatG": 9,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "veal-parmigiana",
+   "name": "Veal Parmigiana",
+   "category": "MARIO'S PARMIGIANAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 42,
+     "carbsG": 90,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 16,
+      "sodiumMg": 1560,
+      "saturatedFatG": 8,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "mario-s-mangia-sampler",
+   "name": "Mario's Mangia Sampler",
+   "category": "MARIO'S PARMIGIANAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 64,
+     "carbsG": 88,
+     "fatG": 67,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 12,
+      "sodiumMg": 2250,
+      "saturatedFatG": 24,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-threat-parmigiana",
+   "name": "Triple Threat Parmigiana",
+   "category": "MARIO'S PARMIGIANAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 64,
+     "carbsG": 101,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 15,
+      "sodiumMg": 1950,
+      "saturatedFatG": 13,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "linguine-chicken-tetrazzini",
+   "name": "Linguine Chicken Tetrazzini",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 42,
+     "carbsG": 63,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 1830,
+      "saturatedFatG": 15,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "linguine-chicken-amatriciana",
+   "name": "Linguine Chicken Amatriciana",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 47,
+     "carbsG": 66,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 11,
+      "sodiumMg": 1670,
+      "saturatedFatG": 12,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-primavera-with-goat-cheese",
+   "name": "Spaghetti Primavera with Goat Cheese",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 17,
+     "carbsG": 65,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 8,
+      "sodiumMg": 2120,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "jumbo-shrimp-alfredo",
+   "name": "Jumbo Shrimp Alfredo",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 31,
+     "carbsG": 67,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 2620,
+      "saturatedFatG": 13,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "seafood-linguine",
+   "name": "Seafood Linguine",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 41,
+     "carbsG": 69,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 10,
+      "sodiumMg": 1310,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-bacon-carbonara",
+   "name": "Double-Bacon Carbonara",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 41,
+     "carbsG": 62,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 2180,
+      "saturatedFatG": 19,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "mario-s-spaghetti-and-meatballs",
+   "name": "Mario's Spaghetti & Meatballs",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 37,
+     "carbsG": 73,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 12,
+      "sodiumMg": 1900,
+      "saturatedFatG": 17,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-and-peppers-penne",
+   "name": "Sausage & Peppers Penne",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 24,
+     "carbsG": 71,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 14,
+      "sodiumMg": 1820,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-garlic-fettuccine-alfredo-with-chicken",
+   "name": "Roasted Garlic Fettuccine Alfredo with Chicken",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 39,
+     "carbsG": 60,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1590,
+      "saturatedFatG": 13,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "gigantico-three-cheese-ravioli",
+   "name": "Gigantico Three Cheese Ravioli",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 45,
+     "carbsG": 94,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 11,
+      "sodiumMg": 2940,
+      "saturatedFatG": 28,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-cappelletti",
+   "name": "Cheese Cappelletti",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1130,
+     "proteinG": 43,
+     "carbsG": 148,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 9,
+      "sodiumMg": 2500,
+      "saturatedFatG": 16,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "12-layer-lasagna",
+   "name": "12 Layer Lasagna",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 44,
+     "carbsG": 66,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 14,
+      "sodiumMg": 2070,
+      "saturatedFatG": 22,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo",
+   "name": "Fettuccine Alfredo",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 19,
+     "carbsG": 58,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-baked-penne-with-rose",
+   "name": "Cheesy Baked Penne with Rosé",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 24,
+     "carbsG": 60,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1100,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-bolognese",
+   "name": "Spaghetti Bolognese",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 19,
+     "carbsG": 60,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 9,
+      "sodiumMg": 860,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-and-shrimp-spaghetti",
+   "name": "Salmon & Shrimp Spaghetti",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 36,
+     "carbsG": 60,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 2030,
+      "saturatedFatG": 17,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-bacon-rose",
+   "name": "Crispy Chicken Bacon Rosé",
+   "category": "SIGNATURE PASTAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 44,
+     "carbsG": 80,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 14,
+      "sodiumMg": 1990,
+      "saturatedFatG": 20,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "hawaiian-heat-pizza",
+   "name": "Hawaiian Heat Pizza",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 1090,
+     "proteinG": 55,
+     "carbsG": 131,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 18,
+      "sodiumMg": 3290,
+      "saturatedFatG": 15,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 1890,
+     "proteinG": 98,
+     "carbsG": 216,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 33,
+      "sodiumMg": 6010,
+      "saturatedFatG": 29,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-pepperoni-pizza",
+   "name": "Loaded Pepperoni Pizza",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 1150,
+     "proteinG": 52,
+     "carbsG": 126,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 2770,
+      "saturatedFatG": 19,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 2050,
+     "proteinG": 95,
+     "carbsG": 207,
+     "fatG": 94,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 18,
+      "sodiumMg": 5100,
+      "saturatedFatG": 36,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "four-meat-pizza",
+   "name": "Four-Meat Pizza",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 1290,
+     "proteinG": 66,
+     "carbsG": 126,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 11,
+      "sodiumMg": 3400,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 2200,
+     "proteinG": 115,
+     "carbsG": 206,
+     "fatG": 103,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 20,
+      "sodiumMg": 5790,
+      "saturatedFatG": 41,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-ultimate-canadian-pizza",
+   "name": "The Ultimate Canadian Pizza",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 1190,
+     "proteinG": 57,
+     "carbsG": 126,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 12,
+      "sodiumMg": 2710,
+      "saturatedFatG": 19,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 2030,
+     "proteinG": 101,
+     "carbsG": 207,
+     "fatG": 90,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 21,
+      "sodiumMg": 4660,
+      "saturatedFatG": 35,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "balsamic-pesto-pizza",
+   "name": "Balsamic Pesto Pizza",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 1360,
+     "proteinG": 50,
+     "carbsG": 146,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 21,
+      "sodiumMg": 2130,
+      "saturatedFatG": 22,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 2420,
+     "proteinG": 91,
+     "carbsG": 239,
+     "fatG": 125,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 35,
+      "sodiumMg": 3810,
+      "saturatedFatG": 42,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-deluxe-pizza-select-locations",
+   "name": "The Deluxe Pizza (Select Locations)",
+   "category": "PIZZA & CALZONES",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 810,
+     "proteinG": 35,
+     "carbsG": 100,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 1750,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "14",
+     "label": "14\"",
+     "calories": 1580,
+     "proteinG": 69,
+     "carbsG": 201,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 16,
+      "sodiumMg": 3450,
+      "saturatedFatG": 22,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-ultimate-canadian-calzone",
+   "name": "The Ultimate Canadian Calzone",
+   "category": "CALZONES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1370,
+     "proteinG": 58,
+     "carbsG": 134,
+     "fatG": 68,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 16,
+      "sodiumMg": 3010,
+      "saturatedFatG": 21,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-calzone",
+   "name": "Pepperoni Calzone",
+   "category": "CALZONES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1210,
+     "proteinG": 47,
+     "carbsG": 130,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 14,
+      "sodiumMg": 2610,
+      "saturatedFatG": 17,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "8-pizza-base-lunch-and-kids",
+   "name": "8\" Pizza Base - Lunch & Kids",
+   "category": "BUILD YOUR OWN PIZZA",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 690,
+     "proteinG": 32,
+     "carbsG": 74,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1410,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-pizza-base-traditional",
+   "name": "10\" Pizza Base - Traditional",
+   "category": "BUILD YOUR OWN PIZZA",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 930,
+     "proteinG": 42,
+     "carbsG": 121,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 9,
+      "sodiumMg": 1910,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-cauliflower-crust-base-gluten-friendly",
+   "name": "10\" Cauliflower Crust Base (Gluten-Friendly)",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 800,
+     "proteinG": 36,
+     "carbsG": 79,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 1760,
+      "saturatedFatG": 20,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-pizza-base-thin-crust",
+   "name": "10\" Pizza Base - Thin Crust",
+   "sizes": [
+    {
+     "size": "10",
+     "label": "10\"",
+     "calories": 690,
+     "proteinG": 32,
+     "carbsG": 76,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1470,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parm-hero-sandwich",
+   "name": "Chicken Parm Hero Sandwich",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 60,
+     "carbsG": 110,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 1920,
+      "saturatedFatG": 10,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "veal-parm-hero-sandwich",
+   "name": "Veal Parm Hero Sandwich",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 41,
+     "carbsG": 99,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1760,
+      "saturatedFatG": 9,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "mario-s-meatball-hoagie",
+   "name": "Mario's Meatball Hoagie",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 44,
+     "carbsG": 92,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 10,
+      "sodiumMg": 2640,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-club-wrap-with-crispy-chicken",
+   "name": "The Club Wrap with Crispy Chicken",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 33,
+     "carbsG": 69,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 4,
+      "sodiumMg": 2020,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-club-wrap-with-grilled-chicken",
+   "name": "The Club Wrap with Grilled Chicken",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 630,
+     "proteinG": 31,
+     "carbsG": 53,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1430,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-stromboli-wich",
+   "name": "Grilled Chicken Stromboli-wich",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 56,
+     "carbsG": 74,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 1540,
+      "saturatedFatG": 10,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "junior-chicken-parmigiana",
+   "name": "Junior Chicken Parmigiana",
+   "category": "Lunch Pastas",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 33,
+     "carbsG": 57,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 910,
+      "saturatedFatG": 5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "half-meatball-hoagie-sandwich",
+   "name": "Half Meatball Hoagie Sandwich",
+   "category": "Lunch Handhelds",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 25,
+     "carbsG": 51,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1580,
+      "saturatedFatG": 13,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-fingers-excludes-side",
+   "name": "Chicken Fingers (excludes side)",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 18,
+     "carbsG": 57,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 950,
+      "saturatedFatG": 1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-alfredo-bowties",
+   "name": "Cheesy Alfredo Bowties",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 20,
+     "carbsG": 36,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 830,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "mario-s-mini-sampler",
+   "name": "Mario's Mini Sampler",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 29,
+     "carbsG": 76,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 16,
+      "sodiumMg": 1720,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "fries",
+   "name": "Fries",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1030,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-gelato-pop-up",
+   "name": "Strawberry Gelato Pop-up",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-gelato-pop-up",
+   "name": "Chocolate Gelato Pop-uP",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 13,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 25,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "realfruit-gummies",
+   "name": "REALFRUIT® Gummies",
+   "category": "Mini Marios",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-ice-cream",
+   "name": "Vanilla Ice Cream",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-italian-soda",
+   "name": "Blackberry Italian Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "penne-pasta",
+   "name": "Penne Pasta",
+   "group": "other",
+   "unit": "227 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 8,
+    "carbsG": 47,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 1,
+     "sodiumMg": 85,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "spaghetti-pasta",
+   "name": "Spaghetti Pasta",
+   "group": "other",
+   "unit": "227 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 8,
+    "carbsG": 47,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 1,
+     "sodiumMg": 85,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "linguine-pasta",
+   "name": "Linguine Pasta",
+   "group": "other",
+   "unit": "227 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 8,
+    "carbsG": 47,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 1,
+     "sodiumMg": 85,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "fettuccine-pasta",
+   "name": "Fettuccine Pasta",
+   "group": "other",
+   "unit": "227 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 8,
+    "carbsG": 47,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 1,
+     "sodiumMg": 85,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "gluten-friendly-rotini-pasta",
+   "name": "Gluten-Friendly Rotini Pasta",
+   "group": "other",
+   "unit": "227 g",
+   "per": {
+    "calories": 230,
+    "proteinG": 7,
+    "carbsG": 41,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 1,
+     "sodiumMg": 85,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "alfredo-sauce",
+   "name": "Alfredo Sauce",
+   "group": "sauce",
+   "unit": "182 g",
+   "per": {
+    "calories": 380,
+    "proteinG": 11,
+    "carbsG": 11,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 1040,
+     "saturatedFatG": 11,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "mario-s-signature-tomato-sauce",
+   "name": "Mario's Signature Tomato Sauce",
+   "group": "sauce",
+   "unit": "185 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 8,
+     "sodiumMg": 590,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "rose-sauce",
+   "name": "Rosé Sauce",
+   "group": "sauce",
+   "unit": "174 g",
+   "per": {
+    "calories": 230,
+    "proteinG": 6,
+    "carbsG": 12,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 6,
+     "sodiumMg": 760,
+     "saturatedFatG": 5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "bolognese-sauce",
+   "name": "Bolognese Sauce",
+   "group": "sauce",
+   "unit": "183 g",
+   "per": {
+    "calories": 200,
+    "proteinG": 11,
+    "carbsG": 13,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 7,
+     "sodiumMg": 770,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "arrabbiata-sauce",
+   "name": "Arrabbiata Sauce",
+   "group": "sauce",
+   "unit": "190 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 3,
+    "carbsG": 18,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 10,
+     "sodiumMg": 1010,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "baked-cheese",
+   "name": "Baked Cheese",
+   "group": "cheese",
+   "unit": "43 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 10,
+    "carbsG": 1,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 260,
+     "saturatedFatG": 5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "roasted-button-mushrooms",
+   "name": "Roasted Button Mushrooms",
+   "group": "topping",
+   "unit": "62 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 45,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-italian-vegetables",
+   "name": "Roasted Italian Vegetables",
+   "group": "topping",
+   "unit": "127 g",
+   "per": {
+    "calories": 200,
+    "proteinG": 2,
+    "carbsG": 7,
+    "fatG": 19,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 4,
+     "sodiumMg": 210,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "seasoned-chicken-breast",
+   "name": "Seasoned Chicken Breast",
+   "group": "protein",
+   "unit": "99 g",
+   "per": {
+    "calories": 220,
+    "proteinG": 20,
+    "carbsG": 0,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 250,
+     "saturatedFatG": 2,
+     "cholesterolMg": 70
+    }
+   }
+  },
+  {
+   "id": "spicy-italian-sausage",
+   "name": "Spicy Italian Sausage",
+   "group": "protein",
+   "unit": "99 g",
+   "per": {
+    "calories": 360,
+    "proteinG": 13,
+    "carbsG": 3,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 720,
+     "saturatedFatG": 9,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "sauteed-jumbo-shrimp",
+   "name": "Sautéed Jumbo Shrimp",
+   "group": "protein",
+   "unit": "93 g",
+   "per": {
+    "calories": 180,
+    "proteinG": 11,
+    "carbsG": 1,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 430,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 100
+    }
+   }
+  },
+  {
+   "id": "mario-s-meatballs",
+   "name": "Mario's Meatballs",
+   "group": "protein",
+   "unit": "138 g",
+   "per": {
+    "calories": 330,
+    "proteinG": 18,
+    "carbsG": 8,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 820,
+     "saturatedFatG": 11,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "bacon-lunch",
+   "name": "Bacon (Lunch)",
+   "group": "topping",
+   "unit": "21 g",
+   "per": {
+    "calories": 80,
+    "proteinG": 7,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 300,
+     "saturatedFatG": 2,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "diced-ham-lunch",
+   "name": "Diced Ham (Lunch)",
+   "group": "topping",
+   "unit": "28 g",
+   "per": {
+    "calories": 30,
+    "proteinG": 4,
+    "carbsG": 1,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 330,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "meatballs-lunch",
+   "name": "Meatballs (Lunch)",
+   "group": "topping",
+   "unit": "69 g",
+   "per": {
+    "calories": 170,
+    "proteinG": 9,
+    "carbsG": 4,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 410,
+     "saturatedFatG": 5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "pepperoni-lunch",
+   "name": "Pepperoni (Lunch)",
+   "group": "topping",
+   "unit": "36 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 5,
+    "carbsG": 3,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 400,
+     "saturatedFatG": 3,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "seasoned-chicken-breast-lunch",
+   "name": "Seasoned Chicken Breast (Lunch)",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 50,
+    "proteinG": 10,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 125,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "spicy-italian-sausage-lunch",
+   "name": "Spicy Italian Sausage (Lunch)",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 120,
+    "proteinG": 6,
+    "carbsG": 2,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 360,
+     "saturatedFatG": 4,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "double-pizza-mozzarella-cheese-lunch",
+   "name": "Double Pizza Mozzarella Cheese (Lunch)",
+   "group": "cheese",
+   "unit": "85 g",
+   "per": {
+    "calories": 260,
+    "proteinG": 20,
+    "carbsG": 3,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 510,
+     "saturatedFatG": 10,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "goat-cheese-lunch",
+   "name": "Goat Cheese (Lunch)",
+   "group": "cheese",
+   "unit": "15 g",
+   "per": {
+    "calories": 45,
+    "proteinG": 2,
+    "carbsG": 1,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 45,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "black-olives-lunch",
+   "name": "Black Olives (Lunch)",
+   "group": "topping",
+   "unit": "23 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.2,
+    "carbsG": 2,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bruschetta-lunch",
+   "name": "Bruschetta (Lunch)",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 40,
+    "proteinG": 0.4,
+    "carbsG": 2,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 310,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caramelized-onions-lunch",
+   "name": "Caramelized Onions (Lunch)",
+   "group": "topping",
+   "unit": "21 g",
+   "per": {
+    "calories": 35,
+    "proteinG": 0.5,
+    "carbsG": 4,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 25,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cherry-peppers-lunch",
+   "name": "Cherry Peppers (Lunch)",
+   "group": "topping",
+   "unit": "17 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.3,
+    "carbsG": 1,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 240,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-and-red-bell-peppers-lunch",
+   "name": "Green & Red Bell Peppers (Lunch)",
+   "group": "topping",
+   "unit": "35 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.3,
+    "carbsG": 2,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 1,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pineapple-lunch",
+   "name": "Pineapple (Lunch)",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 30,
+    "proteinG": 0.4,
+    "carbsG": 7,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-button-mushrooms-lunch",
+   "name": "Roasted Button Mushrooms (Lunch)",
+   "group": "topping",
+   "unit": "62 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 45,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sliced-mushrooms-lunch",
+   "name": "Sliced Mushrooms (Lunch)",
+   "group": "topping",
+   "unit": "28 g",
+   "per": {
+    "calories": 5,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 1,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bacon-10",
+   "name": "Bacon (10\")",
+   "group": "topping",
+   "unit": "28 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 9,
+    "carbsG": 1,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 400,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "diced-ham-10",
+   "name": "Diced Ham (10\")",
+   "group": "topping",
+   "unit": "28 g",
+   "per": {
+    "calories": 5,
+    "proteinG": 1,
+    "carbsG": 0,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 55,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "meatballs-10",
+   "name": "Meatballs (10\")",
+   "group": "topping",
+   "unit": "103 g",
+   "per": {
+    "calories": 250,
+    "proteinG": 13,
+    "carbsG": 6,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 610,
+     "saturatedFatG": 8,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "pepperoni-10",
+   "name": "Pepperoni (10\")",
+   "group": "topping",
+   "unit": "36 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 5,
+    "carbsG": 3,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 400,
+     "saturatedFatG": 3,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "seasoned-chicken-breast-10",
+   "name": "Seasoned Chicken Breast (10\")",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 50,
+    "proteinG": 10,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 125,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "spicy-italian-sausage-10",
+   "name": "Spicy Italian Sausage (10\")",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 120,
+    "proteinG": 6,
+    "carbsG": 2,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 360,
+     "saturatedFatG": 4,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "double-pizza-mozzarella-cheese-10",
+   "name": "Double Pizza Mozzarella Cheese (10\")",
+   "group": "cheese",
+   "unit": "85 g",
+   "per": {
+    "calories": 260,
+    "proteinG": 20,
+    "carbsG": 3,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 510,
+     "saturatedFatG": 10,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "goat-cheese-10",
+   "name": "Goat Cheese (10\")",
+   "group": "cheese",
+   "unit": "30 g",
+   "per": {
+    "calories": 80,
+    "proteinG": 5,
+    "carbsG": 2,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 110,
+     "saturatedFatG": 4,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "black-olives-10",
+   "name": "Black Olives (10\")",
+   "group": "topping",
+   "unit": "23 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.2,
+    "carbsG": 2,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bruschetta-10",
+   "name": "Bruschetta (10\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 0.5,
+    "carbsG": 2,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 410,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caramelized-onions-10",
+   "name": "Caramelized Onions (10\")",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 45,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cherry-peppers-10",
+   "name": "Cherry Peppers (10\")",
+   "group": "topping",
+   "unit": "17 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.3,
+    "carbsG": 1,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 240,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-and-red-bell-peppers-10",
+   "name": "Green & Red Bell Peppers (10\")",
+   "group": "topping",
+   "unit": "49 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.4,
+    "carbsG": 3,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pineapple-10",
+   "name": "Pineapple (10\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 30,
+    "proteinG": 0.4,
+    "carbsG": 7,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-button-mushrooms-10",
+   "name": "Roasted Button Mushrooms (10\")",
+   "group": "topping",
+   "unit": "62 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 45,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sliced-mushrooms-10",
+   "name": "Sliced Mushrooms (10\")",
+   "group": "topping",
+   "unit": "43 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bacon-14",
+   "name": "Bacon (14\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 220,
+    "proteinG": 19,
+    "carbsG": 2,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 800,
+     "saturatedFatG": 5,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "diced-ham-14",
+   "name": "Diced Ham (14\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 9,
+    "carbsG": 1,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 670,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "meatballs-14",
+   "name": "Meatballs (14\")",
+   "group": "topping",
+   "unit": "138 g",
+   "per": {
+    "calories": 330,
+    "proteinG": 18,
+    "carbsG": 8,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 820,
+     "saturatedFatG": 11,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "pepperoni-14",
+   "name": "Pepperoni (14\")",
+   "group": "topping",
+   "unit": "54 g",
+   "per": {
+    "calories": 160,
+    "proteinG": 7,
+    "carbsG": 4,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 610,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "seasoned-chicken-breast-14",
+   "name": "Seasoned Chicken Breast (14\")",
+   "group": "topping",
+   "unit": "85 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 20,
+    "carbsG": 0,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 250,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 70
+    }
+   }
+  },
+  {
+   "id": "spicy-italian-sausage-14",
+   "name": "Spicy Italian Sausage (14\")",
+   "group": "topping",
+   "unit": "85 g",
+   "per": {
+    "calories": 240,
+    "proteinG": 13,
+    "carbsG": 3,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 720,
+     "saturatedFatG": 8,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "double-pizza-mozzarella-cheese-14",
+   "name": "Double Pizza Mozzarella Cheese (14\")",
+   "group": "cheese",
+   "unit": "170 g",
+   "per": {
+    "calories": 510,
+    "proteinG": 40,
+    "carbsG": 6,
+    "fatG": 34,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1020,
+     "saturatedFatG": 20,
+     "cholesterolMg": 115
+    }
+   }
+  },
+  {
+   "id": "goat-cheese-14",
+   "name": "Goat Cheese (14\")",
+   "group": "cheese",
+   "unit": "45 g",
+   "per": {
+    "calories": 130,
+    "proteinG": 7,
+    "carbsG": 2,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 140,
+     "saturatedFatG": 7,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "black-olives-14",
+   "name": "Black Olives (14\")",
+   "group": "topping",
+   "unit": "38 g",
+   "per": {
+    "calories": 45,
+    "proteinG": 0.3,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 280,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bruschetta-14",
+   "name": "Bruschetta (14\")",
+   "group": "topping",
+   "unit": "85 g",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 620,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caramelized-onions-14",
+   "name": "Caramelized Onions (14\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 1,
+    "carbsG": 11,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 5,
+     "sodiumMg": 60,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cherry-peppers-14",
+   "name": "Cherry Peppers (14\")",
+   "group": "topping",
+   "unit": "33 g",
+   "per": {
+    "calories": 15,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 480,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-and-red-bell-peppers-14",
+   "name": "Green & Red Bell Peppers (14\")",
+   "group": "topping",
+   "unit": "70 g",
+   "per": {
+    "calories": 15,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 2,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pineapple-14",
+   "name": "Pineapple (14\")",
+   "group": "topping",
+   "unit": "113 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-button-mushrooms-14",
+   "name": "Roasted Button Mushrooms (14\")",
+   "group": "topping",
+   "unit": "125 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 5,
+    "carbsG": 5,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 3,
+     "sodiumMg": 90,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sliced-mushrooms-14",
+   "name": "Sliced Mushrooms (14\")",
+   "group": "topping",
+   "unit": "57 g",
+   "per": {
+    "calories": 10,
+    "proteinG": 2,
+    "carbsG": 2,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 3,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "penne-pasta-kids",
+   "name": "Penne Pasta (Kids)",
+   "group": "other",
+   "unit": "142 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "spaghetti-pasta-kids",
+   "name": "Spaghetti Pasta (Kids)",
+   "group": "other",
+   "unit": "142 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "linguine-pasta-kids",
+   "name": "Linguine Pasta (Kids)",
+   "group": "other",
+   "unit": "142 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "fettuccine-pasta-kids",
+   "name": "Fettuccine Pasta (Kids)",
+   "group": "other",
+   "unit": "142 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bowtie-pasta-kids",
+   "name": "Bowtie Pasta (Kids)",
+   "group": "other",
+   "unit": "142 g",
+   "per": {
+    "calories": 150,
+    "proteinG": 5,
+    "carbsG": 29,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 50,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "alfredo-sauce-kids",
+   "name": "Alfredo Sauce (Kids)",
+   "group": "sauce",
+   "unit": "91 g",
+   "per": {
+    "calories": 190,
+    "proteinG": 5,
+    "carbsG": 5,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 520,
+     "saturatedFatG": 5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "mario-s-signature-tomato-sauce-kids",
+   "name": "Mario's Signature Tomato Sauce (Kids)",
+   "group": "sauce",
+   "unit": "92 g",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 290,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "rose-sauce-kids",
+   "name": "Rosé Sauce (Kids)",
+   "group": "sauce",
+   "unit": "87 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 3,
+    "carbsG": 6,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 380,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "bolognese-sauce-kids",
+   "name": "Bolognese Sauce (Kids)",
+   "group": "sauce",
+   "unit": "92 g",
+   "per": {
+    "calories": 100,
+    "proteinG": 6,
+    "carbsG": 6,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 390,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "arrabbiata-sauce-kids",
+   "name": "Arrabbiata Sauce (Kids)",
+   "group": "sauce",
+   "unit": "104 g",
+   "per": {
+    "calories": 70,
+    "proteinG": 2,
+    "carbsG": 10,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 5,
+     "sodiumMg": 620,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "baked-cheese-kids",
+   "name": "Baked Cheese (Kids)",
+   "group": "cheese",
+   "unit": "28 g",
+   "per": {
+    "calories": 90,
+    "proteinG": 7,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 170,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "roasted-button-mushrooms-kids",
+   "name": "Roasted Button Mushrooms (Kids)",
+   "group": "topping",
+   "unit": "36 g",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 25,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "seasoned-chicken-breast-kids",
+   "name": "Seasoned Chicken Breast (Kids)",
+   "group": "protein",
+   "unit": "56 g",
+   "per": {
+    "calories": 170,
+    "proteinG": 10,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 125,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 35
+    }
+   }
+  }
+ ]
+}

@@ -658,5 +658,665 @@
   "outcome": "live",
   "detail": "LIVE 100 items, 112 sizes, 47 modifiers, 1 macro mismatches → data/chains/menus/einstein-bros.US.json",
   "at": "2026-10-11"
+ },
+ "brueggers.US": {
+  "outcome": "review",
+  "detail": "REVIEW 81 items, 123 sizes, 48 modifiers, 73 macro mismatches → data/chains/menus-review/brueggers.US.json",
+  "at": "2026-10-11"
+ },
+ "pei-wei.US": {
+  "outcome": "live",
+  "detail": "LIVE 59 items, 59 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/pei-wei.US.json",
+  "at": "2026-10-11"
+ },
+ "sweetgreen.US": {
+  "outcome": "live",
+  "detail": "LIVE 56 items, 56 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/sweetgreen.US.json",
+  "at": "2026-10-11"
+ },
+ "mod-pizza.US": {
+  "outcome": "live",
+  "detail": "LIVE 32 items, 43 sizes, 77 modifiers, 0 macro mismatches → data/chains/menus/mod-pizza.US.json",
+  "at": "2026-10-11"
+ },
+ "blaze-pizza.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "blaze-pizza.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "pieology.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "round-table.US": {
+  "outcome": "review",
+  "detail": "REVIEW 2 items, 2 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/round-table.US.json",
+  "at": "2026-10-11"
+ },
+ "hungry-howies.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/hungry-howies.US.json",
+  "at": "2026-10-11"
+ },
+ "jets-pizza.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "peets.US": {
+  "outcome": "review",
+  "detail": "REVIEW 286 items, 823 sizes, 0 modifiers, 728 macro mismatches → data/chains/menus-review/peets.US.json",
+  "at": "2026-10-11"
+ },
+ "sbarro.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "biggby.US": {
+  "outcome": "review",
+  "detail": "REVIEW 94 items, 248 sizes, 0 modifiers, 89 macro mismatches → data/chains/menus-review/biggby.US.json",
+  "at": "2026-10-11"
+ },
+ "donatos.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "cicis.US": {
+  "outcome": "review",
+  "detail": "REVIEW 162 items, 268 sizes, 42 modifiers, 129 macro mismatches → data/chains/menus-review/cicis.US.json",
+  "at": "2026-10-11"
+ },
+ "mountain-mikes.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "wawa.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "sheetz.US": {
+  "outcome": "live",
+  "detail": "LIVE 30 items, 30 sizes, 4 modifiers, 0 macro mismatches → data/chains/menus/sheetz.US.json",
+  "at": "2026-10-11"
+ },
+ "captain-ds.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "long-john-silvers.US": {
+  "outcome": "review",
+  "detail": "REVIEW 2 items, 2 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/long-john-silvers.US.json",
+  "at": "2026-10-11"
+ },
+ "golden-chick.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped",
+  "at": "2026-10-11"
+ },
+ "scooters-coffee.US": {
+  "outcome": "error",
+  "detail": "exit null",
+  "at": "2026-10-11"
+ },
+ "daves-hot-chicken.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "daves-hot-chicken.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "pollo-tropical.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "slim-chickens.US": {
+  "outcome": "review",
+  "detail": "REVIEW 76 items, 134 sizes, 17 modifiers, 61 macro mismatches → data/chains/menus-review/slim-chickens.US.json",
+  "at": "2026-10-11"
+ },
+ "fazolis.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "tazikis.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "portillos.US": {
+  "outcome": "live",
+  "detail": "LIVE 52 items, 63 sizes, 27 modifiers, 2 macro mismatches → data/chains/menus/portillos.US.json",
+  "at": "2026-10-11"
+ },
+ "pita-pit.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "halal-guys.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/halal-guys.US.json",
+  "at": "2026-10-11"
+ },
+ "chuck-e-cheese.US": {
+  "outcome": "live",
+  "detail": "LIVE 64 items, 98 sizes, 112 modifiers, 1 macro mismatches → data/chains/menus/chuck-e-cheese.US.json",
+  "at": "2026-10-11"
+ },
+ "dickeys.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "chuys.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "pita-pit.CA": {
+  "outcome": "live",
+  "detail": "LIVE 84 items, 157 sizes, 74 modifiers, 0 macro mismatches → data/chains/menus/pita-pit.CA.json",
+  "at": "2026-10-11"
+ },
+ "cafe-rio.US": {
+  "outcome": "live",
+  "detail": "LIVE 8 items, 8 sizes, 36 modifiers, 0 macro mismatches → data/chains/menus/cafe-rio.US.json",
+  "at": "2026-10-11"
+ },
+ "costa-vida.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/costa-vida.US.json",
+  "at": "2026-10-11"
+ },
+ "baja-fresh.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "rubios.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "torchys.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "fuzzys.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "nandos.CA": {
+  "outcome": "live",
+  "detail": "LIVE 16 items, 28 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus/nandos.CA.json",
+  "at": "2026-10-11"
+ },
+ "quiznos.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 94 items, 140 sizes, 57 modifiers, 107 macro mismatches → data/chains/menus-review/quiznos.CA.json",
+  "at": "2026-10-11"
+ },
+ "on-the-border.US": {
+  "outcome": "review",
+  "detail": "REVIEW 64 items, 64 sizes, 14 modifiers, 24 macro mismatches → data/chains/menus-review/on-the-border.US.json",
+  "at": "2026-10-11"
+ },
+ "corner-bakery.US": {
+  "outcome": "review",
+  "detail": "REVIEW 34 items, 67 sizes, 0 modifiers, 35 macro mismatches → data/chains/menus-review/corner-bakery.US.json",
+  "at": "2026-10-11"
+ },
+ "penn-station.US": {
+  "outcome": "review",
+  "detail": "REVIEW 4 items, 10 sizes, 138 modifiers, 0 macro mismatches → data/chains/menus-review/penn-station.US.json",
+  "at": "2026-10-11"
+ },
+ "cheddars.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "capriottis.US": {
+  "outcome": "review",
+  "detail": "REVIEW 128 items, 232 sizes, 0 modifiers, 82 macro mismatches → data/chains/menus-review/capriottis.US.json",
+  "at": "2026-10-11"
+ },
+ "logans-roadhouse.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped",
+  "at": "2026-10-11"
+ },
+ "godfathers.US": {
+  "outcome": "error",
+  "detail": "exit null",
+  "at": "2026-10-11"
+ },
+ "dave-and-busters.US": {
+  "outcome": "review",
+  "detail": "REVIEW 181 items, 199 sizes, 22 modifiers, 77 macro mismatches → data/chains/menus-review/dave-and-busters.US.json",
+  "at": "2026-10-11"
+ },
+ "friendlys.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/friendlys.US.json",
+  "at": "2026-10-11"
+ },
+ "bonefish-grill.US": {
+  "outcome": "live",
+  "detail": "LIVE 159 items, 168 sizes, 9 modifiers, 15 macro mismatches → data/chains/menus/bonefish-grill.US.json",
+  "at": "2026-10-11"
+ },
+ "black-bear-diner.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "maggianos.US": {
+  "outcome": "review",
+  "detail": "REVIEW 83 items, 96 sizes, 0 modifiers, 66 macro mismatches → data/chains/menus-review/maggianos.US.json",
+  "at": "2026-10-11"
+ },
+ "yoshinoya.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/yoshinoya.US.json",
+  "at": "2026-10-11"
+ },
+ "quiznos.US": {
+  "outcome": "review",
+  "detail": "REVIEW 33 items, 116 sizes, 24 modifiers, 112 macro mismatches → data/chains/menus-review/quiznos.US.json",
+  "at": "2026-10-11"
+ },
+ "teriyaki-madness.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/teriyaki-madness.CA.json",
+  "at": "2026-10-11"
+ },
+ "teriyaki-madness.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/teriyaki-madness.US.json",
+  "at": "2026-10-11"
+ },
+ "pinkberry.US": {
+  "outcome": "review",
+  "detail": "REVIEW 46 items, 218 sizes, 1 modifiers, 146 macro mismatches → data/chains/menus-review/pinkberry.US.json",
+  "at": "2026-10-11"
+ },
+ "brusters.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "village-inn.US": {
+  "outcome": "review",
+  "detail": "REVIEW 129 items, 158 sizes, 26 modifiers, 42 macro mismatches → data/chains/menus-review/village-inn.US.json",
+  "at": "2026-10-11"
+ },
+ "andys-custard.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "shipley.US": {
+  "outcome": "review",
+  "detail": "REVIEW 75 items, 81 sizes, 0 modifiers, 71 macro mismatches → data/chains/menus-review/shipley.US.json",
+  "at": "2026-10-11"
+ },
+ "handels.US": {
+  "outcome": "review",
+  "detail": "REVIEW 152 items, 184 sizes, 0 modifiers, 28 macro mismatches → data/chains/menus-review/handels.US.json",
+  "at": "2026-10-11"
+ },
+ "playa-bowls.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "jollibee.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/jollibee.US.json",
+  "at": "2026-10-11"
+ },
+ "marble-slab.US": {
+  "outcome": "review",
+  "detail": "REVIEW 73 items, 399 sizes, 44 modifiers, 93 macro mismatches → data/chains/menus-review/marble-slab.US.json",
+  "at": "2026-10-11"
+ },
+ "kung-fu-tea.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "a-and-w-us.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "pizza-nova.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "taco-cabana.US": {
+  "outcome": "review",
+  "detail": "REVIEW 2 items, 2 sizes, 0 modifiers, 2 macro mismatches → data/chains/menus-review/taco-cabana.US.json",
+  "at": "2026-10-11"
+ },
+ "panago.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "paris-baguette.US": {
+  "outcome": "live",
+  "detail": "LIVE 41 items, 59 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/paris-baguette.US.json",
+  "at": "2026-10-11"
+ },
+ "greco-pizza.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "clean-juice.US": {
+  "outcome": "review",
+  "detail": "REVIEW 94 items, 131 sizes, 0 modifiers, 94 macro mismatches → data/chains/menus-review/clean-juice.US.json",
+  "at": "2026-10-11"
+ },
+ "freshslice.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "pizza-73.CA": {
+  "outcome": "live",
+  "detail": "LIVE 40 items, 86 sizes, 13 modifiers, 0 macro mismatches → data/chains/menus/pizza-73.CA.json",
+  "at": "2026-10-11"
+ },
+ "pizza-delight.CA": {
+  "outcome": "live",
+  "detail": "LIVE 119 items, 135 sizes, 10 modifiers, 0 macro mismatches → data/chains/menus/pizza-delight.CA.json",
+  "at": "2026-10-11"
+ },
+ "boston-pizza.CA": {
+  "outcome": "live",
+  "detail": "LIVE 106 items, 181 sizes, 34 modifiers, 0 macro mismatches → data/chains/menus/boston-pizza.CA.json",
+  "at": "2026-10-11"
+ },
+ "coffee-culture.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/coffee-culture.CA.json",
+  "at": "2026-10-11"
+ },
+ "jugo-juice.CA": {
+  "outcome": "live",
+  "detail": "LIVE 41 items, 52 sizes, 9 modifiers, 1 macro mismatches → data/chains/menus/jugo-juice.CA.json",
+  "at": "2026-10-11"
+ },
+ "st-hubert.CA": {
+  "outcome": "live",
+  "detail": "LIVE 146 items, 164 sizes, 49 modifiers, 3 macro mismatches → data/chains/menus/st-hubert.CA.json",
+  "at": "2026-10-11"
+ },
+ "mr-sub.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 2 items, 4 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/mr-sub.CA.json",
+  "at": "2026-10-11"
+ },
+ "mucho-burrito.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "barburrito.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "quesada.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "country-style.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 133 items, 167 sizes, 0 modifiers, 136 macro mismatches → data/chains/menus-review/country-style.CA.json",
+  "at": "2026-10-11"
+ },
+ "montanas.CA": {
+  "outcome": "live",
+  "detail": "LIVE 48 items, 48 sizes, 46 modifiers, 1 macro mismatches → data/chains/menus/montanas.CA.json",
+  "at": "2026-10-11"
+ },
+ "chucks-roadhouse.CA": {
+  "outcome": "live",
+  "detail": "LIVE 128 items, 139 sizes, 42 modifiers, 1 macro mismatches → data/chains/menus/chucks-roadhouse.CA.json",
+  "at": "2026-10-11"
+ },
+ "the-keg.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "the-keg.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "thai-express.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/thai-express.CA.json",
+  "at": "2026-10-11"
+ },
+ "kelseys.CA": {
+  "outcome": "live",
+  "detail": "LIVE 95 items, 100 sizes, 49 modifiers, 1 macro mismatches → data/chains/menus/kelseys.CA.json",
+  "at": "2026-10-11"
+ },
+ "fatburger.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/fatburger.US.json",
+  "at": "2026-10-11"
+ },
+ "ben-and-florentine.CA": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "boston-pizza.US": {
+  "outcome": "review",
+  "detail": "REVIEW 75 items, 88 sizes, 74 modifiers, 35 macro mismatches → data/chains/menus-review/boston-pizza.US.json",
+  "at": "2026-10-11"
+ },
+ "east-side-marios.CA": {
+  "outcome": "live",
+  "detail": "LIVE 68 items, 76 sizes, 78 modifiers, 1 macro mismatches → data/chains/menus/east-side-marios.CA.json",
+  "at": "2026-10-11"
+ },
+ "old-spaghetti-factory.US": {
+  "outcome": "live",
+  "detail": "LIVE 51 items, 74 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus/old-spaghetti-factory.US.json",
+  "at": "2026-10-11"
+ },
+ "browns-socialhouse.CA": {
+  "outcome": "live",
+  "detail": "LIVE 60 items, 62 sizes, 0 modifiers, 2 macro mismatches → data/chains/menus/browns-socialhouse.CA.json",
+  "at": "2026-10-11"
+ },
+ "shoeless-joes.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/shoeless-joes.CA.json",
+  "at": "2026-10-11"
+ },
+ "opa.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/opa.CA.json",
+  "at": "2026-10-11"
+ },
+ "valentine.CA": {
+  "outcome": "live",
+  "detail": "LIVE 65 items, 66 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus/valentine.CA.json",
+  "at": "2026-10-11"
+ },
+ "cora.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 156 items, 167 sizes, 4 modifiers, 76 macro mismatches → data/chains/menus-review/cora.CA.json",
+  "at": "2026-10-11"
+ },
+ "pickle-barrel.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 66 items, 68 sizes, 3 modifiers, 59 macro mismatches → data/chains/menus-review/pickle-barrel.CA.json",
+  "at": "2026-10-11"
+ },
+ "big-smoke-burger.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 31 items, 33 sizes, 25 modifiers, 16 macro mismatches → data/chains/menus-review/big-smoke-burger.CA.json",
+  "at": "2026-10-11"
+ },
+ "scores.CA": {
+  "outcome": "live",
+  "detail": "LIVE 74 items, 74 sizes, 17 modifiers, 2 macro mismatches → data/chains/menus/scores.CA.json",
+  "at": "2026-10-11"
+ },
+ "pur-and-simple.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 13 items, 13 sizes, 2 modifiers, 2 macro mismatches → data/chains/menus-review/pur-and-simple.CA.json",
+  "at": "2026-10-11"
+ },
+ "pjs-coffee.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "manchu-wok.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 43 items, 129 sizes, 0 modifiers, 106 macro mismatches → data/chains/menus-review/manchu-wok.CA.json",
+  "at": "2026-10-11"
+ },
+ "bahama-bucks.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "fionn-maccools.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 26 items, 26 sizes, 12 modifiers, 24 macro mismatches → data/chains/menus-review/fionn-maccools.CA.json",
+  "at": "2026-10-11"
+ },
+ "bubbakoos.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "cousins-subs.US": {
+  "outcome": "live",
+  "detail": "LIVE 90 items, 115 sizes, 8 modifiers, 0 macro mismatches → data/chains/menus/cousins-subs.US.json",
+  "at": "2026-10-11"
+ },
+ "black-rock-coffee.US": {
+  "outcome": "review",
+  "detail": "REVIEW 164 items, 356 sizes, 4 modifiers, 251 macro mismatches → data/chains/menus-review/black-rock-coffee.US.json",
+  "at": "2026-10-11"
+ },
+ "huey-magoos.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "chicken-salad-chick.US": {
+  "outcome": "live",
+  "detail": "LIVE 8 items, 21 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/chicken-salad-chick.US.json",
+  "at": "2026-10-11"
+ },
+ "famous-daves.US": {
+  "outcome": "review",
+  "detail": "REVIEW 104 items, 113 sizes, 65 modifiers, 95 macro mismatches → data/chains/menus-review/famous-daves.US.json",
+  "at": "2026-10-11"
+ },
+ "pizza-inn.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "krispy-krunchy.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/krispy-krunchy.US.json",
+  "at": "2026-10-11"
+ },
+ "normandin.CA": {
+  "outcome": "error",
+  "detail": "  page 30 failed: Expected ',' or '}' after property value in JSON at position 60127",
+  "at": "2026-10-11"
+ },
+ "tcby.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "lees-famous-recipe.US": {
+  "outcome": "review",
+  "detail": "REVIEW 80 items, 174 sizes, 12 modifiers, 40 macro mismatches → data/chains/menus-review/lees-famous-recipe.US.json",
+  "at": "2026-10-11"
+ },
+ "pretzelmaker.US": {
+  "outcome": "live",
+  "detail": "LIVE 19 items, 51 sizes, 7 modifiers, 0 macro mismatches → data/chains/menus/pretzelmaker.US.json",
+  "at": "2026-10-11"
+ },
+ "millers-ale-house.US": {
+  "outcome": "review",
+  "detail": "REVIEW 221 items, 230 sizes, 33 modifiers, 56 macro mismatches → data/chains/menus-review/millers-ale-house.US.json",
+  "at": "2026-10-11"
+ },
+ "great-american-cookies.US": {
+  "outcome": "live",
+  "detail": "LIVE 151 items, 196 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus/great-american-cookies.US.json",
+  "at": "2026-10-11"
+ },
+ "waba-grill.US": {
+  "outcome": "review",
+  "detail": "REVIEW 8 items, 8 sizes, 1 modifiers, 8 macro mismatches → data/chains/menus-review/waba-grill.US.json",
+  "at": "2026-10-11"
+ },
+ "another-broken-egg.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "williams-fresh-cafe.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "bonchon.US": {
+  "outcome": "review",
+  "detail": "REVIEW 141 items, 243 sizes, 0 modifiers, 220 macro mismatches → data/chains/menus-review/bonchon.US.json",
+  "at": "2026-10-11"
+ },
+ "benihana.US": {
+  "outcome": "live",
+  "detail": "LIVE 184 items, 202 sizes, 28 modifiers, 10 macro mismatches → data/chains/menus/benihana.US.json",
+  "at": "2026-10-11"
+ },
+ "carvel.US": {
+  "outcome": "error",
+  "detail": "  page 39 failed: Expected ',' or '}' after property value in JSON at position 60120",
+  "at": "2026-10-11"
  }
 }

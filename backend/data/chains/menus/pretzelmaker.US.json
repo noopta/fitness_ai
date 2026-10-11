@@ -1,0 +1,1045 @@
+{
+ "chain": "pretzelmaker",
+ "country": "US",
+ "source": {
+  "url": "https://www.pretzelmaker.com/wp-content/uploads/sites/3/2023/09/022PMC_NutritionalInfoChart_0823-3.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "salted-pretzel-bites",
+   "name": "Salted Pretzel Bites",
+   "category": "Pretzel Bites",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 85,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 329,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 13,
+     "carbsG": 108,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 19,
+      "sodiumMg": 468,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1030,
+     "proteinG": 22,
+     "carbsG": 174,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 31,
+      "sodiumMg": 772,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 1710,
+     "proteinG": 43,
+     "carbsG": 347,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 63,
+      "sodiumMg": 1223,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "unsalted-pretzel-bites",
+   "name": "Unsalted Pretzel Bites",
+   "category": "Pretzel Bites",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 85,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 108,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 13,
+     "carbsG": 108,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 19,
+      "sodiumMg": 135,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1030,
+     "proteinG": 22,
+     "carbsG": 174,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 31,
+      "sodiumMg": 216,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 1500,
+     "proteinG": 33,
+     "carbsG": 263,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 47,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-sugar-pretzel-bites",
+   "name": "Cinnamon Sugar Pretzel Bites",
+   "category": "Pretzel Bites",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 11,
+     "carbsG": 90,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 21,
+      "sodiumMg": 108,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 13,
+     "carbsG": 115,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 26,
+      "sodiumMg": 135,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1070,
+     "proteinG": 22,
+     "carbsG": 185,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 42,
+      "sodiumMg": 216,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 1580,
+     "proteinG": 33,
+     "carbsG": 282,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 67,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-pretzel-bites",
+   "name": "Garlic Pretzel Bites",
+   "category": "Pretzel Bites",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 520,
+     "proteinG": 11,
+     "carbsG": 88,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 753,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 14,
+     "carbsG": 112,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 20,
+      "sodiumMg": 941,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1060,
+     "proteinG": 22,
+     "carbsG": 180,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 32,
+      "sodiumMg": 1506,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 1570,
+     "proteinG": 36,
+     "carbsG": 278,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 48,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "parmesan-pretzel-bites",
+   "name": "Parmesan Pretzel Bites",
+   "category": "Pretzel Bites",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 13,
+     "carbsG": 85,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 168,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 16,
+     "carbsG": 108,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 20,
+      "sodiumMg": 211,
+      "saturatedFatG": 4,
+      "cholesterolMg": 6
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1070,
+     "proteinG": 26,
+     "carbsG": 174,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 31,
+      "sodiumMg": 338,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 1580,
+     "proteinG": 40,
+     "carbsG": 264,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 48,
+      "sodiumMg": 450,
+      "saturatedFatG": 9,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozzarella-stuffed-pretzel-bites",
+   "name": "Mozzarella Stuffed Pretzel Bites",
+   "category": "Mozzarella Stuffed Preztel Bites",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 22,
+     "carbsG": 56,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 460,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 940,
+     "proteinG": 49,
+     "carbsG": 113,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 20,
+      "sodiumMg": 1040,
+      "saturatedFatG": 18,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "box",
+     "label": "Box",
+     "calories": 2150,
+     "proteinG": 90,
+     "carbsG": 271,
+     "fatG": 110,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 47,
+      "sodiumMg": 1860,
+      "saturatedFatG": 0,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "mini-dog-pretzel-bites",
+   "name": "Mini Dog Pretzel Bites",
+   "category": "Mini Dog Pretzel Bites",
+   "sizes": [
+    {
+     "size": "8 pc",
+     "label": "8 pc",
+     "calories": 430,
+     "proteinG": 11,
+     "carbsG": 33,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 594,
+      "saturatedFatG": 9,
+      "cholesterolMg": 36
+     }
+    },
+    {
+     "size": "16 pc",
+     "label": "16 pc",
+     "calories": 870,
+     "proteinG": 23,
+     "carbsG": 66,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 1201,
+      "saturatedFatG": 17,
+      "cholesterolMg": 72
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade",
+   "name": "Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 12,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 38,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 61,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 24,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade",
+   "name": "Strawberry Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 49,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 11,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 102,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 100,
+      "sodiumMg": 22,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-lemonade",
+   "name": "Raspberry Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 12,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 14,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 99,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 22,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "frozen-lemonade",
+   "name": "Frozen Lemonade",
+   "category": "Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 138,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 134,
+      "sodiumMg": 14,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-smoothie",
+   "name": "Strawberry Smoothie",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 5,
+     "carbsG": 85,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 81,
+      "sodiumMg": 92,
+      "saturatedFatG": 10,
+      "cholesterolMg": 39
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-banana-smoothie",
+   "name": "Strawberry Banana Smoothie",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 5,
+     "carbsG": 85,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 81,
+      "sodiumMg": 92,
+      "saturatedFatG": 10,
+      "cholesterolMg": 39
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-smoothie",
+   "name": "Mango Smoothie",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 5,
+     "carbsG": 90,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 86,
+      "sodiumMg": 93,
+      "saturatedFatG": 10,
+      "cholesterolMg": 39
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke",
+   "name": "Coke",
+   "category": "Soda",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "category": "Soda",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "Soda",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 32,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 68,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "water-bottled",
+   "name": "Water, Bottled",
+   "category": "Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "icee",
+   "name": "Icee",
+   "category": "Soda",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "cheddar-cheese",
+   "name": "Cheddar Cheese",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 470,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cream-cheese",
+   "name": "Cream Cheese",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 200,
+    "proteinG": 4,
+    "carbsG": 2,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 180,
+     "saturatedFatG": 12,
+     "cholesterolMg": 60
+    }
+   }
+  },
+  {
+   "id": "pizza-sauce",
+   "name": "Pizza Sauce",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 30,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 3,
+     "sodiumMg": 250,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "vanilla-glaze",
+   "name": "Vanilla Glaze",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 42,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 40,
+     "sodiumMg": 22,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "nacho-cheese",
+   "name": "Nacho Cheese",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 470,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caramel",
+   "name": "Caramel",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 22,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 17,
+     "sodiumMg": 125,
+     "saturatedFatG": 1,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "honey-mustard",
+   "name": "Honey Mustard",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 240,
+    "proteinG": 2,
+    "carbsG": 13,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 310,
+     "saturatedFatG": 4,
+     "cholesterolMg": 10
+    }
+   }
+  }
+ ]
+}

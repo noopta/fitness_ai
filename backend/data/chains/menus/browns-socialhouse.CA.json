@@ -1,0 +1,1232 @@
+{
+ "chain": "browns-socialhouse",
+ "country": "CA",
+ "source": {
+  "url": "https://static1.squarespace.com/static/638a8838854a8c585e1b4594/t/6a05e4e4e1095f572995cfba/1778771172267/BSH+Nutritional+Allergen+Guide+-+May+2026.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "el-cubano-sandwich",
+   "name": "El Cubano Sandwich",
+   "category": "Chef's Corner",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 74,
+     "carbsG": 49,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 2440
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-salmon-bowl",
+   "name": "Teriyaki Salmon Bowl",
+   "category": "Chef's Corner",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1440,
+     "proteinG": 43,
+     "carbsG": 72,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 33,
+      "sodiumMg": 3510
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shortcake",
+   "name": "Strawberry Shortcake",
+   "category": "Chef's Corner",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 8,
+     "carbsG": 82,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 47,
+      "sodiumMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-cauliflower",
+   "name": "Crispy Cauliflower",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 22,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 4,
+      "sodiumMg": 320
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-ginger-gyoza",
+   "name": "Sesame Ginger Gyoza",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 10,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1870
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-nachos",
+   "name": "Loaded Nachos",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1910,
+     "proteinG": 72,
+     "carbsG": 122,
+     "fatG": 130,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 11,
+      "sodiumMg": 5080
+     }
+    }
+   ]
+  },
+  {
+   "id": "little-nachos",
+   "name": "Little Nachos",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 36,
+     "carbsG": 60,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 5,
+      "sodiumMg": 2360
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-calamari",
+   "name": "Crispy Calamari",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 37,
+     "carbsG": 54,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 960
+     }
+    }
+   ]
+  },
+  {
+   "id": "best-fresh-cut-fries-ever",
+   "name": "Best Fresh Cut Fries Ever",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 8,
+     "carbsG": 51,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 3,
+      "sodiumMg": 390
+     }
+    }
+   ]
+  },
+  {
+   "id": "yam-fries",
+   "name": "Yam Fries",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 3,
+     "carbsG": 67,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 19,
+      "sodiumMg": 1090
+     }
+    }
+   ]
+  },
+  {
+   "id": "salt-and-pepper-dry-ribs",
+   "name": "Salt & Pepper Dry Ribs",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 49,
+     "carbsG": 3,
+     "fatG": 53,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1740
+     }
+    }
+   ]
+  },
+  {
+   "id": "dynamite-crunch-roll",
+   "name": "Dynamite Crunch Roll",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 15,
+     "carbsG": 46,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 1720
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-hot-wings",
+   "name": "Classic Hot Wings",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1230,
+     "proteinG": 49,
+     "carbsG": 2,
+     "fatG": 113,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 1540
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-lettuce-wraps-chicken",
+   "name": "Kung Pao Lettuce Wraps - Chicken",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 42,
+     "carbsG": 86,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 36,
+      "sodiumMg": 2890
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-lettuce-wraps-tofu",
+   "name": "Kung Pao Lettuce Wraps - Tofu",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 37,
+     "carbsG": 93,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 37,
+      "sodiumMg": 2840
+     }
+    }
+   ]
+  },
+  {
+   "id": "little-cowboy-salad",
+   "name": "Little Cowboy Salad",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 50,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 31,
+      "sodiumMg": 500
+     }
+    }
+   ]
+  },
+  {
+   "id": "little-caesar-salad",
+   "name": "Little Caesar Salad",
+   "category": "Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 13,
+     "carbsG": 12,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 910
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-chicken-soup",
+   "name": "Thai Chicken Soup",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 7,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 530
+     }
+    },
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 13,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1060
+     }
+    }
+   ]
+  },
+  {
+   "id": "soup-salad-and-garlic-toast-cowboy",
+   "name": "Soup, Salad & Garlic Toast - Cowboy",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 22,
+     "carbsG": 101,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 38,
+      "sodiumMg": 2200
+     }
+    }
+   ]
+  },
+  {
+   "id": "soup-salad-and-garlic-toast-caesar",
+   "name": "Soup, Salad & Garlic Toast - Caesar",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 28,
+     "carbsG": 64,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 2610
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackened-chicken-caesar",
+   "name": "Blackened Chicken Caesar",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 45,
+     "carbsG": 34,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 2300
+     }
+    }
+   ]
+  },
+  {
+   "id": "seared-ahi-tuna-crunch",
+   "name": "Seared Ahi Tuna Crunch",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 31,
+     "carbsG": 48,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 15,
+      "sodiumMg": 1140
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackened-chicken-cowboy",
+   "name": "Blackened Chicken Cowboy",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 43,
+     "carbsG": 75,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 29,
+      "sodiumMg": 2270
+     }
+    }
+   ]
+  },
+  {
+   "id": "sushi-and-salad-crispy-yam-and-avocado-roll",
+   "name": "Sushi & Salad - Crispy Yam & Avocado Roll",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1170,
+     "proteinG": 17,
+     "carbsG": 105,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 28,
+      "sodiumMg": 2460
+     }
+    }
+   ]
+  },
+  {
+   "id": "sushi-and-salad-dynamite-roll",
+   "name": "Sushi & Salad - Dynamite Roll",
+   "category": "Soup & Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1280,
+     "proteinG": 25,
+     "carbsG": 158,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 49,
+      "sodiumMg": 2400
+     }
+    }
+   ]
+  },
+  {
+   "id": "hollywood-burger",
+   "name": "Hollywood Burger",
+   "category": "Burgers (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 42,
+     "carbsG": 38,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 1270
+     }
+    }
+   ]
+  },
+  {
+   "id": "butcher-s-block-burger",
+   "name": "Butcher's Block Burger",
+   "category": "Burgers (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 50,
+     "carbsG": 59,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 21,
+      "sodiumMg": 1810
+     }
+    }
+   ]
+  },
+  {
+   "id": "traditional-pub-burger",
+   "name": "Traditional Pub Burger",
+   "category": "Burgers (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 48,
+     "carbsG": 39,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 11,
+      "sodiumMg": 1470
+     }
+    }
+   ]
+  },
+  {
+   "id": "smokehouse-burger",
+   "name": "Smokehouse Burger",
+   "category": "Burgers (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 49,
+     "carbsG": 48,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 18,
+      "sodiumMg": 2190
+     }
+    }
+   ]
+  },
+  {
+   "id": "fancy-tomato-sandwich",
+   "name": "Fancy Tomato Sandwich",
+   "category": "Handhelds (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 28,
+     "carbsG": 72,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 2470
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-crispy-chicken-sandwich",
+   "name": "Spicy Crispy Chicken Sandwich",
+   "category": "Handhelds (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 50,
+     "carbsG": 65,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 11,
+      "sodiumMg": 2550
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-quesadilla",
+   "name": "Chicken Quesadilla",
+   "category": "Handhelds (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 42,
+     "carbsG": 50,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 2090
+     }
+    }
+   ]
+  },
+  {
+   "id": "baja-fish-taco",
+   "name": "Baja Fish Taco",
+   "category": "Handhelds (No Sides)",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 23,
+     "carbsG": 59,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 7,
+      "sodiumMg": 1650
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-island-poke",
+   "name": "Big Island Poke",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 40,
+     "carbsG": 65,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 21,
+      "sodiumMg": 1490
+     }
+    }
+   ]
+  },
+  {
+   "id": "szechuan-beef-noodle-bowl",
+   "name": "Szechuan Beef Noodle Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1460,
+     "proteinG": 64,
+     "carbsG": 185,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 34,
+      "sodiumMg": 3960
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwest-rice-bowl",
+   "name": "Southwest Rice Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1350,
+     "proteinG": 44,
+     "carbsG": 154,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 13,
+      "sodiumMg": 3260
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwest-rice-bowl-no-chicken",
+   "name": "Southwest Rice Bowl - No Chicken",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1050,
+     "proteinG": 18,
+     "carbsG": 144,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 12,
+      "sodiumMg": 2460
+     }
+    }
+   ]
+  },
+  {
+   "id": "potato-crusted-cod-bowl",
+   "name": "Potato Crusted Cod Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1350,
+     "proteinG": 40,
+     "carbsG": 155,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 32,
+      "sodiumMg": 1170
+     }
+    }
+   ]
+  },
+  {
+   "id": "28-dragon-bowl-chicken",
+   "name": "#28 Dragon Bowl - Chicken",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 37,
+     "carbsG": 132,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 26,
+      "sodiumMg": 3040
+     }
+    }
+   ]
+  },
+  {
+   "id": "28-dragon-bowl-tofu",
+   "name": "#28 Dragon Bowl - Tofu",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1150,
+     "proteinG": 36,
+     "carbsG": 138,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 28,
+      "sodiumMg": 2990
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-salmon-bowl",
+   "name": "Cajun Salmon Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 34,
+     "carbsG": 43,
+     "fatG": 94,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 3530
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-tenders",
+   "name": "Classic Chicken Tenders",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2260,
+     "proteinG": 60,
+     "carbsG": 110,
+     "fatG": 177,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 17,
+      "sodiumMg": 2890
+     }
+    }
+   ]
+  },
+  {
+   "id": "two-piece-fish-and-chips",
+   "name": "Two Piece Fish & Chips",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1490,
+     "proteinG": 39,
+     "carbsG": 119,
+     "fatG": 97,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 27,
+      "sodiumMg": 3610
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackened-chicken-fettuccine-alfredo",
+   "name": "Blackened Chicken Fettuccine Alfredo",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1590,
+     "proteinG": 66,
+     "carbsG": 158,
+     "fatG": 74,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 10,
+      "sodiumMg": 2850
+     }
+    },
+    {
+     "size": "half",
+     "label": "Half",
+     "calories": 1070,
+     "proteinG": 48,
+     "carbsG": 102,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 2040
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-french-dip",
+   "name": "The French Dip",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1590,
+     "proteinG": 61,
+     "carbsG": 126,
+     "fatG": 94,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 20,
+      "sodiumMg": 4170
+     }
+    }
+   ]
+  },
+  {
+   "id": "bistro-steak-frites",
+   "name": "Bistro Steak Frites",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 44,
+     "carbsG": 7,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 1,
+      "sodiumMg": 600
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-and-pasta-herb-butter",
+   "name": "Steak & Pasta - Herb Butter",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1370,
+     "proteinG": 68,
+     "carbsG": 93,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1730
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-and-pasta-mushroom-demi-glace",
+   "name": "Steak & Pasta - Mushroom Demi Glace",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1410,
+     "proteinG": 76,
+     "carbsG": 103,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 2030
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken-curry",
+   "name": "Butter Chicken Curry",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1730,
+     "proteinG": 52,
+     "carbsG": 171,
+     "fatG": 95,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 14,
+      "sodiumMg": 2640
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-curry-with-tofu-and-cauliflower",
+   "name": "Butter Curry with Tofu & Cauliflower",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1790,
+     "proteinG": 40,
+     "carbsG": 183,
+     "fatG": 105,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 16,
+      "sodiumMg": 2530
+     }
+    }
+   ]
+  },
+  {
+   "id": "sticky-thai-chicken",
+   "name": "Sticky Thai Chicken",
+   "category": "Social Hour",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 31,
+     "carbsG": 83,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 28,
+      "sodiumMg": 2020
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-yam-and-avocado-roll",
+   "name": "Crispy Yam & Avocado Roll",
+   "category": "Social Hour",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 8,
+     "carbsG": 64,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 13,
+      "sodiumMg": 1770
+     }
+    }
+   ]
+  },
+  {
+   "id": "snackin-nachos",
+   "name": "Snackin' Nachos",
+   "category": "Social Hour",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 19,
+     "carbsG": 32,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 1050
+     }
+    }
+   ]
+  },
+  {
+   "id": "hcdc-fries",
+   "name": "HCDC Fries",
+   "category": "Social Hour",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1050,
+     "proteinG": 5,
+     "carbsG": 47,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1850
+     }
+    }
+   ]
+  },
+  {
+   "id": "steakhouse-sliders",
+   "name": "Steakhouse Sliders",
+   "category": "Social Hour",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 54,
+     "carbsG": 63,
+     "fatG": 80,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 2040
+     }
+    }
+   ]
+  },
+  {
+   "id": "key-lime-pie",
+   "name": "Key Lime Pie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 9,
+     "carbsG": 77,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 59,
+      "sodiumMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-fudge-brownie",
+   "name": "Super Fudge Brownie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 17,
+     "carbsG": 144,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 114,
+      "sodiumMg": 380
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-cookie-jar",
+   "name": "Oreo Cookie Jar",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 8,
+     "carbsG": 79,
+     "fatG": 74,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 59,
+      "sodiumMg": 680
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-ice-cream",
+   "name": "Side Ice Cream",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 20,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-chicken-quesadilla",
+   "name": "Kid's Chicken Quesadilla",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1490,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 94,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 2750
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

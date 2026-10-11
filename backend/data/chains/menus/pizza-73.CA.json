@@ -1,0 +1,1830 @@
+{
+ "chain": "pizza-73",
+ "country": "CA",
+ "source": {
+  "url": "https://cdn.pizzapizza.ca/o33/pizza73/PPLNEWWEB/Marketing/wpfp73/wp-content/uploads/2018/04/P73-Nutritional18-JA-2021.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "73-deluxe",
+   "name": "73 Deluxe",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 390,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 250,
+     "proteinG": 15,
+     "carbsG": 31,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 550,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-chicken",
+   "name": "Butter Chicken",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 250,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 320,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 220,
+     "proteinG": 11,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 280,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 300,
+     "proteinG": 15,
+     "carbsG": 34,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 390,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "meat-supreme",
+   "name": "Meat Supreme",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 200,
+     "proteinG": 12,
+     "carbsG": 19,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 500,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 200,
+     "proteinG": 12,
+     "carbsG": 19,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 500,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 310,
+     "proteinG": 18,
+     "carbsG": 31,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 730,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "grand-slam",
+   "name": "Grand Slam",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 530,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 260,
+     "proteinG": 15,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 640,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetarian",
+   "name": "Vegetarian",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 310,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 350,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 32,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 430,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "gluten free pizza each slice is 1 6 of the pizza",
+     "label": "GLUTEN FREE PIZZA (Each slice is 1/6 of ",
+     "calories": 170,
+     "proteinG": 6,
+     "carbsG": 22,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "hawaiian-feast",
+   "name": "Hawaiian Feast",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 170,
+     "proteinG": 9,
+     "carbsG": 21,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 360,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 420,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 250,
+     "proteinG": 14,
+     "carbsG": 33,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 500,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "not-so-basic-cheese",
+   "name": "Not So Basic Cheese",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 15,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 350,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 31,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "greek-goddess",
+   "name": "Greek Goddess",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 20,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 420,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 480,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 260,
+     "proteinG": 14,
+     "carbsG": 32,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-deluxe",
+   "name": "Chicken Deluxe",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 160,
+     "proteinG": 10,
+     "carbsG": 20,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 340,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 200,
+     "proteinG": 12,
+     "carbsG": 26,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 380,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 250,
+     "proteinG": 15,
+     "carbsG": 32,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 470,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken",
+   "name": "BBQ Chicken",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 22,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 360,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 410,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 260,
+     "proteinG": 14,
+     "carbsG": 35,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 490,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "american-pie",
+   "name": "American Pie",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 430,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 290,
+     "proteinG": 14,
+     "carbsG": 31,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 520,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-bacon-mushroom-melt",
+   "name": "Chicken Bacon Mushroom Melt",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 270,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 220,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 430,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 340,
+     "proteinG": 15,
+     "carbsG": 31,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 390,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-steak",
+   "name": "BBQ Steak",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 180,
+     "proteinG": 10,
+     "carbsG": 22,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 380,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 220,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 430,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 270,
+     "proteinG": 15,
+     "carbsG": 34,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 510,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "donair",
+   "name": "Donair",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 340,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 280,
+     "proteinG": 14,
+     "carbsG": 34,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 390,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 330,
+     "proteinG": 17,
+     "carbsG": 41,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 460,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pesto-chicken",
+   "name": "Pesto Chicken",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 19,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 230,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 25,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 300,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 260,
+     "proteinG": 14,
+     "carbsG": 31,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 390,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pesto-garden-veggie",
+   "name": "Pesto Garden Veggie",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 280,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 200,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 360,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 250,
+     "proteinG": 12,
+     "carbsG": 32,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "great-canadian",
+   "name": "Great Canadian",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 200,
+     "proteinG": 11,
+     "carbsG": 20,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 450,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 510,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 290,
+     "proteinG": 16,
+     "carbsG": 32,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 600,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken",
+   "name": "Buffalo Chicken",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 420,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 270,
+     "proteinG": 13,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 540,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "tandoori-chicken",
+   "name": "Tandoori Chicken",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 180,
+     "proteinG": 10,
+     "carbsG": 21,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 350,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 410,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 290,
+     "proteinG": 15,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 500,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-shawarma",
+   "name": "Chicken Shawarma",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 290,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 440,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 320,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 490,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 32,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 590,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwest-chipotle",
+   "name": "Southwest Chipotle",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 230,
+     "proteinG": 9,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 260,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 250,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 290,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 290,
+     "proteinG": 12,
+     "carbsG": 34,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 340,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-plant",
+   "name": "Super Plant",
+   "category": "PIZZA",
+   "sizes": [
+    {
+     "size": "9 pizza each slice is 1 6 of the pizza",
+     "label": "9\" PIZZA (Each slice is 1/6 of the pizza",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 23,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 380,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "12 pizza each slice is 1 8 of the pizza",
+     "label": "12\" PIZZA (Each slice is 1/8 of the pizz",
+     "calories": 250,
+     "proteinG": 15,
+     "carbsG": 30,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 430,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "14 pizza each slice is 1 10 of the pizza",
+     "label": "14\" PIZZA (Each slice is 1/10 of the piz",
+     "calories": 290,
+     "proteinG": 17,
+     "carbsG": 36,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 500,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "cauliflower pizza each slice is 1 8 of the pizza",
+     "label": "CAULIFLOWER PIZZA (Each slice is 1/8 of ",
+     "calories": 190,
+     "proteinG": 11,
+     "carbsG": 22,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 500,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese",
+   "name": "Cheese",
+   "category": "GLUTEN FREE PIZZA",
+   "sizes": [
+    {
+     "size": "gluten free pizza each slice is 1 6 of the pizza",
+     "label": "GLUTEN FREE PIZZA (Each slice is 1/6 of ",
+     "calories": 170,
+     "proteinG": 6,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni",
+   "name": "Pepperoni",
+   "category": "GLUTEN FREE PIZZA",
+   "sizes": [
+    {
+     "size": "gluten free pizza each slice is 1 6 of the pizza",
+     "label": "GLUTEN FREE PIZZA (Each slice is 1/6 of ",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 21,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "hawaiian",
+   "name": "Hawaiian",
+   "category": "GLUTEN FREE PIZZA",
+   "sizes": [
+    {
+     "size": "gluten free pizza each slice is 1 6 of the pizza",
+     "label": "GLUTEN FREE PIZZA (Each slice is 1/6 of ",
+     "calories": 190,
+     "proteinG": 8,
+     "carbsG": 24,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 520,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "superfood-cheese",
+   "name": "Superfood Cheese",
+   "category": "SUPERFOOD CRUST PIZZA",
+   "sizes": [
+    {
+     "size": "superfood crust pizza each slice is 1 8 of the pizza",
+     "label": "SUPERFOOD CRUST PIZZA (Each slice is 1/8",
+     "calories": 140,
+     "proteinG": 6,
+     "carbsG": 18,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 330,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain-wings",
+   "name": "Plain Wings",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "approx 4pcs",
+     "label": "approx 4pcs",
+     "calories": 350,
+     "proteinG": 29,
+     "carbsG": 7,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 675,
+      "saturatedFatG": 6,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "boneless-wings",
+   "name": "Boneless Wings",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "3 pcs",
+     "label": "3 pcs",
+     "calories": 200,
+     "proteinG": 13,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 640,
+      "saturatedFatG": 1,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "gluten-free-boneless-wings",
+   "name": "Gluten Free Boneless Wings",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "5 pcs",
+     "label": "5 pcs",
+     "calories": 370,
+     "proteinG": 24,
+     "carbsG": 39,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp",
+   "name": "Shrimp",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "approx 2pcs",
+     "label": "approx 2pcs",
+     "calories": 220,
+     "proteinG": 10,
+     "carbsG": 18,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 670,
+      "saturatedFatG": 2,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "fries",
+   "name": "Fries",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "oz about 1 serving",
+     "label": "oz about 1 serving",
+     "calories": 340,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 0,
+      "sodiumMg": 600,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "potato-wedges",
+   "name": "Potato Wedges",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "oz about 1 serving",
+     "label": "oz about 1 serving",
+     "calories": 330,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 670,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "wedgies",
+   "name": "Wedgies",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "approx 4 servings",
+     "label": "approx 4 servings",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 31,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion-ring",
+   "name": "Onion Ring",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "oz about 1 serving",
+     "label": "oz about 1 serving",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 3,
+      "sodiumMg": 630,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-bites",
+   "name": "Cauliflower Bites",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "serves 4",
+     "label": "Serves 4",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 28,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 550,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapeno-poppers",
+   "name": "Jalapeno Poppers",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "3 pc 100g",
+     "label": "3 pc /100g",
+     "calories": 197,
+     "proteinG": 4.5,
+     "carbsG": 25,
+     "fatG": 8.7,
+     "micros": {
+      "fiberG": 1.5,
+      "sugarG": 4.2,
+      "sodiumMg": 758,
+      "saturatedFatG": 5.3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "funnel-cake-stix",
+   "name": "Funnel Cake Stix",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "4 5 oz 1 2 box",
+     "label": "4.5 oz (1/2 box)",
+     "calories": 350,
+     "proteinG": 4,
+     "carbsG": 59,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 320,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "two-bite-brownies",
+   "name": "Two-Bite Brownies",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "2 brownies",
+     "label": "2 brownies",
+     "calories": 160,
+     "proteinG": 1,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake-truffles",
+   "name": "Strawberry Cheesecake Truffles",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "60 g 3 pieces",
+     "label": "60 g (3 pieces)",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 110,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "gluten-free-brownie",
+   "name": "Gluten Free Brownie",
+   "category": "DESSERT",
+   "sizes": [
+    {
+     "size": "80 g 1 brownie",
+     "label": "80 g (1 Brownie)",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 48,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 34,
+      "sodiumMg": 240,
+      "saturatedFatG": 2,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "buffalo-blue-cheese",
+   "name": "Buffalo Blue Cheese",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 220,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 320,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "caramel-dip",
+   "name": "Caramel Dip",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 210,
+    "proteinG": 1,
+    "carbsG": 33,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 27,
+     "sodiumMg": 200,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "cheddar-jalapeno",
+   "name": "Cheddar Jalapeno",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 380,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "creamy-garlic",
+   "name": "Creamy garlic",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 360,
+    "proteinG": 0.4,
+    "carbsG": 2,
+    "fatG": 39,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 310,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "creamy-dill",
+   "name": "Creamy dill",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 210,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 330,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "frank-s-hot-sauce",
+   "name": "Frank's hot sauce",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 10,
+    "proteinG": 0.3,
+    "carbsG": 2,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 1440,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey-mustard-sauce",
+   "name": "Honey mustard sauce",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 190,
+    "proteinG": 0.5,
+    "carbsG": 11,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 280,
+     "saturatedFatG": 1,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "italian-marinara",
+   "name": "Italian Marinara",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.5,
+    "carbsG": 4,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 220,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "peppercorn-ranch",
+   "name": "Peppercorn ranch",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 230,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 25,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 350,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sriacha-creamy-garlic",
+   "name": "Sriacha Creamy Garlic",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 180,
+    "proteinG": 0.4,
+    "carbsG": 3,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 230,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sweet-chili-thai",
+   "name": "Sweet Chili Thai",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 100,
+    "proteinG": 0.2,
+    "carbsG": 23,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 20,
+     "sodiumMg": 380,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "seafood-sauce",
+   "name": "Seafood sauce",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0.5,
+    "carbsG": 12,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 10,
+     "sodiumMg": 430,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "santa-fe-ranch",
+   "name": "Santa Fe ranch",
+   "group": "sauce",
+   "unit": "1 dipping cup",
+   "per": {
+    "calories": 230,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 25,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 350,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  }
+ ]
+}

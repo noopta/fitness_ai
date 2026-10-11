@@ -1,0 +1,1965 @@
+{
+ "chain": "scores",
+ "country": "CA",
+ "source": {
+  "url": "https://www.scores.ca/wp-content/uploads/2025/08/Nutritional-Values-SCORES-2025.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "batonnets-de-fromage-4-cheese-sticks-4",
+   "name": "Bâtonnets de fromage (4) ~ Cheese Sticks (4)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 16,
+     "carbsG": 26,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 900,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "batonnets-de-fromage-8-cheese-sticks-8",
+   "name": "Bâtonnets de fromage (8) ~ Cheese Sticks (8)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 32,
+     "carbsG": 54,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1840,
+      "saturatedFatG": 15,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "crevettes-au-chili-thai-thai-chili-shrimp",
+   "name": "Crevettes au chili thaï ~ Thai Chili Shrimp",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 11,
+     "carbsG": 75,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 1100,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "ailes-de-poulet-6-chicken-wings-6",
+   "name": "Ailes de poulet (6) ~ Chicken Wings (6)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 18,
+     "carbsG": 3,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 570,
+      "saturatedFatG": 3,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "ailes-de-poulet-12-chicken-wings-12",
+   "name": "Ailes de poulet (12) ~ Chicken Wings (12)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 37,
+     "carbsG": 6,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "combo-ultimate-ultimate-combo",
+   "name": "Combo Ultimate ~ Ultimate Combo",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1800,
+     "proteinG": 74,
+     "carbsG": 143,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 86,
+      "sodiumMg": 5680,
+      "saturatedFatG": 24,
+      "cholesterolMg": 455
+     }
+    }
+   ]
+  },
+  {
+   "id": "combo-supreme-supreme-combo",
+   "name": "Combo Suprême ~ Supreme Combo",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 3150,
+     "proteinG": 173,
+     "carbsG": 208,
+     "fatG": 184,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 39,
+      "sodiumMg": 10020,
+      "saturatedFatG": 44,
+      "cholesterolMg": 700
+     }
+    }
+   ]
+  },
+  {
+   "id": "choux-fleurs-general-tao-general-tao-cauliflower",
+   "name": "Choux-fleurs Général Tao ~ General Tao Cauliflower",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 56,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1390,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapenos-farcis-4-jalapeno-poppers-4",
+   "name": "Jalapeños farcis (4) ~ Jalapeño Poppers (4)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 2,
+     "carbsG": 5,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapenos-farcis-8-jalapeno-poppers-8",
+   "name": "Jalapeños farcis (8) ~ Jalapeño Poppers (8)",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 3,
+     "carbsG": 6,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 530,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "nachos",
+   "name": "Nachos",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 25,
+     "carbsG": 75,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 5,
+      "sodiumMg": 1220,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "rondelles-d-oignon-onion-rings",
+   "name": "Rondelles d’oignon ~ Onion Rings",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 7,
+     "carbsG": 64,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 920,
+      "saturatedFatG": 15,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "frites-de-patates-douces-sweet-potato-fries",
+   "name": "Frites de patates douces ~ Sweet Potato Fries",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 4,
+     "carbsG": 55,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 21,
+      "sodiumMg": 1130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "bombes-de-pomme-de-terre-tater-bombs",
+   "name": "Bombes de pomme de terre ~ Tater Bombs",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 13,
+     "carbsG": 24,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 870,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "frites-gaufrees-waffle-fries",
+   "name": "Frites gaufrées ~ Waffle Fries",
+   "category": "Entrées - Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1170,
+     "proteinG": 9,
+     "carbsG": 107,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 4,
+      "sodiumMg": 970,
+      "saturatedFatG": 12,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-poulet-buffalo-buffalo-chicken-burger",
+   "name": "Burger poulet Buffalo ~ Buffalo Chicken Burger",
+   "category": "Burgers (sans accompagnement - without s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 24,
+     "carbsG": 67,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1720,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-decadent-decadent-burger",
+   "name": "Burger Décadent ~ Decadent Burger",
+   "category": "Burgers (sans accompagnement - without s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 35,
+     "carbsG": 73,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 21,
+      "sodiumMg": 880,
+      "saturatedFatG": 9,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-poulet-chipotle-2-filets-chipotle-chicken-burger-2-te",
+   "name": "Burger poulet chipotle (2 filets) ~ Chipotle Chicken Burger (2 tenders)",
+   "category": "Burgers (sans accompagnement - without s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 24,
+     "carbsG": 56,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-poulet-chipotle-poitrine-chipotle-chicken-burger-chic",
+   "name": "Burger poulet chipotle (poitrine) ~ Chipotle Chicken Burger (chicken breast)",
+   "category": "Burgers (sans accompagnement - without s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 49,
+     "carbsG": 44,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 1510,
+      "saturatedFatG": 3,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-au-bacon-bacon-cheeseburger",
+   "name": "Cheeseburger au bacon ~ Bacon Cheeseburger",
+   "category": "Burgers (sans accompagnement - without s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 51,
+     "carbsG": 42,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 730,
+      "saturatedFatG": 21,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "poitrine-de-poulet-et-demi-cotes-levees-chicken-breast-and-h",
+   "name": "Poitrine de poulet et demi-côtes levées ~ Chicken Breast & Half Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1170,
+     "proteinG": 127,
+     "carbsG": 43,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 760,
+      "saturatedFatG": 20,
+      "cholesterolMg": 445
+     }
+    }
+   ]
+  },
+  {
+   "id": "filets-de-poulet-croustillants-3-et-demi-cotes-levees-crispy",
+   "name": "Filets de poulet croustillants (3) et demi-côtes levées ~ Crispy Chicken Tenders (3) & Half Rack Rib",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1210,
+     "proteinG": 69,
+     "carbsG": 75,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 38,
+      "sodiumMg": 2110,
+      "saturatedFatG": 22,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "ailes-de-poulet-et-demi-cotes-levees-chicken-wings-and-half-",
+   "name": "Ailes de poulet et demi-côtes levées ~ Chicken Wings & Half Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1280,
+     "proteinG": 89,
+     "carbsG": 56,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 42,
+      "sodiumMg": 2640,
+      "saturatedFatG": 25,
+      "cholesterolMg": 455
+     }
+    }
+   ]
+  },
+  {
+   "id": "demi-cotes-levees-half-rack-ribs",
+   "name": "Demi-côtes levées ~ Half Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 42,
+     "carbsG": 48,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 1160,
+      "saturatedFatG": 17,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotes-levees-entieres-full-rack-ribs",
+   "name": "Côtes levées entières ~ Full Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1470,
+     "proteinG": 84,
+     "carbsG": 76,
+     "fatG": 91,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 61,
+      "sodiumMg": 1650,
+      "saturatedFatG": 34,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "quart-de-poulet-cuisse-et-demi-cotes-levees-quarter-chicken-",
+   "name": "Quart de poulet (cuisse) et demi-côtes levées ~ Quarter Chicken (Leg) & Half Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1400,
+     "proteinG": 107,
+     "carbsG": 82,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 51,
+      "sodiumMg": 1740,
+      "saturatedFatG": 24,
+      "cholesterolMg": 470
+     }
+    }
+   ]
+  },
+  {
+   "id": "quart-de-poulet-poitrine-et-demi-cotes-levees-quarter-chicke",
+   "name": "Quart de poulet (poitrine) et demi-côtes levées ~ Quarter Chicken (Breast) & Half Rack Ribs",
+   "category": "Combos & Côtes levées - Combos & Ribs (s",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1460,
+     "proteinG": 114,
+     "carbsG": 82,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 51,
+      "sodiumMg": 1770,
+      "saturatedFatG": 25,
+      "cholesterolMg": 510
+     }
+    }
+   ]
+  },
+  {
+   "id": "l-amigo-the-amigo",
+   "name": "L'Amigo ~ The Amigo",
+   "category": "Menu Enfants - Kids menu (sans accompagn",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 11,
+     "carbsG": 59,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 410,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "l-ogre-the-ogre",
+   "name": "L’Ogre ~ The Ogre",
+   "category": "Menu Enfants - Kids menu (sans accompagn",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 15,
+     "carbsG": 61,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 21,
+      "sodiumMg": 720,
+      "saturatedFatG": 2,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "minibrochette-au-poulet-mini-chicken-brochette",
+   "name": "Minibrochette au poulet ~ Mini Chicken Brochette",
+   "category": "Menu Enfants - Kids menu (sans accompagn",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 27,
+     "carbsG": 4,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 720,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-cirque-the-circus",
+   "name": "Le Cirque ~ The Circus",
+   "category": "Menu Enfants - Kids menu (sans accompagn",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 18,
+     "carbsG": 20,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 670,
+      "saturatedFatG": 4,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-ninja-the-ninja",
+   "name": "Le Ninja ~ The Ninja",
+   "category": "Menu Enfants - Kids menu (sans accompagn",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 19,
+     "carbsG": 61,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 17,
+      "sodiumMg": 1500,
+      "saturatedFatG": 8,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "filets-de-poulet-croustillants-3-crispy-chicken-tenders-3",
+   "name": "Filets de poulet croustillants (3) ~ Crispy Chicken Tenders (3)",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 26,
+     "carbsG": 27,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 950,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "filets-de-poulet-croustillants-5-crispy-chicken-tenders-5",
+   "name": "Filets de poulet croustillants (5) ~ Crispy Chicken Tenders (5)",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 44,
+     "carbsG": 45,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 2,
+      "sodiumMg": 1580,
+      "saturatedFatG": 7,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-parmigiana-chicken-parmigiana",
+   "name": "Poulet Parmigiana ~ Chicken Parmigiana",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 71,
+     "carbsG": 96,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 1530,
+      "saturatedFatG": 9,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "repas-ailes-de-poulet-chicken-wing-meal",
+   "name": "Repas ailes de poulet ~ Chicken Wing Meal",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 64,
+     "carbsG": 18,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 4050,
+      "saturatedFatG": 11,
+      "cholesterolMg": 405
+     }
+    }
+   ]
+  },
+  {
+   "id": "fajitas-au-poulet-chicken-fajitas",
+   "name": "Fajitas au poulet ~ Chicken Fajitas",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1740,
+     "proteinG": 75,
+     "carbsG": 110,
+     "fatG": 113,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 14,
+      "sodiumMg": 4810,
+      "saturatedFatG": 22,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "fajitas-aux-legumes-vegetable-fajitas",
+   "name": "Fajitas aux légumes ~ Vegetable Fajitas",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1710,
+     "proteinG": 33,
+     "carbsG": 129,
+     "fatG": 118,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 22,
+      "sodiumMg": 4370,
+      "saturatedFatG": 22,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "poisson-and-frites-fish-and-chips",
+   "name": "Poisson & frites ~ Fish & Chips",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 13,
+     "carbsG": 17,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 890,
+      "saturatedFatG": 7,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-grille-grilled-chicken",
+   "name": "Poulet grillé ~ Grilled Chicken",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 74,
+     "carbsG": 34,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 2400,
+      "saturatedFatG": 6,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-chasseur-hunter-s-chicken",
+   "name": "Poulet chasseur ~ Hunter's Chicken",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 63,
+     "carbsG": 91,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 24,
+      "sugarG": 8,
+      "sodiumMg": 2780,
+      "saturatedFatG": 10,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-a-la-scores",
+   "name": "Steak à la Scores",
+   "category": "Plats principaux - Main courses (sans ac",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 51,
+     "carbsG": 22,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 940,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "duo-baguette-et-soupe-soup-and-baguette-duo",
+   "name": "Duo baguette et soupe ~ Soup & Baguette Duo",
+   "category": "Menu Midi - Lunch Menu (sans accompagnem",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 35,
+     "carbsG": 45,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 2240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-classique-classic-poutine",
+   "name": "Poutine Classique ~ Classic Poutine",
+   "category": "Poutines",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 28,
+     "carbsG": 53,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 1,
+      "sodiumMg": 1320,
+      "saturatedFatG": 21,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-au-poulet-viande-blanche-chicken-poutine-white-meat",
+   "name": "Poutine au poulet (viande blanche) ~ Chicken Poutine (white meat)",
+   "category": "Poutines",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 75,
+     "carbsG": 65,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 1,
+      "sodiumMg": 1570,
+      "saturatedFatG": 23,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-au-poulet-viande-brune-chicken-poutine-dark-meat",
+   "name": "Poutine au poulet (viande brune) ~ Chicken Poutine (dark meat)",
+   "category": "Poutines",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1050,
+     "proteinG": 65,
+     "carbsG": 65,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 1,
+      "sodiumMg": 2360,
+      "saturatedFatG": 25,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-general-tao-general-tao-poutine",
+   "name": "Poutine Général Tao ~ General Tao Poutine",
+   "category": "Poutines",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 44,
+     "carbsG": 88,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 6,
+      "sodiumMg": 2210,
+      "saturatedFatG": 24,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-buffalo-buffalo-poutine",
+   "name": "Poutine Buffalo ~ Buffalo Poutine",
+   "category": "Poutines",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1190,
+     "proteinG": 44,
+     "carbsG": 84,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 3220,
+      "saturatedFatG": 26,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "poitrine-de-poulet-chicken-breast",
+   "name": "Poitrine de poulet ~ Chicken Breast",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 56,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 290,
+      "saturatedFatG": 2,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-saveur-kansas-kansas-flavour-chicken",
+   "name": "Poulet saveur Kansas ~ Kansas Flavour Chicken",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 56,
+     "carbsG": 31,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1790,
+      "saturatedFatG": 9,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "cuisse-de-poulet-chicken-leg",
+   "name": "Cuisse de poulet ~ Chicken Leg",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 52,
+     "carbsG": 20,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 400,
+      "saturatedFatG": 5,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-saveur-piri-piri-piri-piri-flavour-chicken",
+   "name": "Poulet saveur Piri Piri ~ Piri Piri Flavour Chicken",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 56,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1930,
+      "saturatedFatG": 3,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "repas-demi-poulet-half-chicken-meal",
+   "name": "Repas demi-poulet ~ Half Chicken Meal",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 100,
+     "carbsG": 21,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 630,
+      "saturatedFatG": 10,
+      "cholesterolMg": 510
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-saveur-montrealais-montrealais-flavour-chicken",
+   "name": "Poulet saveur Montréalais ~ Montréalais Flavour Chicken",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 56,
+     "carbsG": 119,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 73,
+      "sodiumMg": 3080,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "poulet-saveur-miel-et-sriracha-honey-sriracha-flavour-chicke",
+   "name": "Poulet saveur Miel et Sriracha ~ Honey Sriracha Flavour Chicken",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 57,
+     "carbsG": 114,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 68,
+      "sodiumMg": 2790,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "repas-deux-cuisses-two-chicken-leg-meal",
+   "name": "Repas deux cuisses ~ Two Chicken Leg Meal",
+   "category": "Poulet rôti - Roasted chicken (sans acco",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 100,
+     "carbsG": 20,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 1140,
+      "saturatedFatG": 10,
+      "cholesterolMg": 510
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-pain-blanc-white-bread",
+   "name": "Club Sandwich (pain blanc ~ white bread)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 47,
+     "carbsG": 65,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 11,
+      "sodiumMg": 1180,
+      "saturatedFatG": 11,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-pain-brun-brown-bread",
+   "name": "Club Sandwich (pain brun ~ brown bread)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 49,
+     "carbsG": 61,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 6,
+      "sodiumMg": 1280,
+      "saturatedFatG": 12,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-cesar-caesar-wrap",
+   "name": "Wrap César ~ Caesar Wrap",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 730,
+     "proteinG": 41,
+     "carbsG": 50,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1770,
+      "saturatedFatG": 10,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "wrap-au-poulet-chipotle-chipotle-chicken-wrap",
+   "name": "Wrap au poulet chipotle ~ Chipotle Chicken Wrap",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 28,
+     "carbsG": 53,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 2360,
+      "saturatedFatG": 24,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-pain-blanc-viande-blanche-white-bread-white-meat",
+   "name": "Hot Chicken (pain blanc, viande blanche ~ white bread, white meat)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 58,
+     "carbsG": 54,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 11,
+      "sodiumMg": 510,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-pain-blanc-viande-brune-white-bread-dark-meat",
+   "name": "Hot Chicken (pain blanc, viande brune ~ white bread, dark meat)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 48,
+     "carbsG": 54,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 11,
+      "sodiumMg": 580,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-pain-brun-viande-blanche-brown-bread-white-meat",
+   "name": "Hot Chicken (pain brun, viande blanche ~ brown bread, white meat)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 61,
+     "carbsG": 66,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 9,
+      "sodiumMg": 2110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-pain-brun-viande-brune-brown-bread-dark-meat",
+   "name": "Hot Chicken (pain brun, viande brune ~ brown bread, dark meat)",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 50,
+     "carbsG": 69,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 13,
+      "sodiumMg": 2120,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "baguette-poulet-bacon-et-pesto-chicken-bacon-and-pesto-bague",
+   "name": "Baguette poulet, bacon et pesto ~ Chicken, Bacon & Pesto Baguette",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 43,
+     "carbsG": 66,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 2020,
+      "saturatedFatG": 16,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "baguette-salade-de-poulet-chicken-salad-baguette",
+   "name": "Baguette salade de Poulet ~ Chicken Salad Baguette",
+   "category": "Sandwichs (sans accompagnement - without",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 58,
+     "carbsG": 60,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 1160,
+      "saturatedFatG": 11,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-general-tao-general-tao-brochette",
+   "name": "Brochette Général Tao ~ General Tao Brochette",
+   "category": "Brochettes (sans accompagnement - withou",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 66,
+     "carbsG": 82,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 23,
+      "sugarG": 10,
+      "sodiumMg": 2010,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-poulet-quebecoise-quebecoise-chicken-brochette",
+   "name": "Brochette de poulet Québécoise ~ Québécoise Chicken Brochette",
+   "category": "Brochettes (sans accompagnement - withou",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 71,
+     "carbsG": 78,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 23,
+      "sugarG": 7,
+      "sodiumMg": 3260,
+      "saturatedFatG": 10,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-b-uf-beef-brochette",
+   "name": "Brochette de bœuf ~ Beef Brochette",
+   "category": "Brochettes (sans accompagnement - withou",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 67,
+     "carbsG": 83,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 23,
+      "sugarG": 8,
+      "sodiumMg": 2980,
+      "saturatedFatG": 9,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "brochette-de-poulet-traditionnelle-traditional-chicken-broch",
+   "name": "Brochette de poulet traditionnelle ~ Traditional Chicken Brochette",
+   "category": "Brochettes (sans accompagnement - withou",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 66,
+     "carbsG": 81,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 23,
+      "sugarG": 7,
+      "sodiumMg": 2480,
+      "saturatedFatG": 6,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "pomme-de-terre-au-four-baked-potato",
+   "name": "Pomme de terre au four ~ Baked Potato",
+   "category": "Accompagnements - Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 43,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 480,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "frites-scores-scores-french-fries",
+   "name": "Frites Scores ~ Scores French Fries",
+   "category": "Accompagnements - Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 4,
+     "carbsG": 50,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 660,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "legumes-grilles-grilled-vegetables",
+   "name": "Légumes grillés ~ Grilled Vegetables",
+   "category": "Accompagnements - Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 11,
+     "carbsG": 34,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 7,
+      "sodiumMg": 15,
+      "saturatedFatG": 0.2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "riz-scores-scores-rice",
+   "name": "Riz Scores ~ Scores Rice",
+   "category": "Accompagnements - Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 9,
+     "carbsG": 68,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "vinaigrette-ranch-ranch-dressing",
+   "name": "Vinaigrette ranch ~ Ranch Dressing",
+   "group": "dressing",
+   "unit": "85 g",
+   "per": {
+    "calories": 340,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 36,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 540,
+     "saturatedFatG": 6,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "pesto-au-basilic-basil-pesto",
+   "name": "Pesto au basilic ~ Basil Pesto",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 320,
+    "proteinG": 4,
+    "carbsG": 7,
+    "fatG": 32,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 580,
+     "saturatedFatG": 4,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sauce-marinara-aux-tomates-marinara-sauce",
+   "name": "Sauce marinara aux tomates ~ Marinara Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 40,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 390,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-ailes-dijon-dijon-wing-sauce",
+   "name": "Sauce ailes Dijon ~ Dijon Wing Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 180,
+    "proteinG": 1,
+    "carbsG": 21,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 810,
+     "saturatedFatG": 1,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "sauce-moutarde-et-miel-scores-scores-honey-mustard-sauce",
+   "name": "Sauce moutarde et miel Scores ~ Scores Honey Mustard Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 230,
+    "proteinG": 1,
+    "carbsG": 51,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 45,
+     "sodiumMg": 300,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-piri-piri-piri-piri-sauce",
+   "name": "Sauce Piri Piri ~ Piri Piri Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 110,
+    "proteinG": 1,
+    "carbsG": 9,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 830,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-cotes-levees-sucree-sweet-rib-sauce",
+   "name": "Sauce côtes levées sucrée ~ Sweet Rib Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 41,
+    "fatG": 0.2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 35,
+     "sodiumMg": 390,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-pour-ailes-de-poulet-buffalo-franks-franks-buffalo-win",
+   "name": "Sauce pour ailes de poulet Buffalo FRANKS ~ FRANKS Buffalo Wing Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 15,
+    "proteinG": 0.4,
+    "carbsG": 3,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 1460,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-miel-et-dijon-honey-dijon-sauce",
+   "name": "Sauce miel et Dijon ~ Honey Dijon Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 200,
+    "proteinG": 1,
+    "carbsG": 41,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 36,
+     "sodiumMg": 550,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-miel-sriracha-honey-sriracha-sauce",
+   "name": "Sauce miel-sriracha ~ Honey Sriracha Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 170,
+    "proteinG": 1,
+    "carbsG": 41,
+    "fatG": 0.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 32,
+     "sodiumMg": 950,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "mayonnaise-au-pesto-pesto-mayonnaise",
+   "name": "Mayonnaise au pesto ~ Pesto Mayonnaise",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 580,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 64,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 570,
+     "saturatedFatG": 10,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "sauce-aux-trois-poivres-3-pepper-sauce",
+   "name": "Sauce aux trois poivres ~ 3 Pepper Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 610,
+     "saturatedFatG": 0.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-bbq-scores-scores-bbq-sauce",
+   "name": "Sauce BBQ Scores ~ Scores BBQ Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 25,
+    "proteinG": 0.5,
+    "carbsG": 5,
+    "fatG": 0.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 520,
+     "saturatedFatG": 0.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-chili-doux-mild-chili-sauce",
+   "name": "Sauce chili doux ~ Mild Chili Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 200,
+    "proteinG": 0.3,
+    "carbsG": 43,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 40,
+     "sodiumMg": 960,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-chili-thai-doux-sweet-thai-chili-sauce",
+   "name": "Sauce chili thaï doux ~ Sweet Thai Chili Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 50,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 45,
+     "sodiumMg": 25,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-general-tao-general-tao-sauce",
+   "name": "Sauce Général Tao ~ General Tao Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 270,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-tartare-tartare-sauce",
+   "name": "Sauce tartare ~ Tartare Sauce",
+   "group": "sauce",
+   "unit": "85 g",
+   "per": {
+    "calories": 470,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 51,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 500,
+     "saturatedFatG": 8,
+     "cholesterolMg": 40
+    }
+   }
+  }
+ ]
+}

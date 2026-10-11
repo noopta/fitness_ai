@@ -1,0 +1,1455 @@
+{
+ "chain": "valentine",
+ "country": "CA",
+ "source": {
+  "url": "https://valentine.ca/wp-content/uploads/2023/11/Information-nutritionnelles_FR.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "grande",
+ "items": [
+  {
+   "id": "hot-dog-vapeur-tout-garni",
+   "name": "Hot-dog vapeur tout garni",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 4.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-dog-roti-tout-garni",
+   "name": "Hot-dog rôti tout garni",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 9,
+     "carbsG": 31,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 970,
+      "saturatedFatG": 5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-dog-bacon-fromage",
+   "name": "Hot-dog bacon fromage",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 14,
+     "carbsG": 31,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 1240,
+      "saturatedFatG": 8,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-dog-michigan",
+   "name": "Hot-dog Michigan",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 900,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-dog-valentino",
+   "name": "Hot-dog Valentino",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 18,
+     "carbsG": 34,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1480,
+      "saturatedFatG": 13,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-dog-au-poulet",
+   "name": "Hot-dog au poulet",
+   "category": "LES HOT-DOGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 11,
+     "carbsG": 37,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 850,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "hamburger-classique",
+   "name": "Hamburger classique",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 34,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 560,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-hamburger",
+   "name": "Double hamburger",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 28,
+     "carbsG": 34,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 610,
+      "saturatedFatG": 17,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger",
+   "name": "Cheeseburger",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 19,
+     "carbsG": 35,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 730,
+      "saturatedFatG": 10,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheeseburger",
+   "name": "Double cheeseburger",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 32,
+     "carbsG": 36,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 950,
+      "saturatedFatG": 20,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-avec-bacon",
+   "name": "Cheeseburger avec bacon",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 21,
+     "carbsG": 36,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 820,
+      "saturatedFatG": 11,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheeseburger-avec-bacon",
+   "name": "Double cheeseburger avec bacon",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 37,
+     "carbsG": 37,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 1140,
+      "saturatedFatG": 22,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-michigan",
+   "name": "Burger Michigan",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 30,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 470,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-au-poulet",
+   "name": "Burger au poulet",
+   "category": "LES HAMBURGERS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 22,
+     "carbsG": 42,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 930,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "frite-reguliere",
+   "name": "Frite régulière",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 14,
+     "carbsG": 101,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 5,
+      "sodiumMg": 80,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "moyenne-frite",
+   "name": "Moyenne frite",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "moyenne",
+     "label": "Moyenne",
+     "calories": 960,
+     "proteinG": 19,
+     "carbsG": 137,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 7,
+      "sodiumMg": 110,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "grande-frite",
+   "name": "Grande frite",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "grande",
+     "label": "Grande",
+     "calories": 1610,
+     "proteinG": 31,
+     "carbsG": 228,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 25,
+      "sugarG": 11,
+      "sodiumMg": 180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tres-grande-frite",
+   "name": "Très grande frite",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "grande",
+     "label": "Très grande",
+     "calories": 2380,
+     "proteinG": 46,
+     "carbsG": 338,
+     "fatG": 96,
+     "micros": {
+      "fiberG": 38,
+      "sugarG": 17,
+      "sodiumMg": 270,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "familifrite",
+   "name": "Familifrite",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 4570,
+     "proteinG": 88,
+     "carbsG": 649,
+     "fatG": 184,
+     "micros": {
+      "fiberG": 72,
+      "sugarG": 32,
+      "sodiumMg": 520,
+      "saturatedFatG": 16,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pogo",
+   "name": "Pogo",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 6,
+     "carbsG": 22,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 630,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "rondelles-d-oignon",
+   "name": "Rondelles d’oignon",
+   "category": "LES ACCOMPAGNEMENTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 720,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-avec-frites",
+   "name": "Hot chicken avec frites",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 61,
+     "carbsG": 157,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 12,
+      "sodiumMg": 2220,
+      "saturatedFatG": 3,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chicken-avec-poutine",
+   "name": "Hot chicken avec poutine",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1480,
+     "proteinG": 77,
+     "carbsG": 175,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 14,
+      "sodiumMg": 4020,
+      "saturatedFatG": 16.5,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "lanieres-de-poulet-avec-frites",
+   "name": "Lanières de poulet avec frites",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 33,
+     "carbsG": 131,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 7,
+      "sodiumMg": 1270,
+      "saturatedFatG": 6.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "lanieres-de-poulet-avec-poutine",
+   "name": "Lanières de poulet avec poutine",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1340,
+     "proteinG": 49,
+     "carbsG": 149,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 9,
+      "sodiumMg": 3070,
+      "saturatedFatG": 20,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-de-poulet-avec-frites",
+   "name": "Burger de poulet avec frites",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 36,
+     "carbsG": 143,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 15,
+      "sodiumMg": 1010,
+      "saturatedFatG": 6,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "burger-de-poulet-avec-poutine",
+   "name": "Burger de poulet avec poutine",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1430,
+     "proteinG": 52,
+     "carbsG": 161,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 17,
+      "sodiumMg": 2810,
+      "saturatedFatG": 19,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "hamburger-steak-avec-frites",
+   "name": "Hamburger steak avec frites",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1365,
+     "proteinG": 41,
+     "carbsG": 140,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 10,
+      "sodiumMg": 1580,
+      "saturatedFatG": 20,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "hamburger-steak-avec-poutine",
+   "name": "Hamburger steak avec poutine",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1685,
+     "proteinG": 57.4,
+     "carbsG": 158,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 12,
+      "sodiumMg": 3380,
+      "saturatedFatG": 33,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-sandwich-avec-frites-et-breuvage-20-oz",
+   "name": "Club sandwich avec frites et breuvage 20 oz*",
+   "category": "LES ASSIETTES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1950,
+     "proteinG": 51,
+     "carbsG": 250,
+     "fatG": 95,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 95,
+      "sodiumMg": 1800,
+      "saturatedFatG": 14,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-du-quebec",
+   "name": "Poutine du Québec",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "format regulier",
+     "label": "format régulier",
+     "calories": 1030,
+     "proteinG": 30,
+     "carbsG": 119,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 7,
+      "sodiumMg": 1880,
+      "saturatedFatG": 16,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "grand format",
+     "label": "grand format",
+     "calories": 2240,
+     "proteinG": 64,
+     "carbsG": 262,
+     "fatG": 108,
+     "micros": {
+      "fiberG": 31,
+      "sugarG": 15,
+      "sodiumMg": 3790,
+      "saturatedFatG": 32,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-italienne",
+   "name": "Poutine Italienne",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 34,
+     "carbsG": 117,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 7,
+      "sodiumMg": 1450,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-extreme",
+   "name": "Poutine extrême",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1410,
+     "proteinG": 47,
+     "carbsG": 124,
+     "fatG": 82,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 9,
+      "sodiumMg": 2470,
+      "saturatedFatG": 29,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-au-poulet",
+   "name": "Poutine au poulet",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 51,
+     "carbsG": 119,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 7,
+      "sodiumMg": 1910,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-saucisse",
+   "name": "Poutine saucisse",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1290,
+     "proteinG": 40,
+     "carbsG": 125,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 7,
+      "sodiumMg": 2940,
+      "saturatedFatG": 24,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-bacon",
+   "name": "Poutine bacon",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1130,
+     "proteinG": 38,
+     "carbsG": 120,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 7,
+      "sodiumMg": 2170,
+      "saturatedFatG": 18,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "poutine-smoked-meat",
+   "name": "Poutine smoked meat",
+   "category": "LES POUTINES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1130,
+     "proteinG": 44,
+     "carbsG": 119,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 8,
+      "sodiumMg": 2800,
+      "saturatedFatG": 18,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-smoked-meat-avec-frites",
+   "name": "Sandwich smoked meat avec frites",
+   "category": "LE SMOKED MEAT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 48,
+     "carbsG": 137,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 16,
+      "sodiumMg": 2660,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-smoked-meat-avec-poutine",
+   "name": "Sandwich smoked meat avec poutine",
+   "category": "LE SMOKED MEAT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1400,
+     "proteinG": 64,
+     "carbsG": 155,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 19,
+      "sugarG": 18,
+      "sodiumMg": 4460,
+      "saturatedFatG": 20.5,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-smoked-meat-avec-frites",
+   "name": "Club smoked meat avec frites",
+   "category": "LE SMOKED MEAT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1700,
+     "proteinG": 45,
+     "carbsG": 181,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 27,
+      "sodiumMg": 2930,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "club-smoked-meat-avec-poutine",
+   "name": "Club smoked meat avec poutine",
+   "category": "LE SMOKED MEAT",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2020,
+     "proteinG": 61,
+     "carbsG": 199,
+     "fatG": 120,
+     "micros": {
+      "fiberG": 19,
+      "sugarG": 29,
+      "sodiumMg": 4730,
+      "saturatedFatG": 30,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "wraps-au-poulet-2",
+   "name": "Wraps au poulet (2)",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 28,
+     "carbsG": 45,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 820,
+      "saturatedFatG": 5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-blt",
+   "name": "Sandwich BLT",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 12,
+     "carbsG": 50,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1140,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-au-poulet",
+   "name": "Sandwich au poulet",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 27,
+     "carbsG": 46,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 970,
+      "saturatedFatG": 7,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-aux-tomates",
+   "name": "Sandwich aux tomates",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 950,
+      "saturatedFatG": 7,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-au-fromage-fondant",
+   "name": "Sandwich au fromage fondant",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 10,
+     "carbsG": 41,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 890,
+      "saturatedFatG": 8,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "guedille-nature",
+   "name": "Guédille nature",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 31,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 690,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "guedille-au-poulet",
+   "name": "Guédille au poulet",
+   "category": "LES SANDWICHS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 15,
+     "carbsG": 31,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 700,
+      "saturatedFatG": 5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "dejeuner-matinal-2-oeufs-bacon-patates-roties-confiture-frui",
+   "name": "Déjeuner matinal (2 oeufs, bacon, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 28,
+     "carbsG": 58,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 990,
+      "saturatedFatG": 9,
+      "cholesterolMg": 390
+     }
+    }
+   ]
+  },
+  {
+   "id": "dejeuner-matinal-2-oeufs-jambon-patates-roties-confiture-fru",
+   "name": "Déjeuner matinal (2 oeufs, jambon, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 30,
+     "carbsG": 59,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1390,
+      "saturatedFatG": 8,
+      "cholesterolMg": 390
+     }
+    }
+   ]
+  },
+  {
+   "id": "dejeuner-matinal-2-oeufs-saucisses-patates-roties-confiture-",
+   "name": "Déjeuner matinal (2 oeufs, saucisses, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 28,
+     "carbsG": 61,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1360,
+      "saturatedFatG": 16,
+      "cholesterolMg": 405
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-petit-matin-1-oeuf-bacon-patates-roties-confiture-fruits-",
+   "name": "Le petit matin (1 oeuf, bacon, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 22,
+     "carbsG": 57,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 920,
+      "saturatedFatG": 8,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-petit-matin-1-oeuf-jambon-patates-roties-confiture-fruits",
+   "name": "Le petit matin (1 oeuf, jambon, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 630,
+     "proteinG": 24,
+     "carbsG": 58,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-petit-matin-1-oeuf-saucisses-patates-roties-confiture-fru",
+   "name": "Le petit matin (1 oeuf, saucisses, patates, rôties, confiture, fruits, café)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 22,
+     "carbsG": 59,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1290,
+      "saturatedFatG": 15,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-club-dejeuner",
+   "name": "Le club déjeuner",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 25,
+     "carbsG": 87,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 1670,
+      "saturatedFatG": 14,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-sandwich-matin",
+   "name": "Le sandwich matin",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 20,
+     "carbsG": 62,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 14,
+      "sodiumMg": 1390,
+      "saturatedFatG": 12,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "assiette-brunch-2-oeufs-bacon-jambon-saucisses-feve-au-lard-",
+   "name": "Assiette brunch (2 oeufs, bacon, jambon, saucisses, fève au lard, creton, jus)",
+   "category": "LES DÉJEUNERS**",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1390,
+     "proteinG": 60,
+     "carbsG": 93,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 16,
+      "sodiumMg": 3330,
+      "saturatedFatG": 25,
+      "cholesterolMg": 500
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi",
+   "name": "Pepsi",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-diete",
+   "name": "Pepsi diète",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "7-up",
+   "name": "7 UP",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew",
+   "name": "Mountain Dew",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mug-root-beer",
+   "name": "Mug Root Beer",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 62,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 62,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-crush",
+   "name": "Orange Crush",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 61,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 61,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brisk-the-glace",
+   "name": "Brisk thé glacé",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brisk-limonade",
+   "name": "Brisk Limonade",
+   "category": "LES BOISSONS EN FONTAINE",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

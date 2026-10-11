@@ -1,0 +1,4010 @@
+{
+ "chain": "great-american-cookies",
+ "country": "US",
+ "source": {
+  "url": "https://www.greatamericancookies.com/wp-content/uploads/sites/2/2026/06/GAC-Allergen_Ingred_Nutri_6.15.26.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "birthday-cake",
+   "name": "Birthday Cake",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 69,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 500,
+      "saturatedFatG": 12,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-muffin",
+   "name": "Blueberry Muffin",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 85,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 37,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 110,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 500,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "chewy-chocolate-supreme",
+   "name": "Chewy Chocolate Supreme",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chewy-pecan-supreme",
+   "name": "Chewy Pecan Supreme",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookies-and-cream",
+   "name": "Cookies and Cream",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 60,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 30,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 170,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 480,
+     "proteinG": 6,
+     "carbsG": 60,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "domino",
+   "name": "Domino",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 69,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 500,
+      "saturatedFatG": 12,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge",
+   "name": "Double Fudge",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 22,
+      "sodiumMg": 270,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 440,
+     "proteinG": 5,
+     "carbsG": 66,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 43,
+      "sodiumMg": 530,
+      "saturatedFatG": 9,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-with-mini-reese-s",
+   "name": "Double Fudge with Mini Reese's®",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 240,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 500,
+     "proteinG": 6,
+     "carbsG": 72,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 48,
+      "sodiumMg": 570,
+      "saturatedFatG": 10,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-walnut-raisin",
+   "name": "Oatmeal Walnut Raisin",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 270,
+      "saturatedFatG": 4,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 460,
+     "proteinG": 7,
+     "carbsG": 67,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 38,
+      "sodiumMg": 540,
+      "saturatedFatG": 8,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-chocolate-chip",
+   "name": "Original Chocolate Chip",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 75,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 31,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 63,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 450,
+      "saturatedFatG": 10,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-with-m-and-m-s",
+   "name": "Original with M&M'S®",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 75,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 30,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 510,
+     "proteinG": 6,
+     "carbsG": 71,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 45,
+      "sodiumMg": 460,
+      "saturatedFatG": 12,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-supreme",
+   "name": "Peanut Butter Supreme",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 9,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 27,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 500,
+     "proteinG": 10,
+     "carbsG": 55,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 33,
+      "sodiumMg": 490,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-with-m-and-m-s",
+   "name": "Peanut Butter with M&M'S®",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 9,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 210,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 560,
+     "proteinG": 11,
+     "carbsG": 63,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 41,
+      "sodiumMg": 500,
+      "saturatedFatG": 14,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "pecan-supreme",
+   "name": "Pecan Supreme",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 35,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 100,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 470,
+     "proteinG": 5,
+     "carbsG": 68,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 60,
+      "sodiumMg": 200,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-velvet",
+   "name": "Red Velvet",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 75,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 440,
+     "proteinG": 6,
+     "carbsG": 68,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 44,
+      "sodiumMg": 500,
+      "saturatedFatG": 10,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "snickerdoodle",
+   "name": "Snickerdoodle",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 55,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 31,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 480,
+     "proteinG": 6,
+     "carbsG": 63,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 320,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-crinkle",
+   "name": "Strawberry Crinkle",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 45,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 140,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar",
+   "name": "Sugar",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 110,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 280,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 430,
+     "proteinG": 6,
+     "carbsG": 60,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 660,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chunk-macadamia",
+   "name": "White Chunk Macadamia",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 10,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 65,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 30,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 200,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "colossal",
+     "label": "Colossal",
+     "calories": 480,
+     "proteinG": 6,
+     "carbsG": 61,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 400,
+      "saturatedFatG": 13,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-double-doozie",
+   "name": "Birthday Cake Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 250,
+     "proteinG": 2,
+     "carbsG": 32,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 140,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 6,
+     "carbsG": 89,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 58,
+      "sodiumMg": 390,
+      "saturatedFatG": 16,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "domino-double-doozie",
+   "name": "Domino Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 180,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 6,
+     "carbsG": 96,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 74,
+      "sodiumMg": 540,
+      "saturatedFatG": 15,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-double-doozie",
+   "name": "Double Fudge Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 190,
+      "saturatedFatG": 4,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 5,
+     "carbsG": 93,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 68,
+      "sodiumMg": 570,
+      "saturatedFatG": 12,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-walnut-raisin-double-doozie",
+   "name": "Oatmeal Walnut Raisin Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 190,
+      "saturatedFatG": 4,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 7,
+     "carbsG": 94,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 63,
+      "sodiumMg": 580,
+      "saturatedFatG": 12,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-chocolate-chip-double-doozie",
+   "name": "Original Chocolate Chip Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 250,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 6,
+     "carbsG": 90,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 62,
+      "sodiumMg": 490,
+      "saturatedFatG": 13,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-with-m-and-m-s-double-doozie",
+   "name": "Original with M&M'S® Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 250,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 5,
+     "carbsG": 83,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 60,
+      "sodiumMg": 420,
+      "saturatedFatG": 12,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-supreme-double-doozie",
+   "name": "Peanut Butter Supreme Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 180,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 10,
+     "carbsG": 81,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 58,
+      "sodiumMg": 530,
+      "saturatedFatG": 15,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-with-m-and-m-s-double-doozie",
+   "name": "Peanut Butter with M&M'S® Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 180,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 9,
+     "carbsG": 80,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 60,
+      "sodiumMg": 460,
+      "saturatedFatG": 15,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "pecan-supreme-double-doozie",
+   "name": "Pecan Supreme Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 29,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 140,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 6,
+     "carbsG": 87,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 63,
+      "sodiumMg": 420,
+      "saturatedFatG": 13,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "snickerdoodle-double-doozie",
+   "name": "Snickerdoodle Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 30,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 120,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 6,
+     "carbsG": 103,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 61,
+      "sodiumMg": 360,
+      "saturatedFatG": 14,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-double-doozie",
+   "name": "Sugar Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 230,
+      "saturatedFatG": 4,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 5,
+     "carbsG": 76,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 590,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chunk-macadamia-double-doozie",
+   "name": "White Chunk Macadamia Double Doozie",
+   "category": "Cookies",
+   "sizes": [
+    {
+     "size": "big bites",
+     "label": "Big Bites",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 29,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 140,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 6,
+     "carbsG": 87,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 66,
+      "sodiumMg": 430,
+      "saturatedFatG": 16,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-cup-white-icing",
+   "name": "Original Cookie Cup White Icing",
+   "category": "Cookie Cups",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-cup-chocolate-icing",
+   "name": "Original Cookie Cup Chocolate Icing",
+   "category": "Cookie Cups",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 210,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "frosted-cookie",
+   "name": "Frosted Cookie",
+   "category": "Specialty Cookies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 3,
+     "carbsG": 57,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 270,
+      "saturatedFatG": 8.5,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake",
+   "name": "Cheesecake",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 270,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake-chocolate-swirl",
+   "name": "Cheesecake Chocolate Swirl",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 5,
+     "carbsG": 56,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 280,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake-strawberry-swirl",
+   "name": "Cheesecake Strawberry Swirl",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 5,
+     "carbsG": 55,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 270,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge",
+   "name": "Fudge",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 5,
+     "carbsG": 67,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 47,
+      "sodiumMg": 230,
+      "saturatedFatG": 9,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-nut",
+   "name": "Fudge Nut",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 7,
+     "carbsG": 61,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 43,
+      "sodiumMg": 210,
+      "saturatedFatG": 10,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "german-chocolate",
+   "name": "German Chocolate",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 4,
+     "carbsG": 53,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 260,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-peanut-butter-cup",
+   "name": "Reese's® Peanut Butter Cup",
+   "category": "Brownies",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 10,
+     "carbsG": 62,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 37,
+      "sodiumMg": 370,
+      "saturatedFatG": 12,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-cake-by-the-slice",
+   "name": "Original Cookie Cake By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 5,
+     "carbsG": 75,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 51,
+      "sodiumMg": 510,
+      "saturatedFatG": 12,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-cake-by-the-slice-with-m-and-m-s",
+   "name": "Original Cookie Cake By-The-Slice with M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 5,
+     "carbsG": 81,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 56,
+      "sodiumMg": 520,
+      "saturatedFatG": 13,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-double-doozie-by-the-slice",
+   "name": "Original Cookie Double Doozie By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 9,
+     "carbsG": 157,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 109,
+      "sodiumMg": 1040,
+      "saturatedFatG": 26,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-double-doozie-by-the-slice-m-and-m-s",
+   "name": "Original Cookie Double Doozie By-The-Slice M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 10,
+     "carbsG": 169,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 120,
+      "sodiumMg": 1050,
+      "saturatedFatG": 29,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-card",
+   "name": "Original Cookie Card",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 11,
+     "carbsG": 161,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 106,
+      "sodiumMg": 1170,
+      "saturatedFatG": 25,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-card-with-m-and-m-s",
+   "name": "Original Cookie Card with M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 13,
+     "carbsG": 180,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 124,
+      "sodiumMg": 1190,
+      "saturatedFatG": 29,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-card-double-doozie",
+   "name": "Original Cookie Card Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2390,
+     "proteinG": 21,
+     "carbsG": 339,
+     "fatG": 112,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 229,
+      "sodiumMg": 2360,
+      "saturatedFatG": 55,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-cookie-card-double-doozie-m-and-m-s",
+   "name": "Original Cookie Card Double Doozie M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2660,
+     "proteinG": 25,
+     "carbsG": 378,
+     "fatG": 125,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 264,
+      "sodiumMg": 2400,
+      "saturatedFatG": 62,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-12-round",
+   "name": "Original 12\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-12-round-with-m-and-m-s",
+   "name": "Original 12\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-12-round-double-doozie",
+   "name": "Original 12\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-12-round-double-doozie-m-and-m-s",
+   "name": "Original 12\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-14-heart",
+   "name": "Original 14\" Heart",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-14-heart-with-m-and-m-s",
+   "name": "Original 14\" Heart with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-14-heart-double-doozie",
+   "name": "Original 14\" Heart Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-14-heart-double-doozie-m-and-m-s",
+   "name": "Original 14\" Heart Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-round",
+   "name": "Original 16\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-round-with-m-and-m-s",
+   "name": "Original 16\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-round-double-doozie",
+   "name": "Original 16\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-round-double-doozie-m-and-m-s",
+   "name": "Original 16\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-square",
+   "name": "Original 16\" Square",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-square-with-m-and-m-s",
+   "name": "Original 16\" Square with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-square-double-doozie",
+   "name": "Original 16\" Square Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-16-square-double-doozie-m-and-m-s",
+   "name": "Original 16\" Square Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-pan",
+   "name": "Original Pan",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-pan-with-m-and-m-s",
+   "name": "Original Pan with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-double-doozie-by-the-slice",
+   "name": "Double Fudge Cookie Double Doozie By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 9,
+     "carbsG": 152,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 110,
+      "sodiumMg": 1000,
+      "saturatedFatG": 25,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-double-doozie-by-the-slice-m-and-m-s",
+   "name": "Double Fudge Cookie Double Doozie By-The-Slice M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1150,
+     "proteinG": 10,
+     "carbsG": 165,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 121,
+      "sodiumMg": 1010,
+      "saturatedFatG": 27,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-card",
+   "name": "Double Fudge Cookie Card",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 11,
+     "carbsG": 161,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 109,
+      "sodiumMg": 1140,
+      "saturatedFatG": 22,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-card-with-m-and-m-s",
+   "name": "Double Fudge Cookie Card with M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1250,
+     "proteinG": 12,
+     "carbsG": 180,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 126,
+      "sodiumMg": 1160,
+      "saturatedFatG": 26,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-card-double-doozie",
+   "name": "Double Fudge Cookie Card Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2360,
+     "proteinG": 21,
+     "carbsG": 341,
+     "fatG": 109,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 235,
+      "sodiumMg": 2290,
+      "saturatedFatG": 45,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-cookie-card-double-doozie-m-and-m-s",
+   "name": "Double Fudge Cookie Card Double Doozie M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2630,
+     "proteinG": 24,
+     "carbsG": 378,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 269,
+      "sodiumMg": 2330,
+      "saturatedFatG": 53,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-12-round",
+   "name": "Double Fudge 12\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-12-round-with-m-and-m-s",
+   "name": "Double Fudge 12\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-12-round-double-doozie",
+   "name": "Double Fudge 12\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-12-round-double-doozie-m-and-m-s",
+   "name": "Double Fudge 12\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-14-heart",
+   "name": "Double Fudge 14\" Heart",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-14-heart-with-m-and-m-s",
+   "name": "Double Fudge 14\" Heart with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-14-heart-double-doozie",
+   "name": "Double Fudge 14\" Heart Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-14-heart-double-doozie-m-and-m-s",
+   "name": "Double Fudge 14\" Heart Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-round",
+   "name": "Double Fudge 16\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-round-with-m-and-m-s",
+   "name": "Double Fudge 16\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-round-double-doozie",
+   "name": "Double Fudge 16\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-round-double-doozie-m-and-m-s",
+   "name": "Double Fudge 16\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-square",
+   "name": "Double Fudge 16\" Square",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-square-with-m-and-m-s",
+   "name": "Double Fudge 16\" Square with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-square-double-doozie",
+   "name": "Double Fudge 16\" Square Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-16-square-double-doozie-m-and-m-s",
+   "name": "Double Fudge 16\" Square Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-pan",
+   "name": "Double Fudge Pan",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-fudge-pan-with-m-and-m-s",
+   "name": "Double Fudge Pan with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-cake-by-the-slice",
+   "name": "Oatmeal Raisin Cookie Cake By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 6,
+     "carbsG": 77,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 510,
+      "saturatedFatG": 11,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-cake-by-the-slice-with-m-and-m-s",
+   "name": "Oatmeal Raisin Cookie Cake By-The-Slice with M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 7,
+     "carbsG": 83,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 56,
+      "sodiumMg": 510,
+      "saturatedFatG": 12,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-double-doozie-by-the-slice",
+   "name": "Oatmeal Raisin Cookie Double Doozie By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 12,
+     "carbsG": 154,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 101,
+      "sodiumMg": 1010,
+      "saturatedFatG": 22,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-double-doozie-by-the-slice-m-and-m-s",
+   "name": "Oatmeal Raisin Cookie Double Doozie By-The-Slice M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 13,
+     "carbsG": 166,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 112,
+      "sodiumMg": 1020,
+      "saturatedFatG": 25,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-card",
+   "name": "Oatmeal Raisin Cookie Card",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 11,
+     "carbsG": 161,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 109,
+      "sodiumMg": 1140,
+      "saturatedFatG": 22,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-card-with-m-and-m-s",
+   "name": "Oatmeal Raisin Cookie Card with M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1250,
+     "proteinG": 12,
+     "carbsG": 180,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 126,
+      "sodiumMg": 1160,
+      "saturatedFatG": 26,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-card-double-doozie",
+   "name": "Oatmeal Raisin Cookie Card Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2360,
+     "proteinG": 21,
+     "carbsG": 341,
+     "fatG": 109,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 235,
+      "sodiumMg": 2290,
+      "saturatedFatG": 45,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-cookie-card-double-doozie-m-and-m-s",
+   "name": "Oatmeal Raisin Cookie Card Double Doozie M&M's",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2630,
+     "proteinG": 24,
+     "carbsG": 378,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 269,
+      "sodiumMg": 2330,
+      "saturatedFatG": 53,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-12-round",
+   "name": "Oatmeal Raisin 12\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-12-round-with-m-and-m-s",
+   "name": "Oatmeal Raisin 12\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-12-round-double-doozie",
+   "name": "Oatmeal Raisin 12\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-12-round-double-doozie-m-and-m-s",
+   "name": "Oatmeal Raisin 12\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-14-heart",
+   "name": "Oatmeal Raisin 14\" Heart",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-14-heart-with-m-and-m-s",
+   "name": "Oatmeal Raisin 14\" Heart with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-14-heart-double-doozie",
+   "name": "Oatmeal Raisin 14\" Heart Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-14-heart-double-doozie-m-and-m-s",
+   "name": "Oatmeal Raisin 14\" Heart Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-round",
+   "name": "Oatmeal Raisin 16\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-round-with-m-and-m-s",
+   "name": "Oatmeal Raisin 16\" Round with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-round-double-doozie",
+   "name": "Oatmeal Raisin 16\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-round-double-doozie-m-and-m-s",
+   "name": "Oatmeal Raisin 16\" Round Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-square",
+   "name": "Oatmeal Raisin 16\" Square",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-square-with-m-and-m-s",
+   "name": "Oatmeal Raisin 16\" Square with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-square-double-doozie",
+   "name": "Oatmeal Raisin 16\" Square Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-16-square-double-doozie-m-and-m-s",
+   "name": "Oatmeal Raisin 16\" Square Double Doozie M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-pan",
+   "name": "Oatmeal Raisin Pan",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "oatmeal-raisin-pan-with-m-and-m-s",
+   "name": "Oatmeal Raisin Pan with M&M's®",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 340,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-cookie-cake-by-the-slice",
+   "name": "Birthday Cake Cookie Cake By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 6,
+     "carbsG": 62,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 390,
+      "saturatedFatG": 13,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-double-doozie-by-the-slice",
+   "name": "Birthday Cake Double Doozie By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 5,
+     "carbsG": 65,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 320,
+      "saturatedFatG": 13,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-cookie-card",
+   "name": "Birthday Cake Cookie Card",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 12,
+     "carbsG": 123,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 67,
+      "sodiumMg": 760,
+      "saturatedFatG": 26,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-cookie-card-double-doozie",
+   "name": "Birthday Cake Cookie Card Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1530,
+     "proteinG": 12,
+     "carbsG": 198,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 139,
+      "sodiumMg": 870,
+      "saturatedFatG": 37,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-12-round",
+   "name": "Birthday Cake 12\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 260,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-12-round-double-doozie",
+   "name": "Birthday Cake 12\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 4,
+     "carbsG": 49,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 240,
+      "saturatedFatG": 10,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-14-heart",
+   "name": "Birthday Cake 14\" Heart",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 4,
+     "carbsG": 43,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 270,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-14-heart-double-doozie",
+   "name": "Birthday Cake 14\" Heart Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 3,
+     "carbsG": 50,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 230,
+      "saturatedFatG": 10,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-16-round",
+   "name": "Birthday Cake 16\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 250,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-16-round-double-doozie",
+   "name": "Birthday Cake 16\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 4,
+     "carbsG": 57,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 280,
+      "saturatedFatG": 11,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-16-square",
+   "name": "Birthday Cake 16\" Square",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 250,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-16-square-double-doozie",
+   "name": "Birthday Cake 16\" Square Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 4,
+     "carbsG": 55,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake-pan",
+   "name": "Birthday Cake Pan",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 230,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-by-the-slice",
+   "name": "Sugar Cookie Cake By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 670,
+      "saturatedFatG": 8,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-double-doozie-by-the-slice",
+   "name": "Sugar Cookie Cake Double Doozie By-The-Slice",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 4,
+     "carbsG": 66,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 530,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-cookie-card",
+   "name": "Sugar Cookie Cake Cookie Card",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 5,
+     "carbsG": 60,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 620,
+      "saturatedFatG": 8,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-cookie-card-double-doozie",
+   "name": "Sugar Cookie Cake Cookie Card Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 4,
+     "carbsG": 62,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 510,
+      "saturatedFatG": 8,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-12-round",
+   "name": "Sugar Cookie Cake 12\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 44,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 440,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-12-round-double-doozie",
+   "name": "Sugar Cookie Cake 12\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 52,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 430,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-14-heart",
+   "name": "Sugar Cookie Cake 14\" Heart",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 79,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 420,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-14-heart-double-doozie",
+   "name": "Sugar Cookie Cake 14\" Heart Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 380,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-16-round",
+   "name": "Sugar Cookie Cake 16\" Round",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 41,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 420,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-16-round-double-doozie",
+   "name": "Sugar Cookie Cake 16\" Round Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 50,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 400,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-16-square",
+   "name": "Sugar Cookie Cake 16\" Square",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 18,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 190,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-16-square-double-doozie",
+   "name": "Sugar Cookie Cake 16\" Square Double Doozie",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 3,
+     "carbsG": 37,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 380,
+      "saturatedFatG": 11,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie-cake-cake-pan",
+   "name": "Sugar Cookie Cake Cake Pan",
+   "category": "Cookie Cakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 39,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 400,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-banana",
+   "name": "Strawberry Banana",
+   "category": "Blended Drinks",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 540,
+     "proteinG": 4,
+     "carbsG": 99,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 93,
+      "sodiumMg": 80,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry",
+   "name": "Raspberry",
+   "category": "Blended Drinks",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 540,
+     "proteinG": 4,
+     "carbsG": 101,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 80,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach",
+   "name": "Peach",
+   "category": "Blended Drinks",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 540,
+     "proteinG": 4,
+     "carbsG": 101,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 99,
+      "sodiumMg": 95,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha",
+   "name": "Mocha",
+   "category": "Blended Drinks",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 540,
+     "proteinG": 4,
+     "carbsG": 97,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 80,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino",
+   "name": "Cappuccino",
+   "category": "Blended Drinks",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 550,
+     "proteinG": 4,
+     "carbsG": 98,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 85,
+      "saturatedFatG": 11,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-fountain",
+   "name": "Coke, Fountain",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke-fountain",
+   "name": "Diet Coke, Fountain",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite-fountain",
+   "name": "Sprite, Fountain",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

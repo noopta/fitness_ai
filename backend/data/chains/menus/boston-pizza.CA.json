@@ -1,0 +1,4049 @@
+{
+ "chain": "boston-pizza",
+ "country": "CA",
+ "source": {
+  "url": "https://bostonpizza.com/en/nutritional-information.html",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "garlic-fingers",
+   "name": "Garlic Fingers",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 800,
+     "proteinG": 26,
+     "carbsG": 112,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 27,
+      "sodiumMg": 680,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-canadian-poutine",
+   "name": "Ultimate Canadian Poutine",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 19,
+     "carbsG": 65,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 12,
+      "sodiumMg": 1680,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-parmesan-fries",
+   "name": "Garlic Parmesan Fries",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1150,
+     "proteinG": 32,
+     "carbsG": 110,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 0,
+      "sodiumMg": 3410,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "bandera-pizza-bread",
+   "name": "Bandera Pizza Bread",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 30,
+     "carbsG": 87,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 1880,
+      "saturatedFatG": 17,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 2060,
+     "proteinG": 68,
+     "carbsG": 226,
+     "fatG": 98,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 16,
+      "sodiumMg": 3570,
+      "saturatedFatG": 33,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "boston-s-pizza-bread",
+   "name": "Boston's Pizza Bread",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 500,
+     "proteinG": 15,
+     "carbsG": 84,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 670,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cactus-cut-potatoes",
+   "name": "Cactus Cut Potatoes",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 12,
+     "carbsG": 72,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 3,
+      "sodiumMg": 1390,
+      "saturatedFatG": 14,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-onion-soup",
+   "name": "French Onion Soup",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 1560,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "wings",
+   "name": "Wings",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 780,
+     "proteinG": 72,
+     "carbsG": 9,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 2230,
+      "saturatedFatG": 13,
+      "cholesterolMg": 375
+     }
+    },
+    {
+     "size": "double",
+     "label": "Double order",
+     "calories": 1560,
+     "proteinG": 145,
+     "carbsG": 19,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 4460,
+      "saturatedFatG": 27,
+      "cholesterolMg": 750
+     }
+    }
+   ]
+  },
+  {
+   "id": "wings-combo",
+   "name": "Wings Combo",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 780,
+     "proteinG": 72,
+     "carbsG": 9,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 2230,
+      "saturatedFatG": 13,
+      "cholesterolMg": 375
+     }
+    },
+    {
+     "size": "double",
+     "label": "Double order",
+     "calories": 1560,
+     "proteinG": 145,
+     "carbsG": 19,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 4460,
+      "saturatedFatG": 27,
+      "cholesterolMg": 750
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-poutine",
+   "name": "Classic Poutine",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 18,
+     "carbsG": 68,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 3140,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-bites",
+   "name": "Thai Bites",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 32,
+     "carbsG": 92,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 44,
+      "sodiumMg": 1620,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "deep-fried-pickle-wedges",
+   "name": "Deep Fried Pickle Wedges",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 7,
+     "carbsG": 53,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 2330,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-triple-play",
+   "name": "The Triple Play",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1730,
+     "proteinG": 66,
+     "carbsG": 164,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 35,
+      "sodiumMg": 3330,
+      "saturatedFatG": 20,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "spinach-and-artichoke-dip",
+   "name": "Spinach and Artichoke Dip",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 52,
+     "carbsG": 137,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 11,
+      "sodiumMg": 2520,
+      "saturatedFatG": 30,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-salad-starter-size",
+   "name": "Garden Salad - Starter size",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 12,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad-starter-size",
+   "name": "Caesar Salad - Starter size",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 7,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 610,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "montreal-smoked-meat-poutine",
+   "name": "Montréal Smoked Meat Poutine",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 54,
+     "carbsG": 88,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 4440,
+      "saturatedFatG": 28,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-fingers",
+   "name": "Chicken Fingers",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "original",
+     "label": "Original",
+     "calories": 400,
+     "proteinG": 32,
+     "carbsG": 34,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 610,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "bp-s-classic-nachos",
+   "name": "BP's Classic Nachos",
+   "category": "Apps and Shareables",
+   "sizes": [
+    {
+     "size": "half portion",
+     "label": "half-portion",
+     "calories": 1050,
+     "proteinG": 52,
+     "carbsG": 81,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 5,
+      "sodiumMg": 1880,
+      "saturatedFatG": 32,
+      "cholesterolMg": 135
+     }
+    },
+    {
+     "size": "full size",
+     "label": "Full size",
+     "calories": 2100,
+     "proteinG": 105,
+     "carbsG": 162,
+     "fatG": 117,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 10,
+      "sodiumMg": 3760,
+      "saturatedFatG": 64,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "slow-roasted-pork-back-ribs",
+   "name": "Slow-Roasted Pork Back Ribs",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "full rack",
+     "label": "Full rack",
+     "calories": 1080,
+     "proteinG": 65,
+     "carbsG": 36,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 660,
+      "saturatedFatG": 28,
+      "cholesterolMg": 205
+     }
+    },
+    {
+     "size": "half rack",
+     "label": "Half rack",
+     "calories": 670,
+     "proteinG": 36,
+     "carbsG": 36,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 550,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parmesan",
+   "name": "Chicken Parmesan",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 49,
+     "carbsG": 128,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 2090,
+      "saturatedFatG": 8,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "ny-striploin-steak",
+   "name": "NY Striploin steak",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 29,
+     "carbsG": 76,
+     "fatG": 67,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 12,
+      "sodiumMg": 3460,
+      "saturatedFatG": 26,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "pizzaghetti",
+   "name": "Pizzaghetti",
+   "category": "Mains",
+   "sizes": [
+    {
+     "size": "pepperoni pizza with bolognese sauce",
+     "label": "Pepperoni Pizza, with bolognese sauce",
+     "calories": 930,
+     "proteinG": 42,
+     "carbsG": 135,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 10,
+      "sodiumMg": 1720,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "quebecoise pizza with no sauce",
+     "label": "Québécoise Pizza, with no sauce",
+     "calories": 860,
+     "proteinG": 38,
+     "carbsG": 129,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 1180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "pepperoni pizza with no sauce",
+     "label": "Pepperoni Pizza, with no sauce",
+     "calories": 850,
+     "proteinG": 37,
+     "carbsG": 127,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 1170,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-salad",
+   "name": "Chicken Caesar Salad",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "entree size",
+     "label": "Entrée size",
+     "calories": 680,
+     "proteinG": 53,
+     "carbsG": 13,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 1800,
+      "saturatedFatG": 12,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple-beet-and-goat-cheese-salad",
+   "name": "Pineapple, Beet, and Goat Cheese Salad",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 36,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 21,
+      "sodiumMg": 790,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiesta-salad",
+   "name": "Fiesta Salad",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 28,
+     "carbsG": 54,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 17,
+      "sodiumMg": 1160,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pecan-salad",
+   "name": "Chicken Pecan Salad",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "crispy chicken",
+     "label": "Crispy chicken",
+     "calories": 950,
+     "proteinG": 41,
+     "carbsG": 50,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 20,
+      "sodiumMg": 1460,
+      "saturatedFatG": 11,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "grilled chicken glutenwise",
+     "label": "Grilled chicken (GlutenWise)",
+     "calories": 790,
+     "proteinG": 50,
+     "carbsG": 24,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 15,
+      "sodiumMg": 1550,
+      "saturatedFatG": 10,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-dill-chicken-power-bowl",
+   "name": "Honey Dill Chicken Power Bowl",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "grilled chicken",
+     "label": "Grilled chicken",
+     "calories": 1080,
+     "proteinG": 59,
+     "carbsG": 143,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 12,
+      "sodiumMg": 1010,
+      "saturatedFatG": 4,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "crispy chicken",
+     "label": "Crispy chicken",
+     "calories": 1230,
+     "proteinG": 50,
+     "carbsG": 168,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 23,
+      "sugarG": 17,
+      "sodiumMg": 920,
+      "saturatedFatG": 5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-power-bowl",
+   "name": "Salmon Power Bowl",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 62,
+     "carbsG": 142,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 11,
+      "sodiumMg": 770,
+      "saturatedFatG": 9,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "barbacoa-burrito-bowl",
+   "name": "Barbacoa Burrito Bowl",
+   "category": "Bowls and Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 49,
+     "carbsG": 145,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 19,
+      "sugarG": 13,
+      "sodiumMg": 640,
+      "saturatedFatG": 7,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-philly-cheesesteak-dipper",
+   "name": "Big Philly Cheesesteak Dipper",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1240,
+     "proteinG": 52,
+     "carbsG": 121,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 3340,
+      "saturatedFatG": 14,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-sandwich",
+   "name": "Steak Sandwich",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 19,
+     "carbsG": 35,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1970,
+      "saturatedFatG": 16,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "boston-brute",
+   "name": "Boston Brute",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 40,
+     "carbsG": 108,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 3030,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-veggie-burger",
+   "name": "Cali Veggie Burger",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 16,
+     "carbsG": 69,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 12,
+      "sodiumMg": 900,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-clubhouse",
+   "name": "Grilled Chicken Clubhouse",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 63,
+     "carbsG": 98,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 2560,
+      "saturatedFatG": 13,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-chicken-wrap",
+   "name": "Thai Chicken Wrap",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "grilled chicken",
+     "label": "Grilled chicken",
+     "calories": 820,
+     "proteinG": 42,
+     "carbsG": 87,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 28,
+      "sodiumMg": 2140,
+      "saturatedFatG": 4,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "crispy chicken",
+     "label": "Crispy chicken",
+     "calories": 860,
+     "proteinG": 25,
+     "carbsG": 101,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 30,
+      "sodiumMg": 1880,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-dill-fried-chicken-sandwich",
+   "name": "Honey Dill Fried Chicken Sandwich",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 38,
+     "carbsG": 73,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 1550,
+      "saturatedFatG": 10,
+      "cholesterolMg": 135
+     }
+    },
+    {
+     "size": "grilled chicken",
+     "label": "Grilled chicken",
+     "calories": 630,
+     "proteinG": 45,
+     "carbsG": 50,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 1620,
+      "saturatedFatG": 9,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "kick-n-memphis-chicken",
+   "name": "Kick'n Memphis Chicken",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1210,
+     "proteinG": 53,
+     "carbsG": 86,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 15,
+      "sodiumMg": 1920,
+      "saturatedFatG": 19,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-bacon-burger",
+   "name": "Maple Bacon Burger",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 43,
+     "carbsG": 64,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 28,
+      "sodiumMg": 1760,
+      "saturatedFatG": 22,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "boston-sized-burger",
+   "name": "Boston-Sized Burger",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 53,
+     "carbsG": 49,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1530,
+      "saturatedFatG": 28,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "montreal-smoked-meat-sandwich",
+   "name": "Montréal Smoked Meat Sandwich",
+   "category": "Sandwiches & Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 59,
+     "carbsG": 40,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 3050,
+      "saturatedFatG": 29,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-addiction",
+   "name": "Chocolate Brownie Addiction",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "with ice cream",
+     "label": "With ice cream",
+     "calories": 1000,
+     "proteinG": 17,
+     "carbsG": 133,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 86,
+      "sodiumMg": 1120,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "without ice cream",
+     "label": "Without ice cream",
+     "calories": 790,
+     "proteinG": 9,
+     "carbsG": 128,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 82,
+      "sodiumMg": 360,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-york-cheesecake",
+   "name": "New York Cheesecake",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 11,
+     "carbsG": 54,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 360,
+      "saturatedFatG": 21,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-explosion",
+   "name": "Chocolate Explosion",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 10,
+     "carbsG": 97,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 73,
+      "sodiumMg": 510,
+      "saturatedFatG": 30,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pecan-sticky-toffee-pudding",
+   "name": "Caramel Pecan Sticky Toffee Pudding",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 9,
+     "carbsG": 65,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 45,
+      "sodiumMg": 690,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "fries",
+   "name": "Fries",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 0,
+      "sodiumMg": 1070,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-mashed-potatoes",
+   "name": "Garlic Mashed Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 920,
+      "saturatedFatG": 4,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "quinoa-and-rice-blend",
+   "name": "Quinoa and Rice Blend",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 20,
+     "carbsG": 121,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 2,
+      "sodiumMg": 2,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-salad",
+   "name": "Garden Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 5,
+     "carbsG": 4,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 320,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 12,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad",
+   "name": "Caesar Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 5,
+     "carbsG": 4,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 320,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 250,
+     "proteinG": 9,
+     "carbsG": 6,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 610,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "tossed-garden-greens-kids",
+   "name": "Tossed Garden Greens - Kids",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 220,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fries-kids",
+   "name": "Fries - Kids",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 670,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad-kids",
+   "name": "Caesar Salad - Kids",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 4,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 190,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-mashed-potatoes-kids",
+   "name": "Garlic Mashed Potatoes - Kids",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 460,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-carrots",
+   "name": "Roasted Carrots",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 160,
+      "saturatedFatG": 0.3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "oven-roasted-wings",
+   "name": "Oven-Roasted Wings",
+   "sizes": [
+    {
+     "size": "double",
+     "label": "Double order",
+     "calories": 1560,
+     "proteinG": 145,
+     "carbsG": 19,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 4460,
+      "saturatedFatG": 27,
+      "cholesterolMg": 750
+     }
+    },
+    {
+     "size": "starter size",
+     "label": "Starter size",
+     "calories": 780,
+     "proteinG": 72,
+     "carbsG": 9,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 2230,
+      "saturatedFatG": 13,
+      "cholesterolMg": 375
+     }
+    }
+   ]
+  },
+  {
+   "id": "create-your-own-8-cauliflower-crust-pizza",
+   "name": "Create Your Own 8\" Cauliflower Crust Pizza",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "cauliflower crust 8",
+     "label": "Cauliflower crust 8''",
+     "calories": 700,
+     "proteinG": 26,
+     "carbsG": 99,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1480,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-deluxe",
+   "name": "Cauliflower Crust Pizza - Deluxe",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 32,
+     "carbsG": 102,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 7,
+      "sodiumMg": 2110,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 800,
+     "proteinG": 32,
+     "carbsG": 102,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 7,
+      "sodiumMg": 2110,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-great-white-north",
+   "name": "Cauliflower Crust Pizza - Great White North",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 33,
+     "carbsG": 100,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1980,
+      "saturatedFatG": 15,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 810,
+     "proteinG": 33,
+     "carbsG": 100,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1980,
+      "saturatedFatG": 15,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-hawaiian",
+   "name": "Cauliflower Crust Pizza – Hawaiian",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 27,
+     "carbsG": 110,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 17,
+      "sodiumMg": 1770,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 740,
+     "proteinG": 27,
+     "carbsG": 110,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 17,
+      "sodiumMg": 1770,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-pepperoni",
+   "name": "Cauliflower Crust Pizza – Pepperoni",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 28,
+     "carbsG": 99,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1860,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 790,
+     "proteinG": 28,
+     "carbsG": 99,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1860,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-vegetarian",
+   "name": "Cauliflower Crust Pizza – Vegetarian",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 24,
+     "carbsG": 105,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 1360,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 730,
+     "proteinG": 24,
+     "carbsG": 106,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 11,
+      "sodiumMg": 1630,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-tropical-chicken",
+   "name": "Cauliflower Crust Pizza – Tropical Chicken",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 950,
+     "proteinG": 38,
+     "carbsG": 106,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 1960,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 950,
+     "proteinG": 38,
+     "carbsG": 106,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 1960,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "create-your-own-glutenwise-pasta",
+   "name": "Create Your Own Glutenwise Pasta",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 9,
+     "carbsG": 116,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "glutenwise-chocolate-brownie-addiction",
+   "name": "GlutenWise® Chocolate Brownie Addiction",
+   "category": "Dessert",
+   "sizes": [
+    {
+     "size": "with ice cream",
+     "label": "With ice cream",
+     "calories": 1100,
+     "proteinG": 15,
+     "carbsG": 141,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 96,
+      "sodiumMg": 1370,
+      "saturatedFatG": 14,
+      "cholesterolMg": 145
+     }
+    },
+    {
+     "size": "without ice cream",
+     "label": "Without ice cream",
+     "calories": 890,
+     "proteinG": 7,
+     "carbsG": 136,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 92,
+      "sodiumMg": 610,
+      "saturatedFatG": 6,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-fingers",
+   "name": "Crispy Chicken Fingers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 20,
+     "carbsG": 48,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 27,
+      "sodiumMg": 610,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-spaghetti",
+   "name": "Super Spaghetti",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 10,
+     "carbsG": 62,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 80,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pint-sized-pizza",
+   "name": "Pint-Sized Pizza",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 22,
+     "carbsG": 71,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 590,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bugs-n-cheese",
+   "name": "Bugs n' Cheese",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 23,
+     "carbsG": 51,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 740,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-kids-bugs-n-cheese",
+   "name": "Big Kids Bugs n' Cheese",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 45,
+     "carbsG": 102,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 1480,
+      "saturatedFatG": 18,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "hungry-kids-pizza-8",
+   "name": "Hungry Kids' Pizza (8\")",
+   "category": "Kids",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 820,
+     "proteinG": 51,
+     "carbsG": 97,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 13,
+      "sodiumMg": 2010,
+      "saturatedFatG": 12,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-and-meatballs",
+   "name": "Spaghetti and Meatballs",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 730,
+     "proteinG": 35,
+     "carbsG": 78,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 5,
+      "sodiumMg": 1260,
+      "saturatedFatG": 15,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-mushroom-and-spinach-bake",
+   "name": "Creamy Mushroom & Spinach Bake",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1410,
+     "proteinG": 48,
+     "carbsG": 145,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 14,
+      "sodiumMg": 3290,
+      "saturatedFatG": 31,
+      "cholesterolMg": 125
+     }
+    },
+    {
+     "size": "half portion",
+     "label": "Half portion",
+     "calories": 790,
+     "proteinG": 27,
+     "carbsG": 86,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 1810,
+      "saturatedFatG": 17,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-hungry-carnivore",
+   "name": "The Hungry Carnivore",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1450,
+     "proteinG": 61,
+     "carbsG": 126,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 12,
+      "sodiumMg": 3060,
+      "saturatedFatG": 30,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "baked-seven-cheese-ravioli",
+   "name": "Baked Seven-Cheese Ravioli",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 39,
+     "carbsG": 70,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1270,
+      "saturatedFatG": 18,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "jambalaya-fettuccini",
+   "name": "Jambalaya Fettuccini",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1370,
+     "proteinG": 61,
+     "carbsG": 144,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 10,
+      "sodiumMg": 2810,
+      "saturatedFatG": 13,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "parmesan-shrimp-alfredo",
+   "name": "Parmesan Shrimp Alfredo",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 46,
+     "carbsG": 146,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 15,
+      "sodiumMg": 3210,
+      "saturatedFatG": 17,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "boston-s-lasagna",
+   "name": "Boston's Lasagna",
+   "category": "Pasta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 41,
+     "carbsG": 107,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 11,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-buffalo-mac-and-cheese",
+   "name": "Spicy Buffalo Mac & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 61,
+     "carbsG": 123,
+     "fatG": 67,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 13,
+      "sodiumMg": 3690,
+      "saturatedFatG": 32,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "mac-and-cheese5",
+   "name": "Mac & Cheese5",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 49,
+     "carbsG": 109,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 11,
+      "sodiumMg": 2550,
+      "saturatedFatG": 31,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-mushroom-fettuccini",
+   "name": "Chicken & Mushroom Fettuccini",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1250,
+     "proteinG": 49,
+     "carbsG": 142,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 13,
+      "sodiumMg": 2300,
+      "saturatedFatG": 16,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoky-mountain-spaghetti-and-meatballs",
+   "name": "Smoky Mountain Spaghetti & Meatballs",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2010,
+     "proteinG": 89,
+     "carbsG": 257,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 19,
+      "sodiumMg": 3920,
+      "saturatedFatG": 32,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni",
+   "name": "Pepperoni",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 710,
+     "proteinG": 35,
+     "carbsG": 89,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 1450,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 17,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 320,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 24,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 410,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 240,
+     "proteinG": 12,
+     "carbsG": 29,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 510,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-perogy",
+   "name": "Spicy Perogy",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 1040,
+     "proteinG": 49,
+     "carbsG": 98,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 1370,
+      "saturatedFatG": 18,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 19,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 340,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 300,
+     "proteinG": 14,
+     "carbsG": 27,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 410,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 360,
+     "proteinG": 18,
+     "carbsG": 31,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 520,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "create-your-own-pizza",
+   "name": "Create Your Own Pizza",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 630,
+     "proteinG": 32,
+     "carbsG": 88,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 1060,
+      "saturatedFatG": 10,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 17,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 240,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 24,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 280,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 350,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe",
+   "name": "Deluxe",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 720,
+     "proteinG": 38,
+     "carbsG": 92,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 1700,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 150,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 200,
+     "proteinG": 11,
+     "carbsG": 25,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 470,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 560,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "mediterranean",
+   "name": "Mediterranean",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 810,
+     "proteinG": 39,
+     "carbsG": 106,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 21,
+      "sodiumMg": 1560,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 21,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 330,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 29,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 470,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 280,
+     "proteinG": 14,
+     "carbsG": 34,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 600,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "whisky-bbq-chicken",
+   "name": "Whisky BBQ Chicken",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 940,
+     "proteinG": 48,
+     "carbsG": 102,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 21,
+      "sodiumMg": 1650,
+      "saturatedFatG": 15,
+      "cholesterolMg": 120
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 20,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 390,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 470,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 320,
+     "proteinG": 16,
+     "carbsG": 32,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 550,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "royal-hawaiian",
+   "name": "Royal Hawaiian",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 910,
+     "proteinG": 52,
+     "carbsG": 111,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 28,
+      "sodiumMg": 1910,
+      "saturatedFatG": 14,
+      "cholesterolMg": 120
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 200,
+     "proteinG": 12,
+     "carbsG": 23,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 480,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 270,
+     "proteinG": 16,
+     "carbsG": 30,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 650,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 320,
+     "proteinG": 20,
+     "carbsG": 36,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 760,
+      "saturatedFatG": 6,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust",
+   "name": "Cauliflower crust",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 700,
+     "proteinG": 26,
+     "carbsG": 99,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1480,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-royal-hawaiian",
+   "name": "Cauliflower Crust Pizza - Royal Hawaiian",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 960,
+     "proteinG": 46,
+     "carbsG": 116,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 24,
+      "sodiumMg": 2300,
+      "saturatedFatG": 15,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-spicy-perogy",
+   "name": "Cauliflower Crust Pizza – Spicy Perogy",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 1090,
+     "proteinG": 42,
+     "carbsG": 104,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 1,
+      "sodiumMg": 1760,
+      "saturatedFatG": 19,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-crust-pizza-meateor",
+   "name": "Cauliflower Crust Pizza - Meateor",
+   "sizes": [
+    {
+     "size": "8",
+     "label": "8\"",
+     "calories": 900,
+     "proteinG": 41,
+     "carbsG": 93,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 2,
+      "sodiumMg": 2110,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "hawaiian",
+   "name": "Hawaiian",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 660,
+     "proteinG": 33,
+     "carbsG": 100,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 20,
+      "sodiumMg": 1360,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 20,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 330,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 410,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 32,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 490,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-chicken",
+   "name": "Tropical Chicken",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 870,
+     "proteinG": 45,
+     "carbsG": 96,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 17,
+      "sodiumMg": 1540,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 190,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 390,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 250,
+     "proteinG": 13,
+     "carbsG": 26,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 460,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 300,
+     "proteinG": 16,
+     "carbsG": 31,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 550,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "montreal-smoked-meat-pizza",
+   "name": "Montreal Smoked Meat Pizza",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 740,
+     "proteinG": 46,
+     "carbsG": 91,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 11,
+      "sodiumMg": 1740,
+      "saturatedFatG": 11,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 140,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 330,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 180,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 390,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 220,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "la-quebecoise",
+   "name": "La Québécoise®",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 760,
+     "proteinG": 39,
+     "carbsG": 91,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 11,
+      "sodiumMg": 1570,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 150,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 320,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 25,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 420,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 250,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 510,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbonara-pizza",
+   "name": "Carbonara Pizza",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 900,
+     "proteinG": 45,
+     "carbsG": 98,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 17,
+      "sodiumMg": 6160,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1540,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 27,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 1850,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 310,
+     "proteinG": 16,
+     "carbsG": 32,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 2100,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-and-savoury-italian-pizza",
+   "name": "Sweet & Savoury Italian Pizza",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 820,
+     "proteinG": 41,
+     "carbsG": 98,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 16,
+      "sodiumMg": 2070,
+      "saturatedFatG": 14,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 520,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 620,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 280,
+     "proteinG": 15,
+     "carbsG": 32,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 740,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-meateor",
+   "name": "The Meateor™",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 850,
+     "proteinG": 48,
+     "carbsG": 87,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1710,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 180,
+     "proteinG": 11,
+     "carbsG": 17,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 390,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 480,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 300,
+     "proteinG": 19,
+     "carbsG": 28,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 810,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetarian",
+   "name": "Vegetarian",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 620,
+     "proteinG": 30,
+     "carbsG": 94,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 13,
+      "sodiumMg": 950,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 130,
+     "proteinG": 7,
+     "carbsG": 18,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 240,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 170,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 280,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 31,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 360,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-pizza",
+   "name": "Buffalo Chicken Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 32,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 650,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-pepperoni-and-bacon-pizza",
+   "name": "Loaded Pepperoni & Bacon Pizza",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 1010,
+     "proteinG": 39,
+     "carbsG": 100,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 2450,
+      "saturatedFatG": 20,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 19,
+     "carbsG": 33,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 780,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "halftime-squarefooter",
+   "name": "Halftime Squarefooter™",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 32,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 650,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "boston-royal",
+   "name": "Boston Royal",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 820,
+     "proteinG": 51,
+     "carbsG": 97,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 13,
+      "sodiumMg": 2010,
+      "saturatedFatG": 12,
+      "cholesterolMg": 120
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 170,
+     "proteinG": 11,
+     "carbsG": 19,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 220,
+     "proteinG": 14,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 560,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 270,
+     "proteinG": 17,
+     "carbsG": 31,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 650,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "great-white-north",
+   "name": "Great White North",
+   "sizes": [
+    {
+     "size": "indy",
+     "label": "Indy",
+     "calories": 740,
+     "proteinG": 40,
+     "carbsG": 89,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 1570,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small (per slice)",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 17,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 380,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium (per slice)",
+     "calories": 210,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 470,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large (per slice)",
+     "calories": 260,
+     "proteinG": 15,
+     "carbsG": 29,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "creamy-alfredo-sauce",
+   "name": "Creamy Alfredo Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 270,
+    "proteinG": 7,
+    "carbsG": 14,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 1450,
+     "saturatedFatG": 11,
+     "cholesterolMg": 55
+    }
+   }
+  },
+  {
+   "id": "sante-fe-ranch-dip",
+   "name": "Sante Fe Ranch Dip",
+   "group": "sauce",
+   "per": {
+    "calories": 300,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 580,
+     "saturatedFatG": 2,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "ranch-dressing",
+   "name": "Ranch Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 450,
+    "proteinG": 2,
+    "carbsG": 6,
+    "fatG": 51,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 6,
+     "sodiumMg": 680,
+     "saturatedFatG": 3,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "half-marinara-half-bolognese-sauce",
+   "name": "Half Marinara - Half Bolognese Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 220,
+    "proteinG": 5,
+    "carbsG": 15,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 8,
+     "sodiumMg": 1280,
+     "saturatedFatG": 6,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "substitute-three-cheese-toast",
+   "name": "Substitute Three-Cheese Toast",
+   "group": "bread",
+   "per": {
+    "calories": 370,
+    "proteinG": 16,
+    "carbsG": 35,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 840,
+     "saturatedFatG": 9,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "sour-cream",
+   "name": "Sour Cream",
+   "group": "add-on",
+   "per": {
+    "calories": 100,
+    "proteinG": 2,
+    "carbsG": 3,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "quinoa-and-rice-blend-kids",
+   "name": "Quinoa and Rice Blend - Kids",
+   "group": "add-on",
+   "per": {
+    "calories": 100,
+    "proteinG": 3,
+    "carbsG": 22,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blue-cheese-dip",
+   "name": "Blue Cheese Dip",
+   "group": "sauce",
+   "per": {
+    "calories": 340,
+    "proteinG": 2,
+    "carbsG": 6,
+    "fatG": 34,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 6,
+     "sodiumMg": 850,
+     "saturatedFatG": 3,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "baked-salmon",
+   "name": "Baked Salmon",
+   "group": "protein",
+   "per": {
+    "calories": 370,
+    "proteinG": 35,
+    "carbsG": 1,
+    "fatG": 26,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 290,
+     "saturatedFatG": 5,
+     "cholesterolMg": 95
+    }
+   }
+  },
+  {
+   "id": "chicken-breast",
+   "name": "Chicken Breast",
+   "group": "protein",
+   "per": {
+    "calories": 150,
+    "proteinG": 33,
+    "carbsG": 0,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 550,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 85
+    }
+   }
+  },
+  {
+   "id": "guacamole",
+   "name": "Guacamole",
+   "group": "add-on",
+   "per": {
+    "calories": 160,
+    "proteinG": 2,
+    "carbsG": 10,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 7,
+     "sugarG": 2,
+     "sodiumMg": 440,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cactus-dip",
+   "name": "Cactus Dip",
+   "group": "sauce",
+   "per": {
+    "calories": 380,
+    "proteinG": 4,
+    "carbsG": 3,
+    "fatG": 39,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 330,
+     "saturatedFatG": 6,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "salsa",
+   "name": "Salsa",
+   "group": "sauce",
+   "per": {
+    "calories": 15,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 260,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "substitute-sweet-potato-fries",
+   "name": "Substitute Sweet Potato Fries",
+   "group": "add-on",
+   "per": {
+    "calories": 620,
+    "proteinG": 4,
+    "carbsG": 61,
+    "fatG": 42,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 24,
+     "sodiumMg": 1200,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "substitute-cactus-cuts-potatoes",
+   "name": "Substitute Cactus Cuts Potatoes",
+   "group": "add-on",
+   "per": {
+    "calories": 580,
+    "proteinG": 6,
+    "carbsG": 36,
+    "fatG": 46,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 2,
+     "sodiumMg": 700,
+     "saturatedFatG": 7,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "substitute-onion-rings",
+   "name": "Substitute Onion Rings",
+   "group": "add-on",
+   "per": {
+    "calories": 560,
+    "proteinG": 6,
+    "carbsG": 56,
+    "fatG": 36,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 14,
+     "sodiumMg": 620,
+     "saturatedFatG": 3,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "garlic-toast-1-slice",
+   "name": "Garlic Toast (1 slice)",
+   "group": "bread",
+   "unit": "Per slice",
+   "per": {
+    "calories": 180,
+    "proteinG": 5,
+    "carbsG": 27,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 330,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "marinara-sauce",
+   "name": "Marinara Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 160,
+    "proteinG": 2,
+    "carbsG": 16,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 7,
+     "sodiumMg": 1110,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "memphis-hot-sauce",
+   "name": "Memphis Hot Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 200,
+    "proteinG": 0.5,
+    "carbsG": 4,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 340,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cajun-chicken",
+   "name": "Cajun Chicken",
+   "group": "protein",
+   "per": {
+    "calories": 160,
+    "proteinG": 33,
+    "carbsG": 2,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 730,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 85
+    }
+   }
+  },
+  {
+   "id": "bbq-sauce",
+   "name": "BBQ Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 22,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 20,
+     "sodiumMg": 580,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pizza-sauce",
+   "name": "Pizza Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 2,
+    "carbsG": 10,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 9,
+     "sodiumMg": 700,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caesar-dressing",
+   "name": "Caesar Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 450,
+    "proteinG": 6,
+    "carbsG": 6,
+    "fatG": 51,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 960,
+     "saturatedFatG": 9,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "hot-sauce",
+   "name": "Hot Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 40,
+    "proteinG": 0.2,
+    "carbsG": 1,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 820,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-honey-sauce",
+   "name": "Hot Honey Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 100,
+    "proteinG": 0.2,
+    "carbsG": 15,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 920,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "thai-chili-sauce",
+   "name": "Thai Chili Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 170,
+    "proteinG": 0.4,
+    "carbsG": 41,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 37,
+     "sodiumMg": 980,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "add-bacon",
+   "name": "Add Bacon",
+   "group": "topping",
+   "per": {
+    "calories": 120,
+    "proteinG": 6,
+    "carbsG": 1,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 310,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "honey-dill-dip",
+   "name": "Honey Dill Dip",
+   "group": "sauce",
+   "per": {
+    "calories": 520,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 53,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 380,
+     "saturatedFatG": 4,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "honey-garlic-sauce",
+   "name": "Honey Garlic Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 95,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bolognese-sauce",
+   "name": "Bolognese Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 160,
+    "proteinG": 9,
+    "carbsG": 16,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 7,
+     "sodiumMg": 1090,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "sriracha-ranch-dip",
+   "name": "Sriracha Ranch Dip",
+   "group": "sauce",
+   "per": {
+    "calories": 380,
+    "proteinG": 2,
+    "carbsG": 9,
+    "fatG": 41,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 1020,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "peppercorn-sauce",
+   "name": "Peppercorn Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 45,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 400,
+     "saturatedFatG": 0.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "three-meatballs",
+   "name": "Three Meatballs",
+   "group": "protein",
+   "per": {
+    "calories": 510,
+    "proteinG": 29,
+    "carbsG": 13,
+    "fatG": 39,
+    "micros": {
+     "fiberG": 5,
+     "sugarG": 1,
+     "sodiumMg": 950,
+     "saturatedFatG": 19,
+     "cholesterolMg": 90
+    }
+   }
+  },
+  {
+   "id": "mild-sauce",
+   "name": "Mild Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 40,
+    "proteinG": 0.2,
+    "carbsG": 1,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 820,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}
