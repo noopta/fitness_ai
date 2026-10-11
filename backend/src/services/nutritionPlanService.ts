@@ -158,6 +158,34 @@ function coercePlan(
   };
 }
 
+/**
+ * A plan without the questionnaire: the user's deterministic targets and no
+ * narrative. Lets the coach set focus nutrients, targets and supplements for
+ * someone who never did the gut check-in (e.g. straight after surgery)
+ * instead of refusing. Nothing is saved until a change is applied.
+ */
+export async function starterPlanFor(userId: string): Promise<{ plan: GeneratedNutritionPlan; targets: MicroTargetResult } | null> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, dailyCalorieTarget: true, coachProfile: true } });
+  if (!user) return null;
+  let coachProfile: any = {};
+  try { coachProfile = user.coachProfile ? JSON.parse(user.coachProfile) : {}; } catch { /* tolerate */ }
+  const targets = computeMicroTargets(assessmentToTargetInput(coachProfile?.nutrition ?? {}, {
+    weightKg: user.weightKg, dailyCalorieTarget: (user as any).dailyCalorieTarget ?? null, gender: coachProfile?.gender ?? null, trainingDaysPerWeek: null,
+  }));
+  const plan: GeneratedNutritionPlan = {
+    summary: 'Targets set with Anakin.',
+    focusNutrients: targets.focus.map((key) => {
+      const t = targets.targets.find((x) => x.key === key)!;
+      return { key, label: t.label, target: t.target, unit: t.unit, why: '', foods: [], citationIds: [] };
+    }),
+    gutProtocol: { principles: [] },
+    supplements: [],
+    disclaimer: DISCLAIMER,
+    seeProfessional: false,
+  };
+  return { plan, targets };
+}
+
 export async function generateNutritionPlan(userId: string): Promise<{
   plan: GeneratedNutritionPlan;
   targets: MicroTargetResult;

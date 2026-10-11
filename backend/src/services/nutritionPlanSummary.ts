@@ -178,7 +178,8 @@ export function planChanges(state: PlanState, requested: RequestedChange[], now 
       if (!state.macros) throw new Error('There are no daily targets to change yet.');
       if (!Number.isFinite(to) || to <= 0) throw new Error(`Give a number for ${MACRO_LABEL[field as MacroField][0].toLowerCase()}.`);
       const [label, unit] = MACRO_LABEL[field as MacroField];
-      out.push({ field, kind: 'macro', to: Math.round(to), row: { key: label, from: fmt(Number(state.macros[field as MacroField] ?? 0), unit), to: fmt(Math.round(to), unit) } });
+      const cur = state.macros[field as MacroField];
+      out.push({ field, kind: 'macro', to: Math.round(to), row: { key: label, from: cur == null ? '—' : fmt(Number(cur), unit), to: fmt(Math.round(to), unit) } });
       continue;
     }
 

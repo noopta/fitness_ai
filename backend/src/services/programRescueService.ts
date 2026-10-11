@@ -67,6 +67,10 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
     where: {
       savedProgram: null,
       updatedAt: { lt: cutoff },
+      // Someone who has had a program and set it aside (freestyle) or finished
+      // it chose to have none — not a funnel leak. On 11 Oct 2026 this built a
+      // program 45 min after a user went freestyle post-surgery.
+      completedPrograms: { none: {} },
       // Two stranded shapes: (a) they generated a program but never tapped
       // Save — promote the stored draft, no LLM spend; (b) they finished the
       // intake but never generated — generate from the saved profile.

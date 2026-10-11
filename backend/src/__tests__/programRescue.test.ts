@@ -69,6 +69,11 @@ describe('runProgramRescueSweep', () => {
     );
   });
 
+  it('never rescues someone who has had a program (freestyle or finished is a choice)', async () => {
+    await runProgramRescueSweep();
+    expect(mockFindMany.mock.calls[0][0].where).toMatchObject({ savedProgram: null, completedPrograms: { none: {} } });
+  });
+
   it('skips test accounts entirely', async () => {
     mockFindMany.mockResolvedValue([stranded({ email: 'alex@axiom.test.example.com' }), stranded({ id: 'u2', email: 'pomelowarrior@x.com' })]);
     const result = await runProgramRescueSweep();

@@ -17,6 +17,7 @@ import type { Card } from './cards/types.js';
 import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
+import { needsPlanCard, PLAN_CARD_NUDGE } from './nutrientAdvice.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -44,6 +45,8 @@ How changes work — the app enforces these, so follow them:
 - PROPOSE tools (program edits, swaps, schedule moves, targets, macros, new programs, restores) never apply anything: they put a card up and the user taps Apply. After proposing, say in one line what you put up for them to review — never claim it is already done. Don't ask "want me to apply it?" — the card is the question.
 - When they ask whether they can do something one of your propose tools does ("can I just freestyle?", "can we make Thursday shorter?"), the answer is the card: put it up in that same turn — don't describe the option and wait for a second "yes".
 - Writing a program takes about 20–30 seconds and the app shows its steps live — don't narrate them or apologise for the wait, and never write a second one in the same turn.
+- REQUIRED: if your reply recommends a nutrient amount, a target or a supplement dose (vitamin C 500 mg, zinc 15 mg, vitamin D 1000 IU, omega-3 2 g, protein 180 g, collagen before physio…), call propose_nutrition_plan_change in THIS turn, before you reply, with all of it in one card: focus → the nutrients you named, a raised target for each, each supplement with dose and when, and any calorie/macro change too (not a separate propose_macro_change). Then the reply says in one line what's on the card. Never end with "want me to set that?" — the card is the question. The Fuel plan tracks focus nutrients and targets daily; never say the app can't track micronutrients.
+- Don't narrate an action before its tool result ("I'll swap that…"); say what happened after. If the tool says there's nothing to change, say that plainly and nothing else.
 - Calorie and macro targets never depend on a program: change them whenever asked, program or not (freestyle included). Never tell someone a target will be set "after" something else.
 - Only say a card is on their screen when this turn's tool result says card_shown. If a tool returned an error, say in one line what failed and what you'll do instead — never re-promise the same card. If they say Apply failed, believe them: build it again with a different tool (e.g. propose_new_program with fromLogs for "use my workouts") rather than repeating the one that failed.
 - DRAFT tools (posts, comments, messages, friend requests, invites, group posts, partner sessions) only draft; nothing is sent until the user taps Send. CONFIRM tools (deletes, leaving, restarting the intake, account deletion) show what will be lost; the tap deletes. Never describe a draft as sent or a delete as done.
@@ -220,6 +223,9 @@ export async function runAgentTurn(
   // cap landing mid-tool-call): retry once, telling the model to answer in
   // prose with what it already has instead of surfacing an empty reply.
   let truncationRetried = false;
+  // Nutrient advice without a plan card gets one more step (nutrientAdvice.ts).
+  let planNudged = false;
+  let nudgedReply = '';
 
   while (iterations < MAX_ITERATIONS) {
     iterations++;
@@ -245,9 +251,16 @@ export async function runAgentTurn(
         });
         continue;
       }
+      if (opts.cardContract === 2 && !planNudged && needsPlanCard(reply, toolsUsed)) {
+        planNudged = true;
+        nudgedReply = reply;
+        messages.push({ role: 'user', content: PLAN_CARD_NUDGE });
+        continue;
+      }
       if (!reply) console.warn(`[agent] empty reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
+      const full = nudgedReply ? [nudgedReply, reply].filter(Boolean).join('\n\n') : reply;
       return {
-        reply: reply || "I lost my train of thought there — mind asking that again?",
+        reply: full || "I lost my train of thought there — mind asking that again?",
         toolsUsed,
         iterations,
         proposal,
@@ -369,6 +382,7 @@ export async function streamAgentTurn(
   // a receipt — and it means no turn ever renders without one.
   onEvent({ type: 'receipt', id: 'r0', verb: 'Read', text: ctx.todayNutrition ? 'Your profile and today' : 'Your profile', final: true });
   let truncationRetried = false;
+  let planNudged = false;
 
   const finish = async (reply: string): Promise<AgentTurnResult> => {
     if (contract === 2) {
@@ -404,6 +418,14 @@ export async function streamAgentTurn(
           role: 'user',
           content: '(Your previous attempt was cut off before any text was produced. Answer the question now in concise prose using the information you already gathered — do not call more tools.)',
         });
+        continue;
+      }
+      if (contract === 2 && !planNudged && needsPlanCard(text, toolsUsed)) {
+        // The advice already streamed; keep it and ask for the card.
+        planNudged = true;
+        if (finalText.trim()) { earlier.push(finalText.trim()); emitText(' '); }
+        finalText = '';
+        messages.push({ role: 'user', content: PLAN_CARD_NUDGE });
         continue;
       }
       if (!text) console.warn(`[agent] empty streamed reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
@@ -453,6 +475,7 @@ export async function streamAgentTurn(
         proposal = extractProposal(result) ?? proposal;
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out.modelResult) });
       } catch (err: any) {
+        console.error(`[agent] tool error user=${userId.slice(0, 8)} tool=${block.name}: ${err?.message ?? err} input=${JSON.stringify(toolInput).slice(0, 400)}`);
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `Error: ${err?.message ?? String(err)}`, is_error: true });
       }
     }

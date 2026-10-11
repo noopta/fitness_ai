@@ -67,14 +67,22 @@ defineOp({
 // history), so Undo removes the new row; macro edits restore the old macros.
 async function planState(userId: string): Promise<PlanState & { generatedAt: Date | null; sources: unknown[]; dailyCalorieTarget: number | null }> {
   // Lazy: the plan service pulls in the RAG client, which needs OpenAI configured at import.
-  const { latestNutritionPlan } = await import('../../services/nutritionPlanService.js');
+  const { latestNutritionPlan, starterPlanFor } = await import('../../services/nutritionPlanService.js');
   const [cur, u] = await Promise.all([
     latestNutritionPlan(userId),
-    prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, dailyCalorieTarget: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true } }),
   ]);
+  // No plan yet (never did the gut check-in): start from their deterministic
+  // targets so focus nutrients, targets and supplements can still be set.
+  const starter = cur ? null : await starterPlanFor(userId);
+  // Macros: the program's, else the targets they set themselves (freestyle has no program).
+  const fromProgram = parseJson<any>(u?.savedProgram, null)?.nutritionPlan?.macros ?? null;
+  const own = fromProgram ? null : resolveTargets({ savedProgram: u?.savedProgram, coachProfile: u?.coachProfile, dailyCalorieTarget: u?.dailyCalorieTarget });
+  const macros = fromProgram ?? (own ? { calories: own.calories, ...(own.proteinG != null ? { proteinG: own.proteinG } : {}), ...(own.carbsG != null ? { carbsG: own.carbsG } : {}), ...(own.fatG != null ? { fatG: own.fatG } : {}) } : null);
   return {
-    plan: (cur?.plan as StoredPlan) ?? null, targets: cur?.targets ?? null, generatedAt: cur?.generatedAt ?? null, sources: cur?.sources ?? [],
-    macros: parseJson<any>(u?.savedProgram, null)?.nutritionPlan?.macros ?? null, dailyCalorieTarget: u?.dailyCalorieTarget ?? null,
+    plan: (cur?.plan as StoredPlan) ?? (starter?.plan as StoredPlan) ?? null, targets: cur?.targets ?? starter?.targets ?? null,
+    generatedAt: cur?.generatedAt ?? (starter ? new Date() : null), sources: cur?.sources ?? [],
+    macros, dailyCalorieTarget: u?.dailyCalorieTarget ?? null,
   };
 }
 defineOp({
@@ -229,17 +237,26 @@ export const HEALTH_TOOLS = [
     input_schema: schema({}),
     receipt: () => ({ verb: 'Read', text: 'Nutrition plan' }),
     execute: async (_i, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true } });
       const np = parseJson<any>(u?.savedProgram, null)?.nutritionPlan ?? null;
+      // Freestyle (or no program): the targets they set themselves.
+      const own = np?.macros ? null : resolveTargets(u ?? {});
+      const macros = np?.macros ?? (own ? { calories: own.calories, proteinG: own.proteinG, carbsG: own.carbsG, fatG: own.fatG } : null);
       const gut: any = await callApi(userId, 'GET', '/nutrition/plan').catch(() => null);
-      return { macros: np?.macros ?? null, rationale: np?.rationale ?? null, outcomes: np?.expectedOutcomes ?? null, gutPlan: gut ? { summary: gut.plan?.summary, focus: (gut.plan?.focusNutrients ?? []).map((f: any) => f.label), generatedAt: gut.generatedAt } : null };
+      const focus = (gut?.plan?.focusNutrients ?? []).map((f: any) => ({ label: f.label, target: `${f.target} ${f.unit}` }));
+      return {
+        macros, macrosFrom: np?.macros ? 'program' : own ? 'your own targets' : null,
+        rationale: np?.rationale ?? null, outcomes: np?.expectedOutcomes ?? null,
+        gutPlan: gut ? { summary: gut.plan?.summary, focus: focus.map((f: any) => f.label), focusTargets: focus, supplements: (gut.plan?.supplements ?? []).map((x: any) => `${x.name} ${x.doseRange ?? x.dose ?? ''}${x.when ? ` · ${x.when}` : ''}`.trim()), generatedAt: gut.generatedAt } : null,
+        tracks: 'The Fuel plan tracks these focus-nutrient targets and supplements daily; change them with propose_nutrition_plan_change.',
+      };
     },
     card: (_i, r, ctx) => {
-      if (!r.macros) return { fn: 'NTP-01', pattern: 'glance', rule: 'show', meta: { label: 'Targets' }, empty: 'No targets yet — they come with your program.' };
+      if (!r.macros) return { fn: 'NTP-01', pattern: 'glance', rule: 'show', meta: { label: 'Targets' }, empty: 'No daily targets set yet — ask Anakin to set calories and protein.' };
       const wk = r.outcomes?.weeklyWeightChangeLb;
       return { fn: 'NTP-01', pattern: 'glance', rule: 'show', meta: { label: 'Daily targets', open: { page: 'fuel' } },
         hero: { value: num(r.macros.calories), unit: 'kcal' },
-        rows: [{ key: 'Protein', value: `${num(r.macros.proteinG)} g` }, { key: 'Carbs', value: `${num(r.macros.carbsG)} g` }, { key: 'Fat', value: `${num(r.macros.fatG)} g` },
+        rows: [{ key: 'Protein', value: r.macros.proteinG != null ? `${num(r.macros.proteinG)} g` : '—' }, { key: 'Carbs', value: r.macros.carbsG != null ? `${num(r.macros.carbsG)} g` : '—' }, { key: 'Fat', value: r.macros.fatG != null ? `${num(r.macros.fatG)} g` : '—' },
           ...(wk != null ? [{ key: 'Projected', value: `${wk > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(wk) * 0.45359237)} a week` }] : []),
           ...(r.gutPlan?.focus?.length ? [{ key: 'Focus nutrients', value: r.gutPlan.focus.slice(0, 3).join(', ') }] : [])],
         ...(r.rationale ? { why: String(r.rationale).slice(0, 220) } : {}),
@@ -302,8 +319,8 @@ export const HEALTH_TOOLS = [
       : { fn: 'NTP-05', pattern: 'glance', rule: 'show', meta: { label: 'Nutrition plan' }, empty: 'It builds from 13 quick questions first.', actions: [{ id: 'start', label: 'Answer the questions', kind: 'primary', client: { action: 'send_message', args: { text: 'Start my gut and nutrition questions.' } } }] },
   }),
   tool({
-    name: 'propose_nutrition_plan_change', kind: 'propose', fn: 'NTP-13',
-    description: 'Propose a change to the user’s nutrition plan: a nutrient target ("raise my fiber target" → field "fiberG"), the focus nutrients ("focus on iron instead" → field "focus", to: the full new list), a supplement (field "supplement" with name; to: null drops it, to: { dose, when } adds or changes it), a gut target (field "plants" / "fermentedDays" / "upfMax") or daily macros (calories / proteinG / carbsG / fatG). Use ramp.weeks to step a target up gradually (fiber especially). Add one short consequence line when there is one (cost, comfort, timing), e.g. "+$9 a week". The card shows before → after; the user applies it, and Undo restores the old plan.',
+    name: 'propose_nutrition_plan_change', kind: 'propose', core: true, fn: 'NTP-13',
+    description: 'Propose a change to the user’s nutrition plan — the way any nutrient advice you give becomes something they track. Works even if they never did the gut check-in (it starts a plan from their targets) and on freestyle. Use it for: a nutrient target ("raise my fiber target" → field "fiberG"), the focus nutrients ("focus on iron instead" → field "focus", to: the full new list), a supplement (field "supplement" with name; to: null drops it, to: { dose, when } adds or changes it), a gut target (field "plants" / "fermentedDays" / "upfMax") or daily macros (calories / proteinG / carbsG / fatG). Use ramp.weeks to step a target up gradually (fiber especially). Add one short consequence line when there is one (cost, comfort, timing), e.g. "+$9 a week". The card shows before → after; the user applies it, and Undo restores the old plan.',
     input_schema: schema({
       changes: { type: 'array', items: { type: 'object', properties: {
         field: { type: 'string' },

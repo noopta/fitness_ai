@@ -576,7 +576,7 @@ export const PROGRAM_TOOLS = [
     receipt: () => ({ verb: 'Proposed', text: 'Exercise swap' }),
     execute: async (input, userId) => {
       const program = await loadProgram(userId);
-      if (!program) return { error: 'No saved program yet — build one first.' };
+      if (!program) return { error: 'No program is active (freestyle, or none built), so there is nothing to swap. Say that plainly — do not say you swapped or will swap anything.' };
       const base = { fromName: str(input.fromExerciseName), toName: str(input.toExerciseName), day: input.day != null ? str(input.day) : undefined, toSets: input.toSets != null ? str(input.toSets) : undefined, toReps: input.toReps != null ? str(input.toReps) : undefined, rationale: str(input.rationale) };
       const day = buildPlanPatchProposal(program, { ...base, scope: 'day' });
       const everywhere = buildPlanPatchProposal(program, { ...base, scope: 'program' });
