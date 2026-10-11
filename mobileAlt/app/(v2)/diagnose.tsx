@@ -29,8 +29,9 @@ import { DiagnosticPaywall } from '../../src/diagnostic/components/DiagnosticPay
 import { haptics } from '../../src/v2/haptics';
 import { qk } from '../../src/v2/data';
 import { askParts, progressFraction } from '@axiom/agent-ui-core';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
-export default function DiagnoseScreen() {
+function DiagnoseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
@@ -136,3 +137,5 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   noted: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: v2.color.hairline, paddingTop: 10 },
 });
+
+export default withPageBoundary(DiagnoseScreen, 'v2:diagnose');

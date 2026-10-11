@@ -49,6 +49,7 @@ import {
   applyEdit, editMode, itemLogFields, itemsFromParse, itemsFromPhoto, itemSubtitle, mealNameFrom, mergeItems,
   toMealPhotoItems, totalsOf, type ReviewItem,
 } from '../../src/components/coach/nutrition/mealItems';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
 let vision: any = null;
 try { vision = require('react-native-vision-camera'); } catch { vision = null; }
@@ -635,7 +636,9 @@ const styles = StyleSheet.create({
 // Pro-only under the direct-entry paywall: free users get the paywall instead.
 type TodayPhoto = { id: string; uri: string; at: number };
 
-export default function CaptureScreen() {
+function CaptureScreen() {
   const gated = useProScreen();
   return gated ? null : <CaptureScreenInner />;
 }
+
+export default withPageBoundary(CaptureScreen, 'v2:capture');

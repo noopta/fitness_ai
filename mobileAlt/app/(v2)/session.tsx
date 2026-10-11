@@ -43,6 +43,7 @@ import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
 import { takeSessionSeed } from '../../src/v2/sessionSeed';
 import { ShareWorkoutSheet, type WorkoutShare } from '../../src/v2/share/ShareWorkoutSheet';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -373,7 +374,9 @@ const styles = StyleSheet.create({
 });
 
 // Pro-only under the direct-entry paywall: free users get the paywall instead.
-export default function SessionScreen() {
+function SessionScreen() {
   const gated = useProScreen();
   return gated ? null : <SessionScreenInner />;
 }
+
+export default withPageBoundary(SessionScreen, 'v2:session');

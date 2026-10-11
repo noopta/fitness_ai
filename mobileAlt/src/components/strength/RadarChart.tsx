@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue, useAnimatedProps, useDerivedValue, withTiming,
   withDelay, Easing, useReducedMotion,
 } from 'react-native-reanimated';
+import { useCancelOnUnmount } from '../../lib/useCancelOnUnmount';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedG = Animated.createAnimatedComponent(G);
@@ -162,6 +163,7 @@ function RadarChartInner({
   const v2 = useSharedValue(0); const v3 = useSharedValue(0);
   const v4 = useSharedValue(0); const v5 = useSharedValue(0);
   const v6 = useSharedValue(0); const v7 = useSharedValue(0);
+  useCancelOnUnmount(v0, v1, v2, v3, v4, v5, v6, v7, labelOpacity);
 
   const a0x = N > 0 ? Math.cos(ang(0)) * r : 0; const a0y = N > 0 ? Math.sin(ang(0)) * r : 0;
   const a1x = N > 1 ? Math.cos(ang(1)) * r : 0; const a1y = N > 1 ? Math.sin(ang(1)) * r : 0;
@@ -199,12 +201,13 @@ function RadarChartInner({
     svs.forEach((sv) => { sv.value = withTiming(0, { duration: collapseDur }); });
     labelOpacity.value = withTiming(0, { duration: collapseDur });
 
+    let expandFrame = 0;
     const swapTimer = setTimeout(() => {
       setRenderAxes(axes);
       prevAxisKeyRef.current = axisKey;
       // Schedule the expand on the next paint so renderAxes has propagated
       // through React's commit phase before we start animating values.
-      requestAnimationFrame(() => {
+      expandFrame = requestAnimationFrame(() => {
         const targets = svs.map((_, i) => clampPct(axes[i]?.current));
         svs.forEach((sv, i) => {
           sv.value = withTiming(targets[i], {
@@ -216,7 +219,7 @@ function RadarChartInner({
       });
     }, collapseDur + 20);
 
-    return () => clearTimeout(swapTimer);
+    return () => { clearTimeout(swapTimer); cancelAnimationFrame(expandFrame); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [axes, reducedMotion]);
 

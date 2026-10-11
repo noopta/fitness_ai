@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, radius, fontSize, fontWeight } from '../constants/theme';
+import * as Sentry from '@sentry/react-native';
 import { posthog } from '../lib/analytics';
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
   label?: string;
   /** Called when the user taps "Try again" (e.g. to refetch data). */
   onReset?: () => void;
+  /** Adds a "Go back" button — for screens with the back swipe disabled. */
+  onBack?: () => void;
 }
 
 interface State {
@@ -53,6 +56,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
       // take the queued report with them.
       void posthog.flush().catch(() => {});
     } catch { /* never let our reporter mask the real error */ }
+    // Sentry too: the root Sentry.wrap only sees errors no boundary caught, so
+    // without this every error a boundary handles is invisible there.
+    try {
+      Sentry.withScope((scope) => {
+        scope.setTag('boundary', this.props.label ?? 'unlabelled');
+        scope.setContext('react', { componentStack: info?.componentStack ?? null });
+        Sentry.captureException(error);
+      });
+    } catch { /* same */ }
   }
 
   handleReset = () => {
@@ -71,6 +83,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <TouchableOpacity style={styles.button} onPress={this.handleReset} activeOpacity={0.85}>
             <Text style={styles.buttonText}>Try again</Text>
           </TouchableOpacity>
+          {this.props.onBack ? (
+            <TouchableOpacity onPress={this.props.onBack} activeOpacity={0.6} style={styles.back}>
+              <Text style={styles.backText}>Go back</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       );
     }
@@ -97,4 +114,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   buttonText: { color: colors.primaryForeground, fontWeight: fontWeight.semibold, fontSize: fontSize.sm },
+  back: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
+  backText: { color: colors.mutedForeground, fontWeight: fontWeight.semibold, fontSize: fontSize.sm },
 });

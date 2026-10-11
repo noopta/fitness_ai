@@ -77,6 +77,17 @@ jobs:
         run: |
           npx eas-cli update --branch production --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
 
+      # Source maps for the bundle just published (eas update leaves it in
+      # dist/), so JS errors from this OTA arrive in Sentry readable. Org and
+      # project come from the Sentry plugin in app.json. Never blocks the OTA:
+      # it has already shipped by this point.
+      - name: Upload source maps → Sentry
+        working-directory: mobileAlt
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: npx sentry-expo-upload-sourcemaps dist
+
   # ── Backport branches: OTA for an older store runtime ─────────────────────
   # The runtime comes from the branch's own app.json, so a 3.1.0 backport only
   # reaches 3.1.0 binaries. iOS only — Android backports are published by hand
@@ -105,6 +116,17 @@ jobs:
           MSG: ${{ github.event.head_commit.message }}
         run: |
           npx eas-cli update --branch production --platform ios --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
+
+      # Source maps for the bundle just published (eas update leaves it in
+      # dist/), so JS errors from this OTA arrive in Sentry readable. Org and
+      # project come from the Sentry plugin in app.json. Never blocks the OTA:
+      # it has already shipped by this point.
+      - name: Upload source maps → Sentry
+        working-directory: mobileAlt
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: npx sentry-expo-upload-sourcemaps dist
 
   # ── Manual trigger only: full build + TestFlight submit ───────────────────
   build-and-submit:

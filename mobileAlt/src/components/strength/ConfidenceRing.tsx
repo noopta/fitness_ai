@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue, useAnimatedProps, useDerivedValue, withTiming, runOnJS,
   Easing, useReducedMotion,
 } from 'react-native-reanimated';
+import { useCancelOnUnmount } from '../../lib/useCancelOnUnmount';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -45,6 +46,7 @@ function ConfidenceRingInner({
   const clamped = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 
   const progress = useSharedValue(0);
+  useCancelOnUnmount(progress);
   const [displayPct, setDisplayPct] = useState(0);
 
   useEffect(() => {

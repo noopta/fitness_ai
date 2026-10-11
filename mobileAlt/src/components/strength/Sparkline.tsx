@@ -3,6 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import Animated, {
   useSharedValue, useAnimatedProps, withTiming, withDelay, Easing, useReducedMotion,
 } from 'react-native-reanimated';
+import { useCancelOnUnmount } from '../../lib/useCancelOnUnmount';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -51,6 +52,7 @@ function SparklineInner({ values, width = 60, height = 20, stroke = '#09090B', r
   }, [values, width, height]);
 
   const dashOffset = useSharedValue(pathLength);
+  useCancelOnUnmount(dashOffset);
 
   useEffect(() => {
     if (!hasLine) return;

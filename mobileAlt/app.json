@@ -59,7 +59,14 @@
         }
       ],
       "expo-audio",
-      "@sentry/react-native",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://us.sentry.io/",
+          "organization": "axiom-4p",
+          "project": "react-native"
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-video",

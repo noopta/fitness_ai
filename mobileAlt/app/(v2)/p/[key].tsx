@@ -6,9 +6,14 @@
 import React from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { PushedPageFor } from '../../../src/v2/pages/pushed';
+import { PageBoundary } from '../../../src/v2/PageBoundary';
 
 export default function PushedRoute() {
   const params = useLocalSearchParams<{ key: string } & Record<string, string>>();
   const key = String(params.key ?? '');
-  return <PushedPageFor pageKey={key} params={params as Record<string, string>} />;
+  return (
+    <PageBoundary key={key} label={`v2:p:${key}`} back>
+      <PushedPageFor pageKey={key} params={params as Record<string, string>} />
+    </PageBoundary>
+  );
 }

@@ -17,6 +17,7 @@ import { ProgressHairline } from '../../src/v2/charts';
 import { formAnalysisApi } from '../../src/lib/api';
 import { haptics } from '../../src/v2/haptics';
 import { qk } from '../../src/v2/data';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
 let vision: any = null;
 try { vision = require('react-native-vision-camera'); } catch { vision = null; }
@@ -30,7 +31,7 @@ const GUIDE: Record<(typeof LIFTS)[number], string> = {
 };
 const MAX_S = 60;
 
-export default function FormCheckScreen() {
+function FormCheckScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
@@ -145,3 +146,5 @@ const styles = StyleSheet.create({
   stillsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 28, marginTop: 20 },
 });
+
+export default withPageBoundary(FormCheckScreen, 'v2:formcheck');

@@ -10,6 +10,7 @@ import { View, Text, Image, StyleSheet, type LayoutChangeEvent } from 'react-nat
 import { Pressable } from '../../primitives/Pressable';
 import Svg, { Path, Line, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedProps, useAnimatedStyle, withTiming, withDelay, withRepeat, withSequence, useReducedMotion, Easing } from 'react-native-reanimated';
+import { useCancelOnUnmount } from '../../../lib/useCancelOnUnmount';
 import type { Card } from '@axiom/agent-ui-core';
 import { K, S } from './tokens';
 import { v2 } from '../../theme';
@@ -65,6 +66,7 @@ export function Sparkline({ cardId, data }: { cardId: string; data: number[] }) 
   const play = React.useRef<boolean | null>(null);
   if (play.current === null) play.current = !reduced && firstPlay(cardId, 'line');
   const progress = useSharedValue(play.current ? 0 : 1);
+  useCancelOnUnmount(progress);
   const pts = data.filter((n) => Number.isFinite(n));
   const min = Math.min(...pts), max = Math.max(...pts);
   const span = max - min || 1;
@@ -114,6 +116,7 @@ export function Bars({ cardId, bars }: { cardId: string; bars: NonNullable<Card[
 }
 function Bar({ frac, delay, play, color }: { frac: number; delay: number; play: boolean; color: string }) {
   const h = useSharedValue(play ? 0 : frac);
+  useCancelOnUnmount(h);
   useEffect(() => { if (play) h.value = withDelay(delay, withTiming(frac, { duration: 500, easing: Easing.out(Easing.cubic) })); else h.value = frac; }, [frac]); // eslint-disable-line react-hooks/exhaustive-deps
   const style = useAnimatedStyle(() => ({ height: `${Math.max(2, h.value * 100)}%` as any }));
   return <View style={{ flex: 1, height: '100%', justifyContent: 'flex-end' }}><Animated.View style={[{ backgroundColor: color, borderTopLeftRadius: 3, borderTopRightRadius: 3 }, style]} /></View>;

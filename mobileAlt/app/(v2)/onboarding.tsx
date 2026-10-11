@@ -32,6 +32,7 @@ import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { haptics } from '../../src/v2/haptics';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
 const SUGGESTIONS = ['Pull a 350 lb deadlift', 'Fix my lower back', 'Rehab a ruptured Achilles'];
 
@@ -243,7 +244,9 @@ const styles = StyleSheet.create({
 });
 
 // Pro-only under the direct-entry paywall: free users get the paywall instead.
-export default function OnboardingScreen() {
+function OnboardingScreen() {
   const gated = useProScreen();
   return gated ? null : <OnboardingScreenInner />;
 }
+
+export default withPageBoundary(OnboardingScreen, 'v2:onboarding');

@@ -6,9 +6,12 @@
 // root by default, so the package is added as a watch folder and mapped to
 // its import name. It ships as TypeScript source with no dependencies.
 const path = require('path');
-const { getDefaultConfig } = require('expo/metro-config');
+// getSentryExpoConfig wraps Expo's default config and stamps each bundle with a
+// debug ID, so the source maps uploaded after every OTA match the JS errors
+// Sentry receives (otherwise JS stacks arrive minified).
+const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 
-const config = getDefaultConfig(__dirname);
+const config = getSentryExpoConfig(__dirname);
 const corePath = path.resolve(__dirname, '../packages/diagnostic-core');
 const agentUiCorePath = path.resolve(__dirname, '../packages/agent-ui-core');
 const personalTrainingCorePath = path.resolve(__dirname, '../packages/personal-training-core');

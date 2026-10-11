@@ -11,6 +11,7 @@ import { useShell } from '../../src/v2/shell/ShellContext';
 import { TABS } from '@axiom/agent-ui-core';
 import { YouPage } from '../../src/v2/pages/You';
 import { trackScreen } from '../../src/lib/analytics';
+import { PageBoundary } from '../../src/v2/PageBoundary';
 
 const FEED_HEADER = [null, null, null, <FeedHeaderRight key="feed" />, null];
 
@@ -23,5 +24,13 @@ export default function V2Index() {
     const i = tab ? TABS.findIndex((t) => t.toLowerCase() === String(tab).toLowerCase()) : -1;
     if (i > 0) requestAnimationFrame(() => shell.goTo(i));
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <Track pages={[<HomePage key="home" />, <TrainingPage key="training" />, <FuelPage key="fuel" />, <FeedPage key="feed" />, <YouPage key="you" />]} headerRight={FEED_HEADER} />;
+  // Each page has its own boundary: one page failing leaves the other four usable.
+  const pages = [
+    <PageBoundary key="home" label="v2:home"><HomePage /></PageBoundary>,
+    <PageBoundary key="training" label="v2:training"><TrainingPage /></PageBoundary>,
+    <PageBoundary key="fuel" label="v2:fuel"><FuelPage /></PageBoundary>,
+    <PageBoundary key="feed" label="v2:feed"><FeedPage /></PageBoundary>,
+    <PageBoundary key="you" label="v2:you"><YouPage /></PageBoundary>,
+  ];
+  return <Track pages={pages} headerRight={FEED_HEADER} />;
 }

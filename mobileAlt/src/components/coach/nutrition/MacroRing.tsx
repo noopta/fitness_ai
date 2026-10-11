@@ -17,6 +17,7 @@ import Animated, {
   Easing,
   useReducedMotion,
 } from 'react-native-reanimated';
+import { useCancelOnUnmount } from '../../../lib/useCancelOnUnmount';
 import { colors, fontWeight } from '../../../constants/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -72,6 +73,7 @@ export function MacroRing({
     : 0;
 
   const pct = useSharedValue(0);
+  useCancelOnUnmount(pct);
   useEffect(() => {
     pct.value = reducedMotion
       ? target

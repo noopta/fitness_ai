@@ -18,8 +18,9 @@ import { TextAction } from '../../src/v2/primitives/TextAction';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { useAuth } from '../../src/context/AuthContext';
 import { trackScreen } from '../../src/lib/analytics';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
-export default function PaywallScreen() {
+function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { refreshUser } = useAuth();
@@ -59,3 +60,5 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: v2.color.white, paddingHorizontal: v2.space.gutter },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
 });
+
+export default withPageBoundary(PaywallScreen, 'v2:paywall');

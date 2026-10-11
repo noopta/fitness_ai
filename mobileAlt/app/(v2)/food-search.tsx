@@ -32,6 +32,7 @@ import { VoiceSheet } from '../../src/components/coach/nutrition/sheets/VoiceShe
 import { OrderScanFlow } from '../../src/components/coach/nutrition/gut/OrderScanFlow';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
+import { withPageBoundary } from '../../src/v2/PageBoundary';
 
 const C = v2.color;
 type Scope = 'all' | 'mine' | 'recipes';
@@ -156,7 +157,9 @@ const styles = StyleSheet.create({
 });
 
 // Pro-only under the direct-entry paywall: free users get the paywall instead.
-export default function FoodSearchScreen() {
+function FoodSearchScreen() {
   const gated = useProScreen();
   return gated ? null : <FoodSearchScreenInner />;
 }
+
+export default withPageBoundary(FoodSearchScreen, 'v2:food-search');
