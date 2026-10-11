@@ -1,0 +1,1308 @@
+{
+ "chain": "pei-wei",
+ "country": "US",
+ "source": {
+  "url": "https://www.peiwei.com/nutritional-information/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "orange-chicken",
+   "name": "Orange Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 24,
+     "carbsG": 48,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 770,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "firecracker-chicken",
+   "name": "Firecracker Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 25,
+     "carbsG": 54,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 1160,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-seared-chicken",
+   "name": "Honey-Seared Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 24,
+     "carbsG": 48,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 630,
+      "saturatedFatG": 9,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-steak",
+   "name": "Mongolian Steak",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 20,
+     "carbsG": 19,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 1340,
+      "saturatedFatG": 6,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-general-tso-s-chicken",
+   "name": "Spicy General Tso’s Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 27,
+     "carbsG": 51,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 21,
+      "sodiumMg": 1330,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-chicken",
+   "name": "Kung Pao Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 21,
+     "carbsG": 35,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 17,
+      "sodiumMg": 1440,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-chicken",
+   "name": "Sesame Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 640,
+     "proteinG": 27,
+     "carbsG": 55,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 850,
+      "saturatedFatG": 9,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-korean-bbq-steak",
+   "name": "Spicy Korean BBQ Steak",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 20,
+     "carbsG": 17,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 1180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-coconut-curry-chicken",
+   "name": "Thai Coconut Curry Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 10,
+     "carbsG": 24,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 900,
+      "saturatedFatG": 11,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-and-broccoli",
+   "name": "Beef & Broccoli",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 21,
+     "carbsG": 21,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 14,
+      "sodiumMg": 1360,
+      "saturatedFatG": 6,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-honey-chicken",
+   "name": "Hot Honey Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 23,
+     "carbsG": 44,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 630,
+      "saturatedFatG": 8,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "firecracker-shrimp",
+   "name": "Firecracker Shrimp",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 8.5,
+     "carbsG": 45,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1.5,
+      "sugarG": 18.5,
+      "sodiumMg": 1250,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 52.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-chicken",
+   "name": "Teriyaki Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 45,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 1500,
+      "saturatedFatG": 3,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-basil-chicken",
+   "name": "Thai Basil Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 1420,
+      "saturatedFatG": 1,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "kung-pao-shrimp",
+   "name": "Kung Pao Shrimp",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 13.5,
+     "carbsG": 34,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 21,
+      "sodiumMg": 1190,
+      "saturatedFatG": 3,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-bourbon-chicken",
+   "name": "Grilled Bourbon Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 28,
+     "carbsG": 32,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 1930,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "mongolian-chicken",
+   "name": "Mongolian Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 1170,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "pei-wei-original-shrimp",
+   "name": "Pei Wei Original Shrimp",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 57,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 400,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "firecracker-tofu",
+   "name": "Firecracker Tofu",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 8,
+     "carbsG": 48,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 880,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "teriyaki-crispy-tofu",
+   "name": "Teriyaki Crispy Tofu",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 9,
+     "carbsG": 49,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 23,
+      "sodiumMg": 1120,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-seared-crispy-tofu",
+   "name": "Honey-Seared Crispy Tofu",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0.5,
+      "sugarG": 19,
+      "sodiumMg": 350,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-broccoli",
+   "name": "Chicken & Broccoli",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 9,
+     "carbsG": 21,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 15,
+      "sodiumMg": 1190,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-general-tso-s-crispy-tofu",
+   "name": "Spicy General Tso’s Crispy Tofu",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 10,
+     "carbsG": 46,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 1050,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-coconut-crispy-tofu",
+   "name": "Thai Coconut Crispy Tofu",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 11,
+     "carbsG": 41,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 12,
+      "sodiumMg": 770,
+      "saturatedFatG": 11,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-crispy-tofu",
+   "name": "Sesame Crispy Tofu",
+   "category": "Tofu Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 9,
+     "carbsG": 47,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 570,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-drunken-chicken-noodles",
+   "name": "Spicy Drunken Chicken Noodles",
+   "category": "Rice + Noodle Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 19,
+     "carbsG": 109,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 15,
+      "sodiumMg": 1540,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pad-thai",
+   "name": "Chicken Pad Thai",
+   "category": "Rice + Noodle Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 27,
+     "carbsG": 114,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 24,
+      "sodiumMg": 1640,
+      "saturatedFatG": 3,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-lo-mein",
+   "name": "Chicken Lo Mein",
+   "category": "Rice + Noodle Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 16,
+     "carbsG": 62,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 17,
+      "sodiumMg": 1620,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "dan-dan-chicken-noodles",
+   "name": "Dan Dan Chicken Noodles",
+   "category": "Rice + Noodle Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 20,
+     "carbsG": 62,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 17,
+      "sodiumMg": 1620,
+      "saturatedFatG": 4,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-fried-rice",
+   "name": "Chicken Fried Rice",
+   "category": "Rice + Noodle Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 17,
+     "carbsG": 71,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 1150,
+      "saturatedFatG": 3,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "asian-chopped-chicken-salad",
+   "name": "Asian Chopped Chicken Salad",
+   "category": "Salads + Poke",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 16,
+     "carbsG": 28,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 16,
+      "sodiumMg": 880,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-poke-bowl",
+   "name": "Salmon Poke Bowl",
+   "category": "Salads + Poke",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 13,
+     "carbsG": 43,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1650,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-soy-chicken-dumplings",
+   "name": "Sweet Soy Chicken Dumplings",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "1 pc",
+     "label": "1 pc",
+     "calories": 60,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 300,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "firecracker-chicken-dumplings",
+   "name": "Firecracker Chicken Dumplings",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "1 pc",
+     "label": "1 pc",
+     "calories": 70,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-spring-rolls",
+   "name": "Wagyu Spring Rolls",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 3,
+      "sodiumMg": 210,
+      "saturatedFatG": 2,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "signature-chicken-lettuce-wraps",
+   "name": "Signature Chicken Lettuce Wraps",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 28,
+     "carbsG": 58,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 28,
+      "sodiumMg": 4160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-egg-rolls",
+   "name": "Chicken Egg Rolls",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "1 pc",
+     "label": "1 pc",
+     "calories": 220,
+     "proteinG": 10,
+     "carbsG": 24,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 380,
+      "saturatedFatG": 1,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-egg-rolls",
+   "name": "Pork Egg Rolls",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 270,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-dumplings",
+   "name": "Chicken Dumplings",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 30,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-wontons",
+   "name": "Crab Wontons",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "1 pc",
+     "label": "1 pc",
+     "calories": 100,
+     "proteinG": 2,
+     "carbsG": 9,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-rolls",
+   "name": "Vegetable Spring Rolls",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "1 pc",
+     "label": "1 pc",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 230,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-wonton-soup",
+   "name": "Thai Wonton Soup",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 230,
+     "proteinG": 16,
+     "carbsG": 17,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 4070,
+      "saturatedFatG": 1,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "edamame",
+   "name": "Edamame",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 27,
+     "carbsG": 20,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 5,
+      "sodiumMg": 1180,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "thai-donuts",
+   "name": "Thai Donuts",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "6 ct",
+     "label": "6 ct",
+     "calories": 280,
+     "proteinG": 9,
+     "carbsG": 43,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 470,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-brownie",
+   "name": "Fudge Brownie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 36,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 25,
+      "sodiumMg": 115,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-firecracker-chicken",
+   "name": "Kid’s Firecracker Chicken",
+   "category": "Kids Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 25,
+     "carbsG": 69,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 1590,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-orange-chicken",
+   "name": "Kid’s Orange Chicken",
+   "category": "Kids Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 24,
+     "carbsG": 61,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 1000,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-honey-seared-chicken",
+   "name": "Kid’s Honey-Seared Chicken",
+   "category": "Kids Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 23,
+     "carbsG": 54,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 780,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-teriyaki-chicken",
+   "name": "Kid’s Teriyaki Chicken",
+   "category": "Kids Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 18,
+     "carbsG": 54,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 2040,
+      "saturatedFatG": 4,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "kid-s-chicken-lo-mein",
+   "name": "Kid’s Chicken Lo Mein",
+   "category": "Kids Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 16,
+     "carbsG": 61,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 1620,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "dasani-bottled-water",
+   "name": "Dasani® Bottled Water",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mandarin-orange-tea",
+   "name": "Mandarin Orange Tea",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honest-kid-s-apple-juice",
+   "name": "Honest Kid’s Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-rice",
+   "name": "Brown Rice",
+   "category": "Grains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-rice",
+   "name": "Fried Rice",
+   "category": "Grains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 11,
+     "carbsG": 64,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 12,
+      "sodiumMg": 1180,
+      "saturatedFatG": 2,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-rice",
+   "name": "White Rice",
+   "category": "Grains",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lettuce-cups",
+   "name": "Lettuce Cups",
+   "category": "Greens",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 25,
+     "proteinG": 2,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixes-salad-greens",
+   "name": "Mixes Salad Greens",
+   "category": "Greens",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 5,
+     "carbsG": 22,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 95,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "noodles",
+   "name": "Noodles",
+   "category": "Noodles",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 7,
+     "carbsG": 42,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 430,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

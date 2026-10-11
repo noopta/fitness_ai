@@ -1,0 +1,1617 @@
+{
+ "chain": "mod-pizza",
+ "country": "US",
+ "source": {
+  "url": "https://modpizza.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "veg-out",
+   "name": "Veg Out",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "smoke-show",
+   "name": "Smoke Show",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 954,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "perfect-pesto",
+   "name": "Perfect Pesto",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 888,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "mod-gherita",
+   "name": "MOD-gherita",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 725,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "loaded-legend",
+   "name": "Loaded Legend",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1011,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "firebird",
+   "name": "Firebird",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "aloha",
+   "name": "Aloha",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "carnivore",
+   "name": "Carnivore",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1121,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "og-pepperoni",
+   "name": "OG Pepperoni",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 906,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "maddy-s-favorite",
+   "name": "Maddy's Favorite",
+   "category": "Pizza",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 682,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "mediterranean",
+   "name": "Mediterranean",
+   "category": "Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "italian-chop",
+   "name": "Italian Chop",
+   "category": "Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 375,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "garden",
+   "name": "Garden",
+   "category": "Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 125,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "caesar",
+   "name": "Caesar",
+   "category": "Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 428,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "cheesy-garlic-bread",
+   "name": "cheesy garlic bread",
+   "category": "More Stuff",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "caramelized-pear-ice-tea",
+   "name": "caramelized pear ice tea",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "vintage-lemonade",
+   "name": "vintage lemonade",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "marionberry-lemonade",
+   "name": "marionberry lemonade",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "coca-cola",
+   "name": "Coca-Cola",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer",
+   "name": "Barq's Root Beer",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "fanta-orange",
+   "name": "Fanta Orange",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "powerade-mountain-blast",
+   "name": "Powerade Mountain Blast",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "coke-zero",
+   "name": "Coke Zero",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr. Pepper",
+   "category": "Beverage",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "no-name-cake",
+   "name": "no name cake",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade-no-name-cake-limited-edition",
+   "name": "strawberry lemonade no name cake (limited edition)",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "mega-cookie",
+   "name": "mega cookie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "cinnamod",
+   "name": "cinnaMOD",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1182,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "cake-pop-pink-vanilla",
+   "name": "cake pop - pink vanilla",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "cake-pop-pumpkin-spice",
+   "name": "cake pop - pumpkin spice",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "small-thin-6-inch",
+   "name": "small (thin 6-inch)",
+   "group": "bread",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "regular-thin-11-inch",
+   "name": "regular (thin 11-inch)",
+   "group": "bread",
+   "per": {
+    "calories": 467,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "thick-crust-11-inch",
+   "name": "thick crust (11-inch)",
+   "group": "bread",
+   "per": {
+    "calories": 933,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cauliflower-crust",
+   "name": "cauliflower crust",
+   "group": "bread",
+   "per": {
+    "calories": 520,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "gluten-friendly",
+   "name": "gluten-friendly*",
+   "group": "bread",
+   "per": {
+    "calories": 650,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "balsamic-fig-glaze",
+   "name": "balsamic fig glaze",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "bbq-sauce",
+   "name": "BBQ sauce",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "creamy-alfredo-sauce",
+   "name": "creamy alfredo sauce",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "frank-s-redhot-buffalo-sauce",
+   "name": "Frank's Redhot Buffalo Sauce",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "garlic-rub",
+   "name": "garlic rub",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mike-s-hot-honey",
+   "name": "Mike's Hot Honey",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "olive-oil",
+   "name": "olive oil",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pesto",
+   "name": "pesto",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "ranch",
+   "name": "ranch",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "spicy-tomato-sauce",
+   "name": "spicy tomato sauce",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 12,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sriracha",
+   "name": "sriracha",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sriracha-ranch",
+   "name": "sriracha ranch",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 35,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "tomato-sauce",
+   "name": "tomato sauce",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "butter-flavored-spread",
+   "name": "butter flavored spread",
+   "group": "sauce",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 243,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "asiago",
+   "name": "asiago",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cheddar",
+   "name": "cheddar",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "feta",
+   "name": "feta",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "gorgonzola",
+   "name": "gorgonzola",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mozzarella",
+   "name": "mozzarella",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "parmesan",
+   "name": "parmesan",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "plant-based-cheese",
+   "name": "plant-based cheese",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "ricotta",
+   "name": "ricotta",
+   "group": "cheese",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "anchovies",
+   "name": "anchovies",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "bacon",
+   "name": "bacon",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 140,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "canadian-bacon",
+   "name": "canadian bacon",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "egg-scrambled-limited-locations",
+   "name": "egg – scrambled (limited locations)",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "grilled-chicken",
+   "name": "grilled chicken",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "ground-beef",
+   "name": "ground beef",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 210,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mild-italian-sausage",
+   "name": "mild Italian sausage",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 240,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pepperoni",
+   "name": "pepperoni",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "plant-based-italian-sausage",
+   "name": "plant-based Italian sausage",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "salami",
+   "name": "salami",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "spicy-chicken-sausage",
+   "name": "spicy chicken sausage",
+   "group": "protein",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "artichokes",
+   "name": "artichokes",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "arugula",
+   "name": "arugula",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "banana-peppers-limited-locations",
+   "name": "banana peppers (limited locations)",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "basil",
+   "name": "basil",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "black-olives",
+   "name": "black olives",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "broccoli-roasted",
+   "name": "broccoli – roasted",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cilantro",
+   "name": "cilantro",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "croutons",
+   "name": "croutons",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chickpeas",
+   "name": "chickpeas",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chopped-garlic",
+   "name": "chopped garlic",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "corn-roasted",
+   "name": "corn – roasted",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "crushed-red-pepper-flakes",
+   "name": "crushed red pepper flakes",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cucumbers",
+   "name": "cucumbers",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "jalapenos",
+   "name": "jalapenos",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "green-bell-peppers",
+   "name": "green bell peppers",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mama-lil-s-sweet-hot-peppas",
+   "name": "mama lil's sweet hot peppas",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mixed-spring-greens",
+   "name": "mixed spring greens",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mushrooms",
+   "name": "mushrooms",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "oregano",
+   "name": "oregano",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pineapple",
+   "name": "pineapple",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 40,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "red-onion",
+   "name": "red onion",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "red-peppers-roasted",
+   "name": "red peppers – roasted",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "roasted-garlic",
+   "name": "roasted garlic",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "romaine",
+   "name": "romaine",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "rosemary-fresh-chopped",
+   "name": "rosemary – fresh chopped",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sea-salt",
+   "name": "sea salt",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pepper",
+   "name": "pepper",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "serrano-peppers-limited-locations",
+   "name": "serrano peppers (limited locations)",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "spinach",
+   "name": "spinach",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "tomatoes",
+   "name": "tomatoes",
+   "group": "topping",
+   "unit": "per ¼ c",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "balsamic-vinaigrette",
+   "name": "balsamic vinaigrette",
+   "group": "dressing",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 55,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "caesar-dressing",
+   "name": "caesar dressing",
+   "group": "dressing",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "champagne-vinaigrette",
+   "name": "champagne vinaigrette",
+   "group": "dressing",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 67,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "oil-and-vinegar",
+   "name": "oil and vinegar",
+   "group": "dressing",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "red-wine-vinegar",
+   "name": "red wine vinegar",
+   "group": "dressing",
+   "unit": "per 1 tbsp",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sea-salt-caramel-sauce",
+   "name": "sea salt caramel sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cinnamon",
+   "name": "cinnamon",
+   "group": "topping",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "vanilla-icing",
+   "name": "vanilla icing",
+   "group": "sauce",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sugar",
+   "name": "sugar",
+   "group": "topping",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  }
+ ]
+}

@@ -15439,6 +15439,7 @@
    "id": "cream",
    "name": "Cream",
    "group": "cream",
+   "swapGroup": "dairy",
    "bySize": {
     "small": {
      "calories": 41,
@@ -15503,6 +15504,7 @@
    "id": "2-milk",
    "name": "2% Milk",
    "group": "2-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 36,
@@ -15571,6 +15573,7 @@
    "id": "skim-milk",
    "name": "Skim Milk",
    "group": "skim-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 15,
@@ -15639,6 +15642,7 @@
    "id": "coconut-milk",
    "name": "Coconut Milk",
    "group": "coconut-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 15,
@@ -15710,6 +15714,7 @@
    "id": "almond-milk",
    "name": "Almond Milk",
    "group": "almond-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "small": {
      "calories": 5,
@@ -17982,6 +17987,7 @@
    "id": "plain-cream-cheese",
    "name": "Plain Cream Cheese",
    "group": "plain-cream-cheese",
+   "swapGroup": "dairy",
    "bySize": {
     "regular": {
      "calories": 46,
@@ -18013,6 +18019,7 @@
    "id": "onion-chive-cream-cheese",
    "name": "Onion & Chive Cream Cheese",
    "group": "onion-chive-cream-cheese",
+   "swapGroup": "dairy",
    "bySize": {
     "regular": {
      "calories": 90,
@@ -18046,6 +18053,7 @@
    "id": "strawberry-cream-cheese",
    "name": "Strawberry Cream Cheese",
    "group": "strawberry-cream-cheese",
+   "swapGroup": "dairy",
    "bySize": {
     "regular": {
      "calories": 108,
@@ -18241,6 +18249,7 @@
    "id": "maple-waffle",
    "name": "Maple Waffle",
    "group": "maple-waffle",
+   "swapGroup": "breakfast-bread",
    "bySize": {
     "regular": {
      "calories": 318,

@@ -1,0 +1,1245 @@
+{
+ "chain": "sweetgreen",
+ "country": "US",
+ "source": {
+  "url": "https://www.sweetgreen.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "molly-s-pickle-caesar-salad",
+   "name": "Molly’s Pickle Caesar Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 665,
+     "proteinG": 33,
+     "carbsG": 36,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 10,
+      "sodiumMg": 2416,
+      "saturatedFatG": 7,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-sesame-crunch-salad",
+   "name": "Chicken Sesame Crunch Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 615,
+     "proteinG": 35,
+     "carbsG": 54,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 21,
+      "sodiumMg": 1435,
+      "saturatedFatG": 4,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken",
+   "name": "Buffalo Chicken",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 37,
+     "carbsG": 30,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 12,
+      "sodiumMg": 1940,
+      "saturatedFatG": 7,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "super-green-goddess",
+   "name": "Super Green Goddess",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 465,
+     "proteinG": 12,
+     "carbsG": 36,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 8,
+      "sodiumMg": 1230,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "kale-caesar",
+   "name": "Kale Caesar",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 545,
+     "proteinG": 41,
+     "carbsG": 18,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 1550,
+      "saturatedFatG": 11,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "hummus-crunch",
+   "name": "Hummus Crunch",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 505,
+     "proteinG": 21,
+     "carbsG": 42,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 12,
+      "sodiumMg": 1820,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "guacamole-greens",
+   "name": "Guacamole Greens",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 555,
+     "proteinG": 29,
+     "carbsG": 35,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 12,
+      "sodiumMg": 1560,
+      "saturatedFatG": 5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "mediterranean-market",
+   "name": "Mediterranean Market",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 675,
+     "proteinG": 44,
+     "carbsG": 54,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 11,
+      "sodiumMg": 3088,
+      "saturatedFatG": 5,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-harvest-bowl",
+   "name": "Autumn Harvest Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 39,
+     "carbsG": 71,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 17,
+      "sodiumMg": 1675,
+      "saturatedFatG": 12,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-rice-bowl",
+   "name": "Crispy Rice Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 33,
+     "carbsG": 61,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 9,
+      "sodiumMg": 1225,
+      "saturatedFatG": 4,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "harvest-bowl",
+   "name": "Harvest Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 40,
+     "carbsG": 60,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 12,
+      "sodiumMg": 1265,
+      "saturatedFatG": 9,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-parm",
+   "name": "Chicken Pesto Parm",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 38,
+     "carbsG": 30,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 1560,
+      "saturatedFatG": 4,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-honey-crunch",
+   "name": "Steak Honey Crunch",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 605,
+     "proteinG": 32,
+     "carbsG": 43,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 16,
+      "sodiumMg": 1830,
+      "saturatedFatG": 5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "shroomami",
+   "name": "Shroomami",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 665,
+     "proteinG": 20,
+     "carbsG": 51,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 7,
+      "sodiumMg": 1250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-avocado-ranch",
+   "name": "Chicken Avocado Ranch",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 725,
+     "proteinG": 28,
+     "carbsG": 55,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 9,
+      "sodiumMg": 1340,
+      "saturatedFatG": 6,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "omega-glow",
+   "name": "Omega Glow",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 31,
+     "carbsG": 48,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 10,
+      "sodiumMg": 970,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-glazed-salmon-plate",
+   "name": "Maple Glazed Salmon Plate",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 875,
+     "proteinG": 31,
+     "carbsG": 87,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 14,
+      "sodiumMg": 1870,
+      "saturatedFatG": 6,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramelized-garlic-steak",
+   "name": "Caramelized Garlic Steak",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 34,
+     "carbsG": 82,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 4,
+      "sodiumMg": 1655,
+      "saturatedFatG": 5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "mezze-medley",
+   "name": "Mezze Medley",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 875,
+     "proteinG": 35,
+     "carbsG": 95,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 15,
+      "sodiumMg": 3170,
+      "saturatedFatG": 5,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "miso-glazed-salmon",
+   "name": "Miso Glazed Salmon",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 880,
+     "proteinG": 34,
+     "carbsG": 77,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 9,
+      "sodiumMg": 1092,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-honey-chicken",
+   "name": "Hot Honey Chicken",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 845,
+     "proteinG": 49,
+     "carbsG": 66,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 17,
+      "sodiumMg": 2710,
+      "saturatedFatG": 6,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-mezze",
+   "name": "Steak Mezze",
+   "category": "Warm plates",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 755,
+     "proteinG": 34,
+     "carbsG": 76,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1770,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "molly-s-big-dill-caesar",
+   "name": "Molly's Big Dill Caesar",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 36,
+     "carbsG": 74,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 2869,
+      "saturatedFatG": 9,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-caesar",
+   "name": "Classic Chicken Caesar",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 47,
+     "carbsG": 64,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 2485,
+      "saturatedFatG": 16,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-chicken-club",
+   "name": "Cali Chicken Club",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1285,
+     "proteinG": 49,
+     "carbsG": 73,
+     "fatG": 90,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 4,
+      "sodiumMg": 2840,
+      "saturatedFatG": 13,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-jalapeno-ranch",
+   "name": "Chicken Jalapeño Ranch",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 41,
+     "carbsG": 110,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 18,
+      "sodiumMg": 3460,
+      "saturatedFatG": 14,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranchy-chicken-rice",
+   "name": "Ranchy Chicken + Rice",
+   "category": "Kids meals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 33,
+     "carbsG": 34,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 1330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "little-harvest",
+   "name": "Little Harvest",
+   "category": "Kids meals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 24,
+     "carbsG": 23,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1050,
+      "saturatedFatG": 3,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "mini-mezze",
+   "name": "Mini Mezze",
+   "category": "Kids meals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 295,
+     "proteinG": 30,
+     "carbsG": 26,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 730,
+      "saturatedFatG": 1,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "molly-s-double-chick-scoop",
+   "name": "Molly’s Double Chick Scoop",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 385,
+     "proteinG": 34,
+     "carbsG": 3,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1420,
+      "saturatedFatG": 2,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-bacon-brussels",
+   "name": "Roasted Bacon Brussels",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 14,
+     "carbsG": 23,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 12,
+      "sodiumMg": 1760,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-brussels",
+   "name": "Roasted Brussels",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 5,
+     "carbsG": 23,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 12,
+      "sodiumMg": 1130,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "olive-oil-tortilla",
+   "name": "Olive Oil Tortilla",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 8,
+     "carbsG": 51,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 610,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "rosemary-focaccia",
+   "name": "Rosemary Focaccia",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 34,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 530,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sg-x-siete-green-goddess-ranch-potato-chips",
+   "name": "SG X Siete: Green Goddess Ranch Potato Chips",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 220,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hummus-focaccia",
+   "name": "Hummus + Focaccia",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 10,
+     "carbsG": 37,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 660,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "siete-sea-salt-potato-chips",
+   "name": "Siete Sea Salt Potato Chips",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 180,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-sweet-potatoes-hot-honey-mustard",
+   "name": "Roasted Sweet Potatoes + Hot Honey Mustard",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 15,
+      "sodiumMg": 1170,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "roasted-sweet-potatoes-green-goddess-ranch",
+   "name": "Roasted Sweet Potatoes + Green Goddess Ranch",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1170,
+      "saturatedFatG": 2,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "hu-salty-dark-chocolate-bar",
+   "name": "Hu Salty Dark Chocolate Bar",
+   "category": "Dessert",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 28,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 14,
+      "sodiumMg": 200,
+      "saturatedFatG": 16,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sourdough-chocolate-chip-cookie",
+   "name": "Sourdough Chocolate Chip Cookie",
+   "category": "Dessert",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 200,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "hu-cashews-vanilla-bean-hunks",
+   "name": "Hu Cashews + Vanilla Bean Hunks",
+   "category": "Dessert",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 10,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 75,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-rice-treat",
+   "name": "Crispy Rice Treat",
+   "category": "Dessert",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 80,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "mott-s-apple-juice",
+   "name": "Mott’s Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "6 75 oz",
+     "label": "6.75 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweetgreen-lemonade",
+   "name": "Sweetgreen Lemonade",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hibiscus-berry-tea",
+   "name": "Hibiscus Berry Tea",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 11,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ginger-greens",
+   "name": "Ginger Greens",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 32,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honest-kids-apple-juice",
+   "name": "Honest Kids Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "6 oz",
+     "label": "6 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-mint",
+   "name": "Strawberry Mint",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tree-top-apple-juice",
+   "name": "Tree Top Apple Juice",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "olipop-lemon-lime-soda",
+   "name": "OLIPOP Lemon Lime Soda",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 4,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "olipop-vintage-cola",
+   "name": "OLIPOP Vintage Cola",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 2,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "harney-and-sons-organic-lemonade",
+   "name": "Harney & Sons Organic Lemonade",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spindrift-raspberry-lime",
+   "name": "Spindrift Raspberry Lime",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "health-ade-kombucha-blueberry-pomegranate",
+   "name": "Health-Ade Kombucha Blueberry Pomegranate",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spindrift-lemon",
+   "name": "Spindrift Lemon",
+   "category": "Beverages",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 3,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

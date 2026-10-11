@@ -1,0 +1,646 @@
+{
+ "chain": "sheetz",
+ "country": "US",
+ "source": {
+  "url": "https://www.sheetz.com/nutrition",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "cheerwine",
+   "name": "Cheerwine",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 42,
+      "sodiumMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke",
+   "name": "Coke",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 99,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 99,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr. Pepper",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 26,
+      "sodiumMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew",
+   "name": "Mountain Dew",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi",
+   "name": "Pepsi",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "fuel-enery",
+   "name": "Fuel Enery",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 26,
+      "sodiumMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "gatorade-fruit-punch",
+   "name": "Gatorade Fruit Punch",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 14,
+      "sodiumMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "gatorade-orange",
+   "name": "Gatorade Orange",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 14,
+      "sodiumMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "hawaiian-punch",
+   "name": "Hawaiian Punch",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 32,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "lipton-brisk-raspberry-iced-tea",
+   "name": "Lipton Brisk Raspberry Iced Tea",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 21,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 21,
+      "sodiumMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "sunkist-orage",
+   "name": "Sunkist Orage",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropocana-lemonade",
+   "name": "Tropocana Lemonade",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 27,
+      "sodiumMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropocana-light",
+   "name": "Tropocana Light",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sodiumMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild-cherry-pepsi",
+   "name": "Wild Cherry Pepsi",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruitworks-blue-raspberry-freeze",
+   "name": "Fruitworks Blue Raspberry Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruitworks-cherry-freeze",
+   "name": "Fruitworks Cherry Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 16,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruitworks-orange-cream-freeze",
+   "name": "Fruitworks Orange Cream Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 17,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "sodiumMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew-blue-shock-freeze",
+   "name": "Mountain Dew Blue Shock Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew-freeze",
+   "name": "Mountain Dew Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 16,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew-whiteout-freeze",
+   "name": "Mountain Dew Whiteout Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 17,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 17,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-freeze",
+   "name": "Pepsi Freeze",
+   "category": "Cold Self-Serve Drinkz",
+   "sizes": [
+    {
+     "size": "1 5 fl oz",
+     "label": "1.5 FL OZ",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 25,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 25,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-caramel-brownie-cocoa",
+   "name": "Cupo'ccino - Caramel Brownie Cocoa",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 200,
+     "proteinG": 1,
+     "carbsG": 36,
+     "fatG": 8,
+     "micros": {
+      "sugarG": 25,
+      "sodiumMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-creme-brulee",
+   "name": "Cupo'ccino - Crème Brûlée",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 31,
+     "fatG": 5,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-fat-free-french-vanilla",
+   "name": "Cupo'ccino - Fat Free French Vanilla",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 23,
+      "sodiumMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-french-vanilla",
+   "name": "Cupo'ccino - French Vanilla",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 23,
+      "sodiumMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-pumpkin-harvest-spice",
+   "name": "Cupo'ccino - Pumpkin Harvest Spice",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 23,
+      "sodiumMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-peppermint-mocha",
+   "name": "Cupo'ccino - Peppermint Mocha",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 4,
+     "micros": {
+      "sugarG": 21,
+      "sodiumMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "cupo-ccino-chai",
+   "name": "Cupo'ccino - Chai",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 1.5,
+     "micros": {
+      "sugarG": 26,
+      "sodiumMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate",
+   "name": "Hot Chocolate",
+   "category": "Self-Serve Coffee",
+   "sizes": [
+    {
+     "size": "8 fl oz",
+     "label": "8 FL OZ",
+     "calories": 180,
+     "proteinG": 1,
+     "carbsG": 40,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 230
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "cherry-flavor-shot",
+   "name": "Cherry Flavor Shot",
+   "group": "syrup",
+   "unit": "1.5 FL OZ",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 25,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 24,
+     "sodiumMg": 5
+    }
+   }
+  },
+  {
+   "id": "lemon-flavor-shot",
+   "name": "Lemon Flavor Shot",
+   "group": "syrup",
+   "unit": "1.5 FL OZ",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 24,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 24,
+     "sodiumMg": 5
+    }
+   }
+  },
+  {
+   "id": "vanilla-flavor-shot",
+   "name": "Vanilla Flavor Shot",
+   "group": "syrup",
+   "unit": "1.5 FL OZ",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 23,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 23,
+     "sodiumMg": 5
+    }
+   }
+  },
+  {
+   "id": "mango-flavor-shot",
+   "name": "Mango Flavor Shot",
+   "group": "syrup",
+   "unit": "1.5 FL OZ",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 25,
+    "fatG": 0,
+    "micros": {
+     "sugarG": 25,
+     "sodiumMg": 20
+    }
+   }
+  }
+ ]
+}

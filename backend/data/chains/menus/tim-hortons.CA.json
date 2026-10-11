@@ -22889,6 +22889,7 @@
    "id": "philadelphia-herb-garlic-cream-cheese",
    "name": "PHILADELPHIA Herb & Garlic Cream Cheese",
    "group": "philadelphia-herb-garlic-cream-cheese",
+   "swapGroup": "dairy",
    "bySize": {
     "regular": {
      "calories": 115,
@@ -22922,6 +22923,7 @@
    "id": "philadelphia-original-cream-cheese",
    "name": "PHILADELPHIA Original Cream Cheese",
    "group": "philadelphia-original-cream-cheese",
+   "swapGroup": "dairy",
    "bySize": {
     "regular": {
      "calories": 106,
@@ -23042,6 +23044,7 @@
    "id": "bacon",
    "name": "Bacon",
    "group": "bacon",
+   "swapGroup": "bacon",
    "bySize": {
     "regular": {
      "calories": 57,
@@ -23141,6 +23144,7 @@
    "id": "mayo-sauce",
    "name": "Mayo Sauce",
    "group": "mayo-sauce",
+   "swapGroup": "mayo",
    "bySize": {
     "regular": {
      "calories": 31,
@@ -23268,6 +23272,7 @@
    "id": "chipotle-sauce",
    "name": "Chipotle Sauce",
    "group": "chipotle-sauce",
+   "swapGroup": "chipotle",
    "bySize": {
     "regular": {
      "calories": 38,
@@ -23518,6 +23523,7 @@
    "id": "cane-sugar-syrup",
    "name": "Cane Sugar Syrup",
    "group": "cane-sugar-syrup",
+   "swapGroup": "cane-sugar-syrup",
    "bySize": {
     "large": {
      "calories": 94,
@@ -25132,6 +25138,7 @@
    "id": "whole-milk",
    "name": "Whole Milk",
    "group": "whole-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 26,
@@ -25204,6 +25211,7 @@
    "id": "almond-milk",
    "name": "Almond Milk",
    "group": "almond-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 6,
@@ -25412,6 +25420,7 @@
    "id": "oat-milk",
    "name": "Oat Milk",
    "group": "oat-milk",
+   "swapGroup": "dairy",
    "bySize": {
     "medium": {
      "calories": 23,

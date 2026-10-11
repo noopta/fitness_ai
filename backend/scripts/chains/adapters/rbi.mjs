@@ -83,7 +83,10 @@ for (const d of docs) {
       const id = slug(name);
       if (m.default) includes[id] = Math.round(mult * 100) / 100;
       if (num(m.nutrition?.calories) == null) continue;
-      const mod = modifiers.get(id) ?? { id, name, group: id, ...(swapGroup ? { swapGroup } : {}), seen: {} };
+      // Dairy choices replace each other wherever they're listed — coffees list each milk as its own group.
+      const sg = /\b(milk|cream|half and half|beverage)\b/i.test(name) && !/syrup|foam|cold foam|whipped/i.test(name) ? 'dairy' : swapGroup;
+      const mod = modifiers.get(id) ?? { id, name, group: id, ...(sg ? { swapGroup: sg } : {}), seen: {} };
+      if (sg && !mod.swapGroup) mod.swapGroup = sg;
       // Prefer the "1" row for the unit value; other quantities are multiples of it.
       if (!modValues[id] || Math.abs(mult - 1) < 0.01) modValues[id] = macros(m.nutrition, mult);
       modifiers.set(id, mod);
