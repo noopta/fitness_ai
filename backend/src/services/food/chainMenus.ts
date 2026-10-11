@@ -34,6 +34,8 @@ export interface MenuSize extends Macros {
   label?: string;
   /** How many units of a modifier group this size already includes (e.g. { syrup: 4 }). */
   includes?: Record<string, number>;
+  /** Add-in values the chain publishes for this item in this size (a "cream" in a coffee isn't one in a frozen drink). */
+  modValues?: Record<string, Macros>;
 }
 
 export interface MenuItem {
@@ -56,6 +58,10 @@ export interface Modifier {
   per?: Macros;
   /** Size-specific values (milk swaps, size-priced add-ons), keyed by menu size. */
   bySize?: Record<string, Macros>;
+  /** The chain lists the add-in but not its nutrition, so `per` is a generic estimate. */
+  estimated?: boolean;
+  /** Choices that replace each other (milks): adding one takes out the one the size includes. */
+  swapGroup?: string;
 }
 
 export interface ChainMenu {
@@ -185,7 +191,7 @@ const WORD_NUM: Record<string, number> = { a: 1, an: 1, one: 1, two: 2, three: 3
 export function modifierQuantity(text: string): number {
   const t = text.toLowerCase();
   if (/\b(no|without|hold the|minus)\b/.test(t)) return -1;
-  const n = t.match(/(\d+(?:\.\d+)?)/);
+  const n = t.replace(/\d+(?:\.\d+)?\s*%/g, ' ').match(/(\d+(?:\.\d+)?)/); // "2% milk" is a kind of milk, not two
   if (n) return Math.min(10, Number(n[1]));
   for (const [w, v] of Object.entries(WORD_NUM)) if (new RegExp(`\\b${w}\\b`).test(t)) return v;
   return 1;
@@ -233,17 +239,27 @@ export function priceOrder(menu: ChainMenu, item: MenuItem, size: MenuSize, modi
     const q = modifierQuantity(text);
     const m = matchModifier(menu, text);
     if (m) {
-      const unit = m.bySize?.[size.size] ?? m.per;
+      const unit = size.modValues?.[m.id] ?? m.bySize?.[size.size] ?? m.per;
       if (!unit) { unmatched.push(text); continue; }
       if (q < 0) {
         const included = (item.defaults ?? []).includes(m.id) || (m.group && (size.includes?.[m.group] ?? 0) > 0);
         if (!included) continue;
         const units = m.group && size.includes?.[m.group] ? size.includes[m.group] : 1;
         total = addMacros(total, unit, -units);
-        applied.push({ text, name: m.name, quantity: -units, official: true, calories: -Math.round(unit.calories * units) });
+        applied.push({ text, name: m.name, quantity: -units, official: !m.estimated, calories: -Math.round(unit.calories * units) });
       } else {
+        // "with oat milk" replaces the 2% the drink comes with rather than adding to it.
+        if (m.swapGroup) {
+          for (const o of menu.modifiers ?? []) {
+            const had = o.group ? size.includes?.[o.group] ?? 0 : 0;
+            const oUnit = size.modValues?.[o.id] ?? o.bySize?.[size.size] ?? o.per;
+            if (o.id === m.id || o.swapGroup !== m.swapGroup || had <= 0 || !oUnit) continue;
+            total = addMacros(total, oUnit, -had);
+            applied.push({ text, name: `${o.name} (replaced)`, quantity: -had, official: !o.estimated, calories: -Math.round(oUnit.calories * had) });
+          }
+        }
         total = addMacros(total, unit, q);
-        applied.push({ text, name: m.name, quantity: q, official: true, calories: Math.round(unit.calories * q) });
+        applied.push({ text, name: m.name, quantity: q, official: !m.estimated, calories: Math.round(unit.calories * q) });
       }
       continue;
     }

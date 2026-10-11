@@ -14,6 +14,7 @@ import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { GoogleGenAI } from '@google/genai';
 import { politeFetch, BlockedError } from './politeFetch.mjs';
+import { writeMenu } from './writeMenu.mjs';
 
 const [chainId, country, urlArg] = process.argv.slice(2);
 if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url]'); process.exit(2); }
@@ -84,7 +85,8 @@ try { fetched = await politeFetch(url); } catch (e) {
 // A hub page that links the chain's nutrition PDF: follow the PDF for this country.
 if (!/pdf/i.test(fetched.type) && /html/i.test(fetched.type)) {
   const html = fetched.buf.toString();
-  const links = [...html.matchAll(/href=["']([^"']+\.pdf[^"']*)["']/gi)].map((m) => new URL(m[1].replace(/&amp;/g, '&'), fetched.finalUrl).href)
+  // Links can sit in an href or in the page's embedded JSON, often protocol-relative ("//assets…").
+  const links = [...new Set([...html.matchAll(/["']((?:https?:)?\/\/[^"'\s]+?\.pdf[^"'\s]*|\/[^"'\s]+?\.pdf[^"'\s]*)["']/gi)].map((m) => new URL(m[1].replace(/&amp;/g, '&').replace(/\\u002F/g, '/'), fetched.finalUrl).href))]
     .filter((h) => /nutri/i.test(h));
   const local = country === 'CA' ? links.filter((h) => /(^|[^a-z])(can|ca|canada|en-ca)([^a-z]|$)/i.test(h)) : links.filter((h) => /(^|[^a-z])(us|usa|en-us)([^a-z]|$)/i.test(h));
   const pick = (local[0] ?? links[0]);
@@ -116,16 +118,32 @@ if (isPdf && process.env.CHAIN_PDF_MODE !== 'text') {
   parts = ranges;
   const dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'chainpdf-'));
   const src = path.join(dirTmp, 'in.pdf'); fs.writeFileSync(src, fetched.buf);
-  for (const [a, b] of ranges) {
-    const piece = path.join(dirTmp, `p${a}.pdf`);
-    try {
-      execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
-      const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
-      if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
-      const r = await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT }, { inlineData: { mimeType: 'application/pdf', data: fs.readFileSync(piece).toString('base64') } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: 'LOW' } } });
-      results.push(JSON.parse(r.text));
-    } catch (e) { console.log(`  pages ${a}-${b} failed: ${String(e.message).slice(0, 120)}`); }
-  }
+  const pieceOf = (a, b) => {
+    const piece = path.join(dirTmp, `p${a}-${b}.pdf`);
+    execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
+    const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
+    if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
+    return fs.readFileSync(piece).toString('base64');
+  };
+  const ask = async (data, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT + note }, { inlineData: { mimeType: 'application/pdf', data } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text);
+  // Self-check: kcal should be close to 4·protein + 4·carbs + 9·fat. A chunk
+  // where many rows aren't was misread (skipped or shifted columns) — redo it.
+  const badRate = (r) => { let n = 0, bad = 0; for (const it of r.items ?? []) for (const z of it.sizes ?? []) { if (!(z.calories > 40)) continue; n++; const k = 4 * (z.proteinG ?? 0) + 4 * (z.carbsG ?? 0) + 9 * (z.fatG ?? 0); if (!k || Math.abs(k - z.calories) / z.calories > 0.35) bad++; } return n ? bad / n : 0; };
+  const RECHECK = '\n- Read EVERY column of each row: wide tables put carbohydrates, fibre, sugars and protein to the right of fat, sodium and cholesterol. Line each number up with its column header; do not leave a printed value null.';
+  const doRange = async (a, b) => {
+    const data = pieceOf(a, b);
+    let r;
+    try { r = await ask(data, 'LOW'); }
+    catch (e) {
+      if (b > a) { console.log(`  pages ${a}-${b}: ${String(e.message).slice(0, 60)} — one page at a time`); for (let p = a; p <= b; p++) await doRange(p, p); return; }
+      console.log(`  page ${a} failed: ${String(e.message).slice(0, 120)}`); return;
+    }
+    if (badRate(r) > 0.25) {
+      try { const r2 = await ask(data, 'MEDIUM', RECHECK); console.log(`  pages ${a}-${b}: ${Math.round(badRate(r) * 100)}% rows inconsistent → recheck ${Math.round(badRate(r2) * 100)}%`); if (badRate(r2) < badRate(r)) r = r2; } catch { /* keep first read */ }
+    }
+    results.push(r);
+  };
+  for (const [a, b] of ranges) await doRange(a, b);
   fs.rmSync(dirTmp, { recursive: true, force: true }); // the PDF is never kept
 } else {
   for (const [i, part] of parts.entries()) {
@@ -152,13 +170,6 @@ for (const it of items.values()) for (const s of it.sizes) sizeCounts[s.size] = 
 const defaultSize = sizeCounts.medium ? 'medium' : sizeCounts.grande ? 'grande' : sizeCounts.regular ? 'regular' : undefined;
 const menu = { chain: chainId, country, source: { url, fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${MODEL} extraction; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
 if (!menu.items.length) { console.log(`${chainId}.${country}: no items with calories extracted — not written`); process.exit(0); }
-let mismatch = 0; let sizesN = 0;
-for (const it of menu.items) for (const s of it.sizes) { sizesN++; const k = 4 * s.proteinG + 4 * s.carbsG + 9 * s.fatG; if (s.calories > 40 && k > 0 && Math.abs(k - s.calories) / s.calories > 0.35) mismatch++; }
-// Quality gate: a partial or garbled extraction never goes live — it waits in menus-review/.
-const ok = menu.items.length >= 8 && mismatch / Math.max(1, sizesN) <= 0.15;
-const out = path.join(dataDir, ok ? 'menus' : 'menus-review', `${chainId}.${country}.json`);
-fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, JSON.stringify(menu, null, 1));
-if (ok) { const stale = path.join(dataDir, 'menus-review', `${chainId}.${country}.json`); if (fs.existsSync(stale)) fs.unlinkSync(stale); }
-console.log(`${chainId}.${country}: ${ok ? 'LIVE' : 'REVIEW'} ${menu.items.length} items, ${menu.items.reduce((a, i) => a + i.sizes.length, 0)} sizes, ${menu.modifiers.length} modifiers, ${mismatch} macro mismatches, ${parts.length} chunks → ${path.relative(root, out)}`);
+// Quality gate (shared): a partial or garbled extraction never goes live — it waits in menus-review/.
+writeMenu(menu);
 process.exit(0);

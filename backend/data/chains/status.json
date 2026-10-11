@@ -1,0 +1,602 @@
+{
+ "starbucks.US": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "mcdonalds.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "mcdonalds.CA": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "starbucks.CA": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "a-and-w-canada.CA": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "wendys.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "burger-king.CA": {
+  "outcome": "needs_adapter",
+  "detail": "RBI Sanity dataset holds a non-North-American placeholder menu (Whopper 477 kcal); site menu comes from elsewhere",
+  "at": "2026-10-11"
+ },
+ "burger-king.US": {
+  "outcome": "needs_adapter",
+  "detail": "RBI Sanity dataset holds a non-North-American placeholder menu (Whopper 477 kcal); site menu comes from elsewhere",
+  "at": "2026-10-11"
+ },
+ "chick-fil-a.CA": {
+  "outcome": "live",
+  "detail": "4 items, 4 sizes, 0 modifiers, 2 macro mismatches, 4 chunks → data/chains/menus/chick-fil-a.CA.json",
+  "at": "2026-10-11"
+ },
+ "harveys.CA": {
+  "outcome": "live",
+  "detail": "11 items, 11 sizes, 4 modifiers, 1 macro mismatches, 3 chunks → data/chains/menus/harveys.CA.json",
+  "at": "2026-10-11"
+ },
+ "booster-juice.CA": {
+  "outcome": "live",
+  "detail": "2 items, 2 sizes, 0 modifiers, 2 macro mismatches, 2 chunks → data/chains/menus/booster-juice.CA.json",
+  "at": "2026-10-11"
+ },
+ "chipotle.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "chipotle.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "taco-bell.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "taco-bell.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "popeyes.CA": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "mary-browns.CA": {
+  "outcome": "live",
+  "detail": "45 items, 58 sizes, 15 modifiers, 1 macro mismatches, 1 chunks → data/chains/menus/mary-browns.CA.json",
+  "at": "2026-10-11"
+ },
+ "kfc.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "wendys.US": {
+  "outcome": "live",
+  "detail": "107 items, 138 sizes, 5 modifiers, 41 macro mismatches, 2 chunks → data/chains/menus/wendys.US.json",
+  "at": "2026-10-11"
+ },
+ "chick-fil-a.US": {
+  "outcome": "live",
+  "detail": "56 items, 84 sizes, 20 modifiers, 6 macro mismatches, 9 chunks → data/chains/menus/chick-fil-a.US.json",
+  "at": "2026-10-11"
+ },
+ "five-guys.US": {
+  "outcome": "live",
+  "detail": "1 items, 1 sizes, 0 modifiers, 1 macro mismatches, 2 chunks → data/chains/menus/five-guys.US.json",
+  "at": "2026-10-11"
+ },
+ "pizza-pizza.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "osmows.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "osmows.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "dairy-queen.CA": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "five-guys.CA": {
+  "outcome": "live",
+  "detail": "4 items, 8 sizes, 33 modifiers, 0 macro mismatches, 1 chunks → data/chains/menus/five-guys.CA.json",
+  "at": "2026-10-11"
+ },
+ "dairy-queen.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "freshii.CA": {
+  "outcome": "live",
+  "detail": "2 items, 2 sizes, 0 modifiers, 2 macro mismatches, 3 chunks → data/chains/menus/freshii.CA.json",
+  "at": "2026-10-11"
+ },
+ "arbys.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "pizza-hut.CA": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "pizza-hut.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "subway.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped",
+  "at": "2026-10-11"
+ },
+ "subway.CA": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped",
+  "at": "2026-10-11"
+ },
+ "dominos.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "little-caesars.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "dominos.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "little-caesars.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "papa-johns.CA": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "jimmy-johns.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "swiss-chalet.CA": {
+  "outcome": "live",
+  "detail": "112 items, 115 sizes, 41 modifiers, 2 macro mismatches, 3 chunks → data/chains/menus/swiss-chalet.CA.json",
+  "at": "2026-10-11"
+ },
+ "jersey-mikes.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "panda-express.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "papa-johns.US": {
+  "outcome": "live",
+  "detail": "LIVE 65 items, 161 sizes, 0 modifiers, 0 macro mismatches, 3 chunks → data/chains/menus/papa-johns.US.json",
+  "at": "2026-10-11"
+ },
+ "tropical-smoothie-cafe.US": {
+  "outcome": "review",
+  "detail": "REVIEW 85 items, 85 sizes, 21 modifiers, 50 macro mismatches, 3 chunks → data/chains/menus-review/tropical-smoothie-cafe.US.json",
+  "at": "2026-10-11"
+ },
+ "wingstop.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "baskin-robbins.CA": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "jack-in-the-box.US": {
+  "outcome": "review",
+  "detail": "REVIEW 113 items, 171 sizes, 42 modifiers, 80 macro mismatches, 5 chunks → data/chains/menus-review/jack-in-the-box.US.json",
+  "at": "2026-10-11"
+ },
+ "arbys.CA": {
+  "outcome": "live",
+  "detail": "6 items, 12 sizes, 0 modifiers, 0 macro mismatches, 3 chunks → data/chains/menus/arbys.CA.json",
+  "at": "2026-10-11"
+ },
+ "firehouse-subs.CA": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "firehouse-subs.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "hardees.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "carls-jr.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "jersey-mikes.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 2 items, 2 sizes, 12 modifiers, 2 macro mismatches, 4 chunks → data/chains/menus-review/jersey-mikes.CA.json",
+  "at": "2026-10-11"
+ },
+ "culvers.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "zaxbys.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "whataburger.US": {
+  "outcome": "review",
+  "detail": "REVIEW 21 items, 71 sizes, 0 modifiers, 23 macro mismatches, 3 chunks → data/chains/menus-review/whataburger.US.json",
+  "at": "2026-10-11"
+ },
+ "applebees.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "baskin-robbins.US": {
+  "outcome": "review",
+  "detail": "REVIEW 203 items, 323 sizes, 0 modifiers, 296 macro mismatches, 8 chunks → data/chains/menus-review/baskin-robbins.US.json",
+  "at": "2026-10-11"
+ },
+ "ihop.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "dennys.US": {
+  "outcome": "review",
+  "detail": "REVIEW 115 items, 131 sizes, 1 modifiers, 119 macro mismatches, 3 chunks → data/chains/menus-review/dennys.US.json",
+  "at": "2026-10-11"
+ },
+ "chilis.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "olive-garden.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "dutch-bros.US": {
+  "outcome": "review",
+  "detail": "REVIEW 162 items, 544 sizes, 4 modifiers, 87 macro mismatches, 8 chunks → data/chains/menus-review/dutch-bros.US.json",
+  "at": "2026-10-11"
+ },
+ "papa-murphys.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "waffle-house.US": {
+  "outcome": "review",
+  "detail": "REVIEW 56 items, 61 sizes, 20 modifiers, 40 macro mismatches, 4 chunks → data/chains/menus-review/waffle-house.US.json",
+  "at": "2026-10-11"
+ },
+ "marcos-pizza.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 0 macro mismatches, 1 chunks → data/chains/menus-review/marcos-pizza.US.json",
+  "at": "2026-10-11"
+ },
+ "raising-canes.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "krispy-kreme.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "churchs-texas-chicken.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "panera.US": {
+  "outcome": "review",
+  "detail": "REVIEW 220 items, 335 sizes, 44 modifiers, 185 macro mismatches, 12 chunks → data/chains/menus-review/panera.US.json",
+  "at": "2026-10-11"
+ },
+ "del-taco.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "buffalo-wild-wings.US": {
+  "outcome": "review",
+  "detail": "REVIEW 100 items, 117 sizes, 108 modifiers, 56 macro mismatches, 7 chunks → data/chains/menus-review/buffalo-wild-wings.US.json",
+  "at": "2026-10-11"
+ },
+ "moes.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches, 1 chunks → data/chains/menus-review/moes.US.json",
+  "at": "2026-10-11"
+ },
+ "taco-johns.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "el-pollo-loco.US": {
+  "outcome": "live",
+  "detail": "LIVE 79 items, 100 sizes, 19 modifiers, 13 macro mismatches, 2 chunks → data/chains/menus/el-pollo-loco.US.json",
+  "at": "2026-10-11"
+ },
+ "white-castle.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "bojangles.US": {
+  "outcome": "review",
+  "detail": "REVIEW 91 items, 134 sizes, 15 modifiers, 39 macro mismatches, 3 chunks → data/chains/menus-review/bojangles.US.json",
+  "at": "2026-10-11"
+ },
+ "steak-n-shake.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "smashburger.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "shake-shack.US": {
+  "outcome": "blocked",
+  "detail": "robots.txt disallows — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "in-n-out.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "checkers-rallys.US": {
+  "outcome": "review",
+  "detail": "REVIEW 49 items, 122 sizes, 0 modifiers, 31 macro mismatches, 3 chunks → data/chains/menus-review/checkers-rallys.US.json",
+  "at": "2026-10-11"
+ },
+ "krystal.US": {
+  "outcome": "review",
+  "detail": "REVIEW 14 items, 18 sizes, 0 modifiers, 9 macro mismatches, 3 chunks → data/chains/menus-review/krystal.US.json",
+  "at": "2026-10-11"
+ },
+ "qdoba.US": {
+  "outcome": "review",
+  "detail": "REVIEW 66 items, 87 sizes, 64 modifiers, 16 macro mismatches, 3 chunks → data/chains/menus-review/qdoba.US.json",
+  "at": "2026-10-11"
+ },
+ "hooters.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "texas-roadhouse.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "longhorn.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 403 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "freddys.US": {
+  "outcome": "review",
+  "detail": "REVIEW 19 items, 29 sizes, 22 modifiers, 22 macro mismatches, 6 chunks → data/chains/menus-review/freddys.US.json",
+  "at": "2026-10-11"
+ },
+ "red-lobster.US": {
+  "outcome": "review",
+  "detail": "REVIEW 24 items, 26 sizes, 13 modifiers, 22 macro mismatches, 3 chunks → data/chains/menus-review/red-lobster.US.json",
+  "at": "2026-10-11"
+ },
+ "habit-burger.US": {
+  "outcome": "review",
+  "detail": "REVIEW 30 items, 30 sizes, 45 modifiers, 15 macro mismatches, 5 chunks → data/chains/menus-review/habit-burger.US.json",
+  "at": "2026-10-11"
+ },
+ "red-robin.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "cracker-barrel.US": {
+  "outcome": "blocked",
+  "detail": "HTTP 429 — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "ruby-tuesday.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "bob-evans.US": {
+  "outcome": "blocked",
+  "detail": "bot check page — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "tgi-fridays.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "red-lobster.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 96 items, 102 sizes, 21 modifiers, 33 macro mismatches, 3 chunks → data/chains/menus-review/red-lobster.CA.json",
+  "at": "2026-10-11"
+ },
+ "outback.US": {
+  "outcome": "review",
+  "detail": "REVIEW 169 items, 222 sizes, 66 modifiers, 112 macro mismatches, 6 chunks → data/chains/menus-review/outback.US.json",
+  "at": "2026-10-11"
+ },
+ "pf-changs.US": {
+  "outcome": "review",
+  "detail": "REVIEW 184 items, 223 sizes, 12 modifiers, 198 macro mismatches, 3 chunks → data/chains/menus-review/pf-changs.US.json",
+  "at": "2026-10-11"
+ },
+ "bjs-restaurant.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "first-watch.US": {
+  "outcome": "review",
+  "detail": "REVIEW 65 items, 72 sizes, 0 modifiers, 33 macro mismatches, 2 chunks → data/chains/menus-review/first-watch.US.json",
+  "at": "2026-10-11"
+ },
+ "huddle-house.US": {
+  "outcome": "review",
+  "detail": "REVIEW 12 items, 12 sizes, 0 modifiers, 7 macro mismatches, 2 chunks → data/chains/menus-review/huddle-house.US.json",
+  "at": "2026-10-11"
+ },
+ "jasons-deli.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "mcalisters.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "potbelly.US": {
+  "outcome": "needs_adapter",
+  "detail": "page has no readable nutrition text (likely a JS app) — needs an adapter, skipped",
+  "at": "2026-10-11"
+ },
+ "carrabbas.US": {
+  "outcome": "review",
+  "detail": "REVIEW 200 items, 247 sizes, 4 modifiers, 117 macro mismatches, 3 chunks → data/chains/menus-review/carrabbas.US.json",
+  "at": "2026-10-11"
+ },
+ "cheesecake-factory.US": {
+  "outcome": "review",
+  "detail": "REVIEW 501 items, 526 sizes, 33 modifiers, 365 macro mismatches, 7 chunks → data/chains/menus-review/cheesecake-factory.US.json",
+  "at": "2026-10-11"
+ },
+ "schlotzskys.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "golden-corral.US": {
+  "outcome": "review",
+  "detail": "REVIEW 377 items, 448 sizes, 36 modifiers, 77 macro mismatches, 15 chunks → data/chains/menus-review/golden-corral.US.json",
+  "at": "2026-10-11"
+ },
+ "tim-hortons.CA": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "noodles-and-company.US": {
+  "outcome": "error",
+  "detail": "      at makeNetworkError (node:internal/deps/undici/undici:9495:35)",
+  "at": "2026-10-11"
+ },
+ "tim-hortons.US": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "popeyes.US": {
+  "outcome": "live",
+  "detail": "adapter",
+  "at": "2026-10-11"
+ },
+ "dunkin.US": {
+  "outcome": "review",
+  "detail": "running separately",
+  "at": "2026-10-11"
+ },
+ "wienerschnitzel.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "cinnabon.US": {
+  "outcome": "review",
+  "detail": "REVIEW 5 items, 6 sizes, 1 modifiers, 6 macro mismatches → data/chains/menus-review/cinnabon.US.json",
+  "at": "2026-10-11"
+ },
+ "wetzels-pretzels.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus-review/wetzels-pretzels.US.json",
+  "at": "2026-10-11"
+ },
+ "charleys.US": {
+  "outcome": "live",
+  "detail": "LIVE 80 items, 141 sizes, 30 modifiers, 1 macro mismatches → data/chains/menus/charleys.US.json",
+  "at": "2026-10-11"
+ },
+ "smoothie-king.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "robeks.US": {
+  "outcome": "review",
+  "detail": "REVIEW 38 items, 65 sizes, 0 modifiers, 55 macro mismatches → data/chains/menus-review/robeks.US.json",
+  "at": "2026-10-11"
+ },
+ "cold-stone.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ }
+}

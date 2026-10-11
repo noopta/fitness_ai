@@ -34,7 +34,18 @@ const MENU: ChainMenu = {
   ],
 };
 
-beforeEach(() => _setChainDataForTests(REGISTRY as any, [MENU]));
+const TH: ChainMenu = {
+  chain: 'tim-hortons', country: 'CA', defaultSize: 'medium', source: { url: 'https://www.timhortons.ca/menu', fetchedAt: '2026-10-11' },
+  items: [{ id: 'iced-latte', name: 'Iced Latte', sizes: [{ size: 'medium', calories: 120, proteinG: 7, carbsG: 10, fatG: 5, includes: { '2-milk': 1, 'vanilla-syrup': 1 } }] }],
+  modifiers: [
+    { id: '2-milk', name: '2% Milk', group: '2-milk', swapGroup: 'dairy', bySize: { medium: { calories: 15, proteinG: 1, carbsG: 1.4, fatG: 0.6 } } },
+    { id: 'oat-beverage', name: 'Oat Beverage', aliases: ['oat milk'], group: 'oat-beverage', swapGroup: 'dairy', bySize: { medium: { calories: 19, proteinG: 0.2, carbsG: 2.5, fatG: 0.9 } } },
+    { id: 'vanilla-syrup', name: 'Vanilla Syrup', group: 'vanilla-syrup', bySize: { medium: { calories: 75, proteinG: 0, carbsG: 18.5, fatG: 0 } } },
+    { id: 'caramel-syrup', name: 'Caramel Syrup', group: 'caramel-syrup', per: { calories: 20, proteinG: 0, carbsG: 5, fatG: 0 }, estimated: true },
+  ],
+};
+
+beforeEach(() => _setChainDataForTests(REGISTRY as any, [MENU, TH]));
 
 describe('finding the chain', () => {
   it('knows names and nicknames', () => {
@@ -71,6 +82,8 @@ describe('pricing an order', () => {
   it('counts pumps', () => {
     expect(modifierQuantity('2 pumps hazelnut')).toBe(2);
     expect(modifierQuantity('no whip')).toBe(-1);
+    expect(modifierQuantity('2% milk')).toBe(1);
+    expect(modifierQuantity('2 pumps of 2% milk')).toBe(2);
     expect(lookupChainMenu({ brand: 'Starbucks', product: 'Caffè Latte', size: 'Grande', modifiers: ['3 pumps hazelnut'] }, 'CA')!.facts.calories).toBe(250);
   });
   it('removes what the item includes, and ignores removing what it doesn’t', () => {
@@ -81,6 +94,23 @@ describe('pricing an order', () => {
     const m = lookupChainMenu({ brand: 'Starbucks', product: 'Caffe Latte', size: 'Grande', modifiers: ['add cold foam', 'a pump of sugar free vanilla'] }, 'CA')!;
     expect(m.facts.calories).toBe(250);
     expect(m.applied.map((a) => [a.name, a.official])).toEqual([['cold foam', false], ['sugar-free syrup (pump)', false]]);
+  });
+  it('swaps the milk the drink comes with instead of adding a second one', () => {
+    const m = lookupChainMenu({ brand: 'Tim Hortons', product: 'Iced Latte', size: 'Medium', modifiers: ['with oat milk'] }, 'CA')!;
+    expect(m.facts.calories).toBe(120 - 15 + 19);
+    expect(m.applied.map((a) => a.name)).toEqual(['2% Milk (replaced)', 'Oat Beverage']);
+  });
+  it('prefers the value published for this drink over the menu-wide one', () => {
+    _setChainDataForTests(REGISTRY as any, [{ ...TH, items: [{ id: 'coffee', name: 'Coffee', sizes: [{ size: 'medium', calories: 4, proteinG: 0, carbsG: 0, fatG: 0, modValues: { '2-milk': { calories: 21, proteinG: 1.4, carbsG: 2, fatG: 0.8 } } }] }] }]);
+    expect(lookupChainMenu({ brand: 'Tim Hortons', product: 'Coffee', size: 'Medium', modifiers: ['2% milk'] }, 'CA')!.facts.calories).toBe(25);
+  });
+  it('removes exactly the syrup portion the size includes', () => {
+    expect(lookupChainMenu({ brand: 'Tim Hortons', product: 'Iced Latte', size: 'Medium', modifiers: ['no vanilla'] }, 'CA')!.facts.calories).toBe(45);
+  });
+  it('a listed add-in with estimated values is not called official', () => {
+    const m = lookupChainMenu({ brand: 'Tim Hortons', product: 'Iced Latte', size: 'Medium', modifiers: ['2 pumps caramel syrup'] }, 'CA')!;
+    expect(m.facts.calories).toBe(160);
+    expect(m.applied[0]).toMatchObject({ name: 'Caramel Syrup', official: false });
   });
   it('falls back to another country’s menu, flagged', () => {
     const m = lookupChainMenu({ brand: 'Starbucks', product: 'Caffe Latte', size: 'Grande' }, 'US')!;

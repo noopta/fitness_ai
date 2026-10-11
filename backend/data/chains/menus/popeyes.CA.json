@@ -1,0 +1,2652 @@
+{
+ "chain": "popeyes",
+ "country": "CA",
+ "defaultSize": "regular",
+ "source": {
+  "url": "https://www.popeyeschicken.ca/menu",
+  "fetchedAt": "2026-10-11",
+  "note": "popeyes public menu data (the CDN its own site reads); numbers only"
+ },
+ "items": [
+  {
+   "id": "fried-pickles",
+   "name": "Fried Pickles",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 22,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 720,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-homestyle-mac-cheese",
+   "name": "Regular Homestyle Mac & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 190,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sodiumMg": 590,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "homestyle-mac-cheese",
+   "name": "Homestyle Mac & Cheese",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 510,
+     "proteinG": 23,
+     "carbsG": 43,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sodiumMg": 1670,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-sandwich",
+   "name": "Classic Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 728,
+     "proteinG": 33.9,
+     "carbsG": 52.7,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 8.9,
+      "sodiumMg": 1545.1,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-sandwich",
+   "name": "Spicy Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 728,
+     "proteinG": 33.9,
+     "carbsG": 53.7,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 8.9,
+      "sodiumMg": 1825.1,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-deluxe-chicken-sandwich",
+   "name": "Classic Deluxe Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 738,
+     "proteinG": 33.9,
+     "carbsG": 54.7,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 9.9,
+      "sodiumMg": 1545.1,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-deluxe-chicken-sandwich",
+   "name": "Spicy Deluxe Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 728,
+     "proteinG": 33.9,
+     "carbsG": 53.7,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 8.9,
+      "sodiumMg": 1825.1,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-apple-pie",
+   "name": "Cinnamon Apple Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 3,
+     "carbsG": 33,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 11,
+      "sodiumMg": 260,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cream-cheese-pie",
+   "name": "Strawberry Cream Cheese Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 340,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 240,
+      "saturatedFatG": 9,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "3pc-chicken",
+   "name": "3Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 620,
+     "proteinG": 60,
+     "carbsG": 16.6,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 1.3,
+      "sugarG": 3.9,
+      "sodiumMg": 1604.3,
+      "saturatedFatG": 11.5,
+      "cholesterolMg": 265.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "ghost-pepper-wings",
+   "name": "Ghost Pepper Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 637,
+     "proteinG": 32.4,
+     "carbsG": 19.1,
+     "fatG": 47.9,
+     "micros": {
+      "fiberG": 1.9,
+      "sugarG": 0.4,
+      "saturatedFatG": 20.1,
+      "cholesterolMg": 156.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "3pc-tenders",
+   "name": "3Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 31,
+     "carbsG": 21,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1780,
+      "saturatedFatG": 5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "8pc-tenders",
+   "name": "8Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 910,
+     "proteinG": 82.5,
+     "carbsG": 57.3,
+     "fatG": 39.7,
+     "micros": {
+      "fiberG": 4.1,
+      "sugarG": 6.6,
+      "sodiumMg": 4621.2,
+      "saturatedFatG": 12.4,
+      "cholesterolMg": 234.3
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-tenders",
+   "name": "10 Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "12pc-tenders",
+   "name": "12Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1370,
+     "proteinG": 123.8,
+     "carbsG": 85.9,
+     "fatG": 59.6,
+     "micros": {
+      "fiberG": 6.2,
+      "sugarG": 9.9,
+      "sodiumMg": 6931.8,
+      "saturatedFatG": 18.6,
+      "cholesterolMg": 351.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "16pc-tenders",
+   "name": "16Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1830,
+     "proteinG": 165.1,
+     "carbsG": 114.6,
+     "fatG": 79.5,
+     "micros": {
+      "fiberG": 8.2,
+      "sugarG": 13.2,
+      "sodiumMg": 9242.4,
+      "saturatedFatG": 24.7,
+      "cholesterolMg": 468.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "coca-cola",
+   "name": "Coca-Cola",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 100,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke",
+   "name": "Diet Coke",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite",
+   "name": "Sprite",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 62,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 62,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 91,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 91,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-zero-sugar",
+   "name": "Coke Zero Sugar",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fanta",
+   "name": "Fanta",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 56,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 105,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 105,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barqs-root-beer",
+   "name": "Barqs Root Beer",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 58,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 108,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "canada-dry",
+   "name": "Canada Dry",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 90,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "minute-maid-lemonade",
+   "name": "Minute Maid Lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 101,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruitopia",
+   "name": "Fruitopia",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 75,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 74,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 113,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-coca-cola-500-ml",
+   "name": "Bottle Coca-Cola - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-diet-coke-500-ml",
+   "name": "Bottle Diet Coke - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 56.3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-sprite-500-ml",
+   "name": "Bottle Sprite - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 64,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-coke-zero-500ml",
+   "name": "Bottle Coke Zero -500mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 56.3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-fanta-500-ml",
+   "name": "Bottle Fanta - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 225,
+     "proteinG": 0,
+     "carbsG": 60.8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60.8,
+      "sodiumMg": 78.8,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-barqs-500-ml",
+   "name": "Bottle Barqs - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 63.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63.3,
+      "sodiumMg": 101.3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-canada-dry-500-ml",
+   "name": "Bottle Canada Dry - 500 mL",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-dasani",
+   "name": "Bottle Dasani",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-smart-water",
+   "name": "Bottle Smart Water",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-minute-maid-orange-juice",
+   "name": "Bottle Minute Maid Orange Juice",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-minute-maid-lemonade",
+   "name": "Bottle Minute Maid Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "monster-energy",
+   "name": "Monster Energy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 360,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuit",
+   "name": "Biscuit",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 450,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "6-biscuits",
+   "name": "6 Biscuits",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1320,
+     "proteinG": 19,
+     "carbsG": 170,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 20,
+      "sodiumMg": 2700,
+      "saturatedFatG": 34,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "12-biscuits",
+   "name": "12 Biscuits",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2640,
+     "proteinG": 38,
+     "carbsG": 340,
+     "fatG": 130,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 40,
+      "sodiumMg": 5390,
+      "saturatedFatG": 68,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-cajun-fries",
+   "name": "Regular Cajun Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 580,
+      "saturatedFatG": 4,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-fries",
+   "name": "Cajun Fries",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 1350,
+     "proteinG": 15,
+     "carbsG": 169,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 3,
+      "sodiumMg": 2920,
+      "saturatedFatG": 21,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-onion-rings",
+   "name": "Regular Onion Rings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 440,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion-rings",
+   "name": "Onion Rings",
+   "sizes": [
+    {
+     "size": "medium",
+     "calories": 975,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "calories": 1080,
+     "proteinG": 13,
+     "carbsG": 100,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 1310,
+      "saturatedFatG": 21,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-cajun-gravy",
+   "name": "Regular Cajun Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 11,
+     "carbsG": 11,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 1010,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-gravy",
+   "name": "Cajun Gravy",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 350,
+     "proteinG": 25,
+     "carbsG": 25,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 2350,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-poutine",
+   "name": "Cajun Poutine",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 720,
+     "proteinG": 25,
+     "carbsG": 60,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 2,
+      "sodiumMg": 1930,
+      "saturatedFatG": 18,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-mashed-potatoes-w-cajun-gravy",
+   "name": "Regular Mashed Potatoes w/ Cajun Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 4,
+     "carbsG": 15,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 540,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-with-cajun-gravy",
+   "name": "Mashed Potatoes with Cajun Gravy",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 310,
+     "proteinG": 11,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1620,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-beans-and-rice",
+   "name": "Red Beans and Rice",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 570,
+     "proteinG": 21,
+     "carbsG": 89,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 22,
+      "sugarG": 4,
+      "sodiumMg": 1900,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-coleslaw",
+   "name": "Regular Coleslaw",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 190,
+     "proteinG": 1,
+     "carbsG": 13,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 220,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "coleslaw",
+   "name": "Coleslaw",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 740,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 41,
+      "sodiumMg": 860,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackened-ranch-sauce",
+   "name": "Blackened Ranch Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 2,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 290,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "buttermilk-ranch-sauce",
+   "name": "Buttermilk Ranch Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 0.3,
+     "carbsG": 2,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild-honey-mustard-sauce",
+   "name": "Wild Honey Mustard Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 150,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "bayou-buffalo-sauce",
+   "name": "Bayou Buffalo Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 60,
+     "proteinG": 0.1,
+     "carbsG": 2,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 450,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "8pc-nuggets",
+   "name": "8Pc Nuggets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 520,
+     "proteinG": 29,
+     "carbsG": 22,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 1340,
+      "saturatedFatG": 11,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "12pc-nuggets",
+   "name": "12Pc Nuggets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 770,
+     "proteinG": 44,
+     "carbsG": 33,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 2020,
+      "saturatedFatG": 16,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottle-minute-maid-apple-juice",
+   "name": "Bottle Minute Maid Apple Juice",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 41,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "36pc-nuggets",
+   "name": "36Pc Nuggets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2340,
+     "proteinG": 131,
+     "carbsG": 99,
+     "fatG": 155,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 6050,
+      "saturatedFatG": 49,
+      "cholesterolMg": 405
+     }
+    }
+   ]
+  },
+  {
+   "id": "5pc-tenders",
+   "name": "5Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 570,
+     "proteinG": 51.6,
+     "carbsG": 35.8,
+     "fatG": 24.8,
+     "micros": {
+      "fiberG": 2.6,
+      "sugarG": 4.1,
+      "sodiumMg": 2888.3,
+      "saturatedFatG": 7.7,
+      "cholesterolMg": 146.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "24pc-nuggets",
+   "name": "24Pc Nuggets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1560,
+     "proteinG": 87,
+     "carbsG": 66,
+     "fatG": 104,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 4030,
+      "saturatedFatG": 33,
+      "cholesterolMg": 270
+     }
+    }
+   ]
+  },
+  {
+   "id": "2pc-chicken",
+   "name": "2Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 420,
+     "proteinG": 40,
+     "carbsG": 11.1,
+     "fatG": 25.4,
+     "micros": {
+      "fiberG": 0.9,
+      "sugarG": 2.6,
+      "sodiumMg": 1069.5,
+      "saturatedFatG": 7.7,
+      "cholesterolMg": 177
+     }
+    }
+   ]
+  },
+  {
+   "id": "4pc-chicken",
+   "name": "4Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 830,
+     "proteinG": 79.9,
+     "carbsG": 22.2,
+     "fatG": 50.7,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 5.2,
+      "sodiumMg": 2139.1,
+      "saturatedFatG": 15.4,
+      "cholesterolMg": 353.9
+     }
+    }
+   ]
+  },
+  {
+   "id": "10pc-chicken",
+   "name": "10Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2080,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "12pc-chicken",
+   "name": "12Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2480,
+     "proteinG": 239.8,
+     "carbsG": 66.5,
+     "fatG": 152.1,
+     "micros": {
+      "fiberG": 5.3,
+      "sugarG": 15.7,
+      "sodiumMg": 6417.2,
+      "saturatedFatG": 46.1,
+      "cholesterolMg": 1061.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "16pc-chicken",
+   "name": "16Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 3310,
+     "proteinG": 319.8,
+     "carbsG": 88.7,
+     "fatG": 202.8,
+     "micros": {
+      "fiberG": 7.1,
+      "sugarG": 20.9,
+      "sodiumMg": 8556.3,
+      "saturatedFatG": 61.4,
+      "cholesterolMg": 1415.6
+     }
+    }
+   ]
+  },
+  {
+   "id": "20pc-chicken",
+   "name": "20Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 4140,
+     "proteinG": 399.7,
+     "carbsG": 110.9,
+     "fatG": 253.5,
+     "micros": {
+      "fiberG": 8.9,
+      "sugarG": 26.2,
+      "sodiumMg": 10695.3,
+      "saturatedFatG": 76.8,
+      "cholesterolMg": 1769.5
+     }
+    }
+   ]
+  },
+  {
+   "id": "8pc-chicken",
+   "name": "8Pc Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1660,
+     "proteinG": 159.9,
+     "carbsG": 44.4,
+     "fatG": 101.4,
+     "micros": {
+      "fiberG": 3.5,
+      "sugarG": 10.5,
+      "sodiumMg": 4278.1,
+      "saturatedFatG": 30.7,
+      "cholesterolMg": 707.8
+     }
+    }
+   ]
+  },
+  {
+   "id": "20pc-tenders",
+   "name": "20Pc Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2290,
+     "proteinG": 206.3,
+     "carbsG": 143.2,
+     "fatG": 99.3,
+     "micros": {
+      "fiberG": 10.3,
+      "sugarG": 16.5,
+      "sodiumMg": 11553,
+      "saturatedFatG": 30.9,
+      "cholesterolMg": 585.7
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-deluxe-blackened-chicken-sandwich",
+   "name": "Spicy Deluxe Blackened Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 578,
+     "proteinG": 30.9,
+     "carbsG": 40.7,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2.8,
+      "sugarG": 8.9,
+      "sodiumMg": 1675.1,
+      "saturatedFatG": 4,
+      "cholesterolMg": 75
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-deluxe-blackened-chicken-sandwich",
+   "name": "Classic Deluxe Blackened Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 578,
+     "proteinG": 30.9,
+     "carbsG": 40.7,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2.8,
+      "sugarG": 8.9,
+      "sodiumMg": 1485.1,
+      "saturatedFatG": 4,
+      "cholesterolMg": 75
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "ghost-pepper-chicken-sandwich",
+   "name": "Ghost Pepper Chicken Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 708,
+     "proteinG": 32.9,
+     "carbsG": 53.7,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 3.8,
+      "sugarG": 9.9,
+      "sodiumMg": 2235.1,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     },
+     "includes": {
+      "pickle": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-wrap",
+   "name": "Classic Chicken Wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 650,
+     "proteinG": 26,
+     "carbsG": 52,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1800,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-wrap",
+   "name": "Spicy Chicken Wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 640,
+     "proteinG": 26,
+     "carbsG": 52,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 2230,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-honey-garlic-wings",
+   "name": "6Pc Honey Garlic Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 28,
+     "carbsG": 44,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 1040,
+      "saturatedFatG": 9,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-roasted-garlic-parmesan-wings",
+   "name": "6Pc Roasted Garlic Parmesan Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 800,
+     "proteinG": 29,
+     "carbsG": 25,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1760,
+      "saturatedFatG": 15,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-honey-bbq-wings",
+   "name": "6Pc Honey BBQ Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 28,
+     "carbsG": 43,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 1600,
+      "saturatedFatG": 9,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-signature-hot-wings",
+   "name": "6Pc Signature Hot Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 460,
+     "proteinG": 28,
+     "carbsG": 19,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 3410,
+      "saturatedFatG": 9,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-ghost-pepper-wings",
+   "name": "6Pc Ghost Pepper Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 450,
+     "proteinG": 28,
+     "carbsG": 17,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 880,
+      "saturatedFatG": 9,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "frozen-lemon-zester",
+   "name": "Frozen Lemon Zester",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "frozen-strawberry-lemon-zester",
+   "name": "Frozen Strawberry Lemon Zester",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 480,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chilled-strawberry-lemon-zester",
+   "name": "Chilled Strawberry Lemon Zester",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chilled-lemon-zester",
+   "name": "Chilled Lemon Zester",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "6pc-signature-hot-boneless-wings",
+   "name": "6Pc Signature Hot Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 450,
+     "proteinG": 34,
+     "carbsG": 36,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 5320,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-honey-garlic-boneless-wings",
+   "name": "6Pc Honey Garlic Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 600,
+     "proteinG": 33,
+     "carbsG": 72,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 2320,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-honey-bbq-boneless-wings",
+   "name": "6Pc Honey BBQ Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 540,
+     "proteinG": 34,
+     "carbsG": 60,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 2770,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-roasted-garlic-parmesan-boneless-wings",
+   "name": "6Pc Roasted Garlic Parmesan Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 780,
+     "proteinG": 35,
+     "carbsG": 41,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 2930,
+      "saturatedFatG": 12,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-classic-boneless-wings",
+   "name": "6Pc Classic Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 420,
+     "proteinG": 33,
+     "carbsG": 34,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 2050,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-slider",
+   "name": "Classic Chicken Slider",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 448,
+     "proteinG": 15.9,
+     "carbsG": 46.7,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2.8,
+      "sugarG": 8.9,
+      "sodiumMg": 985.1,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     },
+     "includes": {
+      "pickle": 1
+     },
+     "modValues": {
+      "pickle": {
+       "calories": 1,
+       "proteinG": 0,
+       "carbsG": 0.1,
+       "fatG": 0,
+       "micros": {
+        "fiberG": 0.1,
+        "sugarG": 0,
+        "sodiumMg": 77.4
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-mini-chicken-wrap",
+   "name": "Classic Mini Chicken Wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 490,
+     "proteinG": 16,
+     "carbsG": 48,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1060,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-mini-chicken-wrap",
+   "name": "Spicy Mini Chicken Wrap",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 490,
+     "proteinG": 16,
+     "carbsG": 48,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1080,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "5pc-nuggets",
+   "name": "5Pc Nuggets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 18,
+     "carbsG": 14,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 840,
+      "saturatedFatG": 7,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-slider",
+   "name": "Spicy Chicken Slider",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 449,
+     "proteinG": 16,
+     "carbsG": 46.9,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2.9,
+      "sugarG": 9,
+      "sodiumMg": 1082.6,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     },
+     "includes": {
+      "pickle": 1
+     },
+     "modValues": {
+      "pickle": {
+       "calories": 1,
+       "proteinG": 0,
+       "carbsG": 0.1,
+       "fatG": 0,
+       "micros": {
+        "fiberG": 0.1,
+        "sugarG": 0,
+        "sodiumMg": 77.4
+       }
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "fuze-iced-tea",
+   "name": "Fuze Iced Tea",
+   "sizes": [
+    {
+     "size": "small",
+     "calories": 9,
+     "proteinG": 0,
+     "carbsG": 2.5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2.5,
+      "sodiumMg": 3.9,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "calories": 8,
+     "proteinG": 0,
+     "carbsG": 2.2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2.2,
+      "sodiumMg": 3.4,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-pickle-glaze-bone-in-wings",
+   "name": "6Pc Pickle Glaze Bone-In Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 990,
+     "proteinG": 29,
+     "carbsG": 30,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 1240,
+      "saturatedFatG": 17,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "6pc-pickle-glaze-boneless-wings",
+   "name": "6Pc Pickle Glaze Boneless Wings",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 980,
+     "proteinG": 35,
+     "carbsG": 47,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 14,
+      "sodiumMg": 2410,
+      "saturatedFatG": 14,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "signature-sauce",
+   "name": "Signature Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 94,
+     "proteinG": 0.3,
+     "carbsG": 2.3,
+     "fatG": 9.3,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 1.6,
+      "sodiumMg": 289.9,
+      "saturatedFatG": 1.4,
+      "cholesterolMg": 11.8
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "pickle",
+   "name": "Pickle",
+   "group": "pickle",
+   "swapGroup": "pickle",
+   "bySize": {
+    "regular": {
+     "calories": 2,
+     "proteinG": 0.1,
+     "carbsG": 0.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 0.1,
+      "sodiumMg": 154.9
+     }
+    }
+   },
+   "per": {
+    "calories": 2,
+    "proteinG": 0.1,
+    "carbsG": 0.3,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0.2,
+     "sugarG": 0.1,
+     "sodiumMg": 154.9
+    }
+   }
+  },
+  {
+   "id": "buttermilk-ranch",
+   "name": "Buttermilk Ranch",
+   "group": "buttermilk-ranch",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 150,
+     "proteinG": 0.3,
+     "carbsG": 2,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   },
+   "per": {
+    "calories": 150,
+    "proteinG": 0.3,
+    "carbsG": 2,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 230,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "blackened-ranch",
+   "name": "Blackened Ranch",
+   "group": "blackened-ranch",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   },
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "bayou-buffalo",
+   "name": "Bayou Buffalo",
+   "group": "bayou-buffalo",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 60,
+     "proteinG": 0.2,
+     "carbsG": 1.7,
+     "fatG": 5.8,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 0.2,
+      "sodiumMg": 446,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0.1
+     }
+    }
+   },
+   "per": {
+    "calories": 60,
+    "proteinG": 0.2,
+    "carbsG": 1.7,
+    "fatG": 5.8,
+    "micros": {
+     "fiberG": 0.3,
+     "sugarG": 0.2,
+     "sodiumMg": 446,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0.1
+    }
+   }
+  },
+  {
+   "id": "sweet-heat",
+   "name": "Sweet Heat",
+   "group": "sweet-heat",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 70,
+     "proteinG": 0.1,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 270,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   },
+   "per": {
+    "calories": 70,
+    "proteinG": 0.1,
+    "carbsG": 18,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 17,
+     "sodiumMg": 270,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "boldbq",
+   "name": "BoldBQ",
+   "group": "boldbq",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 60,
+     "proteinG": 0.4,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 410,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   },
+   "per": {
+    "calories": 60,
+    "proteinG": 0.4,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 410,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cajun-cocktail",
+   "name": "Cajun Cocktail",
+   "group": "cajun-cocktail",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 30,
+     "proteinG": 0.5,
+     "carbsG": 6,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 330,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   },
+   "per": {
+    "calories": 30,
+    "proteinG": 0.5,
+    "carbsG": 6,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 330,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tartar",
+   "name": "Tartar",
+   "group": "tartar",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   },
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 230,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "wild-honey-mustard",
+   "name": "Wild Honey Mustard",
+   "group": "wild-honey-mustard",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   },
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "garlic-mayo",
+   "name": "Garlic Mayo",
+   "group": "garlic-mayo",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   },
+   "per": {
+    "calories": 370,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "spicy-garlic-mayo",
+   "name": "Spicy Garlic Mayo",
+   "group": "spicy-garlic-mayo",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   },
+   "per": {
+    "calories": 370,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "signature-sauce",
+   "name": "Signature Sauce",
+   "group": "signature-sauce",
+   "swapGroup": "sauces-1-included",
+   "bySize": {
+    "regular": {
+     "calories": 94,
+     "proteinG": 0.3,
+     "carbsG": 2.3,
+     "fatG": 9.3,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 1.6,
+      "sodiumMg": 289.9,
+      "saturatedFatG": 1.4,
+      "cholesterolMg": 11.8
+     }
+    }
+   },
+   "per": {
+    "calories": 94,
+    "proteinG": 0.3,
+    "carbsG": 2.3,
+    "fatG": 9.3,
+    "micros": {
+     "fiberG": 0.3,
+     "sugarG": 1.6,
+     "sodiumMg": 289.9,
+     "saturatedFatG": 1.4,
+     "cholesterolMg": 11.8
+    }
+   }
+  },
+  {
+   "id": "bold-bbq",
+   "name": "Bold BBQ",
+   "group": "bold-bbq",
+   "swapGroup": "sauces",
+   "bySize": {
+    "regular": {
+     "calories": 60,
+     "proteinG": 0.4,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 410,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   },
+   "per": {
+    "calories": 60,
+    "proteinG": 0.4,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 410,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

@@ -9,7 +9,8 @@ export function writeMenu(menu, { minItems = 8 } = {}) {
   const out = path.join(dataDir, ok ? 'menus' : 'menus-review', `${menu.chain}.${menu.country}.json`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(menu, null, 1));
-  if (ok) { const stale = path.join(dataDir, 'menus-review', `${menu.chain}.${menu.country}.json`); if (fs.existsSync(stale)) fs.unlinkSync(stale); }
+  const stale = path.join(dataDir, ok ? 'menus-review' : 'menus', `${menu.chain}.${menu.country}.json`);
+  if (fs.existsSync(stale)) fs.unlinkSync(stale);
   console.log(`${menu.chain}.${menu.country}: ${ok ? 'LIVE' : 'REVIEW'} ${menu.items.length} items, ${sizesN} sizes, ${(menu.modifiers ?? []).length} modifiers, ${mismatch} macro mismatches → ${path.relative(process.cwd(), out)}`);
   return ok;
 }
