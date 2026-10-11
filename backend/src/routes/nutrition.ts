@@ -856,7 +856,7 @@ const photoSchema = z.object({
 async function photoBrandedLookup(items: Array<{ brand: string; product: string; estimate: { calories: number; proteinG: number; carbsG: number; fatG: number } }>, userId: string, tz: string | null) {
   const branded = items.map((i) => ({ brand: i.brand, product: i.product, size: null, servings: 1, estimate: i.estimate }));
   const work = resolveAll(branded, { userId, tz, surface: 'photo' }).then((rs) => rs.map((r) => (r.result.kind === 'found'
-    ? { calories: r.result.facts.calories, proteinG: r.result.facts.proteinG, carbsG: r.result.facts.carbsG, fatG: r.result.facts.fatG, site: sourceLabel(r.result.facts.sources[0]), url: domainOf(r.result.facts.sources[0]?.uri) ? r.result.facts.sources[0].uri : null }
+    ? { calories: r.result.facts.calories, proteinG: r.result.facts.proteinG, carbsG: r.result.facts.carbsG, fatG: r.result.facts.fatG, site: sourceLabel(r.result.facts.sources[0]), url: domainOf(r.result.facts.sources[0]?.uri) ? r.result.facts.sources[0].uri : null, micros: r.result.facts.micros }
     : null)));
   const cap = new Promise<null[]>((resolve) => setTimeout(() => resolve(items.map(() => null)), 20_000));
   return Promise.race([work, cap]);

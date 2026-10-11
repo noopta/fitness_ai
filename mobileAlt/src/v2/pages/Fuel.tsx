@@ -17,6 +17,8 @@ import { Enter } from '../primitives/Enter';
 import { TextAction } from '../primitives/TextAction';
 import { ReceiptList } from '../primitives/Receipt';
 import { describeWithLookup, liveStep } from '../food/lookup';
+import { microFields } from '../food/micros';
+import { richLogFields } from '../../components/coach/nutrition/sheets/sheetHelpers';
 import { Ring } from '../charts';
 import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
 import { targetLines, dayTotals, momentFor, lookupReceipt, mealSources, type MealSource } from '@axiom/agent-ui-core';
@@ -92,7 +94,7 @@ export function FuelPage() {
     if (requirePro() === false) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `Last ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} — ${u.name ?? 'meal'}` }]);
     try {
-      await nutritionApi.logMeal({ date: todayStr(), name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), source: 'usual' } as any);
+      await nutritionApi.logMeal({ date: todayStr(), name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), ...microFields(u.nutrients), source: 'usual' } as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${u.name ?? 'The usual'} — ${Math.round(u.calories ?? 0)} kcal` }]);
       haptics.success(); await invalidate.afterMeal();
       setTimeout(() => { setDock('idle'); setLog([]); }, 1200);
@@ -115,7 +117,7 @@ export function FuelPage() {
       const rc = lookupReceipt(parsed, item?.name ?? null);
       // With a lookup, its steps already say where each number came from.
       setLog((l) => (parsed?.lookups?.length ? l.filter((x) => x.verb !== 'Reading') : [read, { verb: rc.verb, text: rc.text }]));
-      const body = { date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe', ...(rc.found && parsed?.notes ? { notes: String(parsed.notes).slice(0, 480) } : {}) };
+      const body = { ...richLogFields(parsed, 'text'), date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe', ...(rc.found && parsed?.notes ? { notes: String(parsed.notes).slice(0, 480) } : {}) };
       await nutritionApi.logMeal(body as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${body.name} — ${body.calories} kcal · ${body.proteinG} P · ${body.carbsG} C · ${body.fatG} F` }]);
       haptics.success();

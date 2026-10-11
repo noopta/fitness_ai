@@ -25,6 +25,7 @@ import { WeekBars } from '../../charts';
 import { LinkTabs } from '../feed/common';
 import { useNutritionSummary, useRecipes, useSavedFoods, useMeals, useProgram, useInvalidate, useDayTargets, qk } from '../../data';
 import { useAuth } from '../../../context/AuthContext';
+import { microFields } from '../../food/micros';
 import { useUnits } from '../../../context/UnitsContext';
 import { nutritionApi, nutritionProfileApi } from '../../../lib/api';
 import { v2Api, type FoodResult } from '../../api';
@@ -214,7 +215,7 @@ export function LibraryPage({ initial }: { initial?: string }) {
     setBusy(true);
     try {
       if (picked.kind === 'recipe') await nutritionApi.logRecipe(picked.item.id, { date: todayStr(), mealType: slotNow(), servings: 1 });
-      else { const f = picked.item; await nutritionApi.logMeal({ date: todayStr(), name: f.name, mealType: slotNow(), calories: Math.round(f.calories ?? 0), proteinG: Math.round(f.proteinG ?? 0), carbsG: Math.round(f.carbsG ?? 0), fatG: Math.round(f.fatG ?? 0), source: 'saved' } as any); }
+      else { const f = picked.item; await nutritionApi.logMeal({ date: todayStr(), name: f.name, mealType: slotNow(), calories: Math.round(f.calories ?? 0), proteinG: Math.round(f.proteinG ?? 0), carbsG: Math.round(f.carbsG ?? 0), fatG: Math.round(f.fatG ?? 0), ...microFields(f.nutrients), source: 'saved' } as any); }
       await invalidate.afterMeal(); haptics.success(); setPicked(null);
     } catch (e: any) { Alert.alert('Couldn’t log it', e?.message ?? ''); }
     setBusy(false);

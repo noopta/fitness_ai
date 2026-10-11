@@ -15,6 +15,7 @@ import type { HybridEnrichmentMeta } from '../nutritionEnrichmentService.js';
 import type { FoodRegion } from '../prompts/regionPrompts.js';
 import type { ExistingItemRef, MealPhotoV2Raw } from './mealPhotoSchema.js';
 import { CALIBRATED_MODEL, CALIBRATION_ON, calibrateItem } from './portionCalibration.js';
+import { applyLabelMicros, type LabelMicros } from './brandedLookup.js';
 import { LruCache, mealPhotoCacheKey, recordAddPhotoGrant, type AddPhotoGrant } from './mealPhotoCache.js';
 import { mealLevelItem, resolveItems, sumItems, itemId, type ItemLookup, type MealItem } from './mealPhotoItems.js';
 
@@ -48,7 +49,7 @@ export interface MealPhotoDeps {
   model: string;
   analyzeV2: (images: PhotoInput[], opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion; userFoods?: string[] }) => Promise<MealPhotoV2Raw>;
   /** Items the photo shows a brand for → official numbers (scans, records, food databases, web). Null = keep the estimate. */
-  resolveBranded?: (items: Array<{ brand: string; product: string; estimate: { calories: number; proteinG: number; carbsG: number; fatG: number } }>, userId: string) => Promise<Array<{ calories: number; proteinG: number; carbsG: number; fatG: number; site: string | null; url: string | null } | null>>;
+  resolveBranded?: (items: Array<{ brand: string; product: string; estimate: { calories: number; proteinG: number; carbsG: number; fatG: number } }>, userId: string) => Promise<Array<{ calories: number; proteinG: number; carbsG: number; fatG: number; site: string | null; url: string | null; micros?: LabelMicros } | null>>;
   analyzeLegacy: (imageBase64: string, mimeType: string, region: FoodRegion) => Promise<ParsedMealDetail>;
   enrich: Enrich;
   lookup?: ItemLookup;
@@ -104,19 +105,35 @@ export function detailFromItems(raw: MealPhotoV2Raw, items: MealItem[]): ParsedM
  * USDA guess for a generic food (a Big Mac is not "hamburger, double").
  * Items keep their order, so raw[i] ↔ items[i]. Failures keep the estimate.
  */
-export async function applyBrandedItems(raw: MealPhotoV2Raw, items: MealItem[], userId: string, deps: Pick<MealPhotoDeps, 'resolveBranded'>): Promise<number> {
-  if (!deps.resolveBranded) return 0;
+/** Label micros for the branded items a photo resolved, for applyLabelMicros after enrichment. */
+export interface BrandedLabel { calories: number; micros: LabelMicros }
+
+export async function applyBrandedItems(raw: MealPhotoV2Raw, items: MealItem[], userId: string, deps: Pick<MealPhotoDeps, 'resolveBranded'>): Promise<BrandedLabel[]> {
+  if (!deps.resolveBranded) return [];
   const idx = raw.items.map((r, i) => (r.brand ? i : -1)).filter((i) => i >= 0 && items[i]);
-  if (!idx.length) return 0;
+  if (!idx.length) return [];
   const answers = await deps.resolveBranded(idx.map((i) => ({ brand: raw.items[i].brand!, product: raw.items[i].name, estimate: { calories: items[i].calories, proteinG: items[i].proteinG, carbsG: items[i].carbsG, fatG: items[i].fatG } })), userId).catch(() => []);
-  let n = 0;
+  const labels: BrandedLabel[] = [];
   idx.forEach((i, k) => {
     const a = answers[k];
     if (!a) return;
     Object.assign(items[i], { calories: Math.round(a.calories), proteinG: a.proteinG, carbsG: a.carbsG, fatG: a.fatG, source: 'brand' as const, per100g: null, lookupSource: { site: a.site, url: a.url } });
-    n++;
+    if (a.micros && Object.keys(a.micros).length) labels.push({ calories: Math.round(a.calories), micros: a.micros });
   });
-  return n;
+  return labels;
+}
+
+/**
+ * The meal's micros came from USDA matches + the model; a branded item's share
+ * of them is generic ("hamburger"). Replace that share with the label's own
+ * values (sodium, fibre, sugar…) — same rule as typed meals.
+ */
+export function withLabelMicros<T extends { calories: number; nutrients: any; nutrientMap?: Record<string, number> }>(detail: T, labels: BrandedLabel[]): T {
+  if (!labels.length) return detail;
+  const items = labels.map((l) => ({ brand: '', product: '', size: null, servings: 1, estimate: { calories: l.calories, proteinG: 0, carbsG: 0, fatG: 0 } }));
+  const results = labels.map((l) => ({ kind: 'found' as const, facts: { name: '', brand: '', servingSize: null, calories: l.calories, proteinG: 0, carbsG: 0, fatG: 0, micros: l.micros, sources: [] } }));
+  const m = applyLabelMicros({ calories: detail.calories, nutrients: detail.nutrients, nutrientMap: detail.nutrientMap }, items as any, results as any);
+  return { ...detail, nutrients: { ...detail.nutrients, ...m.nutrients }, nutrientMap: m.nutrientMap };
 }
 
 export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhotoDeps): Promise<MealPhotoResponse> {
@@ -157,7 +174,7 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
     } else {
       const raw = await deps.analyzeV2(req.images, { existingItems: req.existingItems, region: req.region, userFoods: req.userFoods });
       const resolved = await resolveItems(raw.items, prefix, deps.lookup);
-      await applyBrandedItems(raw, resolved.items, req.userId, deps);
+      const labels = await applyBrandedItems(raw, resolved.items, req.userId, deps);
       // Portion calibration (portionCalibration.ts): systematic weight bias per
       // food type, fitted on weighed Nutrition5k dishes for this model only.
       if (CALIBRATION_ON() && deps.model === CALIBRATED_MODEL) {
@@ -165,7 +182,9 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
       }
       usdaHits = resolved.usdaHits;
       const base = detailFromItems(raw, resolved.items);
-      const { detail, meta } = await deps.enrich(base, { region: req.region, usdaMicros: resolved.usdaMicros });
+      const enriched = await deps.enrich(base, { region: req.region, usdaMicros: resolved.usdaMicros });
+      const meta = enriched.meta;
+      const detail = withLabelMicros({ ...enriched.detail, calories: sumItems(resolved.items).calories }, labels);
       const body: Omit<MealPhotoResponse, 'analysisId'> = {
         ...detail,
         // Enrichment never touches macros today; pin them to the item sum

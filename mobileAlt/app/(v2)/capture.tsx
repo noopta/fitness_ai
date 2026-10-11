@@ -44,6 +44,7 @@ import { SourceLinks } from '../../src/v2/food/SourceLinks';
 import { describeWithLookup, liveStep } from '../../src/v2/food/lookup';
 import { useAuth } from '../../src/context/AuthContext';
 import { richLogFields } from '../../src/components/coach/nutrition/sheets/sheetHelpers';
+import { scaleMicros, microFields } from '../../src/v2/food/micros';
 import { preparePhoto } from '../../src/components/coach/nutrition/mealPhotoPrep';
 import {
   applyEdit, editMode, itemLogFields, itemsFromParse, itemsFromPhoto, itemSubtitle, mealNameFrom, mergeItems,
@@ -132,6 +133,8 @@ function CaptureScreenInner() {
       name: p.name, brand: p.brand ?? null, code, receipts, ...extra,
       servingSize: p.servingSize ?? `${grams} g`,
       calories: Math.round((base.calories ?? 0) * f), proteinG: Math.round((base.proteinG ?? 0) * f), carbsG: Math.round((base.carbsG ?? 0) * f), fatG: Math.round((base.fatG ?? 0) * f),
+      // Label micros, scaled exactly like the macros above (per 100 g × grams/100).
+      micros: Object.keys(scaleMicros(base, f)).length ? scaleMicros(base, f) : scaleMicros(p.nutrients, f),
     };
   };
   const lookup = async (code: string) => {
@@ -305,7 +308,7 @@ function CaptureScreenInner() {
     setBusy(true);
     const k = (v: any) => Math.round((Number(v) || 0) * servings);
     try {
-      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: slot, calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), source: 'barcode', barcode: product.code } as any);
+      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: slot, calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), ...microFields(product.micros, servings), source: 'barcode', barcode: product.code } as any);
       // A web answer the user just logged is confirmed for everyone who scans that code next.
       if (product.web) void nutritionApi.confirmWebBarcode(product.code).catch(() => {});
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();

@@ -7,7 +7,7 @@ vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { th
 
 import { pickHints } from '../services/food/userFoodHints.js';
 import { buildMealPhotoV2Prompt, coerceRawItem } from '../services/food/mealPhotoSchema.js';
-import { applyBrandedItems } from '../services/food/mealPhotoPipeline.js';
+import { applyBrandedItems, withLabelMicros } from '../services/food/mealPhotoPipeline.js';
 
 describe('user food hints', () => {
   it('ranks saved foods and repeated meals, dedupes, drops one-offs and long names', () => {
@@ -40,7 +40,7 @@ describe('branded items in photos', () => {
       { id: 'b', name: 'Ketchup', calories: 20, proteinG: 0, carbsG: 5, fatG: 0, source: 'usda', per100g: {} },
     ];
     const resolveBranded = vi.fn().mockResolvedValue([{ calories: 570, proteinG: 24, carbsG: 46, fatG: 32, site: 'mcdonalds.com', url: 'https://www.mcdonalds.com/ca/en-ca/product/big-mac.html' }]);
-    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded })).toBe(1);
+    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded })).toHaveLength(0); // no label micros in this answer
     expect(resolveBranded.mock.calls[0][0]).toEqual([{ brand: "McDonald's", product: 'Big Mac', estimate: { calories: 557, proteinG: 25, carbsG: 45, fatG: 30 } }]);
     expect(items[0]).toMatchObject({ calories: 570, source: 'brand', per100g: null, lookupSource: { site: 'mcdonalds.com' } });
     expect(items[1].calories).toBe(20);
@@ -48,8 +48,20 @@ describe('branded items in photos', () => {
   it('keeps the estimate when the lookup finds nothing or fails', async () => {
     const raw: any = { items: [{ name: 'Mystery latte', brand: 'Corner Cafe' }] };
     const items: any[] = [{ name: 'Mystery latte', calories: 200, proteinG: 8, carbsG: 20, fatG: 8, source: 'model' }];
-    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded: vi.fn().mockResolvedValue([null]) })).toBe(0);
-    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded: vi.fn().mockRejectedValue(new Error('x')) })).toBe(0);
+    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded: vi.fn().mockResolvedValue([null]) })).toEqual([]);
+    expect(await applyBrandedItems(raw, items, 'u1', { resolveBranded: vi.fn().mockRejectedValue(new Error('x')) })).toEqual([]);
     expect(items[0].calories).toBe(200);
+  });
+  it('a branded item brings its label micros; its generic share is replaced', async () => {
+    const raw = { items: [{ name: 'Big Mac', brand: "McDonald's", usdaQuery: 'hamburger', grams: 210 }, { name: 'Fries', usdaQuery: 'french fries', grams: 110 }] } as any;
+    const items = [{ calories: 557, proteinG: 25, carbsG: 45, fatG: 30 }, { calories: 320, proteinG: 4, carbsG: 42, fatG: 15 }] as any;
+    const labels = await applyBrandedItems(raw, items, 'u1', { resolveBranded: vi.fn().mockResolvedValue([{ calories: 590, proteinG: 25, carbsG: 46, fatG: 34, site: 'mcdonalds.com', url: null, micros: { sodiumMg: 1050, fiberG: 3 } }]) });
+    expect(labels).toEqual([{ calories: 590, micros: { sodiumMg: 1050, fiberG: 3 } }]);
+    // Meal of 910 kcal; generic micros say 2,000 mg sodium / 10 g fibre spread across it.
+    const out = withLabelMicros({ calories: 910, nutrients: { sodiumMg: 2000, fiberG: 10, vitaminCMg: 12 } }, labels);
+    expect(out.nutrients.sodiumMg).toBeCloseTo(2000 - 2000 * (590 / 910) + 1050, 0);
+    expect(out.nutrients.fiberG).toBeCloseTo(10 - 10 * (590 / 910) + 3, 0);
+    expect(out.nutrients.vitaminCMg).toBe(12); // not on the label: share kept (scale 1)
+    expect(withLabelMicros({ calories: 500, nutrients: { sodiumMg: 900 } }, [])).toEqual({ calories: 500, nutrients: { sodiumMg: 900 } });
   });
 });
