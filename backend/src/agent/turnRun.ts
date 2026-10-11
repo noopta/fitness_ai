@@ -19,6 +19,8 @@ export interface Run {
   steps: Step[];
   /** Expensive-tool budget for this turn (program generations). */
   programGenerations: number;
+  /** Web searches made this turn (search_web is capped per turn). */
+  webSearches: number;
   emit?: (s: Step) => void;
 }
 
@@ -32,7 +34,7 @@ const live = (r: Run | undefined, now = Date.now()) => !!r && r.finishedAt == nu
 /** Start a turn, or null when one is already running for this user. */
 export function startRun(userId: string, message: string, emit?: (s: Step) => void, now = Date.now()): Run | null {
   if (live(runs.get(userId), now)) return null;
-  const run: Run = { userId, message, startedAt: now, finishedAt: null, steps: [], programGenerations: 0, emit };
+  const run: Run = { userId, message, startedAt: now, finishedAt: null, steps: [], programGenerations: 0, webSearches: 0, emit };
   runs.set(userId, run);
   return run;
 }

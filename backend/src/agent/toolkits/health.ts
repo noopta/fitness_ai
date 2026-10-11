@@ -626,25 +626,69 @@ export const HEALTH_TOOLS = [
 
 HEALTH_TOOLS.push(tool({
   name: 'query_research', kind: 'read', core: true, fn: 'MEM-06',
-  description: 'Search the curated research feed (PubMed, NIH, medical schools, Huberman Lab) for a topic and return a few summaries with sources, to ground an answer in evidence.',
+  description: 'Search Axiom\'s own research library by meaning: certification textbooks (NASM, ACE, NCSF, NFPT), nutrition-science notes, Huberman Lab transcripts (with the speaker), and the curated research feed (PubMed, NIH, medical schools). Use it first for training, nutrition, recovery and supplement questions; cite what you use. If it comes back thin or the question is recent, follow up with search_web.',
   input_schema: schema({ query: { type: 'string' }, limit: { type: 'number' } }, ['query']),
-  receipt: (i) => ({ verb: 'Searched', text: `Research · ${str(i.query)}` }),
-  refine: (r) => r?.count != null ? `Research · ${r.count} ${r.count === 1 ? 'source' : 'sources'}` : null,
+  receipt: (i) => ({ verb: 'Searched', text: `Library · ${str(i.query).slice(0, 40)}` }),
+  refine: (r) => r?.count != null ? `Library · ${r.count} ${r.count === 1 ? 'passage' : 'passages'}` : null,
   execute: async (input) => {
     const q = str(input.query);
-    const limit = Math.max(1, Math.min(8, numOr(input.limit, 3)!));
+    const limit = Math.max(1, Math.min(6, numOr(input.limit, 4)!));
     if (!q) return { query: q, count: 0, results: [] };
+    const [{ retrieveRelevantChunks }, { retrievePodcastChunks }] = await Promise.all([
+      import('../../services/ragService.js'),
+      import('../../services/podcast/podcastRagService.js'),
+    ]);
+    // Library (embeddings, by meaning) + podcasts + the feed's headlines, in parallel. Each degrades to [] on failure.
     const words = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3).slice(0, 4);
-    const items = await prisma.feedItem.findMany({
-      where: { OR: [{ title: { contains: q } }, { summary: { contains: q } }, { tags: { contains: q.toLowerCase() } }, ...words.map((w) => ({ title: { contains: w } }))] },
-      orderBy: { fetchedAt: 'desc' }, take: limit, select: { id: true, title: true, summary: true, source: true, url: true },
-    });
-    return { query: q, count: items.length, results: items };
+    const [book, pod, feed] = await Promise.all([
+      retrieveRelevantChunks(q, limit).catch(() => []),
+      retrievePodcastChunks(q, Math.min(3, limit)).catch(() => []),
+      prisma.feedItem.findMany({
+        where: { OR: [{ title: { contains: q } }, { summary: { contains: q } }, ...words.map((w) => ({ title: { contains: w } })), ...words.map((w) => ({ summary: { contains: w } }))] },
+        orderBy: { fetchedAt: 'desc' }, take: 3, select: { title: true, summary: true, source: true, url: true },
+      }).catch(() => []),
+    ]);
+    // The two collections use different embedding models, so different floors
+    // (checked 11 Oct 2026: below these the passages were only loosely related).
+    const BOOK_MIN = 0.45, POD_MIN = 0.6;
+    const results = [
+      ...book.filter((c: any) => c.score >= BOOK_MIN).map((c: any) => ({ title: [c.source, c.chapter].filter(Boolean).join(' — '), source: c.source, text: String(c.content).slice(0, 600), url: null as string | null })),
+      ...pod.filter((c: any) => c.score >= POD_MIN).map((c: any) => ({ title: `${c.guestName ?? c.speaker ?? 'Huberman Lab'} — ${c.episodeTitle}`, source: 'Huberman Lab', speaker: c.speaker, text: String(c.content).slice(0, 600), url: c.youtubeUrl })),
+      ...feed.map((x: any) => ({ title: x.title, source: x.source, text: String(x.summary ?? '').slice(0, 400), url: x.url })),
+    ];
+    return { query: q, count: results.length, results };
   },
   card: (_i, r) => r.count ? {
-    fn: 'MEM-06', pattern: 'glance', rule: 'show', meta: { label: 'Sources' },
-    rows: r.results.map((x: any) => ({ key: x.title, sub: x.source })),
-    actions: r.results.slice(0, 3).map((x: any, i: number) => ({ id: `open${i}`, label: `Open: ${x.title}`.slice(0, 36), kind: 'secondary' as const, client: { action: 'open_url' as const, args: { url: x.url } } })),
+    fn: 'MEM-06', pattern: 'glance', rule: 'show', meta: { label: 'From the library' },
+    rows: r.results.slice(0, 5).map((x: any) => ({ key: x.title.slice(0, 80), sub: x.source })),
+    actions: r.results.filter((x: any) => x.url).slice(0, 3).map((x: any, i: number) => ({ id: `open${i}`, label: `Open: ${x.title}`.slice(0, 36), kind: 'secondary' as const, client: { action: 'open_url' as const, args: { url: x.url } } })),
+  } : null,
+}));
+
+const WEB_SEARCHES_PER_TURN = 3;
+HEALTH_TOOLS.push(tool({
+  name: 'search_web', kind: 'read', core: true, fn: 'MEM-07',
+  description: 'Search the web (Google) and get a short, sourced answer. Use it for research and evidence questions the library doesn\'t cover well ("what does the latest research say about…", supplements, injuries and recovery protocols, new studies), and for current facts (product details, guidelines, events, a restaurant\'s or brand\'s info). Never for the user\'s own data — use the read tools. Ask one focused question per call; up to 3 per turn. Cite the sources it returns.',
+  input_schema: schema({ question: { type: 'string', description: 'One focused question, e.g. "evidence for collagen + vitamin C before rehab sessions for tendon repair"' } }, ['question']),
+  receipt: (i) => ({ verb: 'Searched', text: `Web · ${str(i.question).slice(0, 44)}` }),
+  refine: (r) => r?.sources ? `Web · ${r.sources.length} ${r.sources.length === 1 ? 'source' : 'sources'}` : r?.note ? 'Web · no reliable sources' : null,
+  execute: async (input, userId) => {
+    const { currentRun } = await import('../turnRun.js');
+    const run = currentRun();
+    if (run) {
+      if (run.webSearches >= WEB_SEARCHES_PER_TURN) return { note: 'Web search limit for this turn reached — answer with what you have.' };
+      run.webSearches++;
+    }
+    const { searchWeb } = await import('../../services/webSearch.js');
+    const r = await searchWeb(str(input.question));
+    console.log(`[web-search] user=${userId.slice(0, 8)} kind=${r.kind} sources=${r.sources.length} ms=${r.ms}`);
+    if (r.kind !== 'answered') return { note: r.kind === 'unavailable' ? 'Web search is unavailable right now — say so if it matters, and answer from what you know, flagged as such.' : 'No reliable sources found — say the evidence could not be confirmed online.' };
+    return { answer: r.answer, sources: r.sources };
+  },
+  card: (_i, r) => r?.sources?.length ? {
+    fn: 'MEM-07', pattern: 'glance', rule: 'show', meta: { label: 'Sources' },
+    rows: r.sources.map((x: any, i: number) => ({ key: x.title.slice(0, 80), sub: x.site ?? undefined, ...(x.url ? { action: `src${i}` } : {}) })),
+    actions: r.sources.filter((x: any) => x.url).slice(0, 5).map((x: any) => ({ id: `src${r.sources.indexOf(x)}`, label: `Open ${x.site ?? 'source'}`.slice(0, 36), kind: 'secondary' as const, client: { action: 'open_url' as const, args: { url: x.url } } })),
   } : null,
 }));
 registerToolkit(HEALTH_TOOLS);
