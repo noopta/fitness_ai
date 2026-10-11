@@ -1,0 +1,1281 @@
+{
+ "chain": "dutch-bros",
+ "country": "US",
+ "source": {
+  "url": "https://www.dutchbros.com/website/menu/nutritional-guide.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "zero-sugar-tigers-blood-rebel-iced",
+   "name": "Zero Sugar Tigers Blood Rebel (Iced)",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "paris-black-tea-hot",
+   "name": "Paris Black Tea (Hot)",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "sodiumMg": 15,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-breve-hot",
+   "name": "Caramel Pumpkin Brûlée Breve (Hot)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 720,
+     "proteinG": 16,
+     "carbsG": 59,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 380,
+      "saturatedFatG": 34,
+      "cholesterolMg": 135
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 640,
+     "proteinG": 13,
+     "carbsG": 56,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 340,
+      "saturatedFatG": 30,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 52,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-breve-iced",
+   "name": "Caramel Pumpkin Brûlée Breve (Iced)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 12,
+     "carbsG": 55,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 300,
+      "saturatedFatG": 26,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 52,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 260,
+      "saturatedFatG": 22,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 47,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 180,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-latte-hot",
+   "name": "Caramel Pumpkin Brulee Latte (Hot)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 490,
+     "proteinG": 19,
+     "carbsG": 70,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 63,
+      "sodiumMg": 360,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 440,
+     "proteinG": 16,
+     "carbsG": 64,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 59,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 370,
+     "proteinG": 11,
+     "carbsG": 57,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 52,
+      "sodiumMg": 250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-latte-iced",
+   "name": "Caramel Pumpkin Brulee Latte (Iced)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 450,
+     "proteinG": 16,
+     "carbsG": 66,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 59,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 55,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 340,
+     "proteinG": 8,
+     "carbsG": 53,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 48,
+      "sodiumMg": 210,
+      "saturatedFatG": 9,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-chai-hot",
+   "name": "Caramel Pumpkin Brûlée Chai (Hot)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 780,
+     "proteinG": 11,
+     "carbsG": 101,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 310,
+      "saturatedFatG": 27,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 670,
+     "proteinG": 9,
+     "carbsG": 89,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 270,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 76,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 230,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-chai-iced",
+   "name": "Caramel Pumpkin Brûlée Chai (Iced)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 9,
+     "carbsG": 89,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 270,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 550,
+     "proteinG": 7,
+     "carbsG": 76,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 230,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 440,
+     "proteinG": 5,
+     "carbsG": 64,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 190,
+      "saturatedFatG": 14,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-freeze-blended",
+   "name": "Caramel Pumpkin Brûlée Freeze (Blended)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 970,
+     "proteinG": 23,
+     "carbsG": 152,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 141,
+      "sodiumMg": 450,
+      "saturatedFatG": 22,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 770,
+     "proteinG": 17,
+     "carbsG": 122,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 113,
+      "sodiumMg": 360,
+      "saturatedFatG": 18,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 570,
+     "proteinG": 11,
+     "carbsG": 92,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 270,
+      "saturatedFatG": 14,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-shake-blended",
+   "name": "Caramel Pumpkin Brûlée Shake (Blended)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1050,
+     "proteinG": 18,
+     "carbsG": 201,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 190,
+      "sodiumMg": 580,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 830,
+     "proteinG": 14,
+     "carbsG": 155,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 146,
+      "sodiumMg": 450,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 600,
+     "proteinG": 10,
+     "carbsG": 109,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 102,
+      "sodiumMg": 310,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pumpkin-brulee-cold-brew-iced",
+   "name": "Caramel Pumpkin Brûlée Cold Brew (Iced)",
+   "category": "Caramel Pumpkin Brûlée",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 48,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 47,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 46,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-latte-hot",
+   "name": "Cookie Butter Latte (Hot)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 650,
+     "proteinG": 20,
+     "carbsG": 80,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 64,
+      "sodiumMg": 510,
+      "saturatedFatG": 21,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 16,
+     "carbsG": 75,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 480,
+      "saturatedFatG": 20,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 11,
+     "carbsG": 67,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 53,
+      "sodiumMg": 400,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-latte-iced",
+   "name": "Cookie Butter Latte (Iced)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 610,
+     "proteinG": 17,
+     "carbsG": 76,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 480,
+      "saturatedFatG": 20,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 570,
+     "proteinG": 14,
+     "carbsG": 71,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 57,
+      "sodiumMg": 440,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 63,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 50,
+      "sodiumMg": 360,
+      "saturatedFatG": 17,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-protein-latte-iced",
+   "name": "Cookie Butter Protein Latte (Iced)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 660,
+     "proteinG": 32,
+     "carbsG": 72,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 57,
+      "sodiumMg": 430,
+      "saturatedFatG": 20,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 26,
+     "carbsG": 67,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 54,
+      "sodiumMg": 400,
+      "saturatedFatG": 19,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 520,
+     "proteinG": 16,
+     "carbsG": 61,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 48,
+      "sodiumMg": 340,
+      "saturatedFatG": 17,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-freeze-blended",
+   "name": "Cookie Butter Freeze (Blended)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1130,
+     "proteinG": 24,
+     "carbsG": 161,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 142,
+      "sodiumMg": 600,
+      "saturatedFatG": 30,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 930,
+     "proteinG": 18,
+     "carbsG": 131,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 114,
+      "sodiumMg": 510,
+      "saturatedFatG": 26,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 730,
+     "proteinG": 12,
+     "carbsG": 101,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 86,
+      "sodiumMg": 420,
+      "saturatedFatG": 22,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-chai-hot",
+   "name": "Cookie Butter Chai (Hot)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 710,
+     "proteinG": 13,
+     "carbsG": 108,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 430,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 640,
+     "proteinG": 10,
+     "carbsG": 95,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 390,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 560,
+     "proteinG": 8,
+     "carbsG": 82,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 69,
+      "sodiumMg": 350,
+      "saturatedFatG": 17,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-chai-iced",
+   "name": "Cookie Butter Chai (Iced)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 670,
+     "proteinG": 11,
+     "carbsG": 101,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 88,
+      "sodiumMg": 410,
+      "saturatedFatG": 18,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 9,
+     "carbsG": 88,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 370,
+      "saturatedFatG": 18,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 530,
+     "proteinG": 6,
+     "carbsG": 75,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 340,
+      "saturatedFatG": 17,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-mocha-hot",
+   "name": "Cookie Butter Mocha (Hot)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 810,
+     "proteinG": 18,
+     "carbsG": 109,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 91,
+      "sodiumMg": 640,
+      "saturatedFatG": 25,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 740,
+     "proteinG": 15,
+     "carbsG": 99,
+     "fatG": 33,
+     "micros": {
+      "sugarG": 83,
+      "sodiumMg": 590,
+      "saturatedFatG": 24,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 620,
+     "proteinG": 10,
+     "carbsG": 83,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 68,
+      "sodiumMg": 470,
+      "saturatedFatG": 21,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-mocha-iced",
+   "name": "Cookie Butter Mocha (Iced)",
+   "category": "Cookie Butter",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 750,
+     "proteinG": 16,
+     "carbsG": 101,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 84,
+      "sodiumMg": 590,
+      "saturatedFatG": 24,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 680,
+     "proteinG": 13,
+     "carbsG": 91,
+     "fatG": 31,
+     "micros": {
+      "sugarG": 76,
+      "sodiumMg": 530,
+      "saturatedFatG": 22,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 560,
+     "proteinG": 8,
+     "carbsG": 75,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 60,
+      "sodiumMg": 410,
+      "saturatedFatG": 19,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-rebel-blended",
+   "name": "Autumn Berry Rebel (Blended)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 2,
+     "carbsG": 162,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 158,
+      "sodiumMg": 150,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 470,
+     "proteinG": 2,
+     "carbsG": 120,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 116,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 300,
+     "proteinG": 1,
+     "carbsG": 78,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-rebel-iced",
+   "name": "Autumn Berry Rebel (Iced)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 420,
+     "proteinG": 2,
+     "carbsG": 107,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 102,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 280,
+     "proteinG": 1,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-myst-iced",
+   "name": "Autumn Berry Myst (Iced)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 49,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 31,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-fizz-iced",
+   "name": "Autumn Berry Fizz (Iced)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 99,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 55,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-lemonade-blended",
+   "name": "Autumn Berry Lemonade (Blended)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 154,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 151,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 500,
+     "proteinG": 0,
+     "carbsG": 122,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 119,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 89,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 87,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "autumn-berry-lemonade-iced",
+   "name": "Autumn Berry Lemonade (Iced)",
+   "category": "Autumn Berry",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 80,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 78,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 55,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "kids",
+     "label": "Kids",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 45,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

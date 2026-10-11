@@ -1,0 +1,1665 @@
+{
+ "chain": "capriottis",
+ "country": "US",
+ "source": {
+  "url": "https://cdn.capriottis.com/Capriottis/2025-Nutritional-Information_PDF-combined.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "cap-s-the-scrambler",
+   "name": "Cap's - The Scrambler",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 65,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi",
+   "name": "Pepsi",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 106,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 106,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-pepsi",
+   "name": "Diet Pepsi",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sierra-mist",
+   "name": "Sierra Mist",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper",
+   "name": "Dr. Pepper",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 104,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 104,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade",
+   "name": "Lemonade",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 74,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 74,
+      "sodiumMg": 290,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 108,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 420,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea",
+   "name": "Iced Tea",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "22 fl oz",
+     "label": "22 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie",
+   "name": "Brownie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "1 each",
+     "label": "1 each",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 65,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 40,
+      "sodiumMg": 200,
+      "saturatedFatG": 11,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie",
+   "name": "Chocolate Chip Cookie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "1 each",
+     "label": "1 each",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 53,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 400,
+      "saturatedFatG": 7,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-cookie",
+   "name": "Peanut Butter Cookie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "1 each",
+     "label": "1 each",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 45,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 530,
+      "saturatedFatG": 8,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie",
+   "name": "Sugar Cookie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "1 each",
+     "label": "1 each",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 51,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 430,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-bobbie-craisins-and-juice-box-5-inch-sub",
+   "name": "The Bobbie, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 724,
+     "proteinG": 17,
+     "carbsG": 109,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 65,
+      "sodiumMg": 1275,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "capastrami-craisins-and-juice-box-5-inch-sub",
+   "name": "Capastrami, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 924,
+     "proteinG": 51,
+     "carbsG": 82,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 49,
+      "sodiumMg": 1355,
+      "saturatedFatG": 20,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "cole-turkey-craisins-and-juice-box-5-inch-sub",
+   "name": "Cole Turkey, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 594,
+     "proteinG": 19,
+     "carbsG": 80,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 49,
+      "sodiumMg": 735,
+      "saturatedFatG": 7,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-slaw-be-jo-craisins-and-juice-box-5-inch-sub",
+   "name": "Wagyu Slaw Be Jo, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 750,
+     "proteinG": 25,
+     "carbsG": 81,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 49,
+      "sodiumMg": 1235,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-turkey-craisins-and-juice-box-5-inch-sub",
+   "name": "Veggie Turkey, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 714,
+     "proteinG": 18,
+     "carbsG": 83,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 51,
+      "sodiumMg": 1095,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-cheese-steak-craisins-and-juice-box-5-inch-sub",
+   "name": "Veggie Cheese Steak, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 564,
+     "proteinG": 34,
+     "carbsG": 79,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 44.5,
+      "sodiumMg": 275,
+      "saturatedFatG": 7,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-cole-turkey-craisins-and-juice-box-5-inch-sub",
+   "name": "Veggie Cole Turkey, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 860,
+     "proteinG": 17,
+     "carbsG": 83,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 52,
+      "sodiumMg": 1065,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-steak-craisins-and-juice-box-5-inch-sub",
+   "name": "Cheese Steak, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 584,
+     "proteinG": 35,
+     "carbsG": 76,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 46,
+      "sodiumMg": 1125,
+      "saturatedFatG": 10,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheese-steak-craisins-and-juice-box-5-inch-sub",
+   "name": "Chicken Cheese Steak, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 534,
+     "proteinG": 28,
+     "carbsG": 78,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 46,
+      "sodiumMg": 1075,
+      "saturatedFatG": 6,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-craisins-and-juice-box-5-inch-sub",
+   "name": "BBQ Chicken, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 724,
+     "proteinG": 28,
+     "carbsG": 93,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 54,
+      "sodiumMg": 1365,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-chicken-craisins-and-juice-box-5-inch-sub",
+   "name": "Chipotle Chicken, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 794,
+     "proteinG": 29,
+     "carbsG": 87,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 48,
+      "sodiumMg": 1765,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parm-melt-craisins-and-juice-box-5-inch-sub",
+   "name": "Chicken Parm Melt, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 594,
+     "proteinG": 30,
+     "carbsG": 86,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 51,
+      "sodiumMg": 1395,
+      "saturatedFatG": 6,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-italian-craisins-and-juice-box-5-inch-sub",
+   "name": "Grilled Italian, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 414,
+     "proteinG": 19,
+     "carbsG": 78,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 48,
+      "sodiumMg": 1465,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "homemade-meatball-craisins-and-juice-box-5-inch-sub",
+   "name": "Homemade Meatball, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 614,
+     "proteinG": 31,
+     "carbsG": 84,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 48,
+      "sodiumMg": 1455,
+      "saturatedFatG": 12,
+      "cholesterolMg": 128
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage-craisins-and-juice-box-5-inch-sub",
+   "name": "Italian Sausage, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 744,
+     "proteinG": 23,
+     "carbsG": 80,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 48,
+      "sodiumMg": 1450,
+      "saturatedFatG": 18,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "homemade-turkey-craisins-and-juice-box-5-inch-sub",
+   "name": "Homemade Turkey Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 334,
+     "proteinG": 19,
+     "carbsG": 76,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 46,
+      "sodiumMg": 905,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "american-wagyu-roast-beef-craisins-and-juice-box-5-inch-sub",
+   "name": "American Wagyu Roast Beef Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 780,
+     "proteinG": 26,
+     "carbsG": 78,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 46,
+      "sodiumMg": 1675,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-craisins-and-juice-box-5-inch-sub",
+   "name": "Italian Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 424,
+     "proteinG": 19,
+     "carbsG": 79,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 48,
+      "sodiumMg": 1465,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna-craisins-and-juice-box-5-inch-sub",
+   "name": "Tuna, Craisins, and Juice Box (5 inch sub)",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 364,
+     "proteinG": 36,
+     "carbsG": 76,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 46,
+      "sodiumMg": 1055,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-cheese-on-white-craisins-and-juice-box",
+   "name": "Grilled Cheese on White, Craisins, and Juice Box",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "entire meal",
+     "label": "entire meal",
+     "calories": 520,
+     "proteinG": 9,
+     "carbsG": 79,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 93,
+      "sodiumMg": 750,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "craisins",
+   "name": "Craisins",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "1 serving",
+     "label": "1 serving",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 29,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "juice-box",
+   "name": "Juice Box",
+   "category": "Cap's Kids",
+   "sizes": [
+    {
+     "size": "1 juice box",
+     "label": "1 juice box",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-noodle-soup",
+   "name": "Chicken Noodle Soup",
+   "category": "Soups",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 100,
+     "proteinG": 10,
+     "carbsG": 10,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 790,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-england-clam-chowder",
+   "name": "New England Clam Chowder",
+   "category": "Soups",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 350,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 1000,
+      "saturatedFatG": 13,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "tomato-bisque",
+   "name": "Tomato Bisque",
+   "category": "Soups",
+   "sizes": [
+    {
+     "size": "8 oz",
+     "label": "8 oz",
+     "calories": 200,
+     "proteinG": 5,
+     "carbsG": 17,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 680,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-bobbie",
+   "name": "The Bobbie",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 650,
+     "proteinG": 17,
+     "carbsG": 60,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 21,
+      "sodiumMg": 1260,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 2330,
+     "proteinG": 66,
+     "carbsG": 211,
+     "fatG": 135,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 61,
+      "sodiumMg": 4450,
+      "saturatedFatG": 22,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "capastrami",
+   "name": "Capastrami",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 850,
+     "proteinG": 51,
+     "carbsG": 33,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1340,
+      "saturatedFatG": 20,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "cole-turkey",
+   "name": "Cole Turkey",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 520,
+     "proteinG": 19,
+     "carbsG": 31,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 720,
+      "saturatedFatG": 7,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 1980,
+     "proteinG": 80,
+     "carbsG": 127,
+     "fatG": 128,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 18,
+      "sodiumMg": 2770,
+      "saturatedFatG": 30,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-slaw-be-jo",
+   "name": "Wagyu Slaw Be Jo",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 550,
+     "proteinG": 25,
+     "carbsG": 32,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1220,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-turkey",
+   "name": "Veggie Turkey",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 640,
+     "proteinG": 18,
+     "carbsG": 34,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 70,
+      "sodiumMg": 1080,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 2310,
+     "proteinG": 70,
+     "carbsG": 139,
+     "fatG": 164,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 24,
+      "sodiumMg": 3910,
+      "saturatedFatG": 32,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-cheese-steak",
+   "name": "Veggie Cheese Steak",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 490,
+     "proteinG": 34,
+     "carbsG": 30,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0.5,
+      "sodiumMg": 260,
+      "saturatedFatG": 7,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-cole-turkey",
+   "name": "Veggie Cole Turkey",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 640,
+     "proteinG": 17,
+     "carbsG": 34,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1050,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 2380,
+     "proteinG": 71,
+     "carbsG": 132,
+     "fatG": 172,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 25,
+      "sodiumMg": 4090,
+      "saturatedFatG": 33,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-steak",
+   "name": "Cheese Steak",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 510,
+     "proteinG": 35,
+     "carbsG": 27,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1110,
+      "saturatedFatG": 10,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-cheese-steak",
+   "name": "Chicken Cheese Steak",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 460,
+     "proteinG": 28,
+     "carbsG": 29,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1060,
+      "saturatedFatG": 6,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken",
+   "name": "BBQ Chicken",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 650,
+     "proteinG": 28,
+     "carbsG": 44,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 1350,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-chicken",
+   "name": "Chipotle Chicken",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 720,
+     "proteinG": 29,
+     "carbsG": 38,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1750,
+      "saturatedFatG": 10,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-parm-melt",
+   "name": "Chicken Parm Melt",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 520,
+     "proteinG": 30,
+     "carbsG": 37,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1380,
+      "saturatedFatG": 6,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-italian",
+   "name": "Grilled Italian",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 340,
+     "proteinG": 19,
+     "carbsG": 1450,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 29,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "homemade-meatball",
+   "name": "Homemade Meatball",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 540,
+     "proteinG": 31,
+     "carbsG": 35,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1440,
+      "saturatedFatG": 12,
+      "cholesterolMg": 128
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage",
+   "name": "Italian Sausage",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 670,
+     "proteinG": 23,
+     "carbsG": 31,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1420,
+      "saturatedFatG": 18,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "homemade-turkey",
+   "name": "Homemade Turkey",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 260,
+     "proteinG": 19,
+     "carbsG": 27,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 890,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 1110,
+     "proteinG": 79,
+     "carbsG": 114,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 7,
+      "sodiumMg": 3330,
+      "saturatedFatG": 17,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-roast-beef",
+   "name": "Wagyu Roast Beef",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 580,
+     "proteinG": 26,
+     "carbsG": 29,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1660,
+      "saturatedFatG": 8,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian",
+   "name": "Italian",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 350,
+     "proteinG": 19,
+     "carbsG": 30,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1450,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "18 inch",
+     "label": "18 inch",
+     "calories": 1360,
+     "proteinG": 85,
+     "carbsG": 125,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 15,
+      "sodiumMg": 5650,
+      "saturatedFatG": 22,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuna",
+   "name": "Tuna",
+   "category": "Subs",
+   "sizes": [
+    {
+     "size": "5 inch",
+     "label": "5 inch",
+     "calories": 290,
+     "proteinG": 36,
+     "carbsG": 27,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1040,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "balsamic-chicken-salad",
+   "name": "Balsamic Chicken Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 280,
+     "proteinG": 17,
+     "carbsG": 20,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 14,
+      "sodiumMg": 660,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 31,
+     "carbsG": 37,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 25,
+      "sodiumMg": 1150,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-chicken-salad",
+   "name": "BBQ Chicken Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 300,
+     "proteinG": 13,
+     "carbsG": 22,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 630,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 24,
+     "carbsG": 39,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 14,
+      "sodiumMg": 1170,
+      "saturatedFatG": 3,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-turkey-salad",
+   "name": "BBQ Turkey Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 320,
+     "proteinG": 12,
+     "carbsG": 22,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 460,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 560,
+     "proteinG": 19,
+     "carbsG": 38,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 14,
+      "sodiumMg": 820,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-and-bleu",
+   "name": "Wagyu & Bleu",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 420,
+     "proteinG": 18,
+     "carbsG": 17,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1300,
+      "saturatedFatG": 9,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 35,
+     "carbsG": 34,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 2590,
+      "saturatedFatG": 19,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "cap-s-chopped-salad-with-chicken",
+   "name": "Cap's Chopped Salad with Chicken",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 16,
+     "carbsG": 8,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 760,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 29,
+     "carbsG": 14,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1420,
+      "saturatedFatG": 8,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "cap-s-chopped-salad-with-italian-meats",
+   "name": "Cap's Chopped Salad with Italian Meats",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 310,
+     "proteinG": 15,
+     "carbsG": 9,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1140,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 25,
+     "carbsG": 16,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 1900,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "cap-s-creation-garden",
+   "name": "Cap's Creation Garden",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "individual",
+     "label": "Individual",
+     "calories": 60,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-salad",
+   "name": "Side Salad",
+   "category": "Salads",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 10,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 470,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

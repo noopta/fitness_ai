@@ -1,0 +1,485 @@
+{
+ "chain": "krystal",
+ "country": "US",
+ "source": {
+  "url": "https://www.krystal.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "ranch-dusted-fries",
+   "name": "Ranch Dusted Fries",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 440,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1320,
+      "saturatedFatG": 11,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 870,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 600,
+      "saturatedFatG": 5,
+      "cholesterolMg": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dusted-junkyard-fries",
+   "name": "Ranch Dusted Junkyard Fries",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 17,
+     "carbsG": 50,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 2380,
+      "saturatedFatG": 20,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dusted-junkyard-tots",
+   "name": "Ranch Dusted Junkyard Tots",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 17,
+     "carbsG": 45,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 1900,
+      "saturatedFatG": 22,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dusted-nuggets-no-sauce",
+   "name": "Ranch Dusted Nuggets (No Sauce)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "6 pc",
+     "label": "6 pc",
+     "calories": 310,
+     "proteinG": 13,
+     "carbsG": 18,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 820,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "10 pc",
+     "label": "10 pc",
+     "calories": 520,
+     "proteinG": 22,
+     "carbsG": 30,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1240,
+      "saturatedFatG": 13,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "20 pc",
+     "label": "20 pc",
+     "calories": 1040,
+     "proteinG": 44,
+     "carbsG": 60,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 4,
+      "sodiumMg": 2480,
+      "saturatedFatG": 26,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-dusted-tots",
+   "name": "Ranch Dusted Tots",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 480,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 840,
+      "saturatedFatG": 13,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 540,
+      "saturatedFatG": 9,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 390,
+      "saturatedFatG": 7,
+      "cholesterolMg": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-ranch-wings",
+   "name": "Spicy Ranch Wings",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "5 pc",
+     "label": "5 pc",
+     "calories": 520,
+     "proteinG": 23,
+     "carbsG": 15,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1420,
+      "saturatedFatG": 14,
+      "cholesterolMg": 160
+     }
+    },
+    {
+     "size": "10 pc",
+     "label": "10 pc",
+     "calories": 1030,
+     "proteinG": 45,
+     "carbsG": 30,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 2850,
+      "saturatedFatG": 29,
+      "cholesterolMg": 315
+     }
+    },
+    {
+     "size": "20 pc",
+     "label": "20 pc",
+     "calories": 2060,
+     "proteinG": 90,
+     "carbsG": 60,
+     "fatG": 166,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 20,
+      "sodiumMg": 5700,
+      "saturatedFatG": 58,
+      "cholesterolMg": 635
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt",
+   "name": "Bacon & Egg Patty Melt",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 38,
+     "carbsG": 28,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1130,
+      "saturatedFatG": 18,
+      "cholesterolMg": 325
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt-combo-breakfast-no-drink",
+   "name": "Bacon & Egg Patty Melt Combo - Breakfast (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 35,
+     "carbsG": 48,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1660,
+      "saturatedFatG": 24,
+      "cholesterolMg": 315
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-patty-melt-combo-lunch-no-drink",
+   "name": "Bacon & Egg Patty Melt Combo - Lunch (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 40,
+     "carbsG": 50,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 2140,
+      "saturatedFatG": 24,
+      "cholesterolMg": 330
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt",
+   "name": "Chipotle Bacon & Egg Patty Melt",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 38,
+     "carbsG": 31,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 1600,
+      "saturatedFatG": 14,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt-combo-breakfast-no-drink",
+   "name": "Chipotle Bacon & Egg Patty Melt Combo - Breakfast (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 35,
+     "carbsG": 53,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 12,
+      "sodiumMg": 2680,
+      "saturatedFatG": 20,
+      "cholesterolMg": 295
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-bacon-and-egg-patty-melt-combo-lunch-no-drink",
+   "name": "Chipotle Bacon & Egg Patty Melt Combo - Lunch (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 40,
+     "carbsG": 53,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 6580,
+      "saturatedFatG": 20,
+      "cholesterolMg": 310
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt",
+   "name": "Chipotle Patty Melt",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 26,
+     "carbsG": 30,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 1230,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt-combo-breakfast-no-drink",
+   "name": "Chipotle Patty Melt Combo - Breakfast (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 24,
+     "carbsG": 50,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1780,
+      "saturatedFatG": 16,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chipotle-patty-melt-combo-lunch-no-drink",
+   "name": "Chipotle Patty Melt Combo - Lunch (No Drink)",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 28,
+     "carbsG": 52,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 6210,
+      "saturatedFatG": 16,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-patty-melt",
+   "name": "Classic Patty Melt",
+   "category": "LIMITED TIME ITEMS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 30,
+     "carbsG": 52,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1000,
+      "saturatedFatG": 14,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

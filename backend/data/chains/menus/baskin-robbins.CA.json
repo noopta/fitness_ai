@@ -1,0 +1,1551 @@
+{
+ "chain": "baskin-robbins",
+ "country": "CA",
+ "source": {
+  "url": "https://www.baskinrobbins.ca/assets_baskin_robin/pdf/NutritionGuide_BRCanada.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "chocolate-mousse-royale",
+   "name": "Chocolate Mousse Royale®",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 55,
+      "saturatedFatG": 8,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 36,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 90,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 37,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "citrus-twist-ice",
+   "name": "Citrus Twist Ice",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 2,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookies-n-cream",
+   "name": "Cookies ‘N Cream",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 105,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 32,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 170,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 170,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-cookies-n-creme-frozen-dessert",
+   "name": "Non-Dairy Cookies ‘N Crème Frozen Dessert",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 200,
+     "proteinG": 1,
+     "carbsG": 24,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 100,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 160,
+      "saturatedFatG": 13,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotton-candy",
+   "name": "Cotton Candy",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 55,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 90,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 33,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 90,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "decorating-vanilla",
+   "name": "Decorating Vanilla",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 60,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 26,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 95,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "gold-medal-ribbon",
+   "name": "Gold Medal Ribbon",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 80,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 125,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 37,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "icing-on-the-cake",
+   "name": "Icing On The Cake",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 65,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 100,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "jamoca-almond-fudge",
+   "name": "Jamoca Almond Fudge",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 40,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 270,
+     "proteinG": 6,
+     "carbsG": 30,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 65,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 290,
+     "proteinG": 6,
+     "carbsG": 34,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 80,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-tango",
+   "name": "Mango Tango",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 45,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 75,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "per 3 4 cup 188 ml",
+     "label": "Per 3/4 cup (188 mL)",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 80,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "maui-brownie-madness-frozen-yogurt",
+   "name": "Maui Brownie Madness Frozen Yogurt",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 90,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 30,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 22,
+      "sodiumMg": 140,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip",
+   "name": "Mint Chocolate Chip",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 50,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 28,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 85,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-n-chocolate",
+   "name": "Peanut Butter 'N Chocolate",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 100,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 310,
+     "proteinG": 7,
+     "carbsG": 30,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 22,
+      "sodiumMg": 160,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple-coconut-nsa-frozen-dairy-dessert",
+   "name": "Pineapple Coconut NSA Frozen Dairy Dessert",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 45,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 150,
+     "proteinG": 5,
+     "carbsG": 29,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 70,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio-almond",
+   "name": "Pistachio Almond",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 190,
+     "proteinG": 5,
+     "carbsG": 15,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 11,
+      "sodiumMg": 45,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 24,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 70,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "pralines-n-cream",
+   "name": "Pralines 'N Cream",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 90,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 290,
+     "proteinG": 4,
+     "carbsG": 36,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "rainbow-sherbet",
+   "name": "RAINBOW SHERBET",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 40,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 33,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 65,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "rocky-road",
+   "name": "ROCKY ROAD",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 65,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 35,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 100,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "rum-raisin",
+   "name": "RUM RAISIN",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 50,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 75,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake",
+   "name": "STRAWBERRY CHEESECAKE",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 70,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 115,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla",
+   "name": "VANILLA",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 55,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 90,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "very-berry-strawberry",
+   "name": "VERY BERRY STRAWBERRY",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 18,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 45,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 28,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 70,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild-n-reckless-sherbet",
+   "name": "WILD ‘N RECKLESS SHERBET",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 100,
+     "proteinG": 1,
+     "carbsG": 21,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 20,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 34,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 30,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "world-class-chocolate",
+   "name": "WORLD CLASS CHOCOLATE",
+   "category": "Permanent Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 15,
+      "sodiumMg": 55,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 31,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 90,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-grahammy",
+   "name": "THE GRAHAMMY",
+   "category": "Flavour of the Month",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 95,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "love-potion-31",
+   "name": "LOVE POTION #31",
+   "category": "Flavour of the Month",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 45,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 70,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-dulce-de-leche",
+   "name": "BANANA DULCE DE LECHE",
+   "category": "Flavour of the Month",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 115,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutty-coconut",
+   "name": "NUTTY COCONUT",
+   "category": "Seasonal Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 17,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 28,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 85,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "made-with-snickers",
+   "name": "MADE WITH SNICKERS®",
+   "category": "Seasonal Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 90,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 36,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "baseball-nut",
+   "name": "BASEBALL NUT",
+   "category": "Seasonal Flavours",
+   "sizes": [
+    {
+     "size": "2 5 oz 71 g",
+     "label": "2.5 oz (71 g)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 80,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz 113 g",
+     "label": "4 oz (113 g)",
+     "calories": 270,
+     "proteinG": 5,
+     "carbsG": 34,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 130,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-mania",
+   "name": "MANGO MANIA",
+   "category": "Seasonal Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 19,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 40,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 30,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 65,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "mom-s-makin-cookies",
+   "name": "MOM'S MAKIN' COOKIES®",
+   "category": "Seasonal Flavours",
+   "sizes": [
+    {
+     "size": "per 2 5 oz 71 g",
+     "label": "Per 2.5 oz (71 g)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 85,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "per 4 oz 113 g",
+     "label": "Per 4 oz (113 g)",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 135,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino-blast-original",
+   "name": "CAPPUCCINO BLAST ORIGINAL",
+   "category": "Cappuccino Blasts",
+   "sizes": [
+    {
+     "size": "per 16oz 473ml",
+     "label": "Per 16oz (473mL)",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 43,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 100,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino-blast-mocha",
+   "name": "CAPPUCCINO BLAST MOCHA",
+   "category": "Cappuccino Blasts",
+   "sizes": [
+    {
+     "size": "per 16oz 473ml",
+     "label": "Per 16oz (473mL)",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 56,
+      "sodiumMg": 120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino-blast-love-potion-31",
+   "name": "CAPPUCCINO BLAST LOVE POTION #31®",
+   "category": "Cappuccino Blasts",
+   "sizes": [
+    {
+     "size": "per 16 fl oz 406 g",
+     "label": "Per 16 fl oz (406 g)",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 55,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 110,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "per 24 fl oz 584 g",
+     "label": "Per 24 fl oz (584 g)",
+     "calories": 520,
+     "proteinG": 9,
+     "carbsG": 77,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 68,
+      "sodiumMg": 100,
+      "saturatedFatG": 14,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie-dough-cookie-base",
+   "name": "CHOCOLATE CHIP COOKIE DOUGH / COOKIE BASE",
+   "category": "Polar Pizza® Ice Cream Treats",
+   "sizes": [
+    {
+     "size": "per 1 8 pie",
+     "label": "Per 1/8 pie",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 55,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "polar-pizza-cookies-n-cream-brownie-base",
+   "name": "Polar Pizza Cookies 'n Cream / Brownie Base",
+   "category": "Polar Pizza Ice Cream Treats",
+   "sizes": [
+    {
+     "size": "per 1 8 pie",
+     "label": "Per 1/8 Pie",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 53,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 320,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "polar-pizza-mint-chocolate-chip-brownie-base",
+   "name": "Polar Pizza Mint Chocolate Chip/Brownie Base",
+   "category": "Polar Pizza Ice Cream Treats",
+   "sizes": [
+    {
+     "size": "per 1 8 pie",
+     "label": "Per 1/8 Pie",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 52,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 32,
+      "sodiumMg": 300,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "polar-pizza-peanut-butter-n-chocolate-and-reese-s-peanut-but",
+   "name": "Polar Pizza Peanut Butter 'n Chocolate and Reese's Peanut Butter Cup / Cookie Base",
+   "category": "Polar Pizza Ice Cream Treats",
+   "sizes": [
+    {
+     "size": "per 1 8 pie",
+     "label": "Per 1/8 Pie",
+     "calories": 380,
+     "proteinG": 5,
+     "carbsG": 52,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "polar-pizza-galactic-brownie-brownie-base",
+   "name": "Polar Pizza Galactic Brownie / Brownie Base",
+   "category": "Polar Pizza Ice Cream Treats",
+   "sizes": [
+    {
+     "size": "per 1 8 pie 100 g",
+     "label": "Per 1/8 Pie (100 g)",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 55,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 290,
+      "saturatedFatG": 6,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-non-dairy-smoothie-with-real-fruit",
+   "name": "Mango Non-Dairy Smoothie with Real Fruit",
+   "category": "Non-Dairy Smoothies with Real Fruit",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 310,
+     "proteinG": 1,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 75,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 460,
+     "proteinG": 1,
+     "carbsG": 114,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 113,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-non-dairy-smoothie-with-real-fruit",
+   "name": "Strawberry Non-Dairy Smoothie with Real Fruit",
+   "category": "Non-Dairy Smoothies with Real Fruit",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 270,
+     "proteinG": 1,
+     "carbsG": 68,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 62,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 410,
+     "proteinG": 2,
+     "carbsG": 102,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 93,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

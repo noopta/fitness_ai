@@ -1,0 +1,3698 @@
+{
+ "chain": "pur-and-simple",
+ "country": "CA",
+ "source": {
+  "url": "https://pursimple.com/wp-content/uploads/2026/08/EN_NUTRITION-GUIDE_FALL-LTO-2026-1.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "strawberry-and-banana",
+   "name": "STRAWBERRY & BANANA",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 297,
+     "proteinG": 5.5,
+     "carbsG": 62,
+     "fatG": 1.3,
+     "micros": {
+      "fiberG": 3.4,
+      "sugarG": 44.7,
+      "sodiumMg": 75,
+      "saturatedFatG": 0.6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-tango",
+   "name": "MANGO TANGO",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 298,
+     "proteinG": 5.4,
+     "carbsG": 62.8,
+     "fatG": 1.9,
+     "micros": {
+      "fiberG": 3.1,
+      "sugarG": 49.4,
+      "sodiumMg": 59,
+      "saturatedFatG": 0.8,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-giant",
+   "name": "GREEN GIANT",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 206,
+     "proteinG": 3.4,
+     "carbsG": 50.3,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 2.9,
+      "sugarG": 42.1,
+      "sodiumMg": 29,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "very-berry",
+   "name": "VERY BERRY",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 229,
+     "proteinG": 3.4,
+     "carbsG": 46.5,
+     "fatG": 1.3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34.9,
+      "sodiumMg": 81,
+      "saturatedFatG": 0.6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "d-tox",
+   "name": "D-TOX",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 303,
+     "proteinG": 5.3,
+     "carbsG": 63.7,
+     "fatG": 1.4,
+     "micros": {
+      "fiberG": 5.7,
+      "sugarG": 45.1,
+      "sodiumMg": 74,
+      "saturatedFatG": 0.7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-bliss",
+   "name": "TROPICAL BLISS",
+   "category": "Smoothies",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 414,
+     "proteinG": 6.3,
+     "carbsG": 93.3,
+     "fatG": 2.3,
+     "micros": {
+      "fiberG": 2.7,
+      "sugarG": 66.1,
+      "sodiumMg": 45,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "espresso",
+   "name": "ESPRESSO",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0.1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "espresso-double",
+   "name": "ESPRESSO DOUBLE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0.2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 2,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "americano",
+   "name": "AMERICANO",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0.1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "americano-double",
+   "name": "AMERICANO DOUBLE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0.2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 2,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino",
+   "name": "CAPPUCCINO",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 69,
+     "proteinG": 4.9,
+     "carbsG": 6.9,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6.5,
+      "sodiumMg": 73,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-cappuccino",
+   "name": "CARAMEL CAPPUCCINO",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 171,
+     "proteinG": 4.9,
+     "carbsG": 31.2,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30.8,
+      "sodiumMg": 73,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-cup",
+   "name": "LATTE CUP",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 87,
+     "proteinG": 6.1,
+     "carbsG": 8.5,
+     "fatG": 3.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8.1,
+      "sodiumMg": 91,
+      "saturatedFatG": 1.9,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-latte",
+   "name": "VANILLA LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 111,
+     "proteinG": 6.1,
+     "carbsG": 14.5,
+     "fatG": 3.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13.8,
+      "sodiumMg": 91,
+      "saturatedFatG": 1.9,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte",
+   "name": "MATCHA LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 204,
+     "proteinG": 7.3,
+     "carbsG": 33.6,
+     "fatG": 3.7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29.8,
+      "sodiumMg": 109,
+      "saturatedFatG": 2.3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate",
+   "name": "HOT CHOCOLATE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 339,
+     "proteinG": 13.4,
+     "carbsG": 44.1,
+     "fatG": 13.6,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 40.3,
+      "sodiumMg": 284,
+      "saturatedFatG": 10.7,
+      "cholesterolMg": 22
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-americano",
+   "name": "ICED AMERICANO",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1,
+     "proteinG": 0,
+     "carbsG": 0.2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 2,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte",
+   "name": "ICED LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 87,
+     "proteinG": 6.1,
+     "carbsG": 8.5,
+     "fatG": 3.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8.1,
+      "sodiumMg": 91,
+      "saturatedFatG": 1.9,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte",
+   "name": "ICED VANILLA LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 111,
+     "proteinG": 6.1,
+     "carbsG": 14.5,
+     "fatG": 3.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13.8,
+      "sodiumMg": 91,
+      "saturatedFatG": 1.9,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte",
+   "name": "ICED MATCHA LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 204,
+     "proteinG": 7.3,
+     "carbsG": 33.6,
+     "fatG": 3.7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29.8,
+      "sodiumMg": 109,
+      "saturatedFatG": 2.3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-chai-latte",
+   "name": "ICED CHAI LATTE",
+   "category": "Coffee bar",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 150,
+     "proteinG": 5.6,
+     "carbsG": 25.4,
+     "fatG": 2.8,
+     "micros": {
+      "fiberG": 1.5,
+      "sugarG": 23.3,
+      "sodiumMg": 88,
+      "saturatedFatG": 1.7,
+      "cholesterolMg": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "pur-mimosa",
+   "name": "PÜR MIMOSA",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 116,
+     "proteinG": 0.7,
+     "carbsG": 12,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 7.8,
+      "sodiumMg": 7,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "guava-mimosa",
+   "name": "GUAVA MIMOSA",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 129,
+     "proteinG": 0,
+     "carbsG": 10.8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 8,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-double",
+   "name": "CAESAR - DOUBLE",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 311,
+     "proteinG": 5.6,
+     "carbsG": 11.2,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 9,
+      "sodiumMg": 1748,
+      "saturatedFatG": 1.7,
+      "cholesterolMg": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-single",
+   "name": "CAESAR - SINGLE",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 215,
+     "proteinG": 5.6,
+     "carbsG": 11.2,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 9,
+      "sodiumMg": 1748,
+      "saturatedFatG": 1.7,
+      "cholesterolMg": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "hard-lemon-lavendar-fizz",
+   "name": "HARD LEMON LAVENDAR FIZZ",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 167,
+     "proteinG": 0.1,
+     "carbsG": 24.6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0.5,
+      "sugarG": 23.5,
+      "sodiumMg": 4,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sparkling-wine-bottle",
+   "name": "SPARKLING WINE - BOTTLE",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 625,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sparkling-wine-glass",
+   "name": "SPARKLING WINE - GLASS",
+   "category": "Cocktails & bubbles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 125,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "virgin-caesar",
+   "name": "VIRGIN CAESAR",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 119,
+     "proteinG": 5.6,
+     "carbsG": 11.2,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 9,
+      "sodiumMg": 1748,
+      "saturatedFatG": 1.7,
+      "cholesterolMg": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-paradise",
+   "name": "PINK PARADISE",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 112,
+     "proteinG": 0.1,
+     "carbsG": 27.9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 26,
+      "sodiumMg": 3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-lavendar-fizz",
+   "name": "LEMON LAVENDAR FIZZ",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 103,
+     "proteinG": 0.2,
+     "carbsG": 24.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0.2,
+      "sugarG": 23.4,
+      "sodiumMg": 4,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-gria",
+   "name": "NO-GRIA",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 180,
+     "proteinG": 0.8,
+     "carbsG": 43.7,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 38.6,
+      "sodiumMg": 9,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freshly-squeezed-oj",
+   "name": "FRESHLY SQUEEZED OJ",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 223,
+     "proteinG": 3.5,
+     "carbsG": 51.6,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41.7,
+      "sodiumMg": 5,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "milk",
+   "name": "MILK",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 207,
+     "proteinG": 14.6,
+     "carbsG": 20.3,
+     "fatG": 7.3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19.4,
+      "sodiumMg": 218,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 29
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-milk",
+   "name": "CHOCOLATE MILK",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 233,
+     "proteinG": 13,
+     "carbsG": 37,
+     "fatG": 3.8,
+     "micros": {
+      "fiberG": 0.4,
+      "sugarG": 37.3,
+      "sodiumMg": 244,
+      "saturatedFatG": 2.2,
+      "cholesterolMg": 19
+     }
+    }
+   ]
+  },
+  {
+   "id": "almond-milk",
+   "name": "ALMOND MILK",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 204,
+     "proteinG": 14.6,
+     "carbsG": 19.5,
+     "fatG": 7.8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7.8,
+      "sodiumMg": 167,
+      "saturatedFatG": 1.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "oat-milk",
+   "name": "OAT MILK",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 213,
+     "proteinG": 4.3,
+     "carbsG": 25.6,
+     "fatG": 9.9,
+     "micros": {
+      "fiberG": 2.8,
+      "sugarG": 8.5,
+      "sodiumMg": 149,
+      "saturatedFatG": 0.7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple-juice",
+   "name": "PINEAPPLE JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 199,
+     "proteinG": 1.4,
+     "carbsG": 48.4,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 37.5,
+      "sodiumMg": 7,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cranberry-juice",
+   "name": "CRANBERRY JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 205,
+     "proteinG": 0,
+     "carbsG": 51.3,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 7,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-juice",
+   "name": "ORANGE JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 156,
+     "proteinG": 2.8,
+     "carbsG": 36.9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31.2,
+      "sodiumMg": 28,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-juice",
+   "name": "APPLE JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 171,
+     "proteinG": 0.4,
+     "carbsG": 42.1,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 35.8,
+      "sodiumMg": 15,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "guava-juice",
+   "name": "GUAVA JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 184,
+     "proteinG": 0,
+     "carbsG": 46.5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41.8,
+      "sodiumMg": 0,
+      "saturatedFatG": 24.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade-juice",
+   "name": "LEMONADE JUICE",
+   "category": "Fresh & cold",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 156,
+     "proteinG": 0.1,
+     "carbsG": 38.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36.9,
+      "sodiumMg": 14,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "norwegian",
+   "name": "NORWEGIAN",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 811,
+     "proteinG": 38.3,
+     "carbsG": 65.3,
+     "fatG": 39.7,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8.2,
+      "sodiumMg": 2870,
+      "saturatedFatG": 13,
+      "cholesterolMg": 422
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-chicken",
+   "name": "FRIED CHICKEN",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1131,
+     "proteinG": 53.3,
+     "carbsG": 77.3,
+     "fatG": 63.4,
+     "micros": {
+      "fiberG": 4.5,
+      "sugarG": 7.8,
+      "sodiumMg": 1693,
+      "saturatedFatG": 20.6,
+      "cholesterolMg": 488
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicago",
+   "name": "CHICAGO",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1108,
+     "proteinG": 49.8,
+     "carbsG": 59.4,
+     "fatG": 70.7,
+     "micros": {
+      "fiberG": 2.9,
+      "sugarG": 4.3,
+      "sodiumMg": 2466,
+      "saturatedFatG": 26,
+      "cholesterolMg": 505
+     }
+    }
+   ]
+  },
+  {
+   "id": "angus",
+   "name": "ANGUS",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1016,
+     "proteinG": 41.2,
+     "carbsG": 66.4,
+     "fatG": 61.9,
+     "micros": {
+      "fiberG": 3.7,
+      "sugarG": 8.8,
+      "sodiumMg": 1967,
+      "saturatedFatG": 23.8,
+      "cholesterolMg": 473
+     }
+    }
+   ]
+  },
+  {
+   "id": "simple",
+   "name": "SIMPLE",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 952,
+     "proteinG": 47,
+     "carbsG": 57.8,
+     "fatG": 53.8,
+     "micros": {
+      "fiberG": 2.9,
+      "sugarG": 4.1,
+      "sodiumMg": 1902,
+      "saturatedFatG": 20.7,
+      "cholesterolMg": 496
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe",
+   "name": "SANTA FE",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1117,
+     "proteinG": 39.1,
+     "carbsG": 91.6,
+     "fatG": 59.4,
+     "micros": {
+      "fiberG": 16.7,
+      "sugarG": 10.4,
+      "sodiumMg": 1390,
+      "saturatedFatG": 19.8,
+      "cholesterolMg": 435
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-start",
+   "name": "FRESH START",
+   "category": "Benedicts",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1108,
+     "proteinG": 28.4,
+     "carbsG": 74.9,
+     "fatG": 71.7,
+     "micros": {
+      "fiberG": 12.9,
+      "sugarG": 10.8,
+      "sodiumMg": 1230,
+      "saturatedFatG": 17.3,
+      "cholesterolMg": 418
+     }
+    }
+   ]
+  },
+  {
+   "id": "ray-s-extravaganza",
+   "name": "RAY'S EXTRAVAGANZA",
+   "category": "Breakfast bowls",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1332,
+     "proteinG": 48.4,
+     "carbsG": 81.6,
+     "fatG": 80.6,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 15.9,
+      "sodiumMg": 2663,
+      "saturatedFatG": 27.1,
+      "cholesterolMg": 329
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-fresh",
+   "name": "GARDEN FRESH",
+   "category": "Breakfast bowls",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1095,
+     "proteinG": 29.8,
+     "carbsG": 82.7,
+     "fatG": 63.4,
+     "micros": {
+      "fiberG": 8.5,
+      "sugarG": 14.4,
+      "sodiumMg": 1527,
+      "saturatedFatG": 18.4,
+      "cholesterolMg": 236
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-poutine",
+   "name": "BREAKFAST POUTINE",
+   "category": "Breakfast bowls",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1393,
+     "proteinG": 47.2,
+     "carbsG": 64.4,
+     "fatG": 93.1,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 6,
+      "sodiumMg": 2840,
+      "saturatedFatG": 35,
+      "cholesterolMg": 362
+     }
+    }
+   ]
+  },
+  {
+   "id": "philly-cheese-steak",
+   "name": "PHILLY CHEESE STEAK",
+   "category": "Breakfast bowls",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1174,
+     "proteinG": 38.2,
+     "carbsG": 72.8,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 2.3,
+      "sugarG": 11.8,
+      "sodiumMg": 2720,
+      "saturatedFatG": 24.6,
+      "cholesterolMg": 298
+     }
+    }
+   ]
+  },
+  {
+   "id": "sunrise",
+   "name": "SUNRISE",
+   "category": "Breakfast bowls",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1476,
+     "proteinG": 38.4,
+     "carbsG": 77.4,
+     "fatG": 100.9,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 13.2,
+      "sodiumMg": 2774,
+      "saturatedFatG": 29.5,
+      "cholesterolMg": 323
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-toast-crisp",
+   "name": "FRENCH TOAST CRISP",
+   "category": "French toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1165,
+     "proteinG": 37.6,
+     "carbsG": 191.9,
+     "fatG": 30.8,
+     "micros": {
+      "fiberG": 3.4,
+      "sugarG": 72.5,
+      "sodiumMg": 1295,
+      "saturatedFatG": 10.9,
+      "cholesterolMg": 258
+     }
+    }
+   ]
+  },
+  {
+   "id": "riri-s-coconut-crunch",
+   "name": "RIRI'S COCONUT CRUNCH",
+   "category": "French toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1315,
+     "proteinG": 41.4,
+     "carbsG": 200.1,
+     "fatG": 39.2,
+     "micros": {
+      "fiberG": 5.2,
+      "sugarG": 72.7,
+      "sodiumMg": 1291,
+      "saturatedFatG": 12.6,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-toast-and-fruits",
+   "name": "FRENCH TOAST & FRUITS",
+   "category": "French toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 927,
+     "proteinG": 30.2,
+     "carbsG": 156.7,
+     "fatG": 22.4,
+     "micros": {
+      "fiberG": 5.4,
+      "sugarG": 68.7,
+      "sodiumMg": 844,
+      "saturatedFatG": 5.4,
+      "cholesterolMg": 258
+     }
+    }
+   ]
+  },
+  {
+   "id": "simple-delight",
+   "name": "SIMPLE DELIGHT",
+   "category": "French toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1099,
+     "proteinG": 32.9,
+     "carbsG": 175.3,
+     "fatG": 32.1,
+     "micros": {
+      "fiberG": 8.9,
+      "sugarG": 85.8,
+      "sodiumMg": 844,
+      "saturatedFatG": 21.4,
+      "cholesterolMg": 258
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-and-fruits",
+   "name": "WAFFLE & FRUITS",
+   "category": "Waffles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 610,
+     "proteinG": 14,
+     "carbsG": 103.7,
+     "fatG": 16.2,
+     "micros": {
+      "fiberG": 2.1,
+      "sugarG": 48.8,
+      "sodiumMg": 522,
+      "saturatedFatG": 4.2,
+      "cholesterolMg": 108
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-waffle",
+   "name": "COOKIE BUTTER WAFFLE",
+   "category": "Waffles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1005,
+     "proteinG": 19.1,
+     "carbsG": 126.5,
+     "fatG": 53.3,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 62.9,
+      "sodiumMg": 663,
+      "saturatedFatG": 15.2,
+      "cholesterolMg": 108
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-cheesecake",
+   "name": "BLUEBERRY CHEESECAKE",
+   "category": "Waffles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 774,
+     "proteinG": 13.3,
+     "carbsG": 102,
+     "fatG": 35.1,
+     "micros": {
+      "fiberG": 2.3,
+      "sugarG": 57.9,
+      "sodiumMg": 750,
+      "saturatedFatG": 18.9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-n-waffle",
+   "name": "CHICKEN 'N' WAFFLE",
+   "category": "Waffles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 769,
+     "proteinG": 28,
+     "carbsG": 70.3,
+     "fatG": 37.6,
+     "micros": {
+      "fiberG": 3.1,
+      "sugarG": 9,
+      "sodiumMg": 1376,
+      "saturatedFatG": 3.9,
+      "cholesterolMg": 77
+     }
+    }
+   ]
+  },
+  {
+   "id": "bananaberry",
+   "name": "BANANABERRY",
+   "category": "Waffles",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 782,
+     "proteinG": 16.6,
+     "carbsG": 122.3,
+     "fatG": 32.9,
+     "micros": {
+      "fiberG": 5.7,
+      "sugarG": 65.9,
+      "sodiumMg": 522,
+      "saturatedFatG": 20.3,
+      "cholesterolMg": 108
+     }
+    }
+   ]
+  },
+  {
+   "id": "oh-la-la",
+   "name": "OH LA LA",
+   "category": "Crepes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 770,
+     "proteinG": 17.9,
+     "carbsG": 146.7,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4.7,
+      "sugarG": 71.6,
+      "sodiumMg": 144,
+      "saturatedFatG": 14.7,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "royale",
+   "name": "ROYALE",
+   "category": "Crepes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1138,
+     "proteinG": 20.4,
+     "carbsG": 191.2,
+     "fatG": 33.5,
+     "micros": {
+      "fiberG": 4.9,
+      "sugarG": 108.4,
+      "sodiumMg": 504,
+      "saturatedFatG": 21.3,
+      "cholesterolMg": 233
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo",
+   "name": "CHORIZO",
+   "category": "Crepes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1281,
+     "proteinG": 47.3,
+     "carbsG": 105.1,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 3.4,
+      "sugarG": 21.8,
+      "sodiumMg": 2066,
+      "saturatedFatG": 24.6,
+      "cholesterolMg": 605
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain-jane",
+   "name": "PLAIN JANE",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 405,
+     "proteinG": 12.2,
+     "carbsG": 73.6,
+     "fatG": 6.2,
+     "micros": {
+      "fiberG": 2.5,
+      "sugarG": 4,
+      "sodiumMg": 1220,
+      "saturatedFatG": 1.6,
+      "cholesterolMg": 58
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-stack-banana",
+   "name": "DELUXE STACK BANANA",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 555,
+     "proteinG": 13.7,
+     "carbsG": 108.1,
+     "fatG": 6.2,
+     "micros": {
+      "fiberG": 2.5,
+      "sugarG": 22,
+      "sodiumMg": 1220,
+      "saturatedFatG": 1.8,
+      "cholesterolMg": 58
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-stack-blueberry",
+   "name": "DELUXE STACK BLUEBERRY",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 439,
+     "proteinG": 12.2,
+     "carbsG": 82,
+     "fatG": 6.3,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9.1,
+      "sodiumMg": 1222,
+      "saturatedFatG": 1.6,
+      "cholesterolMg": 58
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-stack-chocolate-chip",
+   "name": "DELUXE STACK CHOCOLATE CHIP",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 690,
+     "proteinG": 13.7,
+     "carbsG": 115.6,
+     "fatG": 21.2,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 43,
+      "sodiumMg": 1242,
+      "saturatedFatG": 15.1,
+      "cholesterolMg": 58
+     }
+    }
+   ]
+  },
+  {
+   "id": "carole-s-cinna-cakes",
+   "name": "CAROLE'S CINNA-CAKES",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1581,
+     "proteinG": 15.7,
+     "carbsG": 270.3,
+     "fatG": 54.3,
+     "micros": {
+      "fiberG": 3.7,
+      "sugarG": 196.1,
+      "sodiumMg": 1462,
+      "saturatedFatG": 33.1,
+      "cholesterolMg": 163
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-berry",
+   "name": "DOUBLE BERRY",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 626,
+     "proteinG": 19.1,
+     "carbsG": 113,
+     "fatG": 14.8,
+     "micros": {
+      "fiberG": 2.7,
+      "sugarG": 36.1,
+      "sodiumMg": 1308,
+      "saturatedFatG": 8.1,
+      "cholesterolMg": 102
+     }
+    }
+   ]
+  },
+  {
+   "id": "espresso-chocolate",
+   "name": "ESPRESSO CHOCOLATE",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 848,
+     "proteinG": 18.2,
+     "carbsG": 134.5,
+     "fatG": 29.7,
+     "micros": {
+      "fiberG": 4.8,
+      "sugarG": 60.8,
+      "sodiumMg": 1320,
+      "saturatedFatG": 21.5,
+      "cholesterolMg": 102
+     }
+    }
+   ]
+  },
+  {
+   "id": "popular",
+   "name": "POPULAR",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 938,
+     "proteinG": 40.5,
+     "carbsG": 39.6,
+     "fatG": 64.7,
+     "micros": {
+      "fiberG": 0.8,
+      "sugarG": 7,
+      "sodiumMg": 2170,
+      "saturatedFatG": 18.9,
+      "cholesterolMg": 465
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-bacon",
+   "name": "CLASSIC BACON",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 686,
+     "proteinG": 34.2,
+     "carbsG": 32.5,
+     "fatG": 42.1,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.3,
+      "sodiumMg": 1741,
+      "saturatedFatG": 10.7,
+      "cholesterolMg": 424
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-sausage",
+   "name": "CLASSIC SAUSAGE",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 877,
+     "proteinG": 32.1,
+     "carbsG": 34.9,
+     "fatG": 63.4,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.3,
+      "sodiumMg": 1692,
+      "saturatedFatG": 18.8,
+      "cholesterolMg": 453
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-turkey-bacon",
+   "name": "CLASSIC TURKEY BACON",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 701,
+     "proteinG": 37.7,
+     "carbsG": 34.1,
+     "fatG": 42.1,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.2,
+      "sodiumMg": 2278,
+      "saturatedFatG": 10,
+      "cholesterolMg": 443
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-ham",
+   "name": "CLASSIC HAM",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 582,
+     "proteinG": 36.2,
+     "carbsG": 31.8,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.3,
+      "sodiumMg": 1846,
+      "saturatedFatG": 5.9,
+      "cholesterolMg": 449
+     }
+    }
+   ]
+  },
+  {
+   "id": "keto-bacon",
+   "name": "KETO BACON",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 816,
+     "proteinG": 37.8,
+     "carbsG": 31,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 18.4,
+      "sugarG": 10.7,
+      "sodiumMg": 1146,
+      "saturatedFatG": 17.1,
+      "cholesterolMg": 428
+     }
+    }
+   ]
+  },
+  {
+   "id": "keto-ham",
+   "name": "KETO HAM",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 725,
+     "proteinG": 37.6,
+     "carbsG": 30.5,
+     "fatG": 48.3,
+     "micros": {
+      "fiberG": 18.4,
+      "sugarG": 10.7,
+      "sodiumMg": 1123,
+      "saturatedFatG": 13.3,
+      "cholesterolMg": 440
+     }
+    }
+   ]
+  },
+  {
+   "id": "keto-sausage",
+   "name": "KETO SAUSAGE",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 922,
+     "proteinG": 34.9,
+     "carbsG": 32.5,
+     "fatG": 70.5,
+     "micros": {
+      "fiberG": 18.4,
+      "sugarG": 10.7,
+      "sodiumMg": 1021,
+      "saturatedFatG": 22,
+      "cholesterolMg": 443
+     }
+    }
+   ]
+  },
+  {
+   "id": "keto-turkey-bacon",
+   "name": "KETO TURKEY BACON",
+   "category": "Farm fresh eggs - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 818,
+     "proteinG": 40.1,
+     "carbsG": 30.3,
+     "fatG": 57.9,
+     "micros": {
+      "fiberG": 17.8,
+      "sugarG": 9.6,
+      "sodiumMg": 1547,
+      "saturatedFatG": 16.6,
+      "cholesterolMg": 442
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-bacon",
+   "name": "GOURMET BACON",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1242,
+     "proteinG": 38.7,
+     "carbsG": 123.6,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 62.5,
+      "sodiumMg": 1740,
+      "saturatedFatG": 28.7,
+      "cholesterolMg": 465
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-ham",
+   "name": "GOURMET HAM",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1151,
+     "proteinG": 38.6,
+     "carbsG": 123.1,
+     "fatG": 54.3,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 62.5,
+      "sodiumMg": 1717,
+      "saturatedFatG": 24.9,
+      "cholesterolMg": 477
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-sausage",
+   "name": "GOURMET SAUSAGE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1347,
+     "proteinG": 35.9,
+     "carbsG": 125.1,
+     "fatG": 76.5,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 62.5,
+      "sodiumMg": 1615,
+      "saturatedFatG": 33.6,
+      "cholesterolMg": 480
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-turkey-bacon",
+   "name": "GOURMET TURKEY BACON",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1253,
+     "proteinG": 41.4,
+     "carbsG": 124.7,
+     "fatG": 64.1,
+     "micros": {
+      "fiberG": 4.3,
+      "sugarG": 62.5,
+      "sodiumMg": 2142,
+      "saturatedFatG": 28.2,
+      "cholesterolMg": 479
+     }
+    }
+   ]
+  },
+  {
+   "id": "xplosion-bacon",
+   "name": "XPLOSION BACON",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 997,
+     "proteinG": 39.9,
+     "carbsG": 89.7,
+     "fatG": 52.5,
+     "micros": {
+      "fiberG": 4.4,
+      "sugarG": 32.2,
+      "sodiumMg": 1731,
+      "saturatedFatG": 18.8,
+      "cholesterolMg": 482
+     }
+    }
+   ]
+  },
+  {
+   "id": "xplosion-ham",
+   "name": "XPLOSION HAM",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 907,
+     "proteinG": 39.8,
+     "carbsG": 89.2,
+     "fatG": 42.8,
+     "micros": {
+      "fiberG": 4.4,
+      "sugarG": 32.2,
+      "sodiumMg": 1708,
+      "saturatedFatG": 15.1,
+      "cholesterolMg": 494
+     }
+    }
+   ]
+  },
+  {
+   "id": "xplosion-sausage",
+   "name": "XPLOSION SAUSAGE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1103,
+     "proteinG": 37.1,
+     "carbsG": 91.3,
+     "fatG": 65.1,
+     "micros": {
+      "fiberG": 4.4,
+      "sugarG": 32.2,
+      "sodiumMg": 1606,
+      "saturatedFatG": 23.7,
+      "cholesterolMg": 497
+     }
+    }
+   ]
+  },
+  {
+   "id": "xplosion-turkey",
+   "name": "XPLOSION TURKEY",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1009,
+     "proteinG": 42.6,
+     "carbsG": 90.9,
+     "fatG": 52.6,
+     "micros": {
+      "fiberG": 4.4,
+      "sugarG": 32.2,
+      "sodiumMg": 2133,
+      "saturatedFatG": 18.4,
+      "cholesterolMg": 496
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-and-blue",
+   "name": "BLACK & BLUE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1115,
+     "proteinG": 37.6,
+     "carbsG": 101.9,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 33.3,
+      "sodiumMg": 2166,
+      "saturatedFatG": 22.1,
+      "cholesterolMg": 454
+     }
+    }
+   ]
+  },
+  {
+   "id": "canadian-1-2-waffle",
+   "name": "CANADIAN 1/2 WAFFLE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 960,
+     "proteinG": 45.3,
+     "carbsG": 48.8,
+     "fatG": 60.1,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.3,
+      "sodiumMg": 2460,
+      "saturatedFatG": 15.9,
+      "cholesterolMg": 496
+     }
+    }
+   ]
+  },
+  {
+   "id": "canadian-crepe",
+   "name": "CANADIAN CREPE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 995,
+     "proteinG": 46.3,
+     "carbsG": 66.1,
+     "fatG": 56.2,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 10.6,
+      "sodiumMg": 2271,
+      "saturatedFatG": 15.5,
+      "cholesterolMg": 532
+     }
+    }
+   ]
+  },
+  {
+   "id": "canadian-french-toast",
+   "name": "CANADIAN FRENCH TOAST",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1020,
+     "proteinG": 49.5,
+     "carbsG": 61.3,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 1.4,
+      "sugarG": 9.9,
+      "sodiumMg": 2488,
+      "saturatedFatG": 15.8,
+      "cholesterolMg": 535
+     }
+    }
+   ]
+  },
+  {
+   "id": "canadian-pancake",
+   "name": "CANADIAN PANCAKE",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 923,
+     "proteinG": 44.6,
+     "carbsG": 51.3,
+     "fatG": 55.1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3.8,
+      "sodiumMg": 2526,
+      "saturatedFatG": 14.9,
+      "cholesterolMg": 478
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-big-3",
+   "name": "THE BIG 3",
+   "category": "Signature combos",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1590,
+     "proteinG": 80.6,
+     "carbsG": 89.5,
+     "fatG": 95.8,
+     "micros": {
+      "fiberG": 2.2,
+      "sugarG": 5,
+      "sodiumMg": 4721,
+      "saturatedFatG": 28.4,
+      "cholesterolMg": 798
+     }
+    }
+   ]
+  },
+  {
+   "id": "pur-western",
+   "name": "PUR WESTERN",
+   "category": "Omelettes - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 743,
+     "proteinG": 43.4,
+     "carbsG": 39.7,
+     "fatG": 43.9,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 7.8,
+      "sodiumMg": 1319,
+      "saturatedFatG": 12,
+      "cholesterolMg": 945
+     }
+    }
+   ]
+  },
+  {
+   "id": "mish-mash",
+   "name": "MISH MASH",
+   "category": "Omelettes - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1132,
+     "proteinG": 64.4,
+     "carbsG": 43.4,
+     "fatG": 78.6,
+     "micros": {
+      "fiberG": 1.8,
+      "sugarG": 9.2,
+      "sodiumMg": 2310,
+      "saturatedFatG": 25.4,
+      "cholesterolMg": 1016
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie",
+   "name": "VEGGIE",
+   "category": "Omelettes - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 910,
+     "proteinG": 47.3,
+     "carbsG": 51.9,
+     "fatG": 58.6,
+     "micros": {
+      "fiberG": 4.7,
+      "sugarG": 12.4,
+      "sodiumMg": 1332,
+      "saturatedFatG": 18.1,
+      "cholesterolMg": 933
+     }
+    }
+   ]
+  },
+  {
+   "id": "healthy-white",
+   "name": "HEALTHY WHITE",
+   "category": "Omelettes - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 902,
+     "proteinG": 49.1,
+     "carbsG": 43.3,
+     "fatG": 53.7,
+     "micros": {
+      "fiberG": 5.8,
+      "sugarG": 7.1,
+      "sodiumMg": 1703,
+      "saturatedFatG": 10.6,
+      "cholesterolMg": 36
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiesta-feta",
+   "name": "FIESTA FETA",
+   "category": "Omelettes - without toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1149,
+     "proteinG": 59.8,
+     "carbsG": 58,
+     "fatG": 75.6,
+     "micros": {
+      "fiberG": 8.5,
+      "sugarG": 13.6,
+      "sodiumMg": 2049,
+      "saturatedFatG": 25,
+      "cholesterolMg": 1002
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-bacon",
+   "name": "AVOCADO BACON",
+   "category": "Avocado toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1183,
+     "proteinG": 47.5,
+     "carbsG": 94.3,
+     "fatG": 65.3,
+     "micros": {
+      "fiberG": 14.6,
+      "sugarG": 5.2,
+      "sodiumMg": 2291,
+      "saturatedFatG": 16.3,
+      "cholesterolMg": 432
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-lox",
+   "name": "AVOCADO LOX",
+   "category": "Avocado toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1013,
+     "proteinG": 43.7,
+     "carbsG": 96,
+     "fatG": 45.9,
+     "micros": {
+      "fiberG": 15.2,
+      "sugarG": 6.2,
+      "sodiumMg": 3337,
+      "saturatedFatG": 7.9,
+      "cholesterolMg": 392
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-toast",
+   "name": "AVOCADO TOAST",
+   "category": "Avocado toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 980,
+     "proteinG": 42.6,
+     "carbsG": 89,
+     "fatG": 43.9,
+     "micros": {
+      "fiberG": 12.8,
+      "sugarG": 13.4,
+      "sodiumMg": 1418,
+      "saturatedFatG": 10.5,
+      "cholesterolMg": 412
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-vegan",
+   "name": "SIMPLY VEGAN",
+   "category": "Avocado toast",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 811,
+     "proteinG": 18.5,
+     "carbsG": 136.6,
+     "fatG": 23.7,
+     "micros": {
+      "fiberG": 17.5,
+      "sugarG": 48.5,
+      "sodiumMg": 1119,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "marky-mark",
+   "name": "MARKY MARK",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 609,
+     "proteinG": 10.1,
+     "carbsG": 84.9,
+     "fatG": 28.3,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 58.8,
+      "sodiumMg": 298,
+      "saturatedFatG": 20.3,
+      "cholesterolMg": 76
+     }
+    }
+   ]
+  },
+  {
+   "id": "roro-123",
+   "name": "RORO 123",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 507,
+     "proteinG": 9.7,
+     "carbsG": 97.1,
+     "fatG": 12.5,
+     "micros": {
+      "fiberG": 3.5,
+      "sugarG": 45.6,
+      "sodiumMg": 67,
+      "saturatedFatG": 9.9,
+      "cholesterolMg": 91
+     }
+    }
+   ]
+  },
+  {
+   "id": "peters-party-pancakes",
+   "name": "PETERS PARTY PANCAKES",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 633,
+     "proteinG": 12.3,
+     "carbsG": 109,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2.9,
+      "sugarG": 53.3,
+      "sodiumMg": 978,
+      "saturatedFatG": 9.8,
+      "cholesterolMg": 49
+     }
+    }
+   ]
+  },
+  {
+   "id": "junior-bacon",
+   "name": "JUNIOR BACON",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 493,
+     "proteinG": 19,
+     "carbsG": 31.8,
+     "fatG": 27.3,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.1,
+      "sodiumMg": 1116,
+      "saturatedFatG": 5.8,
+      "cholesterolMg": 212
+     }
+    }
+   ]
+  },
+  {
+   "id": "junior-sausage",
+   "name": "JUNIOR SAUSAGE",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 664,
+     "proteinG": 20.6,
+     "carbsG": 33.5,
+     "fatG": 44.8,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 3.1,
+      "sodiumMg": 1268,
+      "saturatedFatG": 12.4,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "mini-smash-burger",
+   "name": "MINI SMASH BURGER",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 980,
+     "proteinG": 29.3,
+     "carbsG": 85.4,
+     "fatG": 57.4,
+     "micros": {
+      "fiberG": 6.5,
+      "sugarG": 6.8,
+      "sodiumMg": 1341,
+      "saturatedFatG": 9.2,
+      "cholesterolMg": 82
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-apple-juice",
+   "name": "KIDS APPLE JUICE",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 114,
+     "proteinG": 0.3,
+     "carbsG": 28,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 0.5,
+      "sugarG": 23.9,
+      "sodiumMg": 10,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chocolate-milk",
+   "name": "KIDS CHOCOLATE MILK",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 155,
+     "proteinG": 8.7,
+     "carbsG": 24.7,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0.3,
+      "sugarG": 24.9,
+      "sodiumMg": 163,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-cranberry-juice",
+   "name": "KIDS CRANBERRY JUICE",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 137,
+     "proteinG": 0,
+     "carbsG": 34.2,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-milk",
+   "name": "KIDS MILK",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 138,
+     "proteinG": 9.7,
+     "carbsG": 13.5,
+     "fatG": 4.9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12.9,
+      "sodiumMg": 145,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-orange-juice",
+   "name": "KIDS ORANGE JUICE",
+   "category": "Kids menu - without toast or drink",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 104,
+     "proteinG": 1.9,
+     "carbsG": 24.6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20.8,
+      "sodiumMg": 19,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "smash-burger",
+   "name": "SMASH BURGER",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1511,
+     "proteinG": 62.7,
+     "carbsG": 93.4,
+     "fatG": 98.4,
+     "micros": {
+      "fiberG": 7.6,
+      "sugarG": 8.6,
+      "sodiumMg": 2770,
+      "saturatedFatG": 23.1,
+      "cholesterolMg": 373
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-smash-burger",
+   "name": "MUSHROOM SMASH BURGER",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1206,
+     "proteinG": 55.9,
+     "carbsG": 86.6,
+     "fatG": 70.2,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 9,
+      "sodiumMg": 1472,
+      "saturatedFatG": 18.4,
+      "cholesterolMg": 179
+     }
+    }
+   ]
+  },
+  {
+   "id": "d-s-crispy-chicken-burger",
+   "name": "D'S CRISPY CHICKEN BURGER",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1267,
+     "proteinG": 35.9,
+     "carbsG": 113.3,
+     "fatG": 75.5,
+     "micros": {
+      "fiberG": 9.7,
+      "sugarG": 13.2,
+      "sodiumMg": 2288,
+      "saturatedFatG": 9.9,
+      "cholesterolMg": 79
+     }
+    }
+   ]
+  },
+  {
+   "id": "energy-bowl",
+   "name": "ENERGY BOWL",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 487,
+     "proteinG": 21,
+     "carbsG": 47,
+     "fatG": 23.3,
+     "micros": {
+      "fiberG": 15.2,
+      "sugarG": 14.4,
+      "sodiumMg": 350,
+      "saturatedFatG": 7.5,
+      "cholesterolMg": 31
+     }
+    }
+   ]
+  },
+  {
+   "id": "korean-fried-chicken-burger",
+   "name": "KOREAN FRIED CHICKEN BURGER",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 974,
+     "proteinG": 29.1,
+     "carbsG": 106.4,
+     "fatG": 37.7,
+     "micros": {
+      "fiberG": 10.4,
+      "sugarG": 31,
+      "sodiumMg": 2555,
+      "saturatedFatG": 2.7,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-wrap",
+   "name": "BUFFALO CHICKEN WRAP",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1022,
+     "proteinG": 39.1,
+     "carbsG": 113.7,
+     "fatG": 47.2,
+     "micros": {
+      "fiberG": 10.9,
+      "sugarG": 5.7,
+      "sodiumMg": 2398,
+      "saturatedFatG": 9,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-sandwich",
+   "name": "GRILLED CHICKEN SANDWICH",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1306,
+     "proteinG": 53.3,
+     "carbsG": 98.4,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 9.7,
+      "sugarG": 2.4,
+      "sodiumMg": 2688,
+      "saturatedFatG": 14.1,
+      "cholesterolMg": 139
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-wrap-crispy",
+   "name": "CHICKEN CAESAR WRAP - CRISPY",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1287,
+     "proteinG": 44.9,
+     "carbsG": 112.2,
+     "fatG": 75.6,
+     "micros": {
+      "fiberG": 10.3,
+      "sugarG": 4.6,
+      "sodiumMg": 2493,
+      "saturatedFatG": 10.9,
+      "cholesterolMg": 98
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-wrap-grilled",
+   "name": "CHICKEN CAESAR WRAP - GRILLED",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 991,
+     "proteinG": 50.4,
+     "carbsG": 96.2,
+     "fatG": 46.8,
+     "micros": {
+      "fiberG": 9.7,
+      "sugarG": 1.3,
+      "sodiumMg": 2273,
+      "saturatedFatG": 8.3,
+      "cholesterolMg": 128
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-caesar-salad",
+   "name": "CLASSIC CAESAR SALAD",
+   "category": "All day lunch",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 554,
+     "proteinG": 22,
+     "carbsG": 8,
+     "fatG": 51.7,
+     "micros": {
+      "fiberG": 0.1,
+      "sugarG": 2.3,
+      "sodiumMg": 1362,
+      "saturatedFatG": 10.9,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-brioche",
+   "name": "BREAKFAST BRIOCHE",
+   "category": "Breakfast handhelds",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 985,
+     "proteinG": 30.1,
+     "carbsG": 85,
+     "fatG": 51.1,
+     "micros": {
+      "fiberG": 6.3,
+      "sugarG": 16.9,
+      "sodiumMg": 1741,
+      "saturatedFatG": 12,
+      "cholesterolMg": 237
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-tacos",
+   "name": "BREAKFAST TACOS",
+   "category": "Breakfast handhelds",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1009,
+     "proteinG": 58.5,
+     "carbsG": 105.8,
+     "fatG": 66.6,
+     "micros": {
+      "fiberG": 2.8,
+      "sugarG": 10.7,
+      "sodiumMg": 2148,
+      "saturatedFatG": 21.6,
+      "cholesterolMg": 793
+     }
+    }
+   ]
+  },
+  {
+   "id": "add-taco",
+   "name": "ADD TACO",
+   "category": "Breakfast handhelds",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 339,
+     "proteinG": 27.2,
+     "carbsG": 34.5,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1.8,
+      "sodiumMg": 789,
+      "saturatedFatG": 10.3,
+      "cholesterolMg": 396
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-toast",
+   "name": "FRENCH TOAST",
+   "category": "Batters",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 212,
+     "proteinG": 8.2,
+     "carbsG": 33.1,
+     "fatG": 6.5,
+     "micros": {
+      "fiberG": 1.6,
+      "sugarG": 10.4,
+      "sodiumMg": 267,
+      "saturatedFatG": 1.3,
+      "cholesterolMg": 71
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepe",
+   "name": "CREPE",
+   "category": "Batters",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 302,
+     "proteinG": 8.3,
+     "carbsG": 59.8,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1.1,
+      "sugarG": 16,
+      "sodiumMg": 84,
+      "saturatedFatG": 1.6,
+      "cholesterolMg": 113
+     }
+    }
+   ]
+  },
+  {
+   "id": "pancake",
+   "name": "PANCAKE",
+   "category": "Batters",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 107,
+     "proteinG": 3,
+     "carbsG": 19.9,
+     "fatG": 1.6,
+     "micros": {
+      "fiberG": 0.6,
+      "sugarG": 2.5,
+      "sodiumMg": 305,
+      "saturatedFatG": 0.4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "half-waffle",
+   "name": "HALF WAFFLE",
+   "category": "Batters",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 152,
+     "proteinG": 4,
+     "carbsG": 20.6,
+     "fatG": 6.6,
+     "micros": {
+      "fiberG": 0.5,
+      "sugarG": 3.7,
+      "sodiumMg": 239,
+      "saturatedFatG": 1.3,
+      "cholesterolMg": 32
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-latte",
+   "name": "PUMPKIN SPICE LATTE",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 190,
+     "proteinG": 6.9,
+     "carbsG": 26.3,
+     "fatG": 6.7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25.8,
+      "sodiumMg": 122,
+      "saturatedFatG": 5.1,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-pumpkin-spice-latte",
+   "name": "ICED PUMPKIN SPICE LATTE",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 162,
+     "proteinG": 6.5,
+     "carbsG": 22.9,
+     "fatG": 4.9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22.5,
+      "sodiumMg": 108,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "kombucha-mocktail",
+   "name": "KOMBUCHA MOCKTAIL",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 99,
+     "proteinG": 0.1,
+     "carbsG": 24.3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22.4,
+      "sodiumMg": 9,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-belly-benedict",
+   "name": "PORK BELLY BENEDICT",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1689,
+     "proteinG": 39.2,
+     "carbsG": 65.9,
+     "fatG": 127.2,
+     "micros": {
+      "fiberG": 4.9,
+      "sugarG": 27,
+      "sodiumMg": 3824,
+      "saturatedFatG": 44,
+      "cholesterolMg": 524
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-belly-omelette-no-toast",
+   "name": "PORK BELLY OMELETTE (NO TOAST)",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1164,
+     "proteinG": 43.2,
+     "carbsG": 38.8,
+     "fatG": 86.6,
+     "micros": {
+      "fiberG": 1.6,
+      "sugarG": 16.6,
+      "sodiumMg": 2264,
+      "saturatedFatG": 27.2,
+      "cholesterolMg": 976
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-belly-poutine",
+   "name": "PORK BELLY POUTINE",
+   "category": "Autumn Indulgence",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 1150,
+     "proteinG": 23.1,
+     "carbsG": 39.3,
+     "fatG": 87.8,
+     "micros": {
+      "fiberG": 0.7,
+      "sugarG": 9.4,
+      "sodiumMg": 1865,
+      "saturatedFatG": 33.5,
+      "cholesterolMg": 126
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-pork-belly-poutine",
+   "name": "SIDE PORK BELLY POUTINE",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 575,
+     "proteinG": 11.6,
+     "carbsG": 19.7,
+     "fatG": 43.9,
+     "micros": {
+      "fiberG": 0.4,
+      "sugarG": 4.7,
+      "sodiumMg": 932.5,
+      "saturatedFatG": 16.8,
+      "cholesterolMg": 63
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-pork-belly",
+   "name": "SIDE PORK BELLY",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "ea",
+     "label": "ea",
+     "calories": 753,
+     "proteinG": 11.7,
+     "carbsG": 6.7,
+     "fatG": 66.8,
+     "micros": {
+      "fiberG": 1.9,
+      "sugarG": 20.2,
+      "sodiumMg": 2260,
+      "saturatedFatG": 23.1,
+      "cholesterolMg": 87
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "bacon",
+   "name": "BACON",
+   "unit": "ea",
+   "per": {
+    "calories": 260,
+    "proteinG": 17.8,
+    "carbsG": 0.7,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1108,
+     "saturatedFatG": 6.6,
+     "cholesterolMg": 52
+    }
+   }
+  },
+  {
+   "id": "ham",
+   "name": "HAM",
+   "unit": "ea",
+   "per": {
+    "calories": 156,
+    "proteinG": 19.8,
+    "carbsG": 0,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1213,
+     "saturatedFatG": 1.8,
+     "cholesterolMg": 77
+    }
+   }
+  },
+  {
+   "id": "sausage",
+   "name": "SAUSAGE",
+   "unit": "ea",
+   "per": {
+    "calories": 451,
+    "proteinG": 15.7,
+    "carbsG": 3.1,
+    "fatG": 41.3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1059,
+     "saturatedFatG": 14.8,
+     "cholesterolMg": 81
+    }
+   }
+  },
+  {
+   "id": "turkey-bacon",
+   "name": "TURKEY BACON",
+   "unit": "ea",
+   "per": {
+    "calories": 275,
+    "proteinG": 21.3,
+    "carbsG": 2.2,
+    "fatG": 20.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1645,
+     "saturatedFatG": 6,
+     "cholesterolMg": 71
+    }
+   }
+  },
+  {
+   "id": "smoked-salmon",
+   "name": "SMOKED SALMON",
+   "unit": "ea",
+   "per": {
+    "calories": 121,
+    "proteinG": 16.6,
+    "carbsG": 5.6,
+    "fatG": 3.9,
+    "micros": {
+     "fiberG": 1.7,
+     "sugarG": 1.8,
+     "sodiumMg": 2056,
+     "saturatedFatG": 0.8,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "crispy-chicken",
+   "name": "CRISPY CHICKEN",
+   "unit": "ea",
+   "per": {
+    "calories": 277,
+    "proteinG": 19.2,
+    "carbsG": 18.1,
+    "fatG": 14.9,
+    "micros": {
+     "fiberG": 1.1,
+     "sugarG": 3.2,
+     "sodiumMg": 596,
+     "saturatedFatG": 1.1,
+     "cholesterolMg": 43
+    }
+   }
+  },
+  {
+   "id": "grilled-chicken-breast",
+   "name": "GRILLED CHICKEN BREAST",
+   "unit": "ea",
+   "per": {
+    "calories": 128,
+    "proteinG": 26.1,
+    "carbsG": 0,
+    "fatG": 2.6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 437,
+     "saturatedFatG": 0.8,
+     "cholesterolMg": 81
+    }
+   }
+  },
+  {
+   "id": "egg",
+   "name": "EGG",
+   "unit": "ea",
+   "per": {
+    "calories": 63,
+    "proteinG": 6.3,
+    "carbsG": 0.4,
+    "fatG": 4.8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0.2,
+     "sodiumMg": 71,
+     "saturatedFatG": 1.6,
+     "cholesterolMg": 186
+    }
+   }
+  },
+  {
+   "id": "half-avocado",
+   "name": "HALF AVOCADO",
+   "unit": "ea",
+   "per": {
+    "calories": 170,
+    "proteinG": 1.7,
+    "carbsG": 7.7,
+    "fatG": 12.8,
+    "micros": {
+     "fiberG": 8.5,
+     "sugarG": 0.9,
+     "sodiumMg": 0,
+     "saturatedFatG": 1.8,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "seasonal-fruit-bowl",
+   "name": "SEASONAL FRUIT BOWL",
+   "unit": "ea",
+   "per": {
+    "calories": 261,
+    "proteinG": 3.2,
+    "carbsG": 63.1,
+    "fatG": 0.3,
+    "micros": {
+     "fiberG": 2.1,
+     "sugarG": 39.1,
+     "sodiumMg": 1,
+     "saturatedFatG": 0.2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "famous-p-and-s-potatoes",
+   "name": "FAMOUS P&S POTATOES",
+   "unit": "ea",
+   "per": {
+    "calories": 300,
+    "proteinG": 3.8,
+    "carbsG": 31.1,
+    "fatG": 12.5,
+    "micros": {
+     "fiberG": 0.3,
+     "sugarG": 2.9,
+     "sodiumMg": 491,
+     "saturatedFatG": 0.9,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cheesy-p-and-s-potatoes",
+   "name": "CHEESY P&S POTATOES",
+   "unit": "ea",
+   "per": {
+    "calories": 662,
+    "proteinG": 26.3,
+    "carbsG": 32.9,
+    "fatG": 41.5,
+    "micros": {
+     "fiberG": 0.3,
+     "sugarG": 3.1,
+     "sodiumMg": 875,
+     "saturatedFatG": 17.6,
+     "cholesterolMg": 90
+    }
+   }
+  },
+  {
+   "id": "small-breakfast-poutine",
+   "name": "SMALL BREAKFAST POUTINE",
+   "unit": "ea",
+   "per": {
+    "calories": 595,
+    "proteinG": 15.5,
+    "carbsG": 31.9,
+    "fatG": 38.3,
+    "micros": {
+     "fiberG": 0.3,
+     "sugarG": 3,
+     "sodiumMg": 841,
+     "saturatedFatG": 16.3,
+     "cholesterolMg": 73
+    }
+   }
+  },
+  {
+   "id": "red-cabbage-slaw",
+   "name": "RED CABBAGE SLAW",
+   "unit": "ea",
+   "per": {
+    "calories": 110,
+    "proteinG": 2.3,
+    "carbsG": 11.2,
+    "fatG": 7.2,
+    "micros": {
+     "fiberG": 3.2,
+     "sugarG": 5.9,
+     "sodiumMg": 101,
+     "saturatedFatG": 1.1,
+     "cholesterolMg": 4
+    }
+   }
+  },
+  {
+   "id": "side-caesar-salad",
+   "name": "SIDE CAESAR SALAD",
+   "unit": "ea",
+   "per": {
+    "calories": 282,
+    "proteinG": 11.7,
+    "carbsG": 4,
+    "fatG": 26.7,
+    "micros": {
+     "fiberG": 0.1,
+     "sugarG": 1.2,
+     "sodiumMg": 726,
+     "saturatedFatG": 5.7,
+     "cholesterolMg": 41
+    }
+   }
+  },
+  {
+   "id": "english-cream",
+   "name": "ENGLISH CREAM",
+   "unit": "ea",
+   "per": {
+    "calories": 103,
+    "proteinG": 5.1,
+    "carbsG": 11.8,
+    "fatG": 4.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11.7,
+     "sodiumMg": 65,
+     "saturatedFatG": 2,
+     "cholesterolMg": 66
+    }
+   }
+  },
+  {
+   "id": "whipped-cream",
+   "name": "WHIPPED CREAM",
+   "unit": "ea",
+   "per": {
+    "calories": 60,
+    "proteinG": 0.9,
+    "carbsG": 7.2,
+    "fatG": 3.9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7.2,
+     "sodiumMg": 30,
+     "saturatedFatG": 3.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hazelnut-chocolate",
+   "name": "HAZELNUT CHOCOLATE",
+   "unit": "ea",
+   "per": {
+    "calories": 354,
+    "proteinG": 3.5,
+    "carbsG": 43.9,
+    "fatG": 21.3,
+    "micros": {
+     "fiberG": 7.1,
+     "sugarG": 38.3,
+     "sodiumMg": 0,
+     "saturatedFatG": 20.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "maple-syrup",
+   "name": "MAPLE SYRUP",
+   "unit": "ea",
+   "per": {
+    "calories": 317,
+    "proteinG": 0.1,
+    "carbsG": 81.6,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 73.6,
+     "sodiumMg": 15,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hollandaise-sauce",
+   "name": "HOLLANDAISE SAUCE",
+   "unit": "ea",
+   "per": {
+    "calories": 202,
+    "proteinG": 2.5,
+    "carbsG": 0,
+    "fatG": 19.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 270,
+     "saturatedFatG": 12,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "hollandaise-spicy",
+   "name": "HOLLANDAISE SPICY",
+   "unit": "ea",
+   "per": {
+    "calories": 202,
+    "proteinG": 2.5,
+    "carbsG": 0.1,
+    "fatG": 19.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 418,
+     "saturatedFatG": 12,
+     "cholesterolMg": 50
+    }
+   }
+  },
+  {
+   "id": "biscoff-spread",
+   "name": "BISCOFF SPREAD",
+   "unit": "ea",
+   "per": {
+    "calories": 425,
+    "proteinG": 3.5,
+    "carbsG": 39,
+    "fatG": 28.4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 24.8,
+     "sodiumMg": 142,
+     "saturatedFatG": 5.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "p-and-s-blueberry-compote",
+   "name": "P&S BLUEBERRY COMPOTE",
+   "unit": "ea",
+   "per": {
+    "calories": 123,
+    "proteinG": 0,
+    "carbsG": 32.3,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 2.6,
+     "sugarG": 19.1,
+     "sodiumMg": 22,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "white",
+   "name": "WHITE",
+   "unit": "ea",
+   "per": {
+    "calories": 220,
+    "proteinG": 6,
+    "carbsG": 35.1,
+    "fatG": 6.8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 430,
+     "saturatedFatG": 1.4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "whole-wheat",
+   "name": "WHOLE WHEAT",
+   "unit": "ea",
+   "per": {
+    "calories": 179,
+    "proteinG": 6,
+    "carbsG": 24.7,
+    "fatG": 6.2,
+    "micros": {
+     "fiberG": 5.2,
+     "sugarG": 2.8,
+     "sodiumMg": 318,
+     "saturatedFatG": 1.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "gluten-free",
+   "name": "GLUTEN FREE",
+   "unit": "ea",
+   "per": {
+    "calories": 285,
+    "proteinG": 4,
+    "carbsG": 42.1,
+    "fatG": 13,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 6,
+     "sodiumMg": 530,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sourdough",
+   "name": "SOURDOUGH",
+   "unit": "ea",
+   "per": {
+    "calories": 265,
+    "proteinG": 8,
+    "carbsG": 46.1,
+    "fatG": 6.5,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 0,
+     "sodiumMg": 520,
+     "saturatedFatG": 1.3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "english-muffin",
+   "name": "ENGLISH MUFFIN",
+   "unit": "ea",
+   "per": {
+    "calories": 172,
+    "proteinG": 5,
+    "carbsG": 25.7,
+    "fatG": 6.1,
+    "micros": {
+     "fiberG": 2.6,
+     "sugarG": 0.9,
+     "sodiumMg": 251,
+     "saturatedFatG": 1.1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "brioche-bread",
+   "name": "BRIOCHE BREAD",
+   "unit": "ea",
+   "per": {
+    "calories": 345,
+    "proteinG": 10,
+    "carbsG": 46.1,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 4,
+     "sodiumMg": 510,
+     "saturatedFatG": 2,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "cheese-cheddar",
+   "name": "CHEESE CHEDDAR",
+   "group": "cheese",
+   "unit": "ea",
+   "per": {
+    "calories": 242,
+    "proteinG": 13.7,
+    "carbsG": 1.9,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0.3,
+     "sodiumMg": 392,
+     "saturatedFatG": 11.3,
+     "cholesterolMg": 59
+    }
+   }
+  },
+  {
+   "id": "cheese-swiss",
+   "name": "CHEESE SWISS",
+   "group": "cheese",
+   "unit": "ea",
+   "per": {
+    "calories": 240,
+    "proteinG": 16.2,
+    "carbsG": 0.6,
+    "fatG": 18.6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 120,
+     "saturatedFatG": 10.9,
+     "cholesterolMg": 60
+    }
+   }
+  }
+ ]
+}

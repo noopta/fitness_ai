@@ -1,0 +1,226 @@
+{
+ "chain": "friendlys",
+ "country": "US",
+ "source": {
+  "url": "https://friendlysrestaurants.com/nutrition-information/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "lobster-bisque",
+   "name": "Lobster Bisque",
+   "category": "Soups & Starters",
+   "sizes": [
+    {
+     "size": "crock",
+     "label": "Crock",
+     "calories": 570,
+     "proteinG": 10,
+     "carbsG": 26,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 1398,
+      "saturatedFatG": 14,
+      "cholesterolMg": 94
+     }
+    },
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 18,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 779,
+      "saturatedFatG": 7,
+      "cholesterolMg": 47
+     }
+    }
+   ]
+  },
+  {
+   "id": "fiery-lobster-pasta",
+   "name": "Fiery Lobster Pasta",
+   "category": "Entrees",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1332,
+     "proteinG": 48,
+     "carbsG": 104,
+     "fatG": 81,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 15,
+      "sodiumMg": 2644,
+      "saturatedFatG": 35,
+      "cholesterolMg": 226
+     }
+    }
+   ]
+  },
+  {
+   "id": "lobster-and-shrimp-quesadilla",
+   "name": "Lobster & Shrimp Quesadilla",
+   "category": "Entrees",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1390,
+     "proteinG": 66,
+     "carbsG": 95,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 2913,
+      "saturatedFatG": 38,
+      "cholesterolMg": 276
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepper-steak-and-onion-quesadilla",
+   "name": "Pepper Steak & Onion Quesadilla",
+   "category": "Entrees",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1370,
+     "proteinG": 64,
+     "carbsG": 95,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 2808,
+      "saturatedFatG": 40,
+      "cholesterolMg": 189
+     }
+    }
+   ]
+  },
+  {
+   "id": "zesty-lemon-garlic-lobster-pasta",
+   "name": "Zesty Lemon Garlic Lobster Pasta",
+   "category": "Entrees",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1370,
+     "proteinG": 57,
+     "carbsG": 113,
+     "fatG": 78,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 3010,
+      "saturatedFatG": 39,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-lobster-roll",
+   "name": "Classic Lobster Roll",
+   "category": "Sandwiches & Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 24,
+     "carbsG": 45,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 909,
+      "saturatedFatG": 7,
+      "cholesterolMg": 102
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-lobster-roll-with-french-fries",
+   "name": "Classic Lobster Roll With French Fries",
+   "category": "Sandwiches & Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 28,
+     "carbsG": 81,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 969,
+      "saturatedFatG": 7,
+      "cholesterolMg": 102
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-lobster-roll",
+   "name": "Deluxe Lobster Roll",
+   "category": "Sandwiches & Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 684,
+     "proteinG": 30,
+     "carbsG": 47,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 1180,
+      "saturatedFatG": 9,
+      "cholesterolMg": 117
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-lobster-roll-with-french-fries",
+   "name": "Deluxe Lobster Roll With French Fries",
+   "category": "Sandwiches & Wraps",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 934,
+     "proteinG": 34,
+     "carbsG": 83,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 1240,
+      "saturatedFatG": 10,
+      "cholesterolMg": 117
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

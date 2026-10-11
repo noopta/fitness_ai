@@ -1,0 +1,2725 @@
+{
+ "chain": "baskin-robbins",
+ "country": "US",
+ "source": {
+  "url": "https://www.baskinrobbins.com/content/dam/br/pdf/BRNutrition.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "baseball-nut-pre-packed-quart",
+   "name": "Baseball Nut® Pre-Packed Quart",
+   "category": "LTO Pre-Packed Quarts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 30,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 115,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "beach-day-pre-packed-quart",
+   "name": "Beach Day™ Pre-Packed Quart",
+   "category": "LTO Pre-Packed Quarts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 180,
+      "saturatedFatG": 9,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "love-potion-31-pre-packed-quart",
+   "name": "Love Potion #31® Pre-Packed Quart",
+   "category": "LTO Pre-Packed Quarts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 60,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-cheesecake-pre-packed-quart",
+   "name": "Pumpkin Cheesecake Pre-Packed Quart",
+   "category": "LTO Pre-Packed Quarts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 115,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-boxed-novelty-bars",
+   "name": "Chocolate Chip Boxed Novelty Bars",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 40,
+      "saturatedFatG": 11,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotton-candy-boxed-novelty-bars",
+   "name": "Cotton Candy Boxed Novelty Bars",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 17,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 45,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "jamoca-almond-fudge-boxed-novelty-bars",
+   "name": "Jamoca® Almond Fudge Boxed Novelty Bars",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 35,
+      "saturatedFatG": 10,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip-boxed-novelty-bars",
+   "name": "Mint Chocolate Chip Boxed Novelty Bars",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 35,
+      "saturatedFatG": 11,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "pralines-n-cream-boxed-novelty-bars",
+   "name": "Pralines 'n Cream Boxed Novelty Bars",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 55,
+      "saturatedFatG": 10,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "rainbow-sherbet-boxed-novelty-bar",
+   "name": "Rainbow Sherbet Boxed Novelty Bar",
+   "category": "Boxed Novelty Bars",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 18,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 15,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscoff-cookie-cake-in-a-box",
+   "name": "Biscoff® Cookie Cake in a Box",
+   "category": "Cake in a Box",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 6,
+     "carbsG": 63,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 320,
+      "saturatedFatG": 12,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie-crunch-cake-in-a-box",
+   "name": "Chocolate Chip Cookie Crunch Cake in a Box",
+   "category": "Cake in a Box",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 6,
+     "carbsG": 58,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 280,
+      "saturatedFatG": 14,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-crave-cake-in-a-box",
+   "name": "Cookie Crave Cake in a Box",
+   "category": "Cake in a Box",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 60,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 320,
+      "saturatedFatG": 13,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-cookie-crunch-cake-in-a-box",
+   "name": "Mint Cookie Crunch Cake in a Box",
+   "category": "Cake in a Box",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 6,
+     "carbsG": 58,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 280,
+      "saturatedFatG": 14,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "peppermint-avalanche-cake-in-a-box",
+   "name": "Peppermint Avalanche Cake in a Box",
+   "category": "Cake in a Box",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 6,
+     "carbsG": 62,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 44,
+      "sodiumMg": 280,
+      "saturatedFatG": 13,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "love-potion-31-cappy",
+   "name": "Love Potion #31® Cappy™",
+   "category": "Other Frozen Beverages",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 55,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 50,
+      "sodiumMg": 105,
+      "saturatedFatG": 10,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 540,
+     "proteinG": 9,
+     "carbsG": 81,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 73,
+      "sodiumMg": 150,
+      "saturatedFatG": 14,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 680,
+     "proteinG": 12,
+     "carbsG": 102,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 93,
+      "sodiumMg": 190,
+      "saturatedFatG": 18,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "peppermint-fudge-cappy",
+   "name": "Peppermint Fudge Cappy™",
+   "category": "Other Frozen Beverages",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 570,
+     "proteinG": 7,
+     "carbsG": 91,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 76,
+      "sodiumMg": 210,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 870,
+     "proteinG": 11,
+     "carbsG": 138,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 116,
+      "sodiumMg": 330,
+      "saturatedFatG": 24,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1120,
+     "proteinG": 15,
+     "carbsG": 179,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 150,
+      "sodiumMg": 430,
+      "saturatedFatG": 31,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-cappy",
+   "name": "Pumpkin Spice Cappy™",
+   "category": "Other Frozen Beverages",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 46,
+      "sodiumMg": 130,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 510,
+     "proteinG": 9,
+     "carbsG": 79,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 70,
+      "sodiumMg": 200,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 650,
+     "proteinG": 11,
+     "carbsG": 101,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 90,
+      "sodiumMg": 260,
+      "saturatedFatG": 14,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscoff-cookie-layered-sundae",
+   "name": "Biscoff® Cookie Layered Sundae",
+   "category": "Sundaes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1410,
+     "proteinG": 13,
+     "carbsG": 141,
+     "fatG": 89,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 93,
+      "sodiumMg": 360,
+      "saturatedFatG": 26,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "dubai-chocolate-inspired-sundae",
+   "name": "Dubai Chocolate Inspired Sundae",
+   "category": "Sundaes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 17,
+     "carbsG": 116,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 74,
+      "sodiumMg": 360,
+      "saturatedFatG": 24,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-brookie-batter-sundae",
+   "name": "OREO® Brookie Batter Sundae",
+   "category": "Sundaes",
+   "sizes": [
+    {
+     "size": "1 scoop",
+     "label": "1 Scoop",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 57,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 42,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "2 scoop",
+     "label": "2 Scoop",
+     "calories": 650,
+     "proteinG": 8,
+     "carbsG": 93,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 69,
+      "sodiumMg": 370,
+      "saturatedFatG": 17,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "3 scoop",
+     "label": "3 Scoop",
+     "calories": 900,
+     "proteinG": 11,
+     "carbsG": 129,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 96,
+      "sodiumMg": 520,
+      "saturatedFatG": 24,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "warm-brownie-oreo-brookie-batter-sundae",
+   "name": "Warm Brownie OREO® Brookie Batter Sundae",
+   "category": "Sundaes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 11,
+     "carbsG": 134,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 94,
+      "sodiumMg": 530,
+      "saturatedFatG": 20,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "america-s-birthday-cake",
+   "name": "America's Birthday Cake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "2 5 oz scoop",
+     "label": "2.5 oz Scoop",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "4 oz scoop",
+     "label": "4 oz Scoop",
+     "calories": 320,
+     "proteinG": 4,
+     "carbsG": 36,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 90,
+      "saturatedFatG": 10,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-dulce-de-leche",
+   "name": "Banana Dulce de Leche",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 115,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscoff-creme-brulee",
+   "name": "Biscoff® Crème Brûlée",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "2 5 oz scoop",
+     "label": "2.5 oz Scoop",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 75,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "4 oz scoop",
+     "label": "4 oz Scoop",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 115,
+      "saturatedFatG": 8,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "brookie-batter",
+   "name": "Brookie Batter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "2 5 oz scoop",
+     "label": "2.5 oz Scoop",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 115,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "4 oz scoop",
+     "label": "4 oz Scoop",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 180,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "futbol-fireworks",
+   "name": "Fútbol Fireworks",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "2 5 oz scoop",
+     "label": "2.5 oz Scoop",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 24,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 40,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "4 oz scoop",
+     "label": "4 oz Scoop",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 38,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 70,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "reduced-fat-no-sugar-added-strawberry-shortcake",
+   "name": "Reduced Fat, No Sugar Added Strawberry Shortcake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "2 5 oz scoop",
+     "label": "2.5 oz Scoop",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 75,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "4 oz scoop",
+     "label": "4 oz Scoop",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 120,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-graham",
+   "name": "The Graham",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 95,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 310,
+     "proteinG": 4,
+     "carbsG": 37,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscoff-cookie-signature-shake",
+   "name": "Biscoff® Cookie Signature Shake",
+   "category": "Milkshakes",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 990,
+     "proteinG": 15,
+     "carbsG": 127,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 101,
+      "sodiumMg": 330,
+      "saturatedFatG": 21,
+      "cholesterolMg": 155
+     }
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 1400,
+     "proteinG": 21,
+     "carbsG": 184,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 148,
+      "sodiumMg": 480,
+      "saturatedFatG": 31,
+      "cholesterolMg": 230
+     }
+    },
+    {
+     "size": "32 fl oz",
+     "label": "32 fl oz",
+     "calories": 1810,
+     "proteinG": 28,
+     "carbsG": 240,
+     "fatG": 82,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 194,
+      "sodiumMg": 630,
+      "saturatedFatG": 40,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "dubai-chocolate-inspired-shake",
+   "name": "Dubai Chocolate Inspired Shake",
+   "category": "Milkshakes",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 1060,
+     "proteinG": 20,
+     "carbsG": 107,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 76,
+      "sodiumMg": 370,
+      "saturatedFatG": 26,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1520,
+     "proteinG": 30,
+     "carbsG": 150,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 107,
+      "sodiumMg": 540,
+      "saturatedFatG": 37,
+      "cholesterolMg": 155
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1990,
+     "proteinG": 39,
+     "carbsG": 193,
+     "fatG": 121,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 138,
+      "sodiumMg": 700,
+      "saturatedFatG": 48,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "dubai-chocolate-inspired-cake-in-a-box",
+   "name": "Dubai Chocolate Inspired Cake in a Box",
+   "category": "Cake in a Box Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 9,
+     "carbsG": 61,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 38,
+      "sodiumMg": 280,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "creature-creations-high-end",
+   "name": "Creature Creations™ - High End",
+   "category": "Creature Creations®",
+   "sizes": [
+    {
+     "size": "2 scoops 160g",
+     "label": "2 Scoops (160g)",
+     "calories": 490,
+     "proteinG": 9,
+     "carbsG": 51,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 36,
+      "sodiumMg": 210,
+      "saturatedFatG": 15,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "creature-creations-low-end",
+   "name": "Creature Creations™ - Low End",
+   "category": "Creature Creations®",
+   "sizes": [
+    {
+     "size": "2 scoops 160g",
+     "label": "2 Scoops (160g)",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 57,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 10,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creature-creations-dinosaur",
+   "name": "Creature Creations™ Dinosaur",
+   "category": "Creature Creations®",
+   "sizes": [
+    {
+     "size": "1 scoop 130g",
+     "label": "1 Scoop (130g)",
+     "calories": 350,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 70,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "creature-creations-unicorn",
+   "name": "Creature Creations™ Unicorn",
+   "category": "Creature Creations®",
+   "sizes": [
+    {
+     "size": "1 scoop 130g",
+     "label": "1 Scoop (130g)",
+     "calories": 350,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 70,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "dubai-chocolate-ice-cream-bar",
+   "name": "Dubai Chocolate Ice Cream Bar",
+   "category": "Handmade Novelties",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 7,
+     "carbsG": 40,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 23,
+      "sodiumMg": 70,
+      "saturatedFatG": 12,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "made-with-biscoff-creme-brulee-novelty-bar",
+   "name": "Made with Biscoff® Crème Brûlée Novelty Bar",
+   "category": "Handmade Novelties",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 130,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "baseball-nut",
+   "name": "Baseball Nut®",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 80,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 34,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 125,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-walnut",
+   "name": "Black Walnut",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 160,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 60,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 260,
+     "proteinG": 6,
+     "carbsG": 20,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 15,
+      "sodiumMg": 95,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherries-jubilee",
+   "name": "Cherries Jubilee",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 45,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 75,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate",
+   "name": "Chocolate",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 12,
+      "sodiumMg": 75,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 26,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 115,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip",
+   "name": "Chocolate Chip",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 28,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 90,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cheesecake",
+   "name": "Chocolate Chip Cheesecake",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 85,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 34,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 135,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie-dough",
+   "name": "Chocolate Chip Cookie Dough",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop",
+     "label": "1 - 2.5 oz Scoop",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 85,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 36,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 130,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-fudge",
+   "name": "Chocolate Fudge",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 4 oz scoop",
+     "label": "1 - 4 oz Scoop",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 27,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 135,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 12,
+      "sodiumMg": 85,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mousse-royale",
+   "name": "Chocolate Mousse Royale",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 60,
+      "saturatedFatG": 8,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 35,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 26,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-monster",
+   "name": "Cookie Monster",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 75,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 120,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotton-candy",
+   "name": "Cotton Candy",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 85,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "creole-cream-chese",
+   "name": "Creole Cream Chese",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 23,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 90,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 15,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 55,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "daiquiri-ice",
+   "name": "Daiquiri Ice",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "galactic-brownie",
+   "name": "Galactic Brownie",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 65,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 31,
+      "sodiumMg": 105,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "gold-medal-ribbon",
+   "name": "Gold Medal Ribbon®",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 100,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 29,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 160,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "icing-on-the-cake",
+   "name": "Icing on the Cake®",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 60,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 100,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "jamoca",
+   "name": "Jamoca®",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 140,
+     "proteinG": 3,
+     "carbsG": 13,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 55,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 21,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 85,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "jamoca-almond-fudge",
+   "name": "Jamoca® Almond Fudge",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 45,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 270,
+     "proteinG": 5,
+     "carbsG": 31,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 70,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-custard",
+   "name": "Lemon Custard",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 60,
+      "saturatedFatG": 5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 26,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 100,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip",
+   "name": "Mint Chocolate Chip",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 28,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 85,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-cookies-n-creme",
+   "name": "Non-Dairy Cookies 'n Crème",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 200,
+     "proteinG": 1,
+     "carbsG": 24,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 100,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 160,
+      "saturatedFatG": 13,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-jamoca-chip",
+   "name": "Non-Dairy Jamoca® Chip",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 1,
+     "carbsG": 23,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 35,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 270,
+     "proteinG": 1,
+     "carbsG": 37,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 50,
+      "saturatedFatG": 11,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutty-coconut",
+   "name": "Nutty Coconut",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 18,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 28,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 90,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-n-cold-brew",
+   "name": "OREO® 'n Cold Brew",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 15,
+      "sodiumMg": 95,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 35,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 24,
+      "sodiumMg": 150,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-cookies-n-cream",
+   "name": "OREO® Cookies 'n Cream",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 80,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 32,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 125,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "old-fashioned-butter-pecan",
+   "name": "Old Fashioned Butter Pecan",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 70,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 110,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-n-chocolate",
+   "name": "Peanut Butter 'n Chocolate",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 200,
+     "proteinG": 5,
+     "carbsG": 19,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 100,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 320,
+     "proteinG": 7,
+     "carbsG": 30,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 22,
+      "sodiumMg": 160,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-bubblegum",
+   "name": "Pink Bubblegum",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 50,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 30,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 75,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio-almond",
+   "name": "Pistachio Almond",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 12,
+      "sodiumMg": 50,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 25,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 80,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "pralines-n-cream",
+   "name": "Pralines 'n Cream",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 105,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 270,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 170,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-peanut-butter-cup",
+   "name": "REESE'S Peanut Butter Cup",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 20,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 90,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 31,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 140,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "rainbow-sherbet",
+   "name": "Rainbow Sherbet",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 100,
+     "proteinG": 1,
+     "carbsG": 22,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 15,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 160,
+     "proteinG": 1,
+     "carbsG": 35,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 25,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "reduced-fat-no-sugar-added-caramel-turtle-truffle",
+   "name": "Reduced Fat, No Sugar Added Caramel Turtle Truffle",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 50,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 30,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 80,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "reduced-fat-no-sugar-added-pineapple-coconut",
+   "name": "Reduced Fat, No Sugar Added Pineapple Coconut",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 50,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 29,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 80,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "rocky-road",
+   "name": "Rocky Road",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 65,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 290,
+     "proteinG": 6,
+     "carbsG": 35,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 26,
+      "sodiumMg": 105,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "rum-raisin",
+   "name": "Rum Raisin",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 60,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 33,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 95,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake",
+   "name": "Strawberry Cheesecake",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 70,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 29,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 110,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "twix-caramel-crunch",
+   "name": "TWIX® Caramel Crunch",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71g",
+     "label": "1- 2.5 oz Scoop (71g)",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 135,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 201,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-mango",
+   "name": "Triple Mango",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 22,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 30,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 45,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla",
+   "name": "Vanilla",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 40,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 26,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 65,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "very-berry-strawberry",
+   "name": "Very Berry Strawberry",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 17,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 40,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 65,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "wild-n-reckless-sherbet",
+   "name": "Wild 'n Reckless Sherbet",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 16,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 15,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 26,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 25,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "world-class-chocolate",
+   "name": "World Class® Chocolate",
+   "category": "Permanent Flavors",
+   "sizes": [
+    {
+     "size": "1 2 5 oz scoop 71 grams",
+     "label": "1 - 2.5 oz Scoop (71 grams)",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 11,
+      "sodiumMg": 60,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "1 4 oz scoop 113 grams",
+     "label": "1 - 4 oz Scoop (113 grams)",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 90,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

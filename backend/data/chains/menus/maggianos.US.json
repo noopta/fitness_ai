@@ -1,0 +1,1017 @@
+{
+ "chain": "maggianos",
+ "country": "US",
+ "source": {
+  "url": "https://cdn.builder.io/api/v1/assets/d80894dbb7e449539fe3384e280a2583/maggianos-nutrition-guide",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "bruschetta",
+   "name": "Bruschetta",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 59,
+     "micros": {
+      "sugarG": 9,
+      "sodiumMg": 1510,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "calamari-fritte",
+   "name": "Calamari Fritte",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 2.5
+     }
+    },
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 13,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 550,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "chef-s-signature-caesar",
+   "name": "Chef's Signature Caesar",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 16,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 420,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 9160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 710,
+     "micros": {
+      "sugarG": 46,
+      "saturatedFatG": 77
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 4580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 355,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 39
+     }
+    }
+   ]
+  },
+  {
+   "id": "maggiano-s-salad",
+   "name": "Maggiano's Salad",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 7,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 410,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 9050,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 831,
+     "micros": {
+      "sugarG": 121,
+      "saturatedFatG": 165
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 4530,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 416,
+     "micros": {
+      "sugarG": 60,
+      "saturatedFatG": 82
+     }
+    }
+   ]
+  },
+  {
+   "id": "stuffed-mushrooms",
+   "name": "Stuffed Mushrooms",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 6,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 280,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 4120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 363,
+     "micros": {
+      "sugarG": 23,
+      "saturatedFatG": 196
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 2060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 181,
+     "micros": {
+      "sugarG": 12,
+      "saturatedFatG": 98
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-mozzarella",
+   "name": "Crispy Mozzarella",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 20,
+     "carbsG": 21,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1060,
+      "saturatedFatG": 12,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 14760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1047,
+     "micros": {
+      "sugarG": 67,
+      "saturatedFatG": 403
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 7380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 524,
+     "micros": {
+      "sugarG": 33,
+      "saturatedFatG": 201
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-beef-meatballs",
+   "name": "Wagyu Beef Meatballs",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 18,
+     "carbsG": 25,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 600,
+      "saturatedFatG": 9,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "zucchini-fritte",
+   "name": "Zucchini Fritte",
+   "category": "Family Style Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 6,
+     "carbsG": 29,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 630,
+      "saturatedFatG": 6,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-grand-chicken-parmesan",
+   "name": "\"The Grand\" Chicken Parmesan",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 38,
+     "carbsG": 21,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 1280,
+      "saturatedFatG": 9,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-tenderloins",
+   "name": "Beef Tenderloins",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 18,
+     "carbsG": 11,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 590,
+      "saturatedFatG": 8,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-piccata",
+   "name": "Chicken Piccata",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 35,
+     "carbsG": 11,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1060,
+      "saturatedFatG": 19,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo-with-chicken",
+   "name": "Fettuccine Alfredo with Chicken",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 16,
+     "carbsG": 39,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 730,
+      "saturatedFatG": 24,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "lasagna",
+   "name": "Lasagna",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 16,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 850,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "our-famous-rigatoni-d",
+   "name": "Our Famous Rigatoni \"D\"",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 21,
+     "carbsG": 40,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 770,
+      "saturatedFatG": 16,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "rigatoni-alla-vodka",
+   "name": "Rigatoni alla Vodka",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 660,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-scampi",
+   "name": "Shrimp Scampi",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 15,
+     "carbsG": 36,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 710,
+      "saturatedFatG": 21,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "spaghetti-and-meat-sauce",
+   "name": "Spaghetti & Meat Sauce",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 12,
+     "carbsG": 41,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 710,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-grilled-salmon",
+   "name": "Simply Grilled Salmon",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 25,
+     "carbsG": 3,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 790,
+      "saturatedFatG": 16,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "wagyu-beef-stuffed-shells",
+   "name": "Wagyu Beef Stuffed Shells",
+   "category": "Family Style Main Course",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 22,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 870,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-layer-cake",
+   "name": "Chocolate Layer Cake",
+   "category": "Family Style Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 39,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 250,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-york-style-cheesecake",
+   "name": "New York Style Cheesecake",
+   "category": "Family Style Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 110,
+      "saturatedFatG": 9,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "tiramisu",
+   "name": "Tiramisu",
+   "category": "Family Style Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 19,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 20,
+      "saturatedFatG": 7,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-roasted-lavazza-coffee",
+   "name": "Fresh Roasted Lavazza Coffee",
+   "category": "Beverages - Non-Alcoholic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "harvey-and-son-s-hot-tea",
+   "name": "Harvey & Son's Hot Tea",
+   "category": "Beverages - Non-Alcoholic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea",
+   "name": "Iced Tea",
+   "category": "Beverages - Non-Alcoholic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea-peach",
+   "name": "Iced Tea - Peach",
+   "category": "Beverages - Non-Alcoholic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea-raspberry",
+   "name": "Iced Tea - Raspberry",
+   "category": "Beverages - Non-Alcoholic",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-wine",
+   "name": "Red Wine",
+   "category": "Beverages - Wine",
+   "sizes": [
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "bottle",
+     "label": "Bottle",
+     "calories": 630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-wine",
+   "name": "White Wine",
+   "category": "Beverages - Wine",
+   "sizes": [
+    {
+     "size": "6 oz",
+     "label": "6 oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "9 oz",
+     "label": "9 oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 0
+     }
+    },
+    {
+     "size": "bottle",
+     "label": "Bottle",
+     "calories": 590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "irish-cream-coffee",
+   "name": "Irish Cream Coffee",
+   "category": "Beverages -After Dinner Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 2,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutty-italian-coffee",
+   "name": "Nutty Italian Coffee",
+   "category": "Beverages -After Dinner Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "sicilian-coffee",
+   "name": "Sicilian Coffee",
+   "category": "Beverages -After Dinner Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "sugarG": 17,
+      "saturatedFatG": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "tito-s-tiramisu-martini",
+   "name": "Tito's Tiramisu Martini",
+   "category": "Beverages -After Dinner Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 4.5,
+     "micros": {
+      "sugarG": 22,
+      "saturatedFatG": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "bruscheta",
+   "name": "Bruscheta",
+   "category": "PP Starters",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 3080,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 235,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 41
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 6160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 470,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 82
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-chopped",
+   "name": "Italian Chopped",
+   "category": "PP Salads",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 11040,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 825,
+     "micros": {
+      "sugarG": 100,
+      "saturatedFatG": 125
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 5520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 413,
+     "micros": {
+      "sugarG": 50,
+      "saturatedFatG": 63
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo-chicken",
+   "name": "Fettuccine Alfredo Chicken",
+   "category": "PP Pasta",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 19300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1492,
+     "micros": {
+      "sugarG": 69,
+      "saturatedFatG": 761
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 9650,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 746,
+     "micros": {
+      "sugarG": 35,
+      "saturatedFatG": 381
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo-shrimp",
+   "name": "Fettuccine Alfredo Shrimp",
+   "category": "PP Pasta",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 18400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1430,
+     "micros": {
+      "sugarG": 62,
+      "saturatedFatG": 726
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 9200,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 715,
+     "micros": {
+      "sugarG": 31,
+      "saturatedFatG": 363
+     }
+    }
+   ]
+  },
+  {
+   "id": "fettuccine-alfredo",
+   "name": "Fettuccine Alfredo",
+   "category": "PP Pasta",
+   "sizes": [
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 17160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 1403,
+     "micros": {
+      "sugarG": 57,
+      "saturatedFatG": 724
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 8580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 701,
+     "micros": {
+      "sugarG": 29,
+      "saturatedFatG": 362
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

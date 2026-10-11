@@ -1,0 +1,5226 @@
+{
+ "chain": "peets",
+ "country": "US",
+ "source": {
+  "url": "https://www.peets.com/pages/nutrition-allergen-facts",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "iced-horchata-oat-latte-whole",
+   "name": "Iced Horchata Oat Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 12,
+     "carbsG": 50,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 250,
+     "proteinG": 8,
+     "carbsG": 37,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 110,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-horchata-oat-latte-twopercent",
+   "name": "Iced Horchata Oat Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 300,
+     "proteinG": 12,
+     "carbsG": 49,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 170,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 220,
+     "proteinG": 8,
+     "carbsG": 37,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 160,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-almond",
+   "name": "Iced Latte (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 200,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 80,
+     "proteinG": 3,
+     "carbsG": 8,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 60,
+     "proteinG": 2,
+     "carbsG": 6,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-nonfat",
+   "name": "Iced Latte (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 150,
+     "proteinG": 13,
+     "carbsG": 21,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 180,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 100,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 70,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-oat",
+   "name": "Iced Latte (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 26,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 150,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 17,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 95,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 12,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 75,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-ripple",
+   "name": "Iced Latte (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 160,
+     "proteinG": 4,
+     "carbsG": 11,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 190,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 7,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 125,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 5,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 95,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-whole",
+   "name": "Iced Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 21,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 170,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 115,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-twopercent",
+   "name": "Iced Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 190,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 180,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 130,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 90,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 85,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-almond",
+   "name": "Iced Latte Macchiato (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 200,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 80,
+     "proteinG": 3,
+     "carbsG": 8,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 60,
+     "proteinG": 2,
+     "carbsG": 6,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-nonfat",
+   "name": "Iced Latte Macchiato (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 150,
+     "proteinG": 13,
+     "carbsG": 21,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 180,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 100,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 70,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-oat",
+   "name": "Iced Latte Macchiato (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 26,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 150,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 17,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 95,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 12,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 75,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-ripple",
+   "name": "Iced Latte Macchiato (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 160,
+     "proteinG": 4,
+     "carbsG": 11,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 190,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 7,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 125,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 5,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 95,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-whole",
+   "name": "Iced Latte Macchiato (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 21,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 170,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 115,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte-macchiato-twopercent",
+   "name": "Iced Latte Macchiato (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 190,
+     "proteinG": 13,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 180,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 130,
+     "proteinG": 9,
+     "carbsG": 14,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 90,
+     "proteinG": 6,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 85,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-almond",
+   "name": "Iced Matcha Latte (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 27,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 120,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 90,
+     "proteinG": 1,
+     "carbsG": 15,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-nonfat",
+   "name": "Iced Matcha Latte (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 200,
+     "proteinG": 12,
+     "carbsG": 37,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 140,
+     "proteinG": 8,
+     "carbsG": 26,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 100,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-oat",
+   "name": "Iced Matcha Latte (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 280,
+     "proteinG": 5,
+     "carbsG": 42,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 70,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-ripple",
+   "name": "Iced Matcha Latte (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 28,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 180,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 115,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 2,
+     "carbsG": 14,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 90,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-whole",
+   "name": "Iced Matcha Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 290,
+     "proteinG": 11,
+     "carbsG": 37,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 200,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 105,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 150,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-twopercent",
+   "name": "Iced Matcha Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 11,
+     "carbsG": 37,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 26,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 19,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-almond",
+   "name": "Iced Matcha Latte w/ Protein (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 250,
+     "proteinG": 17,
+     "carbsG": 32,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 200,
+     "proteinG": 16,
+     "carbsG": 24,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 160,
+     "proteinG": 15,
+     "carbsG": 18,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 135,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-nonfat",
+   "name": "Iced Matcha Latte w/ Protein (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 280,
+     "proteinG": 26,
+     "carbsG": 40,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 210,
+      "saturatedFatG": 1,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 220,
+     "proteinG": 22,
+     "carbsG": 29,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 160,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 20,
+     "carbsG": 22,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 130,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-oat",
+   "name": "Iced Matcha Latte w/ Protein (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 19,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 180,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 270,
+     "proteinG": 17,
+     "carbsG": 33,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 16,
+     "carbsG": 24,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 115,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-ripple",
+   "name": "Iced Matcha Latte w/ Protein (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 290,
+     "proteinG": 17,
+     "carbsG": 31,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 220,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 230,
+     "proteinG": 16,
+     "carbsG": 23,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 15,
+     "carbsG": 17,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-whole",
+   "name": "Iced Matcha Latte w/ Protein (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 360,
+     "proteinG": 25,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 210,
+      "saturatedFatG": 7,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 22,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 150,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 20,
+     "carbsG": 22,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 125,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-latte-w-protein-twopercent",
+   "name": "Iced Matcha Latte w/ Protein (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 320,
+     "proteinG": 25,
+     "carbsG": 40,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 210,
+      "saturatedFatG": 4,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 250,
+     "proteinG": 22,
+     "carbsG": 29,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 150,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 200,
+     "proteinG": 20,
+     "carbsG": 21,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 125,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-almond",
+   "name": "Iced Mocha (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 33,
+      "sodiumMg": 250,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 23,
+      "sodiumMg": 170,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 14,
+      "sodiumMg": 120,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-nonfat",
+   "name": "Iced Mocha (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 370,
+     "proteinG": 15,
+     "carbsG": 55,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 42,
+      "sodiumMg": 230,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 38,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 7,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 110,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-oat",
+   "name": "Iced Mocha (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 450,
+     "proteinG": 8,
+     "carbsG": 60,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 34,
+      "sodiumMg": 200,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 41,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 24,
+      "sodiumMg": 135,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 95,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-ripple",
+   "name": "Iced Mocha (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 46,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 33,
+      "sodiumMg": 240,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 32,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 23,
+      "sodiumMg": 160,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 14,
+      "sodiumMg": 115,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-whole",
+   "name": "Iced Mocha (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 460,
+     "proteinG": 15,
+     "carbsG": 55,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 42,
+      "sodiumMg": 220,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 340,
+     "proteinG": 10,
+     "carbsG": 38,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 150,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 7,
+     "carbsG": 23,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 105,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-twopercent",
+   "name": "Iced Mocha (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 420,
+     "proteinG": 15,
+     "carbsG": 55,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 40,
+      "sodiumMg": 220,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 310,
+     "proteinG": 10,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 10,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 230,
+     "proteinG": 7,
+     "carbsG": 23,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 105,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-almond",
+   "name": "Iced Skinny Vanilla Latte (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 20,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 15,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 50,
+     "proteinG": 2,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-nonfat",
+   "name": "Iced Skinny Vanilla Latte (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 140,
+     "proteinG": 13,
+     "carbsG": 28,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 100,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 70,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-oat",
+   "name": "Iced Skinny Vanilla Latte (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 140,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 23,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 70,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-ripple",
+   "name": "Iced Skinny Vanilla Latte (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 160,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 180,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 14,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 120,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 10,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 90,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-whole",
+   "name": "Iced Skinny Vanilla Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 110,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-skinny-vanilla-latte-twopercent",
+   "name": "Iced Skinny Vanilla Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 190,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 170,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 120,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 90,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-almond",
+   "name": "Iced Sugar-Free Vanilla Latte (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 20,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 15,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 50,
+     "proteinG": 2,
+     "carbsG": 10,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-nonfat",
+   "name": "Iced Sugar-Free Vanilla Latte (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 140,
+     "proteinG": 13,
+     "carbsG": 28,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 100,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 70,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-oat",
+   "name": "Iced Sugar-Free Vanilla Latte (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 140,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 23,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 70,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-ripple",
+   "name": "Iced Sugar-Free Vanilla Latte (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 160,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 180,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 14,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 120,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 80,
+     "proteinG": 2,
+     "carbsG": 10,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 90,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-whole",
+   "name": "Iced Sugar-Free Vanilla Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 230,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 110,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 110,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-sugar-free-vanilla-latte-twopercent",
+   "name": "Iced Sugar-Free Vanilla Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 190,
+     "proteinG": 12,
+     "carbsG": 28,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 170,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 120,
+     "proteinG": 8,
+     "carbsG": 20,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 90,
+     "proteinG": 6,
+     "carbsG": 14,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea",
+   "name": "Iced Tea",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea-lemonade",
+   "name": "Iced Tea Lemonade",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-almond",
+   "name": "Iced Vanilla Latte (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 41,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 32,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 28,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 120,
+     "proteinG": 2,
+     "carbsG": 23,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-nonfat",
+   "name": "Iced Vanilla Latte (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 49,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 190,
+     "proteinG": 8,
+     "carbsG": 37,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 140,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-oat",
+   "name": "Iced Vanilla Latte (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 140,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 29,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 70,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-ripple",
+   "name": "Iced Vanilla Latte (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 180,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 31,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 120,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 22,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 90,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-whole",
+   "name": "Iced Vanilla Latte (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 12,
+     "carbsG": 50,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 250,
+     "proteinG": 8,
+     "carbsG": 37,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 110,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 80,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-twopercent",
+   "name": "Iced Vanilla Latte (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 300,
+     "proteinG": 12,
+     "carbsG": 49,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 170,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 220,
+     "proteinG": 8,
+     "carbsG": 37,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 160,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-almond",
+   "name": "Iced Vanilla Latte w/ Protein (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 310,
+     "proteinG": 18,
+     "carbsG": 44,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 250,
+     "proteinG": 16,
+     "carbsG": 35,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 200,
+     "proteinG": 16,
+     "carbsG": 26,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 140,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-nonfat",
+   "name": "Iced Vanilla Latte w/ Protein (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 330,
+     "proteinG": 26,
+     "carbsG": 52,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 210,
+      "saturatedFatG": 1,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 260,
+     "proteinG": 22,
+     "carbsG": 40,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 20,
+     "carbsG": 30,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 130,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-oat",
+   "name": "Iced Vanilla Latte w/ Protein (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 410,
+     "proteinG": 19,
+     "carbsG": 57,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 180,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 310,
+     "proteinG": 18,
+     "carbsG": 43,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 16,
+     "carbsG": 32,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 115,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-ripple",
+   "name": "Iced Vanilla Latte w/ Protein (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 18,
+     "carbsG": 43,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 220,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 270,
+     "proteinG": 17,
+     "carbsG": 34,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 16,
+     "carbsG": 25,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-whole",
+   "name": "Iced Vanilla Latte w/ Protein (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 420,
+     "proteinG": 26,
+     "carbsG": 53,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 210,
+      "saturatedFatG": 7,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 320,
+     "proteinG": 22,
+     "carbsG": 40,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 150,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 260,
+     "proteinG": 20,
+     "carbsG": 30,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 125,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte-w-protein-twopercent",
+   "name": "Iced Vanilla Latte w/ Protein (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 380,
+     "proteinG": 26,
+     "carbsG": 52,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 210,
+      "saturatedFatG": 4,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 290,
+     "proteinG": 22,
+     "carbsG": 40,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 160,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 230,
+     "proteinG": 20,
+     "carbsG": 30,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 125,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-almond",
+   "name": "Iced White Chocolate Mocha (almond)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 340,
+     "proteinG": 7,
+     "carbsG": 45,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 270,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 31,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 180,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 190,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 125,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-nonfat",
+   "name": "Iced White Chocolate Mocha (nonfat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 53,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 250,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 36,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 170,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 115,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-oat",
+   "name": "Iced White Chocolate Mocha (oat)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 450,
+     "proteinG": 9,
+     "carbsG": 58,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 220,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 39,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 25,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 100,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-ripple",
+   "name": "Iced White Chocolate Mocha (Ripple)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 44,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 260,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 30,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 180,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 120,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-whole",
+   "name": "Iced White Chocolate Mocha (whole)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 460,
+     "proteinG": 16,
+     "carbsG": 53,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 250,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 340,
+     "proteinG": 11,
+     "carbsG": 36,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 115,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-mocha-twopercent",
+   "name": "Iced White Chocolate Mocha (twopercent)",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 410,
+     "proteinG": 16,
+     "carbsG": 53,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 310,
+     "proteinG": 11,
+     "carbsG": 36,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 170,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 115,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-almond",
+   "name": "Latte (almond)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 15,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 260,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 10,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-nonfat",
+   "name": "Latte (nonfat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 180,
+     "proteinG": 17,
+     "carbsG": 25,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 14,
+     "carbsG": 21,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 200,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 130,
+     "proteinG": 12,
+     "carbsG": 18,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-oat",
+   "name": "Latte (oat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 32,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 190,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 160,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 200,
+     "proteinG": 5,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-ripple",
+   "name": "Latte (Ripple)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 210,
+     "proteinG": 5,
+     "carbsG": 13,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 240,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 11,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 9,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 170,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-whole",
+   "name": "Latte (whole)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 300,
+     "proteinG": 16,
+     "carbsG": 26,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 260,
+     "proteinG": 14,
+     "carbsG": 22,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 190,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 11,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-twopercent",
+   "name": "Latte (twopercent)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 16,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 200,
+     "proteinG": 14,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 190,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 170,
+     "proteinG": 12,
+     "carbsG": 18,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-almond",
+   "name": "Latte Macchiato (almond)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 15,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 9,
+      "sodiumMg": 260,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 120,
+     "proteinG": 4,
+     "carbsG": 12,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 10,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-nonfat",
+   "name": "Latte Macchiato (nonfat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 180,
+     "proteinG": 17,
+     "carbsG": 25,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 14,
+     "carbsG": 21,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 200,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 130,
+     "proteinG": 12,
+     "carbsG": 18,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-oat",
+   "name": "Latte Macchiato (oat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 32,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 190,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 160,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 200,
+     "proteinG": 5,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-ripple",
+   "name": "Latte Macchiato (Ripple)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 210,
+     "proteinG": 5,
+     "carbsG": 13,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 240,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 11,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 9,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 170,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-whole",
+   "name": "Latte Macchiato (whole)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 300,
+     "proteinG": 16,
+     "carbsG": 26,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 260,
+     "proteinG": 14,
+     "carbsG": 22,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 190,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 220,
+     "proteinG": 11,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-macchiato-twopercent",
+   "name": "Latte Macchiato (twopercent)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 16,
+     "carbsG": 25,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 200,
+     "proteinG": 14,
+     "carbsG": 21,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 190,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 170,
+     "proteinG": 12,
+     "carbsG": 18,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade",
+   "name": "Lemonade",
+   "category": "Iced Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-almond",
+   "name": "Matcha Frappe (almond)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 80,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 44,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 95,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 58,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 55,
+      "sodiumMg": 135,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-nonfat",
+   "name": "Matcha Frappe (nonfat)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 230,
+     "proteinG": 5,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 55,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 45,
+      "sodiumMg": 70,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 8,
+     "carbsG": 62,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 105,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-ripple",
+   "name": "Matcha Frappe (Ripple)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 240,
+     "proteinG": 2,
+     "carbsG": 30,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 75,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 43,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 95,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 57,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 55,
+      "sodiumMg": 125,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-twopercent",
+   "name": "Matcha Frappe (twopercent)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 55,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 44,
+      "sodiumMg": 70,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 62,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 59,
+      "sodiumMg": 105,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-whole",
+   "name": "Matcha Frappe (whole)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 250,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 55,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 46,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 45,
+      "sodiumMg": 70,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 410,
+     "proteinG": 8,
+     "carbsG": 62,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 100,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-frappe-oat",
+   "name": "Matcha Frappe (oat)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 36,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 60,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 50,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 75,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 67,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 56,
+      "sodiumMg": 100,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-twopercent",
+   "name": "Matcha Latte (twopercent)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 290,
+     "proteinG": 14,
+     "carbsG": 44,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 190,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 240,
+     "proteinG": 12,
+     "carbsG": 35,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-almond",
+   "name": "Matcha Latte (almond)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 210,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 32,
+      "sodiumMg": 220,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 27,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 19,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 17,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-nonfat",
+   "name": "Matcha Latte (nonfat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 240,
+     "proteinG": 14,
+     "carbsG": 44,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 200,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 190,
+     "proteinG": 12,
+     "carbsG": 35,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 170,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 150,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-oat",
+   "name": "Matcha Latte (oat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 160,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 270,
+     "proteinG": 5,
+     "carbsG": 40,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 4,
+     "carbsG": 29,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 105,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-ripple",
+   "name": "Matcha Latte (Ripple)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 26,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 135,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-whole",
+   "name": "Matcha Latte (whole)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 350,
+     "proteinG": 14,
+     "carbsG": 45,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 190,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 35,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 26,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 125,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-latte-w-protein-twopercent",
+   "name": "Matcha Latte w/ Protein (twopercent)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 340,
+     "proteinG": 23,
+     "carbsG": 46,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 230,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 280,
+     "proteinG": 20,
+     "carbsG": 36,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 190,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 210,
+     "proteinG": 15,
+     "carbsG": 27,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 150,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-twopercent",
+   "name": "Mocha (twopercent)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 480,
+     "proteinG": 18,
+     "carbsG": 65,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 48,
+      "sodiumMg": 280,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 410,
+     "proteinG": 16,
+     "carbsG": 49,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 240,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 360,
+     "proteinG": 13,
+     "carbsG": 45,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-almond",
+   "name": "Mocha (almond)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 55,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 39,
+      "sodiumMg": 310,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 40,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 29,
+      "sodiumMg": 270,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 38,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 27,
+      "sodiumMg": 210,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-nonfat",
+   "name": "Mocha (nonfat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 430,
+     "proteinG": 19,
+     "carbsG": 65,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 51,
+      "sodiumMg": 280,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 49,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 240,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 35,
+      "sodiumMg": 200,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-oat",
+   "name": "Mocha (oat)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 530,
+     "proteinG": 10,
+     "carbsG": 71,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 40,
+      "sodiumMg": 240,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 450,
+     "proteinG": 8,
+     "carbsG": 55,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 210,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 170,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-ripple",
+   "name": "Mocha (Ripple)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 450,
+     "proteinG": 8,
+     "carbsG": 54,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 39,
+      "sodiumMg": 290,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 39,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 260,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 37,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 27,
+      "sodiumMg": 200,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-whole",
+   "name": "Mocha (whole)",
+   "category": "Hot Beverages",
+   "sizes": [
+    {
+     "size": "l",
+     "label": "L",
+     "calories": 540,
+     "proteinG": 18,
+     "carbsG": 65,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 50,
+      "sodiumMg": 280,
+      "saturatedFatG": 17,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 460,
+     "proteinG": 16,
+     "carbsG": 50,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 39,
+      "sodiumMg": 240,
+      "saturatedFatG": 15,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 400,
+     "proteinG": 13,
+     "carbsG": 45,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 35,
+      "sodiumMg": 190,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-almond",
+   "name": "Mocha Frappe (almond)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 350,
+     "proteinG": 4,
+     "carbsG": 59,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 125,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 400,
+     "proteinG": 4,
+     "carbsG": 72,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 62,
+      "sodiumMg": 140,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-nonfat",
+   "name": "Mocha Frappe (nonfat)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 61,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 52,
+      "sodiumMg": 100,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 74,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 65,
+      "sodiumMg": 115,
+      "saturatedFatG": 7,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-ripple",
+   "name": "Mocha Frappe (Ripple)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 59,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 72,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 62,
+      "sodiumMg": 135,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-twopercent",
+   "name": "Mocha Frappe (twopercent)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 61,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 51,
+      "sodiumMg": 100,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 74,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 64,
+      "sodiumMg": 115,
+      "saturatedFatG": 9,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-whole",
+   "name": "Mocha Frappe (whole)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 61,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 51,
+      "sodiumMg": 100,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 440,
+     "proteinG": 7,
+     "carbsG": 75,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 65,
+      "sodiumMg": 115,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-frappe-oat",
+   "name": "Mocha Frappe (oat)",
+   "category": "Frappes",
+   "sizes": [
+    {
+     "size": "s",
+     "label": "S",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 64,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 105,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "m",
+     "label": "M",
+     "calories": 450,
+     "proteinG": 5,
+     "carbsG": 78,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 63,
+      "sodiumMg": 120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

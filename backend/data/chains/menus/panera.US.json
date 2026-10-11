@@ -1,0 +1,1700 @@
+{
+ "chain": "panera",
+ "country": "US",
+ "source": {
+  "url": "https://www.panerabread.com/content/dam/panerabread/documents/c8-26-nutrition-guide.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "agave-lemonade",
+   "name": "Agave Lemonade",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz",
+     "label": "30 fl oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 78,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "serves 4 group",
+     "label": "Serves 4 - Group",
+     "calories": 670,
+     "proteinG": 1,
+     "carbsG": 165,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 153,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "serves 8 group",
+     "label": "Serves 8 - Group",
+     "calories": 1350,
+     "proteinG": 2,
+     "carbsG": 331,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 307,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aha-blueberry-pomegranate-sparkling-water",
+   "name": "AHA Blueberry Pomegranate Sparkling Water",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "12 fl oz can",
+     "label": "12 fl oz can",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aha-lime-watermelon-sparkling-water",
+   "name": "AHA Lime Watermelon Sparkling Water",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "12 fl oz can",
+     "label": "12 fl oz can",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "americano",
+   "name": "Americano",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-iced-tea",
+   "name": "Unsweetened Iced Tea",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "serves 4 group",
+     "label": "Serves 4 - Group",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "serves 8 group",
+     "label": "Serves 8 - Group",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 12,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottled-passionfruit-papaya-naturally-flavored-iced-green-te",
+   "name": "Bottled Passionfruit Papaya Naturally Flavored Iced Green Tea",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "1 bottle 500 ml",
+     "label": "1 Bottle (500 mL)",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 31,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottled-water",
+   "name": "Bottled Water",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 9 fl oz 500ml",
+     "label": "16.9 fl oz (500mL)",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "british-breakfast-tea",
+   "name": "British Breakfast Tea",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bubly-sparkling-water-lemon",
+   "name": "Bubly Sparkling Water - Lemon",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "12 fl oz can",
+     "label": "12 fl oz can",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bubly-sparkling-water-lime",
+   "name": "Bubly Sparkling Water - Lime",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "12 fl oz",
+     "label": "12 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe-blend-dark-roast-coffee",
+   "name": "Cafe Blend Dark Roast Coffee",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 5,
+     "proteinG": 1,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 5,
+     "proteinG": 1,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "group",
+     "label": "Group",
+     "calories": 35,
+     "proteinG": 4,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe-blend-light-roast-coffee",
+   "name": "Cafe Blend Light Roast Coffee",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "group",
+     "label": "Group",
+     "calories": 35,
+     "proteinG": 4,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 5,
+     "proteinG": 1,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 5,
+     "proteinG": 1,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe-frozen-java",
+   "name": "Cafe Frozen Java",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 440,
+     "proteinG": 8,
+     "carbsG": 73,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 190,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "caffe-latte",
+   "name": "Caffe Latte",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 130,
+     "proteinG": 8,
+     "carbsG": 12,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 110,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 160,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 135,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "caffeine-free-diet-pepsi",
+   "name": "Caffeine Free Diet Pepsi",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz",
+     "label": "30 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "canada-dry-ginger-ale",
+   "name": "Canada Dry Ginger Ale",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz",
+     "label": "30 fl oz",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 90,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino",
+   "name": "Cappuccino",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 130,
+     "proteinG": 8,
+     "carbsG": 12,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 110,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 160,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 135,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-latte",
+   "name": "Caramel Latte",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 320,
+     "proteinG": 9,
+     "carbsG": 50,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 400,
+     "proteinG": 11,
+     "carbsG": 64,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 56,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "chai-tea-latte",
+   "name": "Chai Tea Latte",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 33,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 130,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 280,
+     "proteinG": 12,
+     "carbsG": 42,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 160,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-lime-fresca",
+   "name": "Cherry Lime Fresca",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz with ice",
+     "label": "20 fl oz with ice",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz with ice",
+     "label": "30 fl oz with ice",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 69,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "serves 4 group",
+     "label": "Serves 4 - Group",
+     "calories": 960,
+     "proteinG": 2,
+     "carbsG": 237,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 231,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "serves 8 group",
+     "label": "Serves 8 - Group",
+     "calories": 1930,
+     "proteinG": 3,
+     "carbsG": 473,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 462,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke",
+   "name": "Coke",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz",
+     "label": "30 fl oz",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 100,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20 fl oz bottle",
+     "label": "20 fl oz Bottle",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 68,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coke-zero",
+   "name": "Coke Zero",
+   "category": "DRINKS",
+   "sizes": [
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20 fl oz bottle",
+     "label": "20 fl oz bottle",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "30 fl oz",
+     "label": "30 fl oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-chicken-salad-serves-5",
+   "name": "Catering Harvest Medley Chicken Salad - Serves 5",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "1 container",
+     "label": "1 Container",
+     "calories": 2110,
+     "proteinG": 84,
+     "carbsG": 200,
+     "fatG": 109,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 92,
+      "sodiumMg": 4980,
+      "saturatedFatG": 19,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-chicken-salad-serves-5-no-pecans",
+   "name": "Catering Harvest Medley Chicken Salad - Serves 5 - No Pecans",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "1 container",
+     "label": "1 Container",
+     "calories": 1860,
+     "proteinG": 82,
+     "carbsG": 195,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 90,
+      "sodiumMg": 4980,
+      "saturatedFatG": 16,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-salad-serves-10",
+   "name": "Catering Harvest Medley Salad - Serves 10",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "2 containers",
+     "label": "2 Containers",
+     "calories": 3540,
+     "proteinG": 60,
+     "carbsG": 374,
+     "fatG": 206,
+     "micros": {
+      "fiberG": 34,
+      "sugarG": 175,
+      "sodiumMg": 3820,
+      "saturatedFatG": 36,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-salad-serves-10-no-pecans",
+   "name": "Catering Harvest Medley Salad - Serves 10 - No Pecans",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "2 containers",
+     "label": "2 Containers",
+     "calories": 3030,
+     "proteinG": 55,
+     "carbsG": 365,
+     "fatG": 153,
+     "micros": {
+      "fiberG": 28,
+      "sugarG": 172,
+      "sodiumMg": 3820,
+      "saturatedFatG": 30,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-salad-serves-5",
+   "name": "Catering Harvest Medley Salad - Serves 5",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "1 container",
+     "label": "1 Container",
+     "calories": 1770,
+     "proteinG": 30,
+     "carbsG": 187,
+     "fatG": 103,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 87,
+      "sodiumMg": 1910,
+      "saturatedFatG": 18,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-harvest-medley-salad-serves-5-no-pecans",
+   "name": "Catering Harvest Medley Salad - Serves 5 - No Pecans",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "1 container",
+     "label": "1 Container",
+     "calories": 1520,
+     "proteinG": 27,
+     "carbsG": 182,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 86,
+      "sodiumMg": 1910,
+      "saturatedFatG": 15,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "catering-white-icing-portion",
+   "name": "Catering White Icing Portion",
+   "category": "Catering",
+   "sizes": [
+    {
+     "size": "1 cup",
+     "label": "1 Cup",
+     "calories": 1040,
+     "proteinG": 3,
+     "carbsG": 250,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 252,
+      "sodiumMg": 400,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-wrap",
+   "name": "Chicken Caesar Wrap",
+   "category": "GRAB N GO",
+   "sizes": [
+    {
+     "size": "1 wrap",
+     "label": "1 Wrap",
+     "calories": 480,
+     "proteinG": 32,
+     "carbsG": 41,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 6,
+      "sodiumMg": 1510,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-goddess-chicken-wrap",
+   "name": "Green Goddess Chicken Wrap",
+   "category": "GRAB N GO",
+   "sizes": [
+    {
+     "size": "1 wrap",
+     "label": "1 Wrap",
+     "calories": 460,
+     "proteinG": 32,
+     "carbsG": 46,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 10,
+      "sodiumMg": 1340,
+      "saturatedFatG": 3,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "frontega-chicken-wrap",
+   "name": "Frontega Chicken Wrap",
+   "category": "GRAB N GO",
+   "sizes": [
+    {
+     "size": "1 wrap",
+     "label": "1 Wrap",
+     "calories": 450,
+     "proteinG": 30,
+     "carbsG": 37,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 6,
+      "sodiumMg": 1170,
+      "saturatedFatG": 6,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "hard-boiled-eggs",
+   "name": "Hard Boiled Eggs",
+   "category": "GRAB N GO",
+   "sizes": [
+    {
+     "size": "1 container",
+     "label": "1 Container",
+     "calories": 150,
+     "proteinG": 13,
+     "carbsG": 1,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 125,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 375
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-and-cheddar-wrap",
+   "name": "Turkey & Cheddar Wrap",
+   "category": "GRAB N GO",
+   "sizes": [
+    {
+     "size": "1 wrap",
+     "label": "1 wrap",
+     "calories": 460,
+     "proteinG": 32,
+     "carbsG": 38,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 6,
+      "sodiumMg": 1160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "green-goddess-dressing-sandwich-portion",
+   "name": "Green Goddess Dressing - Sandwich Portion",
+   "group": "dressing",
+   "unit": "1 Portion",
+   "per": {
+    "calories": 30,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 55,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "green-goddess-whole-portion",
+   "name": "Green Goddess - Whole Portion",
+   "group": "dressing",
+   "unit": "2 dressing cups",
+   "per": {
+    "calories": 150,
+    "proteinG": 4,
+    "carbsG": 7,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 290,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "spread-hummus-sandwich-portion",
+   "name": "Spread - Hummus - Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 60,
+    "proteinG": 2,
+    "carbsG": 4,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 150,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-mayonnaise-sandwich-portion",
+   "name": "Sauce - Mayonnaise - Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 115,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "spread-green-chile-salsa-verde-sandwich-portion",
+   "name": "Spread - Green Chile Salsa Verde - Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 Portion",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 160,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "sauce-cheese-hollandaise-breakfast-sandwich-portion",
+   "name": "Sauce- Cheese Hollandaise - Breakfast Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 50,
+    "proteinG": 2,
+    "carbsG": 2,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 210,
+     "saturatedFatG": 3,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "sauce-creamy-basil-pesto-sandwich-portion",
+   "name": "Sauce- Creamy Basil Pesto- Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 25,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 105,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "sesame-ginger-dressing-half-portion",
+   "name": "Sesame Ginger Dressing - Half Portion",
+   "group": "dressing",
+   "unit": "1 dressing cup",
+   "per": {
+    "calories": 170,
+    "proteinG": 1,
+    "carbsG": 6,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 390,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sesame-ginger-dressing-whole-portion",
+   "name": "Sesame Ginger Dressing - Whole Portion",
+   "group": "dressing",
+   "unit": "2 dressing cups",
+   "per": {
+    "calories": 340,
+    "proteinG": 1,
+    "carbsG": 13,
+    "fatG": 32,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 10,
+     "sodiumMg": 770,
+     "saturatedFatG": 5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sauce-signature-sauce-sandwich-portion",
+   "name": "Sauce - Signature Sauce -Sandwich Portion",
+   "group": "sauce",
+   "unit": "1 portion",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 95,
+     "saturatedFatG": 1,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "white-balsamic-with-apple-vinaigrette-half-portion",
+   "name": "White Balsamic with Apple Vinaigrette - Half Portion",
+   "group": "dressing",
+   "unit": "1 dressing cup",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 10,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 160,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "white-balsamic-with-apple-vinaigrette-whole-portion",
+   "name": "White Balsamic with Apple Vinaigrette - Whole Portion",
+   "group": "dressing",
+   "unit": "2 dressing cups",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 21,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 19,
+     "sodiumMg": 330,
+     "saturatedFatG": 4,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "zesty-smoky-lemon-vinaigrette-half-portion",
+   "name": "Zesty Smoky Lemon Vinaigrette - Half Portion",
+   "group": "dressing",
+   "unit": "1 dressing cup",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 210,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "zesty-smoky-lemon-vinaigrette-whole-portion",
+   "name": "Zesty Smoky Lemon Vinaigrette - Whole Portion",
+   "group": "dressing",
+   "unit": "2 dressing cups",
+   "per": {
+    "calories": 350,
+    "proteinG": 0,
+    "carbsG": 7,
+    "fatG": 36,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 6,
+     "sodiumMg": 420,
+     "saturatedFatG": 5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "balsamic-vinaigrette-dressing-half-portion",
+   "name": "Balsamic Vinaigrette Dressing - Half Portion",
+   "group": "dressing",
+   "unit": "1 dressing cup",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 8,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 280,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "balsamic-vinaigrette-dressing-whole-portion",
+   "name": "Balsamic Vinaigrette Dressing - Whole Portion",
+   "group": "dressing",
+   "unit": "2 dressing cups",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 16,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 14,
+     "sodiumMg": 550,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-chocolatey-hazelnut-flavored-syrup",
+   "name": "1 Pump Chocolatey Hazelnut Flavored Syrup",
+   "group": "syrup",
+   "unit": "1 pump",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 20,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-rocky-road-syrup",
+   "name": "1 Pump Rocky Road Syrup",
+   "group": "syrup",
+   "unit": "1 Pump",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 20,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-snickerdoodle-syrup",
+   "name": "1 Pump Snickerdoodle Syrup",
+   "group": "syrup",
+   "unit": "1 pump",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 20,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sweet-cream-cold-foam",
+   "name": "Sweet Cream Cold Foam",
+   "group": "topping",
+   "unit": "3 swirls",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 13,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 13,
+     "sodiumMg": 10,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "1-pump-caramel-syrup",
+   "name": "1 Pump Caramel Syrup",
+   "group": "syrup",
+   "unit": "1 Pump",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 11,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 45,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-chocolate-flavored-sauce",
+   "name": "1 Pump Chocolate Flavored Sauce",
+   "group": "sauce",
+   "unit": "1 Pump",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 7,
+     "sodiumMg": 15,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "additional-shot-of-espresso",
+   "name": "Additional Shot of Espresso",
+   "group": "add-on",
+   "unit": "1 fl oz (30 mL)",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-madagascar-vanilla-syrup",
+   "name": "1 Pump Madagascar Vanilla Syrup",
+   "group": "syrup",
+   "unit": "1 Pump",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-pumpkin-spice-sauce",
+   "name": "1 Pump Pumpkin Spice Sauce",
+   "group": "sauce",
+   "unit": "1 Pump",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 11,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 10,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "substitute-almondmilk-20-fl-oz",
+   "name": "Substitute Almondmilk - 20 fl oz",
+   "group": "milk",
+   "unit": "10 fl oz (296 mL)",
+   "per": {
+    "calories": 50,
+    "proteinG": 2,
+    "carbsG": 2,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 120,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "blue-packet-sweetener",
+   "name": "Blue Packet Sweetener",
+   "group": "other",
+   "unit": "1 Packet",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "half-and-half-1-fl-oz",
+   "name": "Half & Half - 1 fl oz",
+   "group": "milk",
+   "unit": "1 fl oz",
+   "per": {
+    "calories": 40,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 10,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "pink-packet-sweetener",
+   "name": "Pink Packet Sweetener",
+   "group": "other",
+   "unit": "1 Packet",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sugar",
+   "name": "Sugar",
+   "group": "other",
+   "unit": "1 packet",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 3,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "turbinado-cane-sugar-packet",
+   "name": "Turbinado Cane Sugar Packet",
+   "group": "other",
+   "unit": "1 Packet",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 4,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "yellow-packet-sweetener",
+   "name": "Yellow Packet Sweetener",
+   "group": "other",
+   "unit": "1 Packet",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-pump-of-cane-sugar-syrup",
+   "name": "1 pump of Cane Sugar Syrup",
+   "group": "syrup",
+   "unit": "1 pump",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,619 @@
+{
+ "chain": "fionn-maccools",
+ "country": "CA",
+ "source": {
+  "url": "https://fionnmaccools.com/wp-content/uploads/2026/06/Fionns-Pubs-Nutritionals-June-2026.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "side-beef-gravy",
+   "name": "Side: Beef Gravy",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 1,
+     "carbsG": 11,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 970,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-seasonal-vegetables",
+   "name": "Side: Seasonal Vegetables",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 14,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 700,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-sweet-potatoe-fries",
+   "name": "Side: Sweet Potatoe Fries",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 4,
+     "carbsG": 84,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 34,
+      "sodiumMg": 2450,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-garlic-parmesan-fries",
+   "name": "Side: Garlic Parmesan Fries",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 5,
+     "carbsG": 59,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1190,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-celtic-salad",
+   "name": "Side: Celtic Salad",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 7,
+     "carbsG": 13,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 200,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-caesar-salad",
+   "name": "Side : Caesar Salad",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 6,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 490,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-poutine",
+   "name": "Side: Poutine",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 16,
+     "carbsG": 29,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 1550,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-french-onion-soup",
+   "name": "Side: French Onion Soup",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 530,
+      "saturatedFatG": 7,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-fries",
+   "name": "Side: Fries",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 2480,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-house-salad",
+   "name": "Side: House Salad",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 2,
+     "carbsG": 7,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 210,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-jasmine-rice",
+   "name": "Side: Jasmine Rice",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 52,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 920,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-mashed-potatoes",
+   "name": "Side: Mashed Potatoes",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 4,
+     "carbsG": 41,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1100,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-mini-blarney",
+   "name": "Side: Mini Blarney",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 15,
+     "carbsG": 137,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 21,
+      "sodiumMg": 4580,
+      "saturatedFatG": 14,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "side-mashed-potatoes-and-gravy",
+   "name": "Side: Mashed Potatoes & Gravy",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 5,
+     "carbsG": 47,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1580,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "sticky-toffe-pudding",
+   "name": "Sticky Toffe Pudding",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1220,
+     "proteinG": 12,
+     "carbsG": 141,
+     "fatG": 67,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 101,
+      "sodiumMg": 550,
+      "saturatedFatG": 41,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-cheesecake",
+   "name": "White Chocolate Cheesecake",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 4,
+     "carbsG": 46,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 210,
+      "saturatedFatG": 15,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "strudle-and-cream",
+   "name": "Strudle & Cream",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1150,
+     "proteinG": 11,
+     "carbsG": 174,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 96,
+      "sodiumMg": 1110,
+      "saturatedFatG": 21,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "ice-cream-french-vanilla-no-sauce",
+   "name": "Ice-Cream: French Vanilla NO Sauce",
+   "category": "DESSERTS",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 45,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "beer-mustard-aioli",
+   "name": "Beer Mustard Aioli",
+   "group": "sauce",
+   "unit": "44",
+   "per": {
+    "calories": 280,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 30,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 400,
+     "saturatedFatG": 5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "dungloe",
+   "name": "Dungloe",
+   "group": "sauce",
+   "unit": "4",
+   "per": {
+    "calories": 190,
+    "proteinG": 1,
+    "carbsG": 1,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 680,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "burger-sauce",
+   "name": "Burger Sauce",
+   "group": "sauce",
+   "unit": "51",
+   "per": {
+    "calories": 130,
+    "proteinG": 0.3,
+    "carbsG": 8,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 330,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "chimi-churri",
+   "name": "Chimi Churri",
+   "group": "sauce",
+   "unit": "44",
+   "per": {
+    "calories": 35,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 0,
+     "sodiumMg": 390,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "jameson-bbq-sauce",
+   "name": "Jameson BBQ Sauce",
+   "group": "sauce",
+   "unit": "55",
+   "per": {
+    "calories": 90,
+    "proteinG": 0.5,
+    "carbsG": 22,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 18,
+     "sodiumMg": 560,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "sriracha-aioli",
+   "name": "Sriracha Aioli",
+   "group": "sauce",
+   "unit": "44",
+   "per": {
+    "calories": 260,
+    "proteinG": 1,
+    "carbsG": 15,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 12,
+     "sodiumMg": 2210,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "side-sauce-chocolate-sauce",
+   "name": "Side Sauce:Chocolate Sauce",
+   "group": "sauce",
+   "unit": "75 g",
+   "per": {
+    "calories": 160,
+    "proteinG": 1,
+    "carbsG": 38,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 24,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "side-sauce-caramel",
+   "name": "Side Sauce: Caramel",
+   "group": "sauce",
+   "unit": "81 g",
+   "per": {
+    "calories": 280,
+    "proteinG": 1,
+    "carbsG": 61,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 35,
+     "sodiumMg": 250,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "side-sauce-english-toffee",
+   "name": "Side Sauce: English Toffee",
+   "group": "sauce",
+   "unit": "88 g",
+   "per": {
+    "calories": 450,
+    "proteinG": 1,
+    "carbsG": 33,
+    "fatG": 34,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 32,
+     "sodiumMg": 230,
+     "saturatedFatG": 22,
+     "cholesterolMg": 115
+    }
+   }
+  },
+  {
+   "id": "side-sauce-berry-coulis",
+   "name": "Side Sauce: Berry Coulis",
+   "group": "sauce",
+   "unit": "59 g",
+   "per": {
+    "calories": 80,
+    "proteinG": 1,
+    "carbsG": 20,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 17,
+     "sodiumMg": 1,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "side-sauce-baileys-icing",
+   "name": "Side Sauce: Baileys Icing",
+   "group": "sauce",
+   "unit": "59 g",
+   "per": {
+    "calories": 190,
+    "proteinG": 2,
+    "carbsG": 29,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 28,
+     "sodiumMg": 105,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 20
+    }
+   }
+  }
+ ]
+}

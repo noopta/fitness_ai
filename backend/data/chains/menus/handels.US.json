@@ -1,0 +1,4313 @@
+{
+ "chain": "handels",
+ "country": "US",
+ "source": {
+  "url": "https://handelsicecream.com/nutritional-info/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "blondie-sundae",
+   "name": "Blondie Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "boo-bowl-seasonal",
+   "name": "Boo Bowl (seasonal)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "boston-cooler",
+   "name": "Boston Cooler",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "bunny-bowl-seasonal",
+   "name": "Bunny Bowl (seasonal)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "butterscotch-sundae",
+   "name": "Butterscotch Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "caramel-sundae",
+   "name": "Caramel Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chocolate-covered-bananas-peanuts",
+   "name": "Chocolate Covered Bananas, Peanuts",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chocolate-covered-bananas-plain",
+   "name": "Chocolate Covered Bananas, Plain",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chocolate-covered-bananas-sprinkles",
+   "name": "Chocolate Covered Bananas, Sprinkles",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "chocolate-sundae",
+   "name": "Chocolate Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "crushed-cherry-sundae",
+   "name": "Crushed Cherry Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "fish-bait-sundae",
+   "name": "Fish Bait Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "handel-pop-chocolate",
+   "name": "Handel Pop, Chocolate",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "handel-pop-mint-chocolate-chip",
+   "name": "Handel Pop, Mint Chocolate Chip",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "handel-pop-vanilla",
+   "name": "Handel Pop, Vanilla",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hot-apple-dumpling-seasonal",
+   "name": "Hot Apple Dumpling (seasonal)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hot-fudge-brownie-sundae",
+   "name": "Hot Fudge Brownie Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hot-fudge-sundae",
+   "name": "Hot Fudge Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-banana-split-with-nuts",
+   "name": "Hurricane, Banana Split (with nuts)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-banana-split",
+   "name": "Hurricane, Banana Split",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-butterfinger",
+   "name": "Hurricane, Butterfinger",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1180,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-caramel-cone-crunch",
+   "name": "Hurricane, Caramel Cone Crunch",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 890,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1330,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-chocolate-brownie-chunk",
+   "name": "Hurricane, Chocolate Brownie Chunk",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 760,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-chocolate-chip-cookie-dough",
+   "name": "Hurricane, Chocolate Chip Cookie Dough",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 840,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1590,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-chocolate-covered-strawberry",
+   "name": "Hurricane, Chocolate Covered Strawberry",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1650,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-fish-bait",
+   "name": "Hurricane, Fish Bait",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1750,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-heath",
+   "name": "Hurricane, Heath",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 870,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-m-and-m-s",
+   "name": "Hurricane, M&M's",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 810,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1630,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-nerd-s",
+   "name": "Hurricane, Nerd's",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 780,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1170,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1570,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-oreo-cookies",
+   "name": "Hurricane, OREO Cookies",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 720,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1100,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-reese-s-peanut-butter-cup",
+   "name": "Hurricane, Reese's Peanut Butter Cup",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 770,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1160,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1540,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-reese-s-pieces",
+   "name": "Hurricane, Reese's Pieces",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1580,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-snickers",
+   "name": "Hurricane, Snickers",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 710,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1070,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "hurricane-strawberry-cheesecake-chunk",
+   "name": "Hurricane, Strawberry Cheesecake Chunk",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 740,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 1130,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1520,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "ice-cream-sandwich-chocolate",
+   "name": "Ice Cream Sandwich, Chocolate",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "ice-cream-sandwich-mint-chocolate-chip",
+   "name": "Ice Cream Sandwich, Mint Chocolate Chip",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "ice-cream-sandwich-vanilla",
+   "name": "Ice Cream Sandwich, Vanilla",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "marshmallow-sundae",
+   "name": "Marshmallow Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-sundae",
+   "name": "Peanut Butter Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "pineapple-sundae",
+   "name": "Pineapple Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 730,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "snow-bowl-seasonal",
+   "name": "Snow Bowl (seasonal)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "standard-sundae-no-nuts-no-toppings",
+   "name": "Standard Sundae (no nuts, no toppings)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "standard-waffle-bowl-sundae-no-nuts-no-toppings",
+   "name": "Standard Waffle Bowl Sundae (no nuts, no toppings)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shortcake-seasonal",
+   "name": "Strawberry Shortcake (seasonal)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "strawberry-sundae",
+   "name": "Strawberry Sundae",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "turtle-sundae-with-pecans",
+   "name": "Turtle Sundae (with pecans)",
+   "category": "Products",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "banana",
+   "name": "Banana",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 320,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 30,
+      "sodiumMg": 80,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-cream-pie",
+   "name": "Banana Cream Pie",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 120,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "bananas-foster",
+   "name": "Bananas Foster",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 49,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 115,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "birthday-cake",
+   "name": "Birthday Cake",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 470,
+     "proteinG": 6,
+     "carbsG": 58,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 49,
+      "sodiumMg": 190,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-cherry",
+   "name": "Black Cherry",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 42,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 95,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-raspberry",
+   "name": "Black Raspberry",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 85,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-raspberry-chunk",
+   "name": "Black Raspberry Chunk",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 80,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-walnut",
+   "name": "Black Walnut",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 8,
+     "carbsG": 36,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 90,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-monster",
+   "name": "Blue Monster",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-moon",
+   "name": "Blue Moon",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-cheesecake-chunk",
+   "name": "Blueberry Cheesecake Chunk",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 48,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 40,
+      "sodiumMg": 130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-cobbler",
+   "name": "Blueberry Cobbler",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 130,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie-dough",
+   "name": "Brownie Dough",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 48,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 160,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "buckeye",
+   "name": "Buckeye",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 8,
+     "carbsG": 49,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 220,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-pecan",
+   "name": "Butter Pecan",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 7,
+     "carbsG": 36,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 250,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "butterscotch-ripple",
+   "name": "Butterscotch Ripple",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 44,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cake-batter",
+   "name": "Cake Batter",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 48,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple",
+   "name": "Caramel Apple",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 115,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-latte",
+   "name": "Caramel Latte",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 140,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-pretzel-crunch",
+   "name": "Caramel Pretzel Crunch",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 6,
+     "carbsG": 55,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 190,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake-made-with-oreo",
+   "name": "Cheesecake Made With OREO®",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 48,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 160,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesecake-with-biscoff-cookies",
+   "name": "Cheesecake with Biscoff® Cookies",
+   "category": "Ice Cream",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "cherry-cordial",
+   "name": "Cherry Cordial",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 42,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 75,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-magnolia",
+   "name": "Cherry Magnolia",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 105,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-vanilla",
+   "name": "Cherry Vanilla",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 42,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 95,
+      "saturatedFatG": 11,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocoholic-chunk",
+   "name": "Chocoholic Chunk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 8,
+     "carbsG": 46,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocoholic-peanut-butter-ripple",
+   "name": "Chocoholic Peanut Butter Ripple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 11,
+     "carbsG": 41,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 31,
+      "sodiumMg": 230,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate",
+   "name": "Chocolate",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 45,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-almond",
+   "name": "Chocolate Almond",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 9,
+     "carbsG": 48,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 210,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-cake-batter",
+   "name": "Chocolate Cake Batter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 57,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 43,
+      "sodiumMg": 270,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip",
+   "name": "Chocolate Chip",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 7,
+     "carbsG": 41,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 90,
+      "saturatedFatG": 15,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cheesecake-chunk",
+   "name": "Chocolate Chip Cheesecake Chunk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 53,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 190,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie-dough",
+   "name": "Chocolate Chip Cookie Dough",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 115,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-covered-strawberry",
+   "name": "Chocolate Covered Strawberry",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 330,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 95,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-made-with-oreo",
+   "name": "Chocolate Made With OREO®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 51,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-malt-with-caramel",
+   "name": "Chocolate Malt With Caramel",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 110,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-marshmallow",
+   "name": "Chocolate Marshmallow",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 49,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 160,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-ooohh-dough",
+   "name": "Chocolate Ooohh...Dough!",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 7,
+     "carbsG": 55,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-orange",
+   "name": "Chocolate Orange",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 44,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-peanut-butter-brownie",
+   "name": "Chocolate Peanut Butter Brownie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 9,
+     "carbsG": 48,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 36,
+      "sodiumMg": 240,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-pecan",
+   "name": "Chocolate Pecan",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 7,
+     "carbsG": 43,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 34,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-raspberry-truffle",
+   "name": "Chocolate Raspberry Truffle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 48,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 38,
+      "sodiumMg": 140,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-graham-cracker",
+   "name": "Cinnamon Graham Cracker",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 6,
+     "carbsG": 51,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 170,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-pecan",
+   "name": "Cinnamon Pecan",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 7,
+     "carbsG": 36,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 140,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-roll",
+   "name": "Cinnamon Roll",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 53,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 43,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-almond-fudge-ripple",
+   "name": "Coconut Almond Fudge Ripple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 8,
+     "carbsG": 46,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 150,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-caramel-delight",
+   "name": "Coconut Caramel Delight",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 150,
+      "saturatedFatG": 15,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-cream-pie",
+   "name": "Coconut Cream Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 150,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-pineapple",
+   "name": "Coconut Pineapple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 41,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "coffee-chocolate-chip",
+   "name": "Coffee Chocolate Chip",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 40,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 85,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee-with-heath",
+   "name": "Coffee with Heath®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 42,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 130,
+      "saturatedFatG": 13,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "confetti-brownie-batter",
+   "name": "Confetti Brownie Batter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 7,
+     "carbsG": 62,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 47,
+      "sodiumMg": 270,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotton-candy",
+   "name": "Cotton Candy",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 43,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 90,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "deep-dish-apple-pie",
+   "name": "Deep Dish Apple Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 110,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "dulce-de-leche",
+   "name": "Dulce de Leche",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 140,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "eggnog",
+   "name": "Eggnog",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 7,
+     "carbsG": 41,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "elvis",
+   "name": "Elvis",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 9,
+     "carbsG": 37,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 150,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-silk-pie",
+   "name": "French Silk Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 180,
+      "saturatedFatG": 14,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-ripple",
+   "name": "Fudge Ripple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 110,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-ripple-brownie",
+   "name": "Fudge Ripple Brownie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "graham-canyon",
+   "name": "Graham Canyon",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 5,
+     "carbsG": 55,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 42,
+      "sodiumMg": 210,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "graham-central-station",
+   "name": "Graham Central Station",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 470,
+     "proteinG": 6,
+     "carbsG": 54,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 200,
+      "saturatedFatG": 14,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "grape",
+   "name": "Grape",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 7,
+     "carbsG": 37,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-monster",
+   "name": "Green Monster",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-tea",
+   "name": "Green Tea",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 38,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 210,
+      "saturatedFatG": 12,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "heavenly-hash",
+   "name": "Heavenly Hash",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 55,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 44,
+      "sodiumMg": 160,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "horchata",
+   "name": "Horchata",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 7,
+     "carbsG": 41,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 110,
+      "saturatedFatG": 13,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "key-lime-pie",
+   "name": "Key Lime Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 5,
+     "carbsG": 45,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "knot-your-average-dough",
+   "name": "Knot Your Average Dough",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 450,
+     "proteinG": 6,
+     "carbsG": 54,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 300,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-bar",
+   "name": "Lemon Bar",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 6,
+     "carbsG": 43,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 170,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-meringue-pie",
+   "name": "Lemon Meringue Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 48,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "meri-s-joy",
+   "name": "Meri's Joy",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 8,
+     "carbsG": 43,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 34,
+      "sodiumMg": 135,
+      "saturatedFatG": 15,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "midnight-madness",
+   "name": "Midnight Madness",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 460,
+     "proteinG": 11,
+     "carbsG": 47,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 33,
+      "sodiumMg": 270,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip-with-chocolate-chips",
+   "name": "Mint Chocolate Chip With Chocolate Chips",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 380,
+     "proteinG": 7,
+     "carbsG": 41,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 90,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip-with-chocolate-flakes",
+   "name": "Mint Chocolate Chip With Chocolate Flakes",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "mint-made-with-oreo",
+   "name": "Mint Made With OREO®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 45,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 140,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "monkey-business",
+   "name": "Monkey Business",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 57,
+     "fatG": 16,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 190,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "mud-pie",
+   "name": "Mud Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 160,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-york-style-cheesecake",
+   "name": "New York Style Cheesecake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 6,
+     "carbsG": 50,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 210,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-butter-pecan",
+   "name": "No Sugar Added Butter Pecan",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-coffee",
+   "name": "No Sugar Added Coffee",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 14,
+      "sodiumMg": 140,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-pistachio",
+   "name": "No Sugar Added Pistachio",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-strawberry",
+   "name": "No Sugar Added Strawberry",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-vanilla",
+   "name": "No Sugar Added Vanilla",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 160,
+     "proteinG": 8,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 15,
+      "sodiumMg": 150,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "ooohh-dough",
+   "name": "Ooohh...Dough!",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 6,
+     "carbsG": 49,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 36,
+      "sodiumMg": 150,
+      "saturatedFatG": 12,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-dream-cream",
+   "name": "Orange Dream Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 47,
+     "fatG": 10,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 65,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-pineapple",
+   "name": "Orange Pineapple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 44,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 90,
+      "saturatedFatG": 10,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach",
+   "name": "Peach",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 43,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 60,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter",
+   "name": "Peanut Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 9,
+     "carbsG": 37,
+     "fatG": 26,
+     "micros": {
+      "sugarG": 30,
+      "sodiumMg": 240,
+      "saturatedFatG": 13,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-parfait",
+   "name": "Peanut Butter Parfait",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 10,
+     "carbsG": 42,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 190,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "peppermint-bark",
+   "name": "Peppermint Bark",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 90,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "peppermint-stick",
+   "name": "Peppermint Stick",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 43,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 95,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple-upside-down-cake",
+   "name": "Pineapple Upside Down Cake",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 5,
+     "carbsG": 56,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 46,
+      "sodiumMg": 160,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-lemonade",
+   "name": "Pink Lemonade",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 5,
+     "carbsG": 55,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 110,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio",
+   "name": "Pistachio",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 29,
+      "sodiumMg": 140,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "praline-pecan",
+   "name": "Praline Pecan",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 18,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 220,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-cheesecake-chunk",
+   "name": "Pumpkin Cheesecake Chunk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 140,
+      "saturatedFatG": 10,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pecan",
+   "name": "Pumpkin Pecan",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 6,
+     "carbsG": 46,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 36,
+      "sodiumMg": 140,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-pie",
+   "name": "Pumpkin Pie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-ripple",
+   "name": "Pumpkin Ripple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 54,
+     "fatG": 14,
+     "micros": {
+      "sugarG": 44,
+      "sodiumMg": 100,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-cheesecake-chunk",
+   "name": "Raspberry Cheesecake Chunk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 6,
+     "carbsG": 47,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 130,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-dream-cream",
+   "name": "Raspberry Dream Cream",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 42,
+     "fatG": 11,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 55,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "rocky-mocha-blast",
+   "name": "Rocky Mocha Blast",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 53,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 200,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "salty-caramel-truffle",
+   "name": "Salty Caramel Truffle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 370,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "s-mores",
+   "name": "S'mores",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 43,
+      "sodiumMg": 105,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "snappy-turtle",
+   "name": "Snappy Turtle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 210,
+      "saturatedFatG": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "snickerdoodle",
+   "name": "Snickerdoodle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 24,
+     "micros": {
+      "sugarG": 33,
+      "sodiumMg": 115,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "snix",
+   "name": "Snix",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 250,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "spouse-like-a-house",
+   "name": "Spouse Like A House",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 35,
+      "sodiumMg": 240,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "sticky-fingers",
+   "name": "Sticky Fingers",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 260,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry",
+   "name": "Strawberry",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 15,
+     "micros": {
+      "sugarG": 33,
+      "sodiumMg": 75,
+      "saturatedFatG": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake-chunk",
+   "name": "Strawberry Cheesecake Chunk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 17,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 135,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "taro",
+   "name": "Taro",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 150,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "tiger-stripes",
+   "name": "Tiger Stripes",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 32,
+      "sodiumMg": 135,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "tin-lizzy",
+   "name": "Tin Lizzy",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 40,
+      "sodiumMg": 280,
+      "saturatedFatG": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "toasted-almond",
+   "name": "Toasted Almond",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 25,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 230,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "twixter",
+   "name": "Twixter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 41,
+      "sodiumMg": 150,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla",
+   "name": "Vanilla",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 31,
+      "sodiumMg": 95,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-caramel-brownie",
+   "name": "Vanilla Caramel Brownie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 19,
+     "micros": {
+      "sugarG": 39,
+      "sodiumMg": 140,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-caramel-truffle",
+   "name": "Vanilla Caramel Truffle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 40,
+      "sodiumMg": 105,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-made-with-oreo",
+   "name": "Vanilla Made With OREO®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 21,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 140,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-peanut-butter-chip",
+   "name": "Vanilla Peanut Butter Chip",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 150,
+      "saturatedFatG": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-peanut-butter-ripple",
+   "name": "Vanilla Peanut Butter Ripple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 28,
+     "micros": {
+      "sugarG": 30,
+      "sodiumMg": 170,
+      "saturatedFatG": 12
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-raspberry-chip",
+   "name": "Vanilla Raspberry Chip",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 20,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 80,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-turtle",
+   "name": "Vanilla Turtle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 27,
+     "micros": {
+      "sugarG": 34,
+      "sodiumMg": 160,
+      "saturatedFatG": 11
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-with-reese-s-peanut-butter-cup",
+   "name": "Vanilla With Reese's® Peanut Butter Cup",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 400,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 23,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 140,
+      "saturatedFatG": 13
+     }
+    }
+   ]
+  },
+  {
+   "id": "lime",
+   "name": "Lime",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 49,
+      "sodiumMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange",
+   "name": "Orange",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 50,
+      "sodiumMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple",
+   "name": "Pineapple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "sugarG": 47,
+      "sodiumMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-champagne",
+   "name": "Pink Champagne",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "red-raspberry",
+   "name": "Red Raspberry",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 1,
+     "carbsG": 46,
+     "fatG": 2.5,
+     "micros": {
+      "sugarG": 43,
+      "sodiumMg": 20,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon",
+   "name": "Lemon",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 49,
+      "sodiumMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sour-green-apple",
+   "name": "Sour Green Apple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 48,
+      "sodiumMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "watermelon",
+   "name": "Watermelon",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 46,
+      "sodiumMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-almond-milk",
+   "name": "Chocolate Almond Milk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 45,
+     "fatG": 3,
+     "micros": {
+      "sugarG": 29,
+      "sodiumMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-milk",
+   "name": "Coconut Milk",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 1,
+     "micros": {
+      "sugarG": 30,
+      "sodiumMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-chocolate-peanut-butter-brownie",
+   "name": "Non-Dairy Chocolate Peanut Butter Brownie",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-coffee-truffle",
+   "name": "Non-Dairy Coffee Truffle",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "non-dairy-peanut-butter",
+   "name": "Non-Dairy Peanut Butter",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {}
+    }
+   ]
+  },
+  {
+   "id": "mango",
+   "name": "Mango",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 1,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "mixed-berry",
+   "name": "Mixed Berry",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "pomegranate",
+   "name": "Pomegranate",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 37,
+      "sodiumMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-pineapple",
+   "name": "Vanilla Pineapple",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small dish",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 38,
+      "sodiumMg": 70
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "brown-sugar-cinnamon-sauce",
+   "name": "Brown Sugar Cinnamon Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "brownie-pieces",
+   "name": "Brownie Pieces",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "butterfinger",
+   "name": "Butterfinger",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "butterscotch",
+   "name": "Butterscotch",
+   "group": "topping",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "caramel",
+   "name": "Caramel",
+   "group": "sauce",
+   "per": {
+    "calories": 140,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "cheesecake-chunk",
+   "name": "Cheesecake Chunk",
+   "group": "topping",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chocolate-chip-cookie-dough",
+   "name": "Chocolate Chip Cookie Dough",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chocolate-chips",
+   "name": "Chocolate Chips",
+   "group": "topping",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chocolate-syrup",
+   "name": "Chocolate Syrup",
+   "group": "syrup",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "chopped-almonds",
+   "name": "Chopped Almonds",
+   "group": "topping",
+   "per": {
+    "calories": 170,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "crushed-cherries",
+   "name": "Crushed Cherries",
+   "group": "topping",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "granulated-peanuts",
+   "name": "Granulated Peanuts",
+   "group": "topping",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "gummy-worms",
+   "name": "Gummy Worms",
+   "group": "topping",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "heath",
+   "name": "Heath",
+   "group": "topping",
+   "per": {
+    "calories": 160,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "hot-fudge",
+   "name": "Hot Fudge",
+   "group": "topping",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "m-and-m-s",
+   "name": "M&M's",
+   "group": "topping",
+   "per": {
+    "calories": 130,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "magic-rocks",
+   "name": "Magic Rocks",
+   "group": "topping",
+   "per": {
+    "calories": 140,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "marshmallow-sauce",
+   "name": "Marshmallow Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mini-marshmallows",
+   "name": "Mini Marshmallows",
+   "group": "topping",
+   "per": {
+    "calories": 25,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "mixed-nuts",
+   "name": "Mixed Nuts",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "nerds",
+   "name": "Nerds",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "oreo-cookie-pieces",
+   "name": "OREO Cookie Pieces",
+   "group": "topping",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "oreo-cookies",
+   "name": "OREO Cookies",
+   "group": "topping",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "peanut-butter-sauce",
+   "name": "Peanut Butter Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 190,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pecans",
+   "name": "Pecans",
+   "group": "topping",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "pineapple-topping",
+   "name": "Pineapple Topping",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "reese-s-peanut-butter-cup",
+   "name": "Reese's Peanut Butter Cup",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "reese-s-pieces",
+   "name": "Reese's Pieces",
+   "group": "topping",
+   "per": {
+    "calories": 120,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sliced-bananas",
+   "name": "Sliced Bananas",
+   "group": "topping",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "snickers",
+   "name": "Snickers",
+   "group": "topping",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "sprinkles",
+   "name": "Sprinkles",
+   "group": "topping",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "strawberries",
+   "name": "Strawberries",
+   "group": "topping",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "tajin-chamoy",
+   "name": "Tajin Chamoy",
+   "group": "sauce",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "tajin-classic-seasoning",
+   "name": "Tajin Classic Seasoning",
+   "group": "topping",
+   "per": {
+    "calories": 45,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "waffle-cone-pieces",
+   "name": "Waffle Cone Pieces",
+   "group": "topping",
+   "per": {
+    "calories": 35,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  },
+  {
+   "id": "whipped-cream",
+   "name": "Whipped Cream",
+   "group": "topping",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {}
+   }
+  }
+ ]
+}

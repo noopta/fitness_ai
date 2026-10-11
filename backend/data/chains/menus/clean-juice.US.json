@@ -1,0 +1,2236 @@
+{
+ "chain": "clean-juice",
+ "country": "US",
+ "source": {
+  "url": "https://www.cleanjuice.com/nutrition-facts/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "ocean-waves",
+   "name": "Ocean Waves",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 390,
+     "proteinG": 4,
+     "carbsG": 76,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 55,
+      "sodiumMg": 81,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 490,
+     "proteinG": 5,
+     "carbsG": 97,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 69,
+      "sodiumMg": 98,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropical-island",
+   "name": "Tropical Island",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 400,
+     "proteinG": 3,
+     "carbsG": 58,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 47,
+      "sodiumMg": 81,
+      "saturatedFatG": 11,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 550,
+     "proteinG": 4,
+     "carbsG": 82,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 67,
+      "sodiumMg": 99,
+      "saturatedFatG": 15,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "matcha-swirl",
+   "name": "Matcha Swirl",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 43,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 28,
+      "sodiumMg": 84,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 330,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 37,
+      "sodiumMg": 100,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-lavender",
+   "name": "Honey Lavender",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 390,
+     "proteinG": 12,
+     "carbsG": 72,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 52,
+      "sodiumMg": 98,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 490,
+     "proteinG": 13,
+     "carbsG": 89,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 62,
+      "sodiumMg": 114,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "youthful-one",
+   "name": "Youthful One",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 360,
+     "proteinG": 4,
+     "carbsG": 65,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 45,
+      "sodiumMg": 77,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 500,
+     "proteinG": 5,
+     "carbsG": 97,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 66,
+      "sodiumMg": 93,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "choco-nana",
+   "name": "Choco 'Nana",
+   "category": "Smoothies - Balance + Glow",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 310,
+     "proteinG": 6,
+     "carbsG": 58,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 37,
+      "sodiumMg": 76,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 430,
+     "proteinG": 10,
+     "carbsG": 76,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 46,
+      "sodiumMg": 91,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "immunity-2-0",
+   "name": "Immunity 2.0",
+   "category": "Smoothies - Immunity + Greens",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 210,
+     "proteinG": 3,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 36,
+      "sodiumMg": 92,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 51,
+      "sodiumMg": 116,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "intense-one",
+   "name": "Intense One",
+   "category": "Smoothies - Immunity + Greens",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 18,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 48,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 27,
+      "sodiumMg": 117,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "feel-good",
+   "name": "Feel Good",
+   "category": "Smoothies - Immunity + Greens",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 360,
+     "proteinG": 14,
+     "carbsG": 64,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 44,
+      "sodiumMg": 112,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 480,
+     "proteinG": 15,
+     "carbsG": 88,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 60,
+      "sodiumMg": 144,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "recovery-one",
+   "name": "Recovery One",
+   "category": "Smoothies - Energy + Focus",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 410,
+     "proteinG": 5,
+     "carbsG": 82,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 61,
+      "sodiumMg": 76,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 520,
+     "proteinG": 7,
+     "carbsG": 101,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 71,
+      "sodiumMg": 76,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee-kick",
+   "name": "Coffee Kick",
+   "category": "Smoothies - Energy + Focus",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 200,
+     "proteinG": 3,
+     "carbsG": 37,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 24,
+      "sodiumMg": 31,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 310,
+     "proteinG": 5,
+     "carbsG": 59,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 38,
+      "sodiumMg": 47,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-cup",
+   "name": "Peanut Butter Cup",
+   "category": "Smoothies - Energy + Focus",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 450,
+     "proteinG": 10,
+     "carbsG": 81,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 43,
+      "sodiumMg": 79,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 580,
+     "proteinG": 14,
+     "carbsG": 102,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 54,
+      "sodiumMg": 95,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-n-cream",
+   "name": "Mango 'N Cream",
+   "category": "Smoothies - Energy + Focus",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 430,
+     "proteinG": 5,
+     "carbsG": 86,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 65,
+      "sodiumMg": 82,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 560,
+     "proteinG": 6,
+     "carbsG": 115,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 86,
+      "sodiumMg": 100,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-colada",
+   "name": "Berry Colada",
+   "category": "Smoothies - Energy + Focus",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 26,
+      "sodiumMg": 96,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 370,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 35,
+      "sodiumMg": 112,
+      "saturatedFatG": 10,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-gains-whey-protein",
+   "name": "Green Gains (Whey Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 500,
+     "proteinG": 49,
+     "carbsG": 62,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 41,
+      "sodiumMg": 432,
+      "saturatedFatG": 0,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 650,
+     "proteinG": 56,
+     "carbsG": 85,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 54,
+      "sodiumMg": 469,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "mighty-nutty-cacao-whey-protein",
+   "name": "Mighty Nutty Cacao (Whey Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 540,
+     "proteinG": 53,
+     "carbsG": 61,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 35,
+      "sodiumMg": 432,
+      "saturatedFatG": 1,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 650,
+     "proteinG": 62,
+     "carbsG": 74,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 41,
+      "sodiumMg": 470,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "recharge-one-whey-protein",
+   "name": "Recharge One (Whey Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 520,
+     "proteinG": 48,
+     "carbsG": 66,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 47,
+      "sodiumMg": 409,
+      "saturatedFatG": 1,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 650,
+     "proteinG": 54,
+     "carbsG": 86,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 60,
+      "sodiumMg": 441,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "boosted-blueberry-pineapple-whey-protein",
+   "name": "Boosted Blueberry Pineapple (Whey Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 500,
+     "proteinG": 48,
+     "carbsG": 59,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 45,
+      "sodiumMg": 431,
+      "saturatedFatG": 0,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 700,
+     "proteinG": 56,
+     "carbsG": 94,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 69,
+      "sodiumMg": 470,
+      "saturatedFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-gains-hemp-protein",
+   "name": "Green Gains* (Hemp Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 510,
+     "proteinG": 41,
+     "carbsG": 65,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 41,
+      "sodiumMg": 371,
+      "saturatedFatG": 0,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 660,
+     "proteinG": 48,
+     "carbsG": 88,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 54,
+      "sodiumMg": 408,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "mighty-nutty-cacao-hemp-protein",
+   "name": "Mighty Nutty Cacao* (Hemp Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 520,
+     "proteinG": 46,
+     "carbsG": 65,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 35,
+      "sodiumMg": 371,
+      "saturatedFatG": 1,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 660,
+     "proteinG": 54,
+     "carbsG": 77,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 41,
+      "sodiumMg": 409,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "recharge-one-hemp-protein",
+   "name": "Recharge One* (Hemp Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 530,
+     "proteinG": 40,
+     "carbsG": 69,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 48,
+      "sodiumMg": 348,
+      "saturatedFatG": 1,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 660,
+     "proteinG": 47,
+     "carbsG": 89,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 60,
+      "sodiumMg": 381,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "boosted-blueberry-pineapple-hemp-protein",
+   "name": "Boosted Blueberry Pineapple* (Hemp Protein)",
+   "category": "Smoothies - Protein + Strength",
+   "sizes": [
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 510,
+     "proteinG": 41,
+     "carbsG": 63,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 46,
+      "sodiumMg": 370,
+      "saturatedFatG": 0,
+      "cholesterolMg": 7
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 710,
+     "proteinG": 48,
+     "carbsG": 97,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 69,
+      "sodiumMg": 409,
+      "saturatedFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-acai-bowl",
+   "name": "Berry Acai Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 550,
+     "proteinG": 4,
+     "carbsG": 102,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 58,
+      "sodiumMg": 117,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutty-acai-bowl",
+   "name": "Nutty Acai Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 600,
+     "proteinG": 8,
+     "carbsG": 107,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 52,
+      "sodiumMg": 102,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-glow-acai-bowl",
+   "name": "Green Glow Acai Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 690,
+     "proteinG": 4,
+     "carbsG": 130,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 72,
+      "sodiumMg": 129,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-paradise-bowl",
+   "name": "Blue Paradise Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 710,
+     "proteinG": 5,
+     "carbsG": 123,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 69,
+      "sodiumMg": 132,
+      "saturatedFatG": 12,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-bowl",
+   "name": "Peanut Butter Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 900,
+     "proteinG": 15,
+     "carbsG": 137,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 66,
+      "sodiumMg": 129,
+      "saturatedFatG": 12,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-velvet-acai-bowl",
+   "name": "Red Velvet Acai Bowl",
+   "category": "Bowls",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 710,
+     "proteinG": 13,
+     "carbsG": 102,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 39,
+      "sodiumMg": 173,
+      "saturatedFatG": 14,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "immunity-fresh-juice",
+   "name": "Immunity (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 91,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 44,
+      "sodiumMg": 116,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "detoxifying-fresh-juice",
+   "name": "Detoxifying (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 158,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 42,
+      "sodiumMg": 234,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hardcore-fresh-juice",
+   "name": "Hardcore (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 80,
+     "proteinG": 4,
+     "carbsG": 17,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 3,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 25,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 4,
+      "sodiumMg": 204,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "energy-fresh-juice",
+   "name": "Energy (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 129,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 55,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 48,
+      "sodiumMg": 205,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "wake-up-fresh-juice",
+   "name": "Wake Up (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 23,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "glow-fresh-juice",
+   "name": "Glow (Fresh Juice)",
+   "category": "Fresh Juice Blends",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 25,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 17,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "18 oz",
+     "label": "18 oz",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 49,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 30,
+      "sodiumMg": 28,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ginger-aid-shot",
+   "name": "Ginger-Aid Shot",
+   "category": "Juice Shots",
+   "sizes": [
+    {
+     "size": "2 oz",
+     "label": "2 oz",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 13,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 8,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "burn-and-boost-shot",
+   "name": "Burn & Boost Shot",
+   "category": "Juice Shots",
+   "sizes": [
+    {
+     "size": "2 oz",
+     "label": "2 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 4,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-reset-shot",
+   "name": "Green Reset Shot",
+   "category": "Juice Shots",
+   "sizes": [
+    {
+     "size": "2 oz",
+     "label": "2 oz",
+     "calories": 20,
+     "proteinG": 1,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "metabolic-booster-shot",
+   "name": "Metabolic Booster Shot",
+   "category": "Juice Shots",
+   "sizes": [
+    {
+     "size": "2 oz",
+     "label": "2 oz",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 13,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 8,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-toast-sourdough-bread",
+   "name": "Avocado Toast (Sourdough Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 290,
+     "proteinG": 5,
+     "carbsG": 29,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 314,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "protein-toast-sourdough-bread",
+   "name": "Protein Toast (Sourdough Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 340,
+     "proteinG": 12,
+     "carbsG": 30,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 456,
+      "saturatedFatG": 4,
+      "cholesterolMg": 214
+     }
+    }
+   ]
+  },
+  {
+   "id": "almond-butter-toast-sourdough-bread",
+   "name": "Almond Butter Toast* (Sourdough Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 400,
+     "proteinG": 11,
+     "carbsG": 57,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 19,
+      "sodiumMg": 311,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caprese-toast-sourdough-bread",
+   "name": "Caprese Toast (Sourdough Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 410,
+     "proteinG": 20,
+     "carbsG": 29,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 865,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-toast-gluten-free-bread",
+   "name": "Avocado Toast (Gluten Free Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 444,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "protein-toast-gluten-free-bread",
+   "name": "Protein Toast (Gluten Free Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 420,
+     "proteinG": 10,
+     "carbsG": 44,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 586,
+      "saturatedFatG": 6,
+      "cholesterolMg": 214
+     }
+    }
+   ]
+  },
+  {
+   "id": "almond-butter-toast-gluten-free-bread",
+   "name": "Almond Butter Toast* (Gluten Free Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 480,
+     "proteinG": 9,
+     "carbsG": 71,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 21,
+      "sodiumMg": 441,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caprese-toast-gluten-free-bread",
+   "name": "Caprese Toast (Gluten Free Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 490,
+     "proteinG": 18,
+     "carbsG": 43,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 995,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-toast-multigrain-bread",
+   "name": "Avocado Toast (Multigrain Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 290,
+     "proteinG": 6,
+     "carbsG": 25,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 184,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "protein-toast-multigrain-bread",
+   "name": "Protein Toast (Multigrain Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 340,
+     "proteinG": 13,
+     "carbsG": 26,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 6,
+      "sodiumMg": 326,
+      "saturatedFatG": 4,
+      "cholesterolMg": 214
+     }
+    }
+   ]
+  },
+  {
+   "id": "almond-butter-toast-multigrain-bread",
+   "name": "Almond Butter Toast* (Multigrain Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 400,
+     "proteinG": 12,
+     "carbsG": 53,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 24,
+      "sodiumMg": 181,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caprese-toast-multigrain-bread",
+   "name": "Caprese Toast (Multigrain Bread)",
+   "category": "Toasts",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 410,
+     "proteinG": 21,
+     "carbsG": 25,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 735,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-salad-sandwich-sourdough-bread",
+   "name": "Egg Salad Sandwich (Sourdough Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 300,
+     "proteinG": 14,
+     "carbsG": 29,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 677,
+      "saturatedFatG": 4,
+      "cholesterolMg": 217
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-sandwich-sourdough-bread",
+   "name": "Breakfast Sandwich (Sourdough Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 580,
+     "proteinG": 23,
+     "carbsG": 35,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 1,
+      "sodiumMg": 790,
+      "saturatedFatG": 12,
+      "cholesterolMg": 257
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-sandwich-sourdough-bread",
+   "name": "Chicken Pesto Sandwich (Sourdough Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 300,
+     "proteinG": 14,
+     "carbsG": 43,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 679,
+      "saturatedFatG": 2,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-sandwich-sourdough-bread",
+   "name": "Cali Sandwich (Sourdough Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 460,
+     "proteinG": 21,
+     "carbsG": 43,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 1,
+      "sodiumMg": 755,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-salad-sandwich-gluten-free-bread",
+   "name": "Egg Salad Sandwich (Gluten Free Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 43,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 807,
+      "saturatedFatG": 6,
+      "cholesterolMg": 217
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-sandwich-gluten-free-bread",
+   "name": "Breakfast Sandwich (Gluten Free Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 660,
+     "proteinG": 21,
+     "carbsG": 49,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 3,
+      "sodiumMg": 920,
+      "saturatedFatG": 14,
+      "cholesterolMg": 257
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-sandwich-gluten-free-bread",
+   "name": "Chicken Pesto Sandwich (Gluten Free Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 809,
+      "saturatedFatG": 4,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-sandwich-gluten-free-bread",
+   "name": "Cali Sandwich (Gluten Free Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 540,
+     "proteinG": 19,
+     "carbsG": 57,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 3,
+      "sodiumMg": 885,
+      "saturatedFatG": 9,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-salad-sandwich-multigrain-bread",
+   "name": "Egg Salad Sandwich (Multigrain Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 300,
+     "proteinG": 15,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 547,
+      "saturatedFatG": 4,
+      "cholesterolMg": 217
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-sandwich-multigrain-bread",
+   "name": "Breakfast Sandwich (Multigrain Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 580,
+     "proteinG": 24,
+     "carbsG": 31,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 6,
+      "sodiumMg": 660,
+      "saturatedFatG": 12,
+      "cholesterolMg": 257
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-sandwich-multigrain-bread",
+   "name": "Chicken Pesto Sandwich (Multigrain Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 300,
+     "proteinG": 15,
+     "carbsG": 39,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 549,
+      "saturatedFatG": 2,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-sandwich-multigrain-bread",
+   "name": "Cali Sandwich (Multigrain Bread)",
+   "category": "Sandwiches",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 460,
+     "proteinG": 22,
+     "carbsG": 39,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 6,
+      "sodiumMg": 625,
+      "saturatedFatG": 7,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-salad-wrap-flour",
+   "name": "Egg Salad Wrap (Flour)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 16,
+     "carbsG": 37,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 767,
+      "saturatedFatG": 7,
+      "cholesterolMg": 217
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-flour",
+   "name": "Breakfast Wrap (Flour)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 660,
+     "proteinG": 25,
+     "carbsG": 43,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 2,
+      "sodiumMg": 880,
+      "saturatedFatG": 15,
+      "cholesterolMg": 257
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-wrap-flour",
+   "name": "Chicken Pesto Wrap (Flour)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 16,
+     "carbsG": 51,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 769,
+      "saturatedFatG": 5,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-wrap-flour",
+   "name": "Cali Wrap (Flour)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 540,
+     "proteinG": 23,
+     "carbsG": 51,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 2,
+      "sodiumMg": 845,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-salad-wrap-gluten-free",
+   "name": "Egg Salad Wrap (Gluten Free)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 37,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 797,
+      "saturatedFatG": 5,
+      "cholesterolMg": 217
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-wrap-gluten-free",
+   "name": "Breakfast Wrap (Gluten Free)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 660,
+     "proteinG": 21,
+     "carbsG": 43,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 910,
+      "saturatedFatG": 13,
+      "cholesterolMg": 257
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-pesto-wrap-gluten-free",
+   "name": "Chicken Pesto Wrap (Gluten Free)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 51,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 8,
+      "sodiumMg": 799,
+      "saturatedFatG": 3,
+      "cholesterolMg": 53
+     }
+    }
+   ]
+  },
+  {
+   "id": "cali-wrap-gluten-free",
+   "name": "Cali Wrap (Gluten Free)",
+   "category": "Wraps",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 540,
+     "proteinG": 19,
+     "carbsG": 51,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 6,
+      "sodiumMg": 875,
+      "saturatedFatG": 8,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-pb-and-j-sandwich-sourdough-bread",
+   "name": "Kids PB&J Sandwich (Sourdough Bread)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 330,
+     "proteinG": 12,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 320,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-cheesy-wrap-flour",
+   "name": "Kids Cheesy Wrap (Flour)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 310,
+     "proteinG": 13,
+     "carbsG": 35,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 580,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-peanut-butter-apple-wrap-flour",
+   "name": "Kids Peanut Butter Apple Wrap (Flour)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 310,
+     "proteinG": 10,
+     "carbsG": 41,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 403,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-and-cheese-wrap-flour",
+   "name": "Kids Chicken & Cheese Wrap (Flour)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 709,
+      "saturatedFatG": 8,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-pb-and-j-sandwich-gluten-free",
+   "name": "Kids PB&J Sandwich (Gluten Free)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 410,
+     "proteinG": 15,
+     "carbsG": 53,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 17,
+      "sodiumMg": 410,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-cheesy-wrap-gluten-free",
+   "name": "Kids Cheesy Wrap (Gluten Free)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 370,
+     "proteinG": 13,
+     "carbsG": 36,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 700,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-peanut-butter-apple-wrap-gluten-free",
+   "name": "Kids Peanut Butter Apple Wrap (Gluten Free)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 310,
+     "proteinG": 6,
+     "carbsG": 41,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 433,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-chicken-and-cheese-wrap-gluten-free",
+   "name": "Kids Chicken & Cheese Wrap (Gluten Free)",
+   "category": "Kids Food",
+   "sizes": [
+    {
+     "size": "1",
+     "label": "1",
+     "calories": 360,
+     "proteinG": 13,
+     "carbsG": 39,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 739,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-strawberry-banana-smoothie",
+   "name": "Kids Strawberry Banana Smoothie",
+   "category": "Kids Smoothies",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 170,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 22,
+      "sodiumMg": 61,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-banana-blueberry-smoothie",
+   "name": "Kids Banana Blueberry Smoothie",
+   "category": "Kids Smoothies",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 26,
+      "sodiumMg": 61,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-orange-pineapple-banana-smoothie",
+   "name": "Kids Orange Pineapple Banana Smoothie",
+   "category": "Kids Smoothies",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 41,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 31,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kids-strawberry-pineapple-smoothie",
+   "name": "Kids Strawberry Pineapple Smoothie",
+   "category": "Kids Smoothies",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 19,
+      "sodiumMg": 73,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

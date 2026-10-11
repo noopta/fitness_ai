@@ -1,0 +1,1268 @@
+{
+ "chain": "jamba",
+ "country": "US",
+ "source": {
+  "url": "https://assets.ctfassets.net/zqt8tllj2cy0/1LNbgRC8F1wlEdYD2Ns2lR/cdcdd6857f78c53c8550363a2a30c3c2/Jamba_Nutrition_Spreadsheet_-_Oct_2026.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "acai-super-antioxidant-smoothie",
+   "name": "Acai Super-Antioxidant, Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 340,
+     "proteinG": 5,
+     "carbsG": 71,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 53,
+      "sodiumMg": 93,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 465,
+     "proteinG": 7,
+     "carbsG": 96,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 73,
+      "sodiumMg": 124,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 600,
+     "proteinG": 10,
+     "carbsG": 125,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 95,
+      "sodiumMg": 167,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "aloha-pineapple-smoothie",
+   "name": "Aloha Pineapple® Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 275,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 38,
+      "saturatedFatG": 0,
+      "cholesterolMg": 1
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 89,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 69,
+      "sodiumMg": 51,
+      "saturatedFatG": 0,
+      "cholesterolMg": 2
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 119,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 93,
+      "sodiumMg": 59,
+      "saturatedFatG": 0,
+      "cholesterolMg": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-n-greens-smoothie",
+   "name": "Apple ‘n Greens™ Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 60,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 46,
+      "sodiumMg": 49,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 77,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 59,
+      "sodiumMg": 53,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 102,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 79,
+      "sodiumMg": 72,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caribbean-passion-smoothie",
+   "name": "Caribbean Passion® Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 255,
+     "proteinG": 1,
+     "carbsG": 63,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 53,
+      "sodiumMg": 31,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 340,
+     "proteinG": 1,
+     "carbsG": 84,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 71,
+      "sodiumMg": 41,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 450,
+     "proteinG": 1,
+     "carbsG": 111,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 94,
+      "sodiumMg": 54,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "greens-n-ginger-smoothie",
+   "name": "Greens ‘n Ginger™ Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 245,
+     "proteinG": 3,
+     "carbsG": 60,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 51,
+      "sodiumMg": 33,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 330,
+     "proteinG": 4,
+     "carbsG": 80,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 70,
+      "sodiumMg": 37,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 410,
+     "proteinG": 6,
+     "carbsG": 99,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 85,
+      "sodiumMg": 52,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-a-go-go-smoothie",
+   "name": "Mango-A-Go-Go® Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 295,
+     "proteinG": 1,
+     "carbsG": 74,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 66,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 415,
+     "proteinG": 1,
+     "carbsG": 104,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 93,
+      "sodiumMg": 41,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 1,
+     "carbsG": 133,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 119,
+      "sodiumMg": 54,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mega-mango-smoothie",
+   "name": "Mega Mango™ Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 215,
+     "proteinG": 2,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 45,
+      "sodiumMg": 11,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 315,
+     "proteinG": 3,
+     "carbsG": 79,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 65,
+      "sodiumMg": 16,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 405,
+     "proteinG": 3,
+     "carbsG": 101,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 83,
+      "sodiumMg": 21,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-c-booster-smoothie",
+   "name": "Orange C-Booster™ Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 57,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 47,
+      "sodiumMg": 22,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 315,
+     "proteinG": 3,
+     "carbsG": 78,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 65,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 400,
+     "proteinG": 4,
+     "carbsG": 99,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 84,
+      "sodiumMg": 38,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-dream-machine-smoothie",
+   "name": "Orange Dream Machine® Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 295,
+     "proteinG": 5,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 62,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 405,
+     "proteinG": 6,
+     "carbsG": 93,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 87,
+      "sodiumMg": 127,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 520,
+     "proteinG": 9,
+     "carbsG": 118,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 110,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pb-banana-protein-soy-smoothie",
+   "name": "PB + Banana Protein (Soy) Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 520,
+     "proteinG": 34,
+     "carbsG": 50,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 33,
+      "sodiumMg": 369,
+      "saturatedFatG": 6,
+      "cholesterolMg": 17
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 600,
+     "proteinG": 36,
+     "carbsG": 67,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 46,
+      "sodiumMg": 398,
+      "saturatedFatG": 7,
+      "cholesterolMg": 22
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 800,
+     "proteinG": 44,
+     "carbsG": 86,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 59,
+      "sodiumMg": 490,
+      "saturatedFatG": 9,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pb-banana-protein-whey-smoothie",
+   "name": "PB + Banana Protein (Whey) Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 555,
+     "proteinG": 41,
+     "carbsG": 50,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 32,
+      "sodiumMg": 241,
+      "saturatedFatG": 6,
+      "cholesterolMg": 12
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 640,
+     "proteinG": 44,
+     "carbsG": 67,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 45,
+      "sodiumMg": 270,
+      "saturatedFatG": 7,
+      "cholesterolMg": 17
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 835,
+     "proteinG": 51,
+     "carbsG": 87,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 58,
+      "sodiumMg": 366,
+      "saturatedFatG": 9,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-perfection-smoothie",
+   "name": "Peach Perfection™ Smoothie",
+   "category": "SMOOTHIES",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 46,
+      "sodiumMg": 26,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 315,
+     "proteinG": 2,
+     "carbsG": 78,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 66,
+      "sodiumMg": 34,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "acai-peanut-butter-plus-nutella",
+   "name": "Acai Peanut Butter plus Nutella",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 685,
+     "proteinG": 12,
+     "carbsG": 118,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 70,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 1
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 980,
+     "proteinG": 18,
+     "carbsG": 160,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 21,
+      "sugarG": 93,
+      "sodiumMg": 125,
+      "saturatedFatG": 7,
+      "cholesterolMg": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "chunky-strawberry",
+   "name": "Chunky Strawberry™",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 20,
+     "carbsG": 95,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 46,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 2
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 860,
+     "proteinG": 28,
+     "carbsG": 123,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 58,
+      "sodiumMg": 200,
+      "saturatedFatG": 4,
+      "cholesterolMg": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-blue-sky",
+   "name": "Vanilla Blue Sky",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 68,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 45,
+      "sodiumMg": 80,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 520,
+     "proteinG": 9,
+     "carbsG": 95,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 56,
+      "sodiumMg": 90,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-fruit-delight",
+   "name": "Dragon Fruit Delight",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 460,
+     "proteinG": 6,
+     "carbsG": 96,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 64,
+      "sodiumMg": 15,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 720,
+     "proteinG": 11,
+     "carbsG": 147,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 96,
+      "sodiumMg": 30,
+      "saturatedFatG": 3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bowl-mango-sunshine",
+   "name": "Bowl, Mango Sunshine",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 4,
+     "carbsG": 92,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 67,
+      "sodiumMg": 22,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 610,
+     "proteinG": 8,
+     "carbsG": 130,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 91,
+      "sodiumMg": 34,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bowl-acai-dream",
+   "name": "Bowl, Acai Dream",
+   "category": "FUSION BOWLS - SMOOTHIE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 445,
+     "proteinG": 8,
+     "carbsG": 92,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 62,
+      "sodiumMg": 73,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 675,
+     "proteinG": 13,
+     "carbsG": 133,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 87,
+      "sodiumMg": 112,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bowl-dragon-fruit-dream",
+   "name": "Bowl, Dragon Fruit Dream",
+   "category": "FUSION BOWLS - SMOOTHIE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 7,
+     "carbsG": 88,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 62,
+      "sodiumMg": 58,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 635,
+     "proteinG": 12,
+     "carbsG": 128,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 87,
+      "sodiumMg": 90,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bowl-acai-dragon-swirl",
+   "name": "Bowl, Acai Dragon Swirl",
+   "category": "FUSION BOWLS - SMOOTHIE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 405,
+     "proteinG": 6,
+     "carbsG": 84,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 53,
+      "sodiumMg": 25,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 615,
+     "proteinG": 10,
+     "carbsG": 123,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 73,
+      "sodiumMg": 41,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-blueberry-greek-yogurt",
+   "name": "Strawberry Blueberry Greek Yogurt",
+   "category": "BOWLS - WAFFLE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 25,
+     "carbsG": 74,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 42,
+      "sodiumMg": 330,
+      "saturatedFatG": 8,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 635,
+     "proteinG": 37,
+     "carbsG": 85,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 52,
+      "sodiumMg": 380,
+      "saturatedFatG": 8,
+      "cholesterolMg": 34
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-blueberry-cocowhip",
+   "name": "Strawberry Blueberry, Cocowhip",
+   "category": "BOWLS - WAFFLE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 7,
+     "carbsG": 79,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 38,
+      "sodiumMg": 260,
+      "saturatedFatG": 18,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 695,
+     "proteinG": 8,
+     "carbsG": 96,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 46,
+      "sodiumMg": 260,
+      "saturatedFatG": 25,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-banana-plus-nutella-cocowhip",
+   "name": "Peanut Butter Banana plus Nutella, Cocowhip",
+   "category": "BOWLS - WAFFLE",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 12,
+     "carbsG": 101,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 53,
+      "sodiumMg": 300,
+      "saturatedFatG": 21,
+      "cholesterolMg": 26
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1035,
+     "proteinG": 14,
+     "carbsG": 136,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 73,
+      "sodiumMg": 320,
+      "saturatedFatG": 30,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "berry-boo-st",
+   "name": "Berry Boo-st",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 265,
+     "proteinG": 2,
+     "carbsG": 64,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 51,
+      "sodiumMg": 36,
+      "saturatedFatG": 0,
+      "cholesterolMg": 2
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 365,
+     "proteinG": 3,
+     "carbsG": 87,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 69,
+      "sodiumMg": 51,
+      "saturatedFatG": 1,
+      "cholesterolMg": 2
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 475,
+     "proteinG": 4,
+     "carbsG": 114,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 91,
+      "sodiumMg": 66,
+      "saturatedFatG": 1,
+      "cholesterolMg": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-rotisserie-chicken-avo-ranch",
+   "name": "Sandwich, Rotisserie Chicken Avo Ranch",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 925,
+     "proteinG": 40,
+     "carbsG": 73,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 2,
+      "sodiumMg": 2039,
+      "saturatedFatG": 18,
+      "cholesterolMg": 123
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-market-pesto",
+   "name": "Sandwich, Market Pesto",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 29,
+     "carbsG": 65,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1513,
+      "saturatedFatG": 16,
+      "cholesterolMg": 63
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-rotisserie-chicken-pesto",
+   "name": "Sandwich, Rotisserie Chicken Pesto",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 36,
+     "carbsG": 70,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1947,
+      "saturatedFatG": 16,
+      "cholesterolMg": 111
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-j-b-s-t",
+   "name": "Sandwich, J.B.S.T",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 525,
+     "proteinG": 19,
+     "carbsG": 48,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1264,
+      "saturatedFatG": 7,
+      "cholesterolMg": 43
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-pb-nutella-crunch",
+   "name": "Sandwich, PB Nutella Crunch",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 585,
+     "proteinG": 17,
+     "carbsG": 78,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 20,
+      "sodiumMg": 554,
+      "saturatedFatG": 4,
+      "cholesterolMg": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-cheese-melt",
+   "name": "Sandwich, Cheese Melt",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 39,
+     "carbsG": 52,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1582,
+      "saturatedFatG": 22,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-blueberry-dipper-cheese-melt",
+   "name": "Sandwich, Blueberry Dipper Cheese Melt",
+   "category": "Melts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 735,
+     "proteinG": 39,
+     "carbsG": 66,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 14,
+      "sodiumMg": 1582,
+      "saturatedFatG": 22,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "blueberry-dipper",
+   "name": "Blueberry Dipper",
+   "group": "sauce",
+   "unit": "Serving",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 12,
+     "sodiumMg": 3,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "ranch-dressing",
+   "name": "Ranch Dressing",
+   "group": "dressing",
+   "unit": "Serving",
+   "per": {
+    "calories": 150,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 370,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  }
+ ]
+}

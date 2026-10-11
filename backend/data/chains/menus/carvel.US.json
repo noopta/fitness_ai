@@ -1,0 +1,4333 @@
+{
+ "chain": "carvel",
+ "country": "US",
+ "source": {
+  "url": "https://assets.ctfassets.net/zqt8tllj2cy0/2cU5RhQPX5uzPQ34aU9wQI/38c7527c910f4066fc1d29ad3d50e67d/Nutritional_Book_for_Shoppes_-_Full_-_Next_Gen_-_W3A_-_W3B.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "banana-soft-serve",
+   "name": "Banana Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 95,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 310,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 190,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 460,
+     "proteinG": 9,
+     "carbsG": 56,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 290,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 610,
+     "proteinG": 12,
+     "carbsG": 75,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 390,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-raspberry-soft-serve",
+   "name": "Black Raspberry Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 21,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 330,
+     "proteinG": 8,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 63,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 38,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 660,
+     "proteinG": 15,
+     "carbsG": 84,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 350,
+      "saturatedFatG": 21,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-raspberry-carvelite-soft-serve",
+   "name": "Black Raspberry Carvelite® Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 120,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 80,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 240,
+     "proteinG": 6,
+     "carbsG": 41,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 35,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 360,
+     "proteinG": 9,
+     "carbsG": 61,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 53,
+      "sodiumMg": 230,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 480,
+     "proteinG": 11,
+     "carbsG": 82,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 71,
+      "sodiumMg": 310,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-raspberry-soft-serve",
+   "name": "Blue Raspberry Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 90,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 340,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 180,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 510,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 270,
+      "saturatedFatG": 16,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 680,
+     "proteinG": 15,
+     "carbsG": 76,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 360,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio-soft-serve",
+   "name": "Pistachio Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 90,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 350,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 180,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 520,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 270,
+      "saturatedFatG": 17,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 690,
+     "proteinG": 16,
+     "carbsG": 76,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 360,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio-carvelite-soft-serve",
+   "name": "Pistachio Carvelite® Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 130,
+     "proteinG": 4,
+     "carbsG": 21,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 95,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 250,
+     "proteinG": 8,
+     "carbsG": 43,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 190,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 64,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 280,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 510,
+     "proteinG": 16,
+     "carbsG": 86,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 370,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-soft-serve",
+   "name": "Pumpkin Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 20,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 90,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 340,
+     "proteinG": 7,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 180,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 510,
+     "proteinG": 11,
+     "carbsG": 61,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 270,
+      "saturatedFatG": 15,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 680,
+     "proteinG": 15,
+     "carbsG": 81,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 350,
+      "saturatedFatG": 20,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-soft-serve",
+   "name": "Reese's® Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 190,
+     "proteinG": 5,
+     "carbsG": 19,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 105,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 380,
+     "proteinG": 9,
+     "carbsG": 38,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 580,
+     "proteinG": 14,
+     "carbsG": 56,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 320,
+      "saturatedFatG": 17,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 770,
+     "proteinG": 18,
+     "carbsG": 75,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 420,
+      "saturatedFatG": 23,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-soft-serve",
+   "name": "Strawberry Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 350,
+     "proteinG": 7,
+     "carbsG": 44,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 170,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 520,
+     "proteinG": 11,
+     "carbsG": 66,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 260,
+      "saturatedFatG": 15,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 700,
+     "proteinG": 14,
+     "carbsG": 87,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 340,
+      "saturatedFatG": 20,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-carvelite-soft-serve",
+   "name": "Strawberry Carvelite® Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 130,
+     "proteinG": 4,
+     "carbsG": 24,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 90,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 43,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 150,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 400,
+     "proteinG": 11,
+     "carbsG": 72,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 270,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 530,
+     "proteinG": 14,
+     "carbsG": 96,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 350,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "twist-soft-serve",
+   "name": "Twist Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 340,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 510,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 680,
+     "proteinG": 15,
+     "carbsG": 76,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 55,
+      "sodiumMg": 350,
+      "saturatedFatG": 22,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-soft-serve",
+   "name": "Vanilla Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 90,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 350,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 180,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 520,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 270,
+      "saturatedFatG": 17,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 690,
+     "proteinG": 16,
+     "carbsG": 76,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 360,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-carvelite-soft-serve",
+   "name": "Vanilla Carvelite® Soft Serve",
+   "category": "Soft Serve Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 130,
+     "proteinG": 4,
+     "carbsG": 21,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 95,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 250,
+     "proteinG": 8,
+     "carbsG": 43,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 190,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 380,
+     "proteinG": 12,
+     "carbsG": 64,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 280,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 500,
+     "proteinG": 12,
+     "carbsG": 74,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-scooped",
+   "name": "Banana Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 150,
+     "proteinG": 3,
+     "carbsG": 19,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 95,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 310,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 190,
+      "saturatedFatG": 9,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 460,
+     "proteinG": 9,
+     "carbsG": 56,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 290,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 610,
+     "proteinG": 12,
+     "carbsG": 75,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 390,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-fudge-scooped",
+   "name": "Banana Fudge Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 105,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 49,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 550,
+     "proteinG": 9,
+     "carbsG": 73,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 49,
+      "sodiumMg": 320,
+      "saturatedFatG": 16,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 730,
+     "proteinG": 12,
+     "carbsG": 98,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 66,
+      "sodiumMg": 420,
+      "saturatedFatG": 21,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-nut-scooped",
+   "name": "Banana Nut Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 16,
+      "sodiumMg": 105,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 49,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 210,
+      "saturatedFatG": 11,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 550,
+     "proteinG": 9,
+     "carbsG": 73,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 49,
+      "sodiumMg": 320,
+      "saturatedFatG": 16,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 730,
+     "proteinG": 12,
+     "carbsG": 98,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 66,
+      "sodiumMg": 420,
+      "saturatedFatG": 21,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-peanut-butter-scooped",
+   "name": "Banana Peanut Butter Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 18,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 120,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 380,
+     "proteinG": 9,
+     "carbsG": 37,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 240,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 570,
+     "proteinG": 13,
+     "carbsG": 55,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 31,
+      "sodiumMg": 370,
+      "saturatedFatG": 14,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 760,
+     "proteinG": 17,
+     "carbsG": 73,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 42,
+      "sodiumMg": 490,
+      "saturatedFatG": 19,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-forest-cake-scooped",
+   "name": "Black Forest Cake Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 75,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 48,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 150,
+      "saturatedFatG": 10,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 530,
+     "proteinG": 10,
+     "carbsG": 71,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 60,
+      "sodiumMg": 230,
+      "saturatedFatG": 14,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 710,
+     "proteinG": 13,
+     "carbsG": 95,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 80,
+      "sodiumMg": 310,
+      "saturatedFatG": 19,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-raspberry-scooped",
+   "name": "Black Raspberry Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 21,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 330,
+     "proteinG": 8,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 63,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 38,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 660,
+     "proteinG": 15,
+     "carbsG": 84,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 350,
+      "saturatedFatG": 21,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-pecan-scooped",
+   "name": "Butter Pecan Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 18,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 120,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 460,
+     "proteinG": 9,
+     "carbsG": 36,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 20,
+      "sodiumMg": 240,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 690,
+     "proteinG": 13,
+     "carbsG": 54,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 30,
+      "sodiumMg": 370,
+      "saturatedFatG": 17,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 920,
+     "proteinG": 18,
+     "carbsG": 72,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 39,
+      "sodiumMg": 490,
+      "saturatedFatG": 22,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "cake-mix-scooped",
+   "name": "Cake Mix Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 370,
+     "proteinG": 7,
+     "carbsG": 45,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 550,
+     "proteinG": 11,
+     "carbsG": 67,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 730,
+     "proteinG": 15,
+     "carbsG": 90,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 340,
+      "saturatedFatG": 22,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-chocolate-brownie-scooped",
+   "name": "Triple Chocolate Brownie Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 24,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 115,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 470,
+     "proteinG": 8,
+     "carbsG": 48,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 38,
+      "sodiumMg": 230,
+      "saturatedFatG": 12,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 700,
+     "proteinG": 12,
+     "carbsG": 71,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 56,
+      "sodiumMg": 340,
+      "saturatedFatG": 18,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 940,
+     "proteinG": 16,
+     "carbsG": 95,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 75,
+      "sodiumMg": 460,
+      "saturatedFatG": 23,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "turtle-scooped",
+   "name": "Turtle Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 210,
+     "proteinG": 4,
+     "carbsG": 23,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 110,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 420,
+     "proteinG": 8,
+     "carbsG": 45,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 220,
+      "saturatedFatG": 12,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 640,
+     "proteinG": 12,
+     "carbsG": 68,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 40,
+      "sodiumMg": 330,
+      "saturatedFatG": 18,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 850,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 49,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 54,
+      "sodiumMg": 430,
+      "saturatedFatG": 23,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-scooped",
+   "name": "Vanilla Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 90,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 350,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 180,
+      "saturatedFatG": 11,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 520,
+     "proteinG": 12,
+     "carbsG": 57,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 270,
+      "saturatedFatG": 17,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 690,
+     "proteinG": 16,
+     "carbsG": 76,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 360,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-fudge-crunch-scooped",
+   "name": "Vanilla Fudge Crunch Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 100,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 200,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 600,
+     "proteinG": 11,
+     "carbsG": 74,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 300,
+      "saturatedFatG": 19,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 790,
+     "proteinG": 15,
+     "carbsG": 99,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 66,
+      "sodiumMg": 400,
+      "saturatedFatG": 26,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-fudge-swirl-scooped",
+   "name": "Vanilla Fudge Swirl Scooped",
+   "category": "Scooped Ice Cream",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 25,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 100,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 200,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 600,
+     "proteinG": 11,
+     "carbsG": 74,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 50,
+      "sodiumMg": 300,
+      "saturatedFatG": 19,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 790,
+     "proteinG": 15,
+     "carbsG": 99,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 66,
+      "sodiumMg": 400,
+      "saturatedFatG": 26,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "guava-sorbet-non-dairy",
+   "name": "Guava Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 78,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 75,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 430,
+     "proteinG": 0,
+     "carbsG": 104,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 99,
+      "sodiumMg": 40,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade-sorbet-non-dairy",
+   "name": "Lemonade Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 31,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 62,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 94,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 91,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 114,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-sorbet-non-dairy",
+   "name": "Lemon Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 47,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 86,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lime-sorbet-non-dairy",
+   "name": "Lime Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 88,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 86,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-sorbet-non-dairy",
+   "name": "Orange Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 88,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 86,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-tangerine-sorbet-non-dairy",
+   "name": "Orange Tangerine Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 61,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 59,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 91,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 30,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 111,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 109,
+      "sodiumMg": 40,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-grapefruit-sorbet-non-dairy",
+   "name": "Pink Grapefruit Sorbet (Non-Dairy)",
+   "category": "Non-Dairy Sorbet",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 89,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 88,
+      "sodiumMg": 30,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 440,
+     "proteinG": 0,
+     "carbsG": 108,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 107,
+      "sodiumMg": 40,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-peanut-butter-cup-carvelanche",
+   "name": "Reese's® Peanut Butter Cup Carvelanche®",
+   "category": "Carvelanche®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 670,
+     "proteinG": 15,
+     "carbsG": 75,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 66,
+      "sodiumMg": 380,
+      "saturatedFatG": 19,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 930,
+     "proteinG": 21,
+     "carbsG": 104,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 91,
+      "sodiumMg": 530,
+      "saturatedFatG": 26,
+      "cholesterolMg": 125
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1360,
+     "proteinG": 31,
+     "carbsG": 151,
+     "fatG": 74,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 133,
+      "sodiumMg": 780,
+      "saturatedFatG": 39,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-foster-sundae-dasher",
+   "name": "Banana Foster Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 680,
+     "proteinG": 9,
+     "carbsG": 104,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 69,
+      "sodiumMg": 430,
+      "saturatedFatG": 16,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1050,
+     "proteinG": 13,
+     "carbsG": 171,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 110,
+      "sodiumMg": 680,
+      "saturatedFatG": 21,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1210,
+     "proteinG": 20,
+     "carbsG": 185,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 109,
+      "sodiumMg": 730,
+      "saturatedFatG": 27,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "carvel-crunchies-sundae-dasher",
+   "name": "Carvel Crunchies® Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 810,
+     "proteinG": 12,
+     "carbsG": 103,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 75,
+      "sodiumMg": 450,
+      "saturatedFatG": 28,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1280,
+     "proteinG": 17,
+     "carbsG": 168,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 122,
+      "sodiumMg": 720,
+      "saturatedFatG": 43,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1510,
+     "proteinG": 22,
+     "carbsG": 193,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 144,
+      "sodiumMg": 840,
+      "saturatedFatG": 51,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-brownie-sundae-dasher",
+   "name": "Fudge Brownie Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 860,
+     "proteinG": 12,
+     "carbsG": 111,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 86,
+      "sodiumMg": 390,
+      "saturatedFatG": 28,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1250,
+     "proteinG": 17,
+     "carbsG": 166,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 130,
+      "sodiumMg": 590,
+      "saturatedFatG": 40,
+      "cholesterolMg": 150
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1330,
+     "proteinG": 21,
+     "carbsG": 169,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 137,
+      "sodiumMg": 610,
+      "saturatedFatG": 42,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "heath-sundae-dasher",
+   "name": "Heath® Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 790,
+     "proteinG": 7,
+     "carbsG": 109,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 73,
+      "sodiumMg": 490,
+      "saturatedFatG": 22,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1260,
+     "proteinG": 14,
+     "carbsG": 181,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 117,
+      "sodiumMg": 800,
+      "saturatedFatG": 33,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1470,
+     "proteinG": 21,
+     "carbsG": 199,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 150,
+      "sodiumMg": 970,
+      "saturatedFatG": 40,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chocolate-chip-sundae-dasher",
+   "name": "Mint Chocolate Chip Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 790,
+     "proteinG": 11,
+     "carbsG": 97,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 82,
+      "sodiumMg": 280,
+      "saturatedFatG": 26,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1260,
+     "proteinG": 17,
+     "carbsG": 168,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 140,
+      "sodiumMg": 440,
+      "saturatedFatG": 42,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1490,
+     "proteinG": 22,
+     "carbsG": 193,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 162,
+      "sodiumMg": 570,
+      "saturatedFatG": 49,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-cookie-sundae-dasher",
+   "name": "Oreo® Cookie Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 820,
+     "proteinG": 11,
+     "carbsG": 109,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 83,
+      "sodiumMg": 420,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1350,
+     "proteinG": 17,
+     "carbsG": 186,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 139,
+      "sodiumMg": 720,
+      "saturatedFatG": 35,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1580,
+     "proteinG": 23,
+     "carbsG": 211,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 161,
+      "sodiumMg": 840,
+      "saturatedFatG": 43,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-peanut-butter-cup-sundae-dasher",
+   "name": "Reese's® Peanut Butter Cup Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 840,
+     "proteinG": 17,
+     "carbsG": 83,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 69,
+      "sodiumMg": 450,
+      "saturatedFatG": 22,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1380,
+     "proteinG": 19,
+     "carbsG": 133,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 111,
+      "sodiumMg": 770,
+      "saturatedFatG": 35,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1620,
+     "proteinG": 35,
+     "carbsG": 159,
+     "fatG": 97,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 133,
+      "sodiumMg": 890,
+      "saturatedFatG": 43,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shortcake-sundae-dasher",
+   "name": "Strawberry Shortcake Sundae Dasher®",
+   "category": "Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 540,
+     "proteinG": 9,
+     "carbsG": 70,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 58,
+      "sodiumMg": 290,
+      "saturatedFatG": 15,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 740,
+     "proteinG": 12,
+     "carbsG": 101,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 85,
+      "sodiumMg": 390,
+      "saturatedFatG": 20,
+      "cholesterolMg": 140
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 970,
+     "proteinG": 18,
+     "carbsG": 126,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 107,
+      "sodiumMg": 510,
+      "saturatedFatG": 27,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-oreo-rounders",
+   "name": "Cold Brew Oreo® Rounders",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 36,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 210,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-carvelite-oreo-rounders",
+   "name": "Vanilla Carvelite® Oreo® Rounders",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 34,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 200,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chipsters",
+   "name": "Chocolate Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 20,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-chipsters",
+   "name": "Vanilla Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 170,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "pistachio-chipsters",
+   "name": "Pistachio Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 170,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "mint-chipsters",
+   "name": "Mint Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 170,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-chipsters",
+   "name": "Strawberry Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-chipsters",
+   "name": "Cold Brew Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 5,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-carvelite-chipsters",
+   "name": "Vanilla Carvelite® Chipsters®",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 20,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-bonnet-cone",
+   "name": "Brown Bonnet Cone",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 6,
+     "carbsG": 43,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 125,
+      "saturatedFatG": 16,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cherry-bonnet-cone",
+   "name": "Cherry Bonnet Cone",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 6,
+     "carbsG": 41,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 135,
+      "saturatedFatG": 18,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprinkle-cups-with-vanilla-soft-serve",
+   "name": "Sprinkle Cups with Vanilla Soft Serve",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 75,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprinkle-cups-with-chocolate-soft-serve",
+   "name": "Sprinkle Cups with Chocolate Soft Serve",
+   "category": "Take-Home Treats",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 18,
+      "sodiumMg": 70,
+      "saturatedFatG": 6,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-toasted-marshmallow-sundea-dasher",
+   "name": "Reese's Toasted Marshmallow Sundea Dasher®",
+   "category": "Campfire Treats - Limted Time Only Menu",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 950,
+     "proteinG": 23,
+     "carbsG": 77,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 65,
+      "sodiumMg": 540,
+      "saturatedFatG": 22,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1500,
+     "proteinG": 39,
+     "carbsG": 118,
+     "fatG": 111,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 95,
+      "sodiumMg": 940,
+      "saturatedFatG": 34,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1820,
+     "proteinG": 45,
+     "carbsG": 147,
+     "fatG": 121,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 121,
+      "sodiumMg": 1030,
+      "saturatedFatG": 39,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "s-more-sundae",
+   "name": "S'more Sundae",
+   "category": "Campfire Treats - Limted Time Only Menu",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 580,
+     "proteinG": 9,
+     "carbsG": 71,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 58,
+      "sodiumMg": 280,
+      "saturatedFatG": 17,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 950,
+     "proteinG": 14,
+     "carbsG": 118,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 96,
+      "sodiumMg": 480,
+      "saturatedFatG": 27,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 1130,
+     "proteinG": 18,
+     "carbsG": 140,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 115,
+      "sodiumMg": 560,
+      "saturatedFatG": 32,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "s-more-ice-cream-pop",
+   "name": "S'more Ice Cream Pop",
+   "category": "Campfire Treats - Limted Time Only Menu",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 4,
+     "carbsG": 28,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 75,
+      "saturatedFatG": 14,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "family-feud-carvelanche",
+   "name": "Family Feud Carvelanche®",
+   "category": "Family Freud Carvelanch® - Limited Time ",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 770,
+     "proteinG": 12,
+     "carbsG": 108,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 76,
+      "sodiumMg": 500,
+      "saturatedFatG": 17,
+      "cholesterolMg": 105
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 1010,
+     "proteinG": 15,
+     "carbsG": 143,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 98,
+      "sodiumMg": 650,
+      "saturatedFatG": 23,
+      "cholesterolMg": 140
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 1470,
+     "proteinG": 23,
+     "carbsG": 208,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 143,
+      "sodiumMg": 930,
+      "saturatedFatG": 33,
+      "cholesterolMg": 205
+     }
+    }
+   ]
+  },
+  {
+   "id": "crunchie-munchie-monster-carvelanche",
+   "name": "Crunchie Munchie Monster™ Carvelanche",
+   "category": "Halloween Carvelanche® - Limted Time Onl",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 600,
+     "proteinG": 12,
+     "carbsG": 75,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 57,
+      "sodiumMg": 310,
+      "saturatedFatG": 18,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 770,
+     "proteinG": 15,
+     "carbsG": 96,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 75,
+      "sodiumMg": 380,
+      "saturatedFatG": 23,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 1140,
+     "proteinG": 22,
+     "carbsG": 143,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 109,
+      "sodiumMg": 580,
+      "saturatedFatG": 34,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "skittles-pop-d-carvelanche",
+   "name": "Skittles Pop'd® Carvelanche®",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 580,
+     "proteinG": 11,
+     "carbsG": 80,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 69,
+      "sodiumMg": 230,
+      "saturatedFatG": 15,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 760,
+     "proteinG": 14,
+     "carbsG": 106,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 92,
+      "sodiumMg": 280,
+      "saturatedFatG": 18,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 1170,
+     "proteinG": 20,
+     "carbsG": 168,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 146,
+      "sodiumMg": 420,
+      "saturatedFatG": 28,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-overload-carvelanche",
+   "name": "Reese's® Overload Carvelanche®",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 660,
+     "proteinG": 14,
+     "carbsG": 79,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 66,
+      "sodiumMg": 330,
+      "saturatedFatG": 19,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz.",
+     "calories": 840,
+     "proteinG": 17,
+     "carbsG": 103,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 83,
+      "sodiumMg": 440,
+      "saturatedFatG": 23,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 1190,
+     "proteinG": 26,
+     "carbsG": 143,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 119,
+      "sodiumMg": 610,
+      "saturatedFatG": 34,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-soft-serve",
+   "name": "Chocolate Mint Soft Serve",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 19,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 85,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 330,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 170,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 58,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 50,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 670,
+     "proteinG": 15,
+     "carbsG": 77,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 66,
+      "sodiumMg": 350,
+      "saturatedFatG": 31,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-scooped",
+   "name": "Chocolate Mint Scooped",
+   "sizes": [
+    {
+     "size": "kids",
+     "label": "Kids - 3oz",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 23,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 95,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small - 6oz",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 46,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 190,
+      "saturatedFatG": 11,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 9oz",
+     "calories": 580,
+     "proteinG": 12,
+     "carbsG": 69,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 56,
+      "sodiumMg": 280,
+      "saturatedFatG": 16,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 12oz",
+     "calories": 770,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 75,
+      "sodiumMg": 370,
+      "saturatedFatG": 22,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-sundae-dasher",
+   "name": "Chocolate Mint Sundae Dasher®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 850,
+     "proteinG": 13,
+     "carbsG": 110,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 85,
+      "sodiumMg": 360,
+      "saturatedFatG": 24,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 1230,
+     "proteinG": 17,
+     "carbsG": 162,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 127,
+      "sodiumMg": 530,
+      "saturatedFatG": 36,
+      "cholesterolMg": 140
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1460,
+     "proteinG": 23,
+     "carbsG": 188,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 149,
+      "sodiumMg": 640,
+      "saturatedFatG": 42,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-carvelanche",
+   "name": "Chocolate Mint Carvelanche®",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small - 12oz",
+     "calories": 620,
+     "proteinG": 13,
+     "carbsG": 74,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 58,
+      "sodiumMg": 290,
+      "saturatedFatG": 17,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium - 16oz",
+     "calories": 790,
+     "proteinG": 16,
+     "carbsG": 95,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 74,
+      "sodiumMg": 370,
+      "saturatedFatG": 22,
+      "cholesterolMg": 140
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large - 24oz",
+     "calories": 1190,
+     "proteinG": 24,
+     "carbsG": 142,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 111,
+      "sodiumMg": 560,
+      "saturatedFatG": 32,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-ice-cream-pop",
+   "name": "Chocolate Mint Ice Cream Pop",
+   "sizes": [
+    {
+     "size": "chocolate mint pop",
+     "label": "Chocolate Mint Pop",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 26,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 75,
+      "saturatedFatG": 14,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-mint-flying-saucer",
+   "name": "Chocolate Mint Flying Saucer®",
+   "sizes": [
+    {
+     "size": "chocolate mint flying saucer",
+     "label": "Chocolate Mint Flying Saucer®",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 30,
+     "fatG": 13,
+     "micros": {
+      "sugarG": 20,
+      "sodiumMg": 160,
+      "saturatedFatG": 7,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "almonds",
+   "name": "Almonds",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 5,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bananas",
+   "name": "Bananas",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 8,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 4,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bittersweet-fudge",
+   "name": "Bittersweet Fudge",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 14,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 12,
+     "sodiumMg": 40,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "bordeaux-cherries",
+   "name": "Bordeaux Cherries",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 24,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 16,
+     "sodiumMg": 15,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "brown-bonnet",
+   "name": "Brown Bonnet®",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 14,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 13,
+     "sodiumMg": 0,
+     "saturatedFatG": 13,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "brownie-bites",
+   "name": "Brownie Bites",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 150,
+    "proteinG": 2,
+    "carbsG": 22,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 25,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "caramel",
+   "name": "Caramel",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 19,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 95,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cherry-bonnet",
+   "name": "Cherry Bonnet®",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 200,
+    "proteinG": 0,
+    "carbsG": 10,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 15,
+     "saturatedFatG": 16,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chocolate-chips",
+   "name": "Chocolate Chips",
+   "group": "topping",
+   "unit": "1oz",
+   "per": {
+    "calories": 160,
+    "proteinG": 0,
+    "carbsG": 22,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 21,
+     "sodiumMg": 10,
+     "saturatedFatG": 8,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "carvel-crunchies",
+   "name": "Carvel Crunchies®",
+   "group": "topping",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 5,
+     "sodiumMg": 70,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chocolate-sprinkles",
+   "name": "Chocolate Sprinkles",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 17,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 16,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chocolate-syrup",
+   "name": "Chocolate Syrup",
+   "group": "topping",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 16,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 9,
+     "sodiumMg": 25,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "coconut",
+   "name": "Coconut",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 5,
+     "sodiumMg": 45,
+     "saturatedFatG": 6,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "confetti-sprinkles",
+   "name": "Confetti Sprinkles",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 20,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 0,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cookie-dough",
+   "name": "Cookie Dough",
+   "group": "topping",
+   "per": {
+    "calories": 340,
+    "proteinG": 3,
+    "carbsG": 58,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 32,
+     "sodiumMg": 170,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "gummy-bears",
+   "name": "Gummy Bears",
+   "group": "topping",
+   "per": {
+    "calories": 180,
+    "proteinG": 0,
+    "carbsG": 45,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 27,
+     "sodiumMg": 20,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "heath",
+   "name": "Heath®",
+   "group": "topping",
+   "per": {
+    "calories": 170,
+    "proteinG": 4,
+    "carbsG": 21,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 55,
+     "saturatedFatG": 6,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "m-and-m-s",
+   "name": "M&M's®",
+   "group": "topping",
+   "per": {
+    "calories": 170,
+    "proteinG": 2,
+    "carbsG": 24,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 22,
+     "sodiumMg": 25,
+     "saturatedFatG": 5,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "malt",
+   "name": "Malt",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 9,
+     "sodiumMg": 230,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "maraschino-cherries",
+   "name": "Maraschino Cherries",
+   "group": "topping",
+   "per": {
+    "calories": 30,
+    "proteinG": 0,
+    "carbsG": 6,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 0,
+     "saturatedFatG": 6,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "marshmallow-sauce",
+   "name": "Marshmallow Sauce",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 21,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 30,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "milk-fudge",
+   "name": "Milk Fudge",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 45,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "nutella",
+   "name": "Nutella®",
+   "group": "topping",
+   "per": {
+    "calories": 150,
+    "proteinG": 2,
+    "carbsG": 17,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 16,
+     "sodiumMg": 15,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "oreo-cookie",
+   "name": "Oreo® Cookie",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 1,
+    "carbsG": 16,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 9,
+     "sodiumMg": 90,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "peanuts",
+   "name": "Peanuts",
+   "group": "topping",
+   "per": {
+    "calories": 100,
+    "proteinG": 4,
+    "carbsG": 4,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pecans",
+   "name": "Pecans",
+   "group": "topping",
+   "per": {
+    "calories": 250,
+    "proteinG": 3,
+    "carbsG": 5,
+    "fatG": 26,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 135,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pineapples",
+   "name": "Pineapples",
+   "group": "topping",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 12,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 11,
+     "sodiumMg": 5,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pistachios",
+   "name": "Pistachios",
+   "group": "topping",
+   "per": {
+    "calories": 200,
+    "proteinG": 7,
+    "carbsG": 11,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 2,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pound-cake",
+   "name": "Pound Cake",
+   "group": "topping",
+   "per": {
+    "calories": 130,
+    "proteinG": 2,
+    "carbsG": 17,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 10,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "rainbow-sprinkles",
+   "name": "Rainbow Sprinkles",
+   "group": "topping",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 17,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "reese-s-peanut-butter-cups",
+   "name": "Reese's® Peanut Butter Cups",
+   "group": "topping",
+   "per": {
+    "calories": 370,
+    "proteinG": 8,
+    "carbsG": 42,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 38,
+     "sodiumMg": 260,
+     "saturatedFatG": 8,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "reese-s-peanut-butter-sauce",
+   "name": "Reese's® Peanut Butter Sauce",
+   "group": "topping",
+   "per": {
+    "calories": 190,
+    "proteinG": 6,
+    "carbsG": 5,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 3,
+     "sodiumMg": 0,
+     "saturatedFatG": 3,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "reese-s-pieces",
+   "name": "Reese's® Pieces",
+   "group": "topping",
+   "per": {
+    "calories": 190,
+    "proteinG": 5,
+    "carbsG": 24,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 21,
+     "sodiumMg": 65,
+     "saturatedFatG": 7,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "strawberries",
+   "name": "Strawberries",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 16,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 14,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "toasted-coconut",
+   "name": "Toasted Coconut",
+   "group": "topping",
+   "per": {
+    "calories": 130,
+    "proteinG": 1,
+    "carbsG": 11,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 7,
+     "sodiumMg": 55,
+     "saturatedFatG": 9,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "vanilla-crunch",
+   "name": "Vanilla Crunch",
+   "group": "topping",
+   "per": {
+    "calories": 70,
+    "proteinG": 1,
+    "carbsG": 9,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 4,
+     "sodiumMg": 40,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "vanilla-syrup",
+   "name": "Vanilla Syrup",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 16,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 15,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "walnuts",
+   "name": "Walnuts",
+   "group": "topping",
+   "per": {
+    "calories": 220,
+    "proteinG": 5,
+    "carbsG": 0,
+    "fatG": 22,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "wet-walnuts",
+   "name": "Wet Walnuts",
+   "group": "topping",
+   "per": {
+    "calories": 250,
+    "proteinG": 4,
+    "carbsG": 27,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 23,
+     "sodiumMg": 0,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "whipped-cream",
+   "name": "Whipped Cream",
+   "group": "topping",
+   "per": {
+    "calories": 40,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 3.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 5,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "white-bonnet",
+   "name": "White Bonnet®",
+   "group": "topping",
+   "per": {
+    "calories": 180,
+    "proteinG": 1,
+    "carbsG": 10,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 15,
+     "saturatedFatG": 14,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

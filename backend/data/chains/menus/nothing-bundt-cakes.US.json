@@ -1,0 +1,1232 @@
+{
+ "chain": "nothing-bundt-cakes",
+ "country": "US",
+ "source": {
+  "url": "https://www.nothingbundtcakes.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "carrot-cake",
+   "name": "Carrot Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 135,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 240,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chocolate-chip-cake",
+   "name": "Chocolate Chocolate Chip Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 32,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 260,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 35,
+      "sodiumMg": 490,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 44,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 300,
+      "saturatedFatG": 6,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 390,
+      "saturatedFatG": 5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "confetti-cake",
+   "name": "Confetti Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 220,
+     "proteinG": 1,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 150,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 44,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 230,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 42,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 260,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-vanilla-cake",
+   "name": "Classic Vanilla Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 29,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 180,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 260,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 39,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 41,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-chocolate-chip-cookie-cake",
+   "name": "GF Chocolate Chip Cookie Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 42,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 220,
+      "saturatedFatG": 1,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 49,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 260,
+      "saturatedFatG": 1,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 57,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 300,
+      "saturatedFatG": 1,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "gf-lemon-raspberry-cake",
+   "name": "GF Lemon Raspberry Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 32,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 150,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 36,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 190,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 210,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-cake",
+   "name": "Lemon Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 230,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 320,
+     "proteinG": 2,
+     "carbsG": 50,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 44,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 310,
+      "saturatedFatG": 4,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 320,
+     "proteinG": 2,
+     "carbsG": 48,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 320,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "oreo-cookies-and-cream-cake",
+   "name": "OREO® Cookies & Cream Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 28,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 39,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 280,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 43,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 42,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-velvet-cake",
+   "name": "Red Velvet Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 29,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 160,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 310,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 39,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 210,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 41,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberries-and-cream-cake",
+   "name": "Strawberries and Cream Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 30,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 170,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 46,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 280,
+      "saturatedFatG": 7,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 40,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 220,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 310,
+     "proteinG": 3,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-raspberry-cake",
+   "name": "White Chocolate Raspberry Cake",
+   "category": "Standard Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 190,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 310,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 100
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 230,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 41,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-pudding-cake-made-with-nilla",
+   "name": "Banana Pudding Cake Made With NILLA®",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 240,
+     "proteinG": 2,
+     "carbsG": 35,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 34,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 200,
+      "saturatedFatG": 4,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 41,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscoff-cookie-butter-cake",
+   "name": "Biscoff® Cookie Butter Cake",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 40,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 220,
+      "saturatedFatG": 5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 230,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 320,
+     "proteinG": 2,
+     "carbsG": 44,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 310,
+     "proteinG": 3,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 270,
+      "saturatedFatG": 5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-raspberry-cake",
+   "name": "Lemon Raspberry Cake",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 240,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 260,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 380,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 300,
+     "proteinG": 2,
+     "carbsG": 46,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 310,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 47,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 330,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "peppermint-chocolate-chip-cake",
+   "name": "Peppermint Chocolate Chip Cake",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 330,
+     "proteinG": 3,
+     "carbsG": 45,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 38,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 320,
+     "proteinG": 3,
+     "carbsG": 40,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 310,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-cake",
+   "name": "Pumpkin Spice Cake",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 33,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 260,
+     "proteinG": 3,
+     "carbsG": 38,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 200,
+      "saturatedFatG": 3,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 300,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 210,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 290,
+     "proteinG": 3,
+     "carbsG": 41,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 210,
+      "saturatedFatG": 4,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "s-mores-made-with-hershey-s-cake",
+   "name": "S'mores made with HERSHEY'S Cake",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 28,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 200,
+      "saturatedFatG": 4,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 48,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 49,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 48,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake-swirl",
+   "name": "Strawberry Cheesecake Swirl",
+   "category": "Seasonal Flavors",
+   "sizes": [
+    {
+     "size": "bundtini",
+     "label": "Bundtini",
+     "calories": 220,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 240,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "bundt cake",
+     "label": "Bundt Cake",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 40,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 250,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "big bundt cake",
+     "label": "Big Bundt Cake",
+     "calories": 280,
+     "proteinG": 3,
+     "carbsG": 40,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 260,
+      "saturatedFatG": 5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "german-chocolate-bundtlet",
+   "name": "German Chocolate Bundtlet",
+   "category": "Pop-Up Flavors",
+   "sizes": [
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 34,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 250,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-pie-cake-bundtlet",
+   "name": "Apple Pie Cake Bundtlet",
+   "category": "Pop-Up Flavors",
+   "sizes": [
+    {
+     "size": "bundtlet",
+     "label": "Bundtlet",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 41,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 240,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

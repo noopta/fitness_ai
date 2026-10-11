@@ -92,920 +92,8 @@
      "carbsG": 0,
      "fatG": 0,
      "micros": {
-      "fiberG": 0,
       "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "gallon-freshly-brewed-iced-tea-sweetened",
-   "name": "Gallon Freshly-Brewed Iced Tea Sweetened",
-   "sizes": [
-    {
-     "size": "gallon",
-     "label": "Gallon",
-     "calories": 130,
-     "proteinG": 0,
-     "carbsG": 33,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 33,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 130,
-     "proteinG": 0,
-     "carbsG": 33,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 33,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "gallon-chick-fil-a-lemonade-1-2-lemonade-1-2-diet-lemonade",
-   "name": "Gallon Chick-fil-A® Lemonade (1/2 Lemonade, 1/2 Diet Lemonade)",
-   "sizes": [
-    {
-     "size": "gallon",
-     "label": "Gallon",
-     "calories": 120,
-     "proteinG": 0,
-     "carbsG": 33,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 30,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 120,
-     "proteinG": 0,
-     "carbsG": 33,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 30,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "gallon-chick-fil-a-diet-lemonade",
-   "name": "Gallon Chick-fil-A® Diet Lemonade",
-   "sizes": [
-    {
-     "size": "gallon",
-     "label": "Gallon",
-     "calories": 40,
-     "proteinG": 0,
-     "carbsG": 12,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 8,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 40,
-     "proteinG": 0,
-     "carbsG": 12,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 8,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "gallon-chick-fil-a-lemonade",
-   "name": "Gallon Chick-fil-A® Lemonade",
-   "sizes": [
-    {
-     "size": "gallon",
-     "label": "Gallon",
-     "calories": 190,
-     "proteinG": 0,
-     "carbsG": 49,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 45,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 190,
-     "proteinG": 0,
-     "carbsG": 49,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 45,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "freshly-brewed-sweetened-iced-tea",
-   "name": "Freshly-Brewed Sweetened Iced Tea",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 90,
-     "proteinG": 0,
-     "carbsG": 22,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 22,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 120,
-     "proteinG": 0,
-     "carbsG": 31,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 30,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 170,
-     "proteinG": 0,
-     "carbsG": 44,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 44,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "toasted-marshmallow-hot-coffee",
-   "name": "Toasted Marshmallow Hot Coffee",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 110,
-     "proteinG": 0,
-     "carbsG": 26,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 22,
-      "sodiumMg": 65,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "dr-pepper",
-   "name": "Dr Pepper®",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 130,
-     "proteinG": 0,
-     "carbsG": 34,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 34,
-      "sodiumMg": 40,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 170,
-     "proteinG": 0,
-     "carbsG": 44,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 44,
-      "sodiumMg": 50,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 250,
-     "proteinG": 0,
-     "carbsG": 64,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 64,
-      "sodiumMg": 75,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "coca-cola",
-   "name": "Coca-Cola®",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 130,
-     "proteinG": 0,
-     "carbsG": 35,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 35,
-      "sodiumMg": 35,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 170,
-     "proteinG": 0,
-     "carbsG": 46,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 46,
-      "sodiumMg": 45,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 250,
-     "proteinG": 0,
-     "carbsG": 68,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 68,
-      "sodiumMg": 65,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "sunjoy-1-2-sweet-tea-1-2-diet-lemonade",
-   "name": "Sunjoy® (1/2 Sweet Tea, 1/2 Diet Lemonade)",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 80,
-     "proteinG": 0,
-     "carbsG": 20,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 18,
-      "sodiumMg": 5,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 110,
-     "proteinG": 0,
-     "carbsG": 29,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 26,
-      "sodiumMg": 5,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 150,
-     "proteinG": 0,
-     "carbsG": 40,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 36,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "sunjoy-1-2-unsweet-tea-1-2-lemonade",
-   "name": "Sunjoy® (1/2 Unsweet Tea, 1/2 Lemonade)",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 130,
-     "proteinG": 0,
-     "carbsG": 33,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 30,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 41,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 38,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 66,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 60,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "sunjoy-1-2-unsweet-tea-1-2-diet-lemonade",
-   "name": "Sunjoy® (1/2 Unsweet Tea, 1/2 Diet Lemonade)",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 30,
-     "proteinG": 0,
-     "carbsG": 8,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 6,
-      "sodiumMg": 5,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 35,
-     "proteinG": 0,
-     "carbsG": 10,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 5,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 60,
-     "proteinG": 0,
-     "carbsG": 15,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 11,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "sunjoy-1-2-sweet-tea-1-2-lemonade",
-   "name": "Sunjoy® (1/2 Sweet Tea, 1/2 Lemonade)",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 180,
-     "proteinG": 0,
-     "carbsG": 45,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 43,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 240,
-     "proteinG": 0,
-     "carbsG": 60,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 57,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 350,
-     "proteinG": 0,
-     "carbsG": 91,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 85,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "chick-fil-a-diet-lemonade",
-   "name": "Chick-fil-A® Diet Lemonade",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 40,
-     "proteinG": 0,
-     "carbsG": 12,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 8,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 60,
-     "proteinG": 0,
-     "carbsG": 15,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 11,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 80,
-     "proteinG": 0,
-     "carbsG": 23,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 17,
-      "sodiumMg": 15,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "chick-fil-a-lemonade",
-   "name": "Chick-fil-A® Lemonade",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 190,
-     "proteinG": 0,
-     "carbsG": 49,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 45,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 66,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 60,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 380,
-     "proteinG": 1,
-     "carbsG": 98,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 90,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "freshly-brewed-unsweetened-iced-tea",
-   "name": "Freshly-Brewed Unsweetened Iced Tea",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "pineapple-dragonfruit-lemonade",
-   "name": "Pineapple Dragonfruit Lemonade",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 290,
-     "proteinG": 0,
-     "carbsG": 72,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 60,
-      "sodiumMg": 15,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "pineapple-dragonfruit-diet-lemonade",
-   "name": "Pineapple Dragonfruit Diet Lemonade",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 90,
-     "proteinG": 0,
-     "carbsG": 21,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 10,
-      "sodiumMg": 25,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "iced-coffee",
-   "name": "Iced Coffee",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 200,
-     "proteinG": 7,
-     "carbsG": 34,
-     "fatG": 4,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 34,
-      "sodiumMg": 115,
-      "saturatedFatG": 3,
-      "cholesterolMg": 15
-     }
-    },
-    {
-     "size": "672g",
-     "label": "672g",
-     "calories": 260,
-     "proteinG": 8,
-     "carbsG": 38,
-     "fatG": 9,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 34,
-      "sodiumMg": 190,
-      "saturatedFatG": 6,
-      "cholesterolMg": 35
-     }
-    },
-    {
-     "size": "624g",
-     "label": "624g",
-     "calories": 110,
-     "proteinG": 7,
-     "carbsG": 11,
-     "fatG": 4,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 10,
-      "sodiumMg": 115,
-      "saturatedFatG": 3,
-      "cholesterolMg": 15
-     }
-    }
-   ]
-  },
-  {
-   "id": "honest-kids-apple-juice",
-   "name": "Honest Kids® Apple Juice",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 35,
-     "proteinG": 0,
-     "carbsG": 9,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 8,
-      "sodiumMg": 15,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "1-chocolate-milk",
-   "name": "1% Chocolate Milk",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 140,
-     "proteinG": 7,
-     "carbsG": 23,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 21,
-      "sodiumMg": 160,
-      "saturatedFatG": 1.5,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "1-milk",
-   "name": "1% Milk",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 90,
-     "proteinG": 7,
-     "carbsG": 10,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 10,
-      "sodiumMg": 105,
-      "saturatedFatG": 1.5,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "simply-orange",
-   "name": "Simply Orange®",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 160,
-     "proteinG": 2,
-     "carbsG": 34,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 30,
-      "sodiumMg": 10,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "dasani-bottled-water",
-   "name": "DASANI® Bottled Water",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "toasted-marshmallow-cream-cold-brew",
-   "name": "Toasted Marshmallow Cream Cold Brew",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 530,
-     "proteinG": 0,
-     "carbsG": 87,
-     "fatG": 17,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 80,
-      "sodiumMg": 440,
-      "saturatedFatG": 10,
-      "cholesterolMg": 65
+      "saturatedFatG": 0
      }
     }
    ]
@@ -1202,6 +290,28 @@
    ]
   },
   {
+   "id": "toasted-marshmallow-hot-coffee",
+   "name": "Toasted Marshmallow Hot Coffee",
+   "category": "Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
    "id": "frosted-coffee",
    "name": "Frosted Coffee",
    "category": "Coffee",
@@ -1295,8 +405,8 @@
    "category": "Coffee",
    "sizes": [
     {
-     "size": "700g",
-     "label": "700g",
+     "size": "700g serving size",
+     "label": "700g Serving Size",
      "calories": 520,
      "proteinG": 9,
      "carbsG": 75,
@@ -1310,8 +420,8 @@
      }
     },
     {
-     "size": "652g",
-     "label": "652g",
+     "size": "652g serving size",
+     "label": "652g Serving Size",
      "calories": 370,
      "proteinG": 8,
      "carbsG": 48,
@@ -1320,6 +430,28 @@
       "fiberG": 0,
       "sugarG": 47,
       "sodiumMg": 360,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "toasted-marshmallow-cream-cold-brew",
+   "name": "Toasted Marshmallow Cream Cold Brew",
+   "category": "Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 8,
+     "carbsG": 87,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 440,
       "saturatedFatG": 10,
       "cholesterolMg": 65
      }
@@ -1388,6 +520,43 @@
       "sodiumMg": 440,
       "saturatedFatG": 14,
       "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-coffee",
+   "name": "Iced Coffee",
+   "category": "Coffee",
+   "sizes": [
+    {
+     "size": "672g serving size",
+     "label": "672g Serving Size",
+     "calories": 260,
+     "proteinG": 8,
+     "carbsG": 38,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 190,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "624g serving size",
+     "label": "624g Serving Size",
+     "calories": 110,
+     "proteinG": 7,
+     "carbsG": 11,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
      }
     }
    ]
@@ -1481,20 +650,19 @@
    ]
   },
   {
-   "id": "30-ct-chick-fil-a-nuggets-football-shaped-tray",
-   "name": "30 ct Chick-fil-A® Nuggets Football-Shaped Tray",
+   "id": "spicy-filet",
+   "name": "Spicy Filet",
    "sizes": [
     {
      "size": "regular",
      "label": "Regular",
-     "calories": 950,
+     "calories": 280,
      "proteinG": 0,
      "carbsG": 0,
-     "fatG": 43,
+     "fatG": 13,
      "micros": {
-      "sugarG": 4,
-      "sodiumMg": 4550,
-      "saturatedFatG": 9
+      "sugarG": 2,
+      "saturatedFatG": 2.5
      }
     }
    ]
@@ -1511,7 +679,7 @@
      "carbsG": 0,
      "fatG": 6,
      "micros": {
-      "sugarG": 5,
+      "sugarG": 0.5,
       "saturatedFatG": 2.5
      }
     }
@@ -1522,8 +690,8 @@
    "name": "Gallon Sunjoy® (1/2 Unsweet Tea, 1/2 Lemonade)",
    "sizes": [
     {
-     "size": "regular",
-     "label": "Regular",
+     "size": "gallon",
+     "label": "Gallon",
      "calories": 100,
      "proteinG": 0,
      "carbsG": 26,
@@ -1543,8 +711,8 @@
    "name": "Gallon Sunjoy® (1/2 Sweet Tea, 1/2 Diet Lemonade)",
    "sizes": [
     {
-     "size": "regular",
-     "label": "Regular",
+     "size": "gallon",
+     "label": "Gallon",
      "calories": 90,
      "proteinG": 0,
      "carbsG": 23,
@@ -1564,8 +732,8 @@
    "name": "Gallon Sunjoy® (1/2 Sweet Tea, 1/2 Lemonade)",
    "sizes": [
     {
-     "size": "regular",
-     "label": "Regular",
+     "size": "gallon",
+     "label": "Gallon",
      "calories": 160,
      "proteinG": 0,
      "carbsG": 41,
@@ -1585,8 +753,8 @@
    "name": "Gallon Chick-fil-A® Iced Tea (1/2 Sweet Tea, 1/2 Unsweet Tea)",
    "sizes": [
     {
-     "size": "regular",
-     "label": "Regular",
+     "size": "gallon",
+     "label": "Gallon",
      "calories": 70,
      "proteinG": 0,
      "carbsG": 18,
@@ -1600,6 +768,195 @@
      }
     }
    ]
+  },
+  {
+   "id": "gallon-freshly-brewed-iced-tea-sweetened",
+   "name": "Gallon Freshly-Brewed Iced Tea Sweetened",
+   "sizes": [
+    {
+     "size": "gallon",
+     "label": "Gallon",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gallon-chick-fil-a-lemonade-1-2-lemonade-1-2-diet-lemonade",
+   "name": "Gallon Chick-fil-A® Lemonade (1/2 Lemonade, 1/2 Diet Lemonade)",
+   "sizes": [
+    {
+     "size": "gallon",
+     "label": "Gallon",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gallon-chick-fil-a-diet-lemonade",
+   "name": "Gallon Chick-fil-A® Diet Lemonade",
+   "sizes": [
+    {
+     "size": "gallon",
+     "label": "Gallon",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 12,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gallon-chick-fil-a-lemonade",
+   "name": "Gallon Chick-fil-A® Lemonade",
+   "sizes": [
+    {
+     "size": "gallon",
+     "label": "Gallon",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 49,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honest-kids-apple-juice",
+   "name": "Honest Kids® Apple Juice",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-chocolate-milk",
+   "name": "1% Chocolate Milk",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 23,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 160,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-milk",
+   "name": "1% Milk",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 7,
+     "carbsG": 10,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 105,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-orange",
+   "name": "Simply Orange®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 34,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dasani-bottled-water",
+   "name": "DASANI® Bottled Water",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
   }
  ],
  "modifiers": [
@@ -1607,7 +964,7 @@
    "id": "honey-roasted-bbq-sauce",
    "name": "Honey Roasted BBQ Sauce",
    "group": "sauce",
-   "unit": "12g",
+   "unit": "12g Serving Size",
    "per": {
     "calories": 60,
     "proteinG": 0,
@@ -1626,7 +983,7 @@
    "id": "zesty-buffalo-sauce",
    "name": "Zesty Buffalo Sauce",
    "group": "sauce",
-   "unit": "21g",
+   "unit": "21g Serving Size",
    "per": {
     "calories": 25,
     "proteinG": 0,
@@ -1645,7 +1002,7 @@
    "id": "sweet-and-spicy-sriracha-sauce",
    "name": "Sweet & Spicy Sriracha Sauce",
    "group": "sauce",
-   "unit": "28g",
+   "unit": "28g Serving Size",
    "per": {
     "calories": 45,
     "proteinG": 0,
@@ -1664,7 +1021,7 @@
    "id": "polynesian-sauce",
    "name": "Polynesian Sauce",
    "group": "sauce",
-   "unit": "28g",
+   "unit": "28g Serving Size",
    "per": {
     "calories": 110,
     "proteinG": 0,
@@ -1683,7 +1040,7 @@
    "id": "honey-mustard-sauce",
    "name": "Honey Mustard Sauce",
    "group": "sauce",
-   "unit": "28g",
+   "unit": "28g Serving Size",
    "per": {
     "calories": 50,
     "proteinG": 0,
@@ -1702,7 +1059,7 @@
    "id": "garden-herb-ranch-sauce",
    "name": "Garden Herb Ranch Sauce",
    "group": "sauce",
-   "unit": "21g",
+   "unit": "21g Serving Size",
    "per": {
     "calories": 100,
     "proteinG": 0,
@@ -1721,7 +1078,7 @@
    "id": "chick-fil-a-sauce",
    "name": "Chick-fil-A® Sauce",
    "group": "sauce",
-   "unit": "28g",
+   "unit": "28g Serving Size",
    "per": {
     "calories": 140,
     "proteinG": 0,
@@ -1740,7 +1097,7 @@
    "id": "barbeque-sauce",
    "name": "Barbeque Sauce",
    "group": "sauce",
-   "unit": "28g",
+   "unit": "28g Serving Size",
    "per": {
     "calories": 45,
     "proteinG": 0,
@@ -1759,7 +1116,7 @@
    "id": "classic-syrup",
    "name": "Classic Syrup",
    "group": "syrup",
-   "unit": "23g",
+   "unit": "23g Serving Size",
    "per": {
     "calories": 60,
     "proteinG": 0,
@@ -1778,7 +1135,7 @@
    "id": "zesty-apple-cider-vinaigrette-dressing",
    "name": "Zesty Apple Cider Vinaigrette Dressing",
    "group": "dressing",
-   "unit": "56g",
+   "unit": "56g Serving Size",
    "per": {
     "calories": 230,
     "proteinG": 0,
@@ -1797,7 +1154,7 @@
    "id": "light-italian-dressing",
    "name": "Light Italian Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 25,
     "proteinG": 0,
@@ -1816,7 +1173,7 @@
    "id": "light-balsamic-vinaigrette-dressing",
    "name": "Light Balsamic Vinaigrette Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 80,
     "proteinG": 0,
@@ -1835,7 +1192,7 @@
    "id": "garden-herb-ranch-dressing",
    "name": "Garden Herb Ranch Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 280,
     "proteinG": 1,
@@ -1854,7 +1211,7 @@
    "id": "fat-free-honey-mustard-dressing",
    "name": "Fat-Free Honey Mustard Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 90,
     "proteinG": 0,
@@ -1873,7 +1230,7 @@
    "id": "creamy-salsa-dressing",
    "name": "Creamy Salsa Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 290,
     "proteinG": 1,
@@ -1892,7 +1249,7 @@
    "id": "avocado-lime-ranch-dressing",
    "name": "Avocado Lime Ranch Dressing",
    "group": "dressing",
-   "unit": "57g",
+   "unit": "57g Serving Size",
    "per": {
     "calories": 310,
     "proteinG": 1,
@@ -1911,7 +1268,7 @@
    "id": "multigrain-brioche-bun",
    "name": "Multigrain Brioche Bun",
    "group": "bread",
-   "unit": "71g",
+   "unit": "71g Serving Size",
    "per": {
     "calories": 210,
     "proteinG": 7,
@@ -1930,7 +1287,7 @@
    "id": "buttery-white-bun",
    "name": "Buttery White Bun",
    "group": "bread",
-   "unit": "60g",
+   "unit": "60g Serving Size",
    "per": {
     "calories": 180,
     "proteinG": 5,
@@ -1949,7 +1306,7 @@
    "id": "gluten-free-bun",
    "name": "Gluten Free Bun",
    "group": "bread",
-   "unit": "79g",
+   "unit": "79g Serving Size",
    "per": {
     "calories": 180,
     "proteinG": 3,
@@ -1968,7 +1325,7 @@
    "id": "white-bun-unbuttered",
    "name": "White Bun (Unbuttered)",
    "group": "bread",
-   "unit": "54g",
+   "unit": "54g Serving Size",
    "per": {
     "calories": 150,
     "proteinG": 5,

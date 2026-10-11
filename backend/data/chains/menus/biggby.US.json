@@ -1,0 +1,3403 @@
+{
+ "chain": "biggby",
+ "country": "US",
+ "source": {
+  "url": "https://biggby.com/wp-content/uploads/2026/08/BIGGBY_Website_Nurtition_8.20.26.1.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "pina-colada-creme-freeze",
+   "name": "Piña Colada Creme Freeze",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 590,
+     "proteinG": 4,
+     "carbsG": 129,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pink-panther-creme-freeze",
+   "name": "Pink Panther Creme Freeze",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 400,
+     "proteinG": 3,
+     "carbsG": 87,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 74,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 470,
+     "proteinG": 3,
+     "carbsG": 103,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 87,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 600,
+     "proteinG": 4,
+     "carbsG": 131,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 112,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-zinger-creme-freeze",
+   "name": "Raspberry Zinger Creme Freeze",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 390,
+     "proteinG": 2,
+     "carbsG": 86,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 470,
+     "proteinG": 2,
+     "carbsG": 102,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 88,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 590,
+     "proteinG": 3,
+     "carbsG": 130,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 114,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "solar-flare-creme-freeze",
+   "name": "Solar Flare Creme Freeze",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 440,
+     "proteinG": 2,
+     "carbsG": 96,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 85,
+      "sodiumMg": 150,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 560,
+     "proteinG": 2,
+     "carbsG": 122,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 108,
+      "sodiumMg": 190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 680,
+     "proteinG": 3,
+     "carbsG": 148,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 130,
+      "sodiumMg": 230,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blood-moon-biggby-blast-iced",
+   "name": "Blood Moon® BIGGBY Blast®, Iced",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 24,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 37,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blood-moon-biggby-blast-frozen",
+   "name": "Blood Moon® BIGGBY Blast®, Frozen",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 45,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 64,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 58,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "eclipse-biggby-blast-iced",
+   "name": "Eclipse BIGGBY Blast®, Iced",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "eclipse-biggby-blast-frozen",
+   "name": "Eclipse BIGGBY Blast®, Frozen",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-dragon-biggby-blast-iced",
+   "name": "Electric Dragon® BIGGBY Blast®, Iced",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 47,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "electric-dragon-biggby-blast-frozen",
+   "name": "Electric Dragon® BIGGBY Blast®, Frozen",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 62,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "scuba-biggby-blast-iced",
+   "name": "Scuba® BIGGBY Blast®, Iced",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 38,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 31,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "scuba-biggby-blast-frozen",
+   "name": "Scuba® BIGGBY Blast®, Frozen",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 57,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 75,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 68,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropic-biggby-blast-iced",
+   "name": "Tropic BIGGBY Blast®, Iced",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 58,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 50,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropic-biggby-blast-frozen",
+   "name": "Tropic BIGGBY Blast®, Frozen",
+   "category": "BIGGBY Blast®",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 68,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 79,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 71,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-bolt-red-bull-mocktail-frozen",
+   "name": "Blackberry Bolt Red Bull® Mocktail, Frozen",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 340,
+     "proteinG": 1,
+     "carbsG": 87,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 390,
+     "proteinG": 1,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 98,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-bolt-red-bull-mocktail-iced",
+   "name": "Blackberry Bolt Red Bull® Mocktail, Iced",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 280,
+     "proteinG": 1,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 320,
+     "proteinG": 1,
+     "carbsG": 80,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 78,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bluerazz-fusion-red-bull-mocktail-frozen",
+   "name": "BlueRazz Fusion Red Bull® Mocktail, Frozen",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 340,
+     "proteinG": 1,
+     "carbsG": 86,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 390,
+     "proteinG": 1,
+     "carbsG": 99,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bluerazz-fusion-red-bull-mocktail-iced",
+   "name": "BlueRazz Fusion Red Bull® Mocktail, Iced",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 280,
+     "proteinG": 1,
+     "carbsG": 69,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 320,
+     "proteinG": 1,
+     "carbsG": 79,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kickin-raspberry-red-bull-mocktail-frozen",
+   "name": "Kickin' Raspberry Red Bull® Mocktail, Frozen",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 340,
+     "proteinG": 1,
+     "carbsG": 87,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 390,
+     "proteinG": 1,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "kickin-raspberry-red-bull-mocktail-iced",
+   "name": "Kickin' Raspberry Red Bull® Mocktail, Iced",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 280,
+     "proteinG": 1,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 320,
+     "proteinG": 1,
+     "carbsG": 80,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 77,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-punch-red-bull-mocktail-frozen",
+   "name": "Strawberry Punch Red Bull® Mocktail, Frozen",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 350,
+     "proteinG": 1,
+     "carbsG": 89,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 86,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 400,
+     "proteinG": 1,
+     "carbsG": 103,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 100,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-punch-red-bull-mocktail-iced",
+   "name": "Strawberry Punch Red Bull® Mocktail, Iced",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 290,
+     "proteinG": 1,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 70,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 330,
+     "proteinG": 1,
+     "carbsG": 83,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 79,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-sugarfree-energy-drink",
+   "name": "Red Bull Sugarfree® Energy Drink",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 1,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "red-bull-energy-drink",
+   "name": "Red Bull® Energy Drink",
+   "category": "Red Bull®",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 1,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cocoa-carmella-hot-chocolate",
+   "name": "Cocoa Carmella Hot Chocolate",
+   "category": "More",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 390,
+     "proteinG": 10,
+     "carbsG": 64,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 56,
+      "sodiumMg": 240,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 470,
+     "proteinG": 12,
+     "carbsG": 81,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 70,
+      "sodiumMg": 300,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 580,
+     "proteinG": 14,
+     "carbsG": 99,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 85,
+      "sodiumMg": 370,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-chocolate",
+   "name": "Hot Chocolate",
+   "category": "More",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 370,
+     "proteinG": 10,
+     "carbsG": 60,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 57,
+      "sodiumMg": 190,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 450,
+     "proteinG": 12,
+     "carbsG": 75,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 72,
+      "sodiumMg": 230,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 550,
+     "proteinG": 15,
+     "carbsG": 93,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 89,
+      "sodiumMg": 280,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "mellow-hot-chocolate",
+   "name": "Mellow Hot Chocolate",
+   "category": "More",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 60,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 290,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "campfire-latte-hot",
+   "name": "Campfire Latte, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 370,
+     "proteinG": 10,
+     "carbsG": 60,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 290,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 450,
+     "proteinG": 13,
+     "carbsG": 75,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 550,
+     "proteinG": 15,
+     "carbsG": 91,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 79,
+      "sodiumMg": 430,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "campfire-latte-iced",
+   "name": "Campfire Latte, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 400,
+     "proteinG": 9,
+     "carbsG": 61,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 270,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 510,
+     "proteinG": 12,
+     "carbsG": 78,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 360,
+      "saturatedFatG": 10,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 590,
+     "proteinG": 14,
+     "carbsG": 93,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 420,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-foam-campfire-cold-brew",
+   "name": "Sweet Foam Campfire Cold Brew",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 56,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 240,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 440,
+     "proteinG": 4,
+     "carbsG": 71,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 300,
+      "saturatedFatG": 14,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 520,
+     "proteinG": 5,
+     "carbsG": 86,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 360,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "just-peachy-biggby-blast-frozen",
+   "name": "Just Peachy BIGGBY Blast®, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 49,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 61,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 54,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 66,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "just-peachy-biggby-blast-iced",
+   "name": "Just Peachy BIGGBY Blast®, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 39,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 45,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sun-of-a-peach-creme-freeze",
+   "name": "Sun of a Peach Creme Freeze",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 410,
+     "proteinG": 3,
+     "carbsG": 88,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 75,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 480,
+     "proteinG": 3,
+     "carbsG": 104,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 88,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 610,
+     "proteinG": 4,
+     "carbsG": 133,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 113,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-peach-lemonade-iced",
+   "name": "Blackberry Peach Lemonade, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 49,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 64,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 79,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 76,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-peach-lemonade-frozen",
+   "name": "Blackberry Peach Lemonade, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 410,
+     "proteinG": 2,
+     "carbsG": 90,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 78,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 490,
+     "proteinG": 2,
+     "carbsG": 107,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 92,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 610,
+     "proteinG": 3,
+     "carbsG": 135,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 118,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-iced-tea",
+   "name": "Peach Iced Tea",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 21,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-berry-red-bull-mocktail-frozen",
+   "name": "Triple Berry Red Bull® Mocktail, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 340,
+     "proteinG": 0,
+     "carbsG": 87,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-berry-red-bull-mocktail-iced",
+   "name": "Triple Berry Red Bull® Mocktail, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 64,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "power-stack-sandwich",
+   "name": "Power Stack Sandwich",
+   "category": "LIMITED TIME FOOD",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 490,
+     "proteinG": 23,
+     "carbsG": 12,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 700,
+      "saturatedFatG": 18,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "power-stack-sandwich-with-turkey-sausage",
+   "name": "Power Stack Sandwich with Turkey Sausage",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 23,
+     "carbsG": 12,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 660,
+      "saturatedFatG": 12,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "halal-power-stack-sandwich-with-beef-sausage",
+   "name": "HALAL Power Stack Sandwich with Beef Sausage",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 22,
+     "carbsG": 13,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 690,
+      "saturatedFatG": 55,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-hashbrown-waffle",
+   "name": "Loaded Hashbrown Waffle",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 5,
+     "carbsG": 6,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "pretzel-bites-with-cheese",
+   "name": "Pretzel Bites with Cheese",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 9,
+     "carbsG": 53,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 960,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-play-red-bull-mocktail-frozen",
+   "name": "Triple Play Red Bull® Mocktail, Frozen",
+   "category": "Detroit Tigers® Beverages",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 350,
+     "proteinG": 1,
+     "carbsG": 89,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 86,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 410,
+     "proteinG": 1,
+     "carbsG": 103,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 99,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-play-red-bull-mocktail-iced",
+   "name": "Triple Play Red Bull® Mocktail, Iced",
+   "category": "Detroit Tigers® Beverages",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 300,
+     "proteinG": 1,
+     "carbsG": 74,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 71,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 350,
+     "proteinG": 1,
+     "carbsG": 86,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 82,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "game-day-latte-frozen",
+   "name": "Game Day Latte, Frozen",
+   "category": "Detroit Tigers® Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 500,
+     "proteinG": 2,
+     "carbsG": 90,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 240,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 570,
+     "proteinG": 3,
+     "carbsG": 103,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 83,
+      "sodiumMg": 280,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 710,
+     "proteinG": 3,
+     "carbsG": 132,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 104,
+      "sodiumMg": 370,
+      "saturatedFatG": 15,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "game-day-latte-hot",
+   "name": "Game Day Latte, Hot",
+   "category": "Detroit Tigers® Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 390,
+     "proteinG": 8,
+     "carbsG": 66,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 250,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 460,
+     "proteinG": 10,
+     "carbsG": 78,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 64,
+      "sodiumMg": 300,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 530,
+     "proteinG": 12,
+     "carbsG": 92,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 340,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "game-day-latte-iced",
+   "name": "Game Day Latte, Iced",
+   "category": "Detroit Tigers® Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 410,
+     "proteinG": 6,
+     "carbsG": 66,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 230,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 500,
+     "proteinG": 9,
+     "carbsG": 80,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 580,
+     "proteinG": 10,
+     "carbsG": 93,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 330,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-foam-tiger-stripe-cold-brew",
+   "name": "Sweet Foam Tiger Stripe Cold Brew",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 350,
+     "proteinG": 3,
+     "carbsG": 56,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 160,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 430,
+     "proteinG": 3,
+     "carbsG": 71,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 60,
+      "sodiumMg": 210,
+      "saturatedFatG": 15,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 510,
+     "proteinG": 4,
+     "carbsG": 86,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 72,
+      "sodiumMg": 250,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "tiger-cub-magic-milk-iced",
+   "name": "Tiger Cub Magic Milk, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 440,
+     "proteinG": 8,
+     "carbsG": 67,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 280,
+      "saturatedFatG": 11,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-latte-iced",
+   "name": "Pumpkin Spice Latte, Iced",
+   "category": "Seasonal Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 390,
+     "proteinG": 7,
+     "carbsG": 60,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 200,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 490,
+     "proteinG": 10,
+     "carbsG": 78,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 270,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 570,
+     "proteinG": 11,
+     "carbsG": 94,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 90,
+      "sodiumMg": 320,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-latte-hot",
+   "name": "Pumpkin Spice Latte, Hot",
+   "category": "Seasonal Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 360,
+     "proteinG": 8,
+     "carbsG": 60,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 220,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 440,
+     "proteinG": 10,
+     "carbsG": 76,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 280,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 530,
+     "proteinG": 12,
+     "carbsG": 93,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 89,
+      "sodiumMg": 340,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-spice-latte-frozen",
+   "name": "Pumpkin Spice Latte, Frozen",
+   "category": "Seasonal Beverages",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 490,
+     "proteinG": 2,
+     "carbsG": 88,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 230,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 560,
+     "proteinG": 3,
+     "carbsG": 101,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 87,
+      "sodiumMg": 270,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 690,
+     "proteinG": 4,
+     "carbsG": 129,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 340,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-foam-pumpkin-cold-brew",
+   "name": "Sweet Foam Pumpkin Cold Brew",
+   "category": "Seasonal Beverages",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 430,
+     "proteinG": 2,
+     "carbsG": 72,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 220,
+      "saturatedFatG": 14,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 510,
+     "proteinG": 2,
+     "carbsG": 87,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 270,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 340,
+     "proteinG": 2,
+     "carbsG": 56,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 180,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-pumpkin-latte-iced",
+   "name": "White Pumpkin Latte, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 61,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 220,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 500,
+     "proteinG": 11,
+     "carbsG": 79,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 290,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 580,
+     "proteinG": 12,
+     "carbsG": 94,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 340,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-pumpkin-latte-hot",
+   "name": "White Pumpkin Latte, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 370,
+     "proteinG": 9,
+     "carbsG": 61,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 450,
+     "proteinG": 11,
+     "carbsG": 77,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 300,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 540,
+     "proteinG": 13,
+     "carbsG": 93,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 83,
+      "sodiumMg": 360,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-pumpkin-latte-frozen",
+   "name": "White Pumpkin Latte, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 500,
+     "proteinG": 3,
+     "carbsG": 90,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 250,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 570,
+     "proteinG": 3,
+     "carbsG": 103,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 280,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 700,
+     "proteinG": 4,
+     "carbsG": 130,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 360,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-foam-white-pumpkin-cold-brew",
+   "name": "Sweet Foam White Pumpkin Cold Brew",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 350,
+     "proteinG": 2,
+     "carbsG": 57,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 190,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 440,
+     "proteinG": 3,
+     "carbsG": 73,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 61,
+      "sodiumMg": 240,
+      "saturatedFatG": 14,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 520,
+     "proteinG": 4,
+     "carbsG": 88,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 74,
+      "sodiumMg": 290,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "chumpkin-tea-latte-frozen",
+   "name": "Chumpkin Tea Latte, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 560,
+     "proteinG": 5,
+     "carbsG": 97,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 260,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 640,
+     "proteinG": 7,
+     "carbsG": 112,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 310,
+      "saturatedFatG": 13,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 800,
+     "proteinG": 9,
+     "carbsG": 143,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 121,
+      "sodiumMg": 390,
+      "saturatedFatG": 15,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chumpkin-tea-latte-hot",
+   "name": "Chumpkin Tea Latte, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 340,
+     "proteinG": 9,
+     "carbsG": 53,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 190,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 410,
+     "proteinG": 11,
+     "carbsG": 66,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 230,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 500,
+     "proteinG": 14,
+     "carbsG": 81,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 280,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chumpkin-tea-latte-iced",
+   "name": "Chumpkin Tea Latte, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 380,
+     "proteinG": 8,
+     "carbsG": 54,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 180,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 470,
+     "proteinG": 11,
+     "carbsG": 69,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 62,
+      "sodiumMg": 240,
+      "saturatedFatG": 10,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 560,
+     "proteinG": 13,
+     "carbsG": 83,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 280,
+      "saturatedFatG": 12,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "jack-o-lantern-latte-iced",
+   "name": "Jack-O-Lantern Latte, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 400,
+     "proteinG": 7,
+     "carbsG": 63,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 210,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 490,
+     "proteinG": 10,
+     "carbsG": 77,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 280,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 560,
+     "proteinG": 11,
+     "carbsG": 89,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 81,
+      "sodiumMg": 310,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "jack-o-lantern-latte-hot",
+   "name": "Jack-O-Lantern Latte, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 370,
+     "proteinG": 9,
+     "carbsG": 63,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 230,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 440,
+     "proteinG": 11,
+     "carbsG": 75,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 280,
+      "saturatedFatG": 7,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 520,
+     "proteinG": 13,
+     "carbsG": 88,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 320,
+      "saturatedFatG": 8,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "jack-o-lantern-latte-frozen",
+   "name": "Jack-O-Lantern Latte, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 500,
+     "proteinG": 3,
+     "carbsG": 89,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 240,
+      "saturatedFatG": 10,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 570,
+     "proteinG": 3,
+     "carbsG": 102,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 280,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 710,
+     "proteinG": 4,
+     "carbsG": 132,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 360,
+      "saturatedFatG": 13,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-foam-jack-o-lantern-cold-brew",
+   "name": "Sweet Foam Jack-O-Lantern Cold Brew",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 360,
+     "proteinG": 2,
+     "carbsG": 59,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 190,
+      "saturatedFatG": 12,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 430,
+     "proteinG": 3,
+     "carbsG": 71,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 61,
+      "sodiumMg": 220,
+      "saturatedFatG": 14,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 490,
+     "proteinG": 3,
+     "carbsG": 82,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 260,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-cider-iced",
+   "name": "Caramel Apple Cider, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 430,
+     "proteinG": 1,
+     "carbsG": 84,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 65,
+      "sodiumMg": 190,
+      "saturatedFatG": 7,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 560,
+     "proteinG": 1,
+     "carbsG": 116,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 92,
+      "sodiumMg": 260,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 640,
+     "proteinG": 1,
+     "carbsG": 132,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 102,
+      "sodiumMg": 310,
+      "saturatedFatG": 9,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-cider-hot",
+   "name": "Caramel Apple Cider, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 450,
+     "proteinG": 1,
+     "carbsG": 100,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 79,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 540,
+     "proteinG": 1,
+     "carbsG": 123,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 260,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 660,
+     "proteinG": 1,
+     "carbsG": 151,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 119,
+      "sodiumMg": 320,
+      "saturatedFatG": 6,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-cider-frozen",
+   "name": "Caramel Apple Cider, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 550,
+     "proteinG": 2,
+     "carbsG": 102,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 270,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 630,
+     "proteinG": 3,
+     "carbsG": 119,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 320,
+      "saturatedFatG": 12,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 780,
+     "proteinG": 3,
+     "carbsG": 151,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 119,
+      "sodiumMg": 410,
+      "saturatedFatG": 15,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "ciderberry-red-bull-mocktail-iced",
+   "name": "CiderBerry Red Bull® Mocktail, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 270,
+     "proteinG": 1,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 310,
+     "proteinG": 1,
+     "carbsG": 76,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 72,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ciderberry-red-bull-mocktail-frozen",
+   "name": "CiderBerry Red Bull® Mocktail, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 340,
+     "proteinG": 1,
+     "carbsG": 87,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 390,
+     "proteinG": 1,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chaider-iced",
+   "name": "Chaider, Iced",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 350,
+     "proteinG": 0,
+     "carbsG": 87,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 69,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chaider-hot",
+   "name": "Chaider, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 310,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 98,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 80,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 470,
+     "proteinG": 0,
+     "carbsG": 119,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chaider-frozen",
+   "name": "Chaider, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 360,
+     "proteinG": 2,
+     "carbsG": 77,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 61,
+      "sodiumMg": 160,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 430,
+     "proteinG": 2,
+     "carbsG": 94,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 540,
+     "proteinG": 3,
+     "carbsG": 118,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-bourbon-latte-frozen",
+   "name": "Maple Bourbon Latte, Frozen",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 340,
+     "proteinG": 2,
+     "carbsG": 73,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 150,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 400,
+     "proteinG": 2,
+     "carbsG": 86,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 190,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 510,
+     "proteinG": 3,
+     "carbsG": 110,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 94,
+      "sodiumMg": 230,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-bourbon-latte-hot",
+   "name": "Maple Bourbon Latte, Hot",
+   "category": "The Lineup",
+   "sizes": [
+    {
+     "size": "16oz",
+     "label": "16oz",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 30,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 135,
+      "saturatedFatG": 4,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "20oz",
+     "label": "20oz",
+     "calories": 270,
+     "proteinG": 12,
+     "carbsG": 40,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 170,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "24oz",
+     "label": "24oz",
+     "calories": 330,
+     "proteinG": 14,
+     "carbsG": 48,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

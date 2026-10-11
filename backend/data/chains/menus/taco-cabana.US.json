@@ -1,0 +1,2439 @@
+{
+ "chain": "taco-cabana",
+ "country": "US",
+ "source": {
+  "url": "https://www.tacocabana.com/wp-content/uploads/2025/01/TacoCabana_NutritionalGuide_Jan_2025_R2_LR_M.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "chorizo-and-egg-taco",
+   "name": "Chorizo & Egg Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 18,
+     "carbsG": 25,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1060,
+      "saturatedFatG": 10,
+      "cholesterolMg": 285
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-egg-taco",
+   "name": "Bacon & Egg Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 20,
+     "carbsG": 25,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1000,
+      "saturatedFatG": 7,
+      "cholesterolMg": 310
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-and-egg-taco",
+   "name": "Steak & Egg Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 26,
+     "carbsG": 27,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1180,
+      "saturatedFatG": 6,
+      "cholesterolMg": 330
+     }
+    }
+   ]
+  },
+  {
+   "id": "bean-and-egg-taco",
+   "name": "Bean & Egg Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 22,
+     "carbsG": 49,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 3,
+      "sodiumMg": 1090,
+      "saturatedFatG": 9,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "egg-and-cheese-taco",
+   "name": "Egg & Cheese Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 410,
+     "proteinG": 21,
+     "carbsG": 25,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 840,
+      "saturatedFatG": 10,
+      "cholesterolMg": 320
+     }
+    }
+   ]
+  },
+  {
+   "id": "carne-guisada-taco",
+   "name": "Carne Guisada Taco",
+   "category": "Breakfast Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 28,
+     "carbsG": 28,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1290,
+      "saturatedFatG": 4,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "eggs-mexicana",
+   "name": "Eggs Mexicana",
+   "category": "Breakfast Plate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 31,
+     "carbsG": 82,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 3,
+      "sodiumMg": 2430,
+      "saturatedFatG": 15,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "huevos-rancheros",
+   "name": "Huevos Rancheros",
+   "category": "Breakfast Plate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 27,
+     "carbsG": 81,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 2180,
+      "saturatedFatG": 14,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "steak-and-eggs",
+   "name": "Steak & Eggs",
+   "category": "Breakfast Plate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 810,
+     "proteinG": 31,
+     "carbsG": 81,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 2,
+      "sodiumMg": 1990,
+      "saturatedFatG": 13,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "hash-browns-1-triangle",
+   "name": "Hash Browns (1 triangle)",
+   "category": "Breakfast Plate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 1,
+     "carbsG": 12,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 230,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "unsweet-tea-without-ice",
+   "name": "Unsweet Tea without ice",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 280,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 380,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-tea-without-ice",
+   "name": "Sweet Tea without ice",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 135,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 100,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 100,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tea-unsweet-with-75-ice",
+   "name": "Tea, Unsweet with 75% ice",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 240,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-tea-with-75-ice",
+   "name": "Sweet Tea with 75% ice",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 62,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 62,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coffee",
+   "name": "Coffee",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-coffee-caramel",
+   "name": "Iced Coffee (Caramel)",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 2,
+     "carbsG": 51,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 290,
+      "saturatedFatG": 11,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropicana-pure-premium-orange-juice-12-foz-bottle",
+   "name": "Tropicana Pure Premium Orange Juice (12 foz bottle)",
+   "category": "Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 39,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-full-cup-without-ice",
+   "name": "Pepsi (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 55,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 55,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 69,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 69,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 110,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 110,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 152,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 151,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-pepsi-full-cup-without-ice",
+   "name": "Diet Pepsi (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 150,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-zero-full-cup-without-ice",
+   "name": "Pepsi Zero (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 230,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gatorade-fruit-punch-full-cup-without-ice",
+   "name": "Gatorade Fruit Punch (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 29,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 220,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 270,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 58,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 55,
+      "sodiumMg": 440,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 79,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 76,
+      "sodiumMg": 600,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropicana-lemonade-full-cup-without-ice",
+   "name": "Tropicana Lemonade (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 210,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 260,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 410,
+     "proteinG": 0,
+     "carbsG": 107,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 106,
+      "sodiumMg": 410,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 560,
+     "proteinG": 0,
+     "carbsG": 146,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 146,
+      "sodiumMg": 570,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "7-up-full-cup-without-ice",
+   "name": "7 Up (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 64,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 390,
+     "proteinG": 0,
+     "carbsG": 103,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 135,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 141,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 139,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-full-cup-without-ice",
+   "name": "Dr Pepper (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 65,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 64,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 104,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 102,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 143,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 140,
+      "sodiumMg": 160,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-dr-pepper-full-cup-without-ice",
+   "name": "Diet Dr Pepper (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 260,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew-full-cup-without-ice",
+   "name": "Mountain Dew (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 450,
+     "proteinG": 0,
+     "carbsG": 117,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 117,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 620,
+     "proteinG": 0,
+     "carbsG": 161,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 161,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mug-root-beer-full-cup-without-ice",
+   "name": "Mug Root Beer (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 57,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 72,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 102,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 150,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 530,
+     "proteinG": 0,
+     "carbsG": 140,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 140,
+      "sodiumMg": 210,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "manzanita-sol-full-cup-without-ice",
+   "name": "Manzanita Sol (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 57,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 113,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 113,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 156,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 155,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-red-full-cup-without-ice",
+   "name": "Big Red (Full Cup Without Ice)",
+   "category": "Fountain Drinks - Full Cup Without Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 57,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 56,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 420,
+     "proteinG": 0,
+     "carbsG": 113,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 112,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 580,
+     "proteinG": 0,
+     "carbsG": 156,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 154,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-with-ice",
+   "name": "Pepsi (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 45,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 91,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 91,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-pepsi-with-ice",
+   "name": "Diet Pepsi (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepsi-zero-with-ice",
+   "name": "Pepsi Zero (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 135,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gatorade-fruit-punch-with-ice",
+   "name": "Gatorade Fruit Punch (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 21,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 160,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 38,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 290,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 360,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tropicana-lemonade-with-ice",
+   "name": "Tropicana Lemonade (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 75,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "7-up-with-ice",
+   "name": "7 Up (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 75,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-with-ice",
+   "name": "Dr Pepper (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 250,
+     "proteinG": 0,
+     "carbsG": 66,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 82,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-dr-pepper-with-ice",
+   "name": "Diet Dr Pepper (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mountain-dew-with-ice",
+   "name": "Mountain Dew (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 300,
+     "proteinG": 0,
+     "carbsG": 78,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 78,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 97,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 96,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mug-root-beer-with-ice",
+   "name": "Mug Root Beer (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 140,
+     "proteinG": 0,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 41,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 68,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 68,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 84,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "manzanita-sol-with-ice",
+   "name": "Manzanita Sol (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 71,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 97,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 97,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-red-with-ice",
+   "name": "Big Red (With Ice)",
+   "category": "Fountain Drinks - With Ice",
+   "sizes": [
+    {
+     "size": "kid s",
+     "label": "Kid's",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 71,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 98,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 96,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lime-margarita",
+   "name": "Lime Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-margarita",
+   "name": "Strawberry Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-mango-margarita",
+   "name": "Strawberry/Mango Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 41,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-margarita",
+   "name": "Mango Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 340,
+     "proteinG": 3,
+     "carbsG": 44,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 42,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mangonada-margarita",
+   "name": "Mangonada Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 320,
+     "proteinG": 2,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 210,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coconut-margarita",
+   "name": "Coconut Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 390,
+     "proteinG": 3,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 48,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blood-orange-margarita",
+   "name": "Blood Orange Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 370,
+     "proteinG": 3,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dragon-fruit-margarita",
+   "name": "Dragon Fruit Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "watermelon-margarita",
+   "name": "Watermelon Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 360,
+     "proteinG": 3,
+     "carbsG": 47,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple-margarita",
+   "name": "Pineapple Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-curacao-margarita",
+   "name": "Blue Curacao Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-apple-margarita",
+   "name": "Green Apple Margarita",
+   "category": "Tequila Margaritas - no rimmer",
+   "sizes": [
+    {
+     "size": "12 oz cup",
+     "label": "12 oz Cup",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

@@ -1,0 +1,2810 @@
+{
+ "chain": "red-lobster",
+ "country": "CA",
+ "source": {
+  "url": "https://img-ecomm-rl-prod-fye5gqbxdtbghqer.a03.azurefd.net/brandsite/documents/CN_Nutrition_8-17-26.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "garlic-bread-crusted-shrimp",
+   "name": "Garlic Bread-Crusted Shrimp",
+   "category": "Endless Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 340,
+     "proteinG": 9,
+     "carbsG": 33,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 4,
+      "sodiumMg": 1430,
+      "saturatedFatG": 2,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-shrimp",
+   "name": "Garlic Shrimp",
+   "category": "Endless Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 1,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 180,
+      "saturatedFatG": 4,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "island-coconut-shrimp",
+   "name": "Island Coconut Shrimp",
+   "category": "Endless Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 610,
+      "saturatedFatG": 8,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-linguini-alfredo",
+   "name": "Shrimp Linguini Alfredo",
+   "category": "Endless Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 28,
+     "carbsG": 73,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 21,
+      "sodiumMg": 1470,
+      "saturatedFatG": 9,
+      "cholesterolMg": 110
+     }
+    },
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 950,
+     "proteinG": 51,
+     "carbsG": 90,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 5,
+      "sodiumMg": 2480,
+      "saturatedFatG": 14,
+      "cholesterolMg": 240
+     }
+    },
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 590,
+     "proteinG": 29,
+     "carbsG": 62,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1270,
+      "saturatedFatG": 7,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "walt-s-favourite-shrimp",
+   "name": "Walt's Favourite Shrimp",
+   "category": "Endless Shrimp",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 31,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1560,
+      "saturatedFatG": 1,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-wrapped-sea-scallops",
+   "name": "Bacon-Wrapped Sea Scallops",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 23,
+     "carbsG": 9,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 1400,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "calamari",
+   "name": "Calamari",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 31,
+     "carbsG": 120,
+     "fatG": 66,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1210,
+      "saturatedFatG": 7,
+      "cholesterolMg": 410
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-queso",
+   "name": "Crab Queso",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 33,
+     "carbsG": 77,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 6,
+      "sodiumMg": 2170,
+      "saturatedFatG": 22,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "escargot",
+   "name": "Escargot",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 17,
+     "carbsG": 30,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1530,
+      "saturatedFatG": 9,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-shrimp-flatbread",
+   "name": "Garlic Shrimp Flatbread",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 930,
+     "proteinG": 47,
+     "carbsG": 85,
+     "fatG": 45,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 16,
+      "sodiumMg": 2720,
+      "saturatedFatG": 18,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "lobster-bisque",
+   "name": "Lobster Bisque",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 260,
+     "proteinG": 8,
+     "carbsG": 21,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 1050,
+      "saturatedFatG": 6,
+      "cholesterolMg": 70
+     }
+    },
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 480,
+     "proteinG": 15,
+     "carbsG": 35,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 11,
+      "sodiumMg": 2020,
+      "saturatedFatG": 12,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozzarella-cheesesticks",
+   "name": "Mozzarella Cheesesticks",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 44,
+     "carbsG": 78,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 16,
+      "sodiumMg": 3320,
+      "saturatedFatG": 18,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "new-england-clam-chowder",
+   "name": "New England Clam Chowder",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "cup",
+     "label": "Cup",
+     "calories": 290,
+     "proteinG": 8,
+     "carbsG": 23,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 810,
+      "saturatedFatG": 9,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "bowl",
+     "label": "Bowl",
+     "calories": 510,
+     "proteinG": 15,
+     "carbsG": 37,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 1520,
+      "saturatedFatG": 19,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "popcorn-shrimp",
+   "name": "Popcorn Shrimp",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 800,
+     "proteinG": 33,
+     "carbsG": 50,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 1300,
+      "saturatedFatG": 5,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "seafood-stuffed-mushrooms",
+   "name": "Seafood-Stuffed Mushrooms",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 26,
+     "carbsG": 23,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1180,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "shrimp-cocktail",
+   "name": "Shrimp Cocktail",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 22,
+     "carbsG": 13,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 1120,
+      "saturatedFatG": 1,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-chili-shrimp",
+   "name": "Sweet Chili Shrimp",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 21,
+     "carbsG": 60,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 22,
+      "sodiumMg": 1740,
+      "saturatedFatG": 7,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-wine-and-garlic-mussels",
+   "name": "White Wine & Garlic Mussels",
+   "category": "Starters",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 28,
+     "carbsG": 44,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 2240,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "admiral-s-feast-with-fries",
+   "name": "Admiral's Feast with fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2070,
+     "proteinG": 63,
+     "carbsG": 187,
+     "fatG": 116,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 30,
+      "sodiumMg": 5320,
+      "saturatedFatG": 11,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "atlantic-salmon-grilled",
+   "name": "Atlantic Salmon, Grilled",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 47,
+     "carbsG": 1,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 680,
+      "saturatedFatG": 6,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-chicken-linguini-alfredo",
+   "name": "Cajun Chicken Linguini Alfredo",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1020,
+     "proteinG": 60,
+     "carbsG": 92,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 2750,
+      "saturatedFatG": 14,
+      "cholesterolMg": 130
+     }
+    },
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 700,
+     "proteinG": 48,
+     "carbsG": 64,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 1780,
+      "saturatedFatG": 7,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-with-fries",
+   "name": "Cheeseburger with fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1450,
+     "proteinG": 39,
+     "carbsG": 130,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 19,
+      "sodiumMg": 3160,
+      "saturatedFatG": 23,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-with-bacon-fries",
+   "name": "Cheeseburger with bacon, fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1550,
+     "proteinG": 49,
+     "carbsG": 130,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 19,
+      "sodiumMg": 3480,
+      "saturatedFatG": 26,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-chicken-linguini-alfredo",
+   "name": "Classic Chicken Linguini Alfredo",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1000,
+     "proteinG": 59,
+     "carbsG": 87,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 5,
+      "sodiumMg": 2430,
+      "saturatedFatG": 14,
+      "cholesterolMg": 130
+     }
+    },
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 680,
+     "proteinG": 47,
+     "carbsG": 60,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 1450,
+      "saturatedFatG": 7,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "crab-and-shrimp-linguini-alfredo",
+   "name": "Crab & Shrimp Linguini Alfredo",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1060,
+     "proteinG": 50,
+     "carbsG": 95,
+     "fatG": 55,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 2760,
+      "saturatedFatG": 16,
+      "cholesterolMg": 200
+     }
+    },
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 610,
+     "proteinG": 28,
+     "carbsG": 62,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 1410,
+      "saturatedFatG": 8,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "bairdi-crab-1-lb-with-crispy-potatoes",
+   "name": "Bairdi Crab, 1 lb. with crispy potatoes",
+   "category": "Crab Your Way",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 50,
+     "carbsG": 55,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 3800,
+      "saturatedFatG": 2,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "snow-crab-1-lb-with-crispy-potatoes",
+   "name": "Snow Crab, 1 lb. with crispy potatoes",
+   "category": "Crab Your Way",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 42,
+     "carbsG": 55,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 3490,
+      "saturatedFatG": 2,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-fish-sandwich-with-fries",
+   "name": "Crispy Fish Sandwich with fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1430,
+     "proteinG": 35,
+     "carbsG": 135,
+     "fatG": 82,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 18,
+      "sodiumMg": 2640,
+      "saturatedFatG": 10,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-and-chips-with-fries-and-coleslaw",
+   "name": "Fish and Chips with fries and coleslaw",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1560,
+     "proteinG": 49,
+     "carbsG": 115,
+     "fatG": 97,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 25,
+      "sodiumMg": 2760,
+      "saturatedFatG": 10,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-and-chips-with-coleslaw",
+   "name": "Fish and Chips with coleslaw",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 1180,
+     "proteinG": 28,
+     "carbsG": 103,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 20,
+      "sodiumMg": 2320,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-lover-s-7-oz-sirloin-with-garlic-herb-butter-topping",
+   "name": "Garlic Lover's 7 oz. Sirloin with garlic herb butter topping",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 400,
+     "proteinG": 46,
+     "carbsG": 3,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1090,
+      "saturatedFatG": 8,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-sandwich-with-fries",
+   "name": "Grilled Chicken Sandwich with fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 44,
+     "carbsG": 132,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 19,
+      "sodiumMg": 2560,
+      "saturatedFatG": 7,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-sandwich-with-bacon-fries",
+   "name": "Grilled Chicken Sandwich with bacon, fries",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1260,
+     "proteinG": 54,
+     "carbsG": 132,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 19,
+      "sodiumMg": 2880,
+      "saturatedFatG": 10,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-lobster-shrimp-and-salmon-with-rice",
+   "name": "Grilled Lobster, Shrimp and Salmon with rice",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1230,
+     "proteinG": 74,
+     "carbsG": 51,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 2830,
+      "saturatedFatG": 21,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "live-maritime-lobster",
+   "name": "Live Maritime Lobster",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 440,
+     "proteinG": 33,
+     "carbsG": 1,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 290,
+      "saturatedFatG": 21,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "lobster-and-shrimp-linguini-alfredo",
+   "name": "Lobster & Shrimp Linguini Alfredo",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "full",
+     "label": "Full",
+     "calories": 1220,
+     "proteinG": 58,
+     "carbsG": 84,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 3200,
+      "saturatedFatG": 35,
+      "cholesterolMg": 330
+     }
+    },
+    {
+     "size": "lighter portion",
+     "label": "Lighter portion",
+     "calories": 990,
+     "proteinG": 41,
+     "carbsG": 66,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 3,
+      "sodiumMg": 2690,
+      "saturatedFatG": 33,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "parmesan-crusted-chicken",
+   "name": "Parmesan Crusted Chicken",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 610,
+     "proteinG": 38,
+     "carbsG": 35,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1290,
+      "saturatedFatG": 18,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon-new-orleans",
+   "name": "Salmon New Orleans",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1170,
+     "proteinG": 103,
+     "carbsG": 13,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1460,
+      "saturatedFatG": 17,
+      "cholesterolMg": 350
+     }
+    }
+   ]
+  },
+  {
+   "id": "mariner-s-seafood-boil-snow-crab",
+   "name": "Mariner's Seafood Boil, Snow Crab",
+   "category": "Seafood Boils",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 600,
+     "proteinG": 60,
+     "carbsG": 80,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 10,
+      "sodiumMg": 2160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 340
+     }
+    }
+   ]
+  },
+  {
+   "id": "sailor-s-seafood-boil",
+   "name": "Sailor's Seafood Boil",
+   "category": "Seafood Boils",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1310,
+     "proteinG": 94,
+     "carbsG": 95,
+     "fatG": 52,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 13,
+      "sodiumMg": 4640,
+      "saturatedFatG": 22,
+      "cholesterolMg": 520
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-shrimp-skewer",
+   "name": "Grilled Shrimp Skewer",
+   "category": "Shrimp Your Way",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 11,
+     "carbsG": 0,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 580,
+      "saturatedFatG": 1,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "steaks-7-oz-sirloin",
+   "name": "Steaks: 7 oz. Sirloin",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 46,
+     "carbsG": 1,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 980,
+      "saturatedFatG": 4,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "surf-and-turf-maritime-lobster-tail-and-sirloin-with-baked-p",
+   "name": "Surf & Turf - Maritime Lobster Tail & Sirloin with baked potato",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 66,
+     "carbsG": 56,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 3,
+      "sodiumMg": 3480,
+      "saturatedFatG": 26,
+      "cholesterolMg": 330
+     }
+    }
+   ]
+  },
+  {
+   "id": "tilapia-and-scallops",
+   "name": "Tilapia & Scallops",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 740,
+     "proteinG": 54,
+     "carbsG": 7,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 2100,
+      "saturatedFatG": 18,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "twin-maritime-tails",
+   "name": "Twin Maritime Tails",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 24,
+     "carbsG": 1,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 980,
+      "saturatedFatG": 23,
+      "cholesterolMg": 282
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-feast-with-rice",
+   "name": "Ultimate Feast with rice",
+   "category": "Entrées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1190,
+     "proteinG": 52,
+     "carbsG": 76,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 4360,
+      "saturatedFatG": 28,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-caesar-bowl",
+   "name": "Chicken Caesar Bowl",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 730,
+     "proteinG": 44,
+     "carbsG": 50,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1400,
+      "saturatedFatG": 10,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-soy-salmon-bowl",
+   "name": "Sesame-Soy Salmon Bowl",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1150,
+     "proteinG": 59,
+     "carbsG": 93,
+     "fatG": 640,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 24,
+      "sodiumMg": 2260,
+      "saturatedFatG": 14,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwest-shrimp-bowl",
+   "name": "Southwest Shrimp Bowl",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 26,
+     "carbsG": 80,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 2470,
+      "saturatedFatG": 12,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "tacos-crispy-shrimp",
+   "name": "Tacos, Crispy Shrimp",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 780,
+     "proteinG": 20,
+     "carbsG": 74,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 2240,
+      "saturatedFatG": 7,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "tacos-grilled-shrimp",
+   "name": "Tacos, Grilled Shrimp",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 34,
+     "carbsG": 59,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 9,
+      "sodiumMg": 2710,
+      "saturatedFatG": 6,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "tacos-grilled-tilapia",
+   "name": "Tacos, Grilled Tilapia",
+   "category": "Salads, Bowls & Tacos",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 700,
+     "proteinG": 50,
+     "carbsG": 54,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 2410,
+      "saturatedFatG": 7,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "asparagus",
+   "name": "Asparagus",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 80,
+     "proteinG": 3,
+     "carbsG": 5,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 310,
+      "saturatedFatG": 4,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-mac-and-cheese",
+   "name": "Bacon Mac & Cheese",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 650,
+     "proteinG": 27,
+     "carbsG": 48,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1710,
+      "saturatedFatG": 22,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "baked-potato",
+   "name": "Baked Potato",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 7,
+     "carbsG": 55,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 1730,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "baked-potato-lobster-topped",
+   "name": "Baked Potato, Lobster-Topped",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 14,
+     "carbsG": 58,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 2310,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "caesar-salad-side",
+   "name": "Caesar Salad - Side",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 6,
+     "carbsG": 12,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 440,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-bay-biscuits",
+   "name": "Cheddar Bay Biscuits®",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "each",
+     "label": "each",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 17,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 390,
+      "saturatedFatG": 4,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chesapeake-fries",
+   "name": "Chesapeake Fries",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 7,
+     "carbsG": 74,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 0,
+      "sodiumMg": 1170,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coleslaw",
+   "name": "Coleslaw",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 14,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 260,
+      "saturatedFatG": 1,
+      "cholesterolMg": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-brussels-sprouts",
+   "name": "Crispy Brussels Sprouts",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 13,
+     "carbsG": 55,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 18,
+      "sodiumMg": 830,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-beans",
+   "name": "Green Beans",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 3,
+     "carbsG": 11,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 440,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lobster-pasta-au-gratin",
+   "name": "Lobster Pasta au Gratin",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 670,
+     "proteinG": 36,
+     "carbsG": 53,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1550,
+      "saturatedFatG": 21,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes",
+   "name": "Mashed Potatoes",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 22,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 540,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-lobster-topped",
+   "name": "Mashed Potatoes, Lobster-Topped",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 10,
+     "carbsG": 25,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 4,
+     "carbsG": 45,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "monday-endless-shrimp-garlic-shrimp",
+   "name": "Monday: Endless Shrimp - Garlic Shrimp",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 1,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 180,
+      "saturatedFatG": 4,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "monday-endless-shrimp-island-coconut-shrimp",
+   "name": "Monday: Endless Shrimp - Island Coconut Shrimp",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 14,
+     "carbsG": 40,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 16,
+      "sodiumMg": 610,
+      "saturatedFatG": 8,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "monday-endless-shrimp-shrimp-linguini-alfredo",
+   "name": "Monday: Endless Shrimp - Shrimp Linguini Alfredo",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 28,
+     "carbsG": 73,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 21,
+      "sodiumMg": 1470,
+      "saturatedFatG": 9,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "monday-endless-shrimp-walt-s-favourite-shrimp",
+   "name": "Monday: Endless Shrimp - Walt's Favourite Shrimp",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 31,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1560,
+      "saturatedFatG": 1,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "tuesday-snow-crab-legs-1-lb-with-crispy-potatoes",
+   "name": "Tuesday: Snow Crab Legs, 1 lb. with crispy potatoes",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 910,
+     "proteinG": 42,
+     "carbsG": 56,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 3770,
+      "saturatedFatG": 23,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "wednesday-fish-and-chips-with-fries-and-coleslaw",
+   "name": "Wednesday: Fish & Chips with fries and coleslaw",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1560,
+     "proteinG": 50,
+     "carbsG": 110,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 21,
+      "sodiumMg": 2860,
+      "saturatedFatG": 11,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "friday-steak-and-walt-s-favourite-shrimp",
+   "name": "Friday: Steak & Walt's Favourite Shrimp",
+   "category": "Daily Deals",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 570,
+     "proteinG": 55,
+     "carbsG": 30,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 2480,
+      "saturatedFatG": 5,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "bay-scallops-fried",
+   "name": "Bay Scallops (fried)",
+   "category": "Lunch Specials",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 33,
+     "carbsG": 61,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 1920,
+      "saturatedFatG": 3,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-and-shrimp",
+   "name": "Grilled Chicken and Shrimp",
+   "category": "Lunch Specials",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 30,
+     "carbsG": 3,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 1370,
+      "saturatedFatG": 2,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-tilapia",
+   "name": "Grilled Tilapia",
+   "category": "Lunch Specials",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 41,
+     "carbsG": 1,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 970,
+      "saturatedFatG": 3,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "popcorn-shrimp-with-fries",
+   "name": "Popcorn Shrimp with fries",
+   "category": "Lunch Specials",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 24,
+     "carbsG": 122,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 24,
+      "sodiumMg": 2590,
+      "saturatedFatG": 4,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "brownie-overboardtm",
+   "name": "Brownie OverboardTM",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 12,
+     "carbsG": 121,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 81,
+      "sodiumMg": 390,
+      "saturatedFatG": 26,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-wave",
+   "name": "Chocolate Wave",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 10,
+     "carbsG": 134,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 90,
+      "sodiumMg": 750,
+      "saturatedFatG": 19,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "key-lime-pie",
+   "name": "Key Lime Pie",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 580,
+     "proteinG": 10,
+     "carbsG": 76,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 56,
+      "sodiumMg": 270,
+      "saturatedFatG": 16,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-cheesecake-bliss",
+   "name": "Strawberry Cheesecake Bliss",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1170,
+     "proteinG": 14,
+     "carbsG": 102,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 76,
+      "sodiumMg": 780,
+      "saturatedFatG": 42,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "warm-apple-crostada",
+   "name": "Warm Apple Crostada",
+   "category": "Desserts",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 6,
+     "carbsG": 74,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 470,
+      "saturatedFatG": 12,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-caesar",
+   "name": "Bacon Caesar",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 210,
+     "proteinG": 6,
+     "carbsG": 8,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1950,
+      "saturatedFatG": 2,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "bahama-mama",
+   "name": "Bahama Mama",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 420,
+     "proteinG": 1,
+     "carbsG": 78,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 68,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-smash",
+   "name": "Blackberry Smash",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 16,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "coastal-caesar-flight",
+   "name": "Coastal Caesar Flight",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 18,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 12,
+      "sodiumMg": 2810,
+      "saturatedFatG": 2,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "fire-and-tide-margarita",
+   "name": "Fire & Tide Margarita",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 3,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "mega",
+     "label": "Mega",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 55,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 55,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "guava-margarita",
+   "name": "Guava Margarita",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "henny-margarita",
+   "name": "Henny Margarita",
+   "category": "Alcoholic Drinks",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 51,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "cajun-style-butter-sauce-crab-your-way",
+   "name": "Cajun Style Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 690,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 72,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 850,
+     "saturatedFatG": 21,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-butter-sauce-crab-your-way",
+   "name": "Lemon Pepper Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 730,
+    "proteinG": 1,
+    "carbsG": 7,
+    "fatG": 78,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 1370,
+     "saturatedFatG": 11,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-honey-butter-sauce-crab-your-way",
+   "name": "Hot Honey Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 620,
+    "proteinG": 1,
+    "carbsG": 30,
+    "fatG": 56,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 20,
+     "sodiumMg": 900,
+     "saturatedFatG": 18,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "old-bay-and-butter-sauce-crab-your-way",
+   "name": "OLD BAY® & Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 680,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 75,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 2600,
+     "saturatedFatG": 10,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "rl-signature-butter-sauce-crab-your-way",
+   "name": "RL Signature Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 770,
+    "proteinG": 1,
+    "carbsG": 8,
+    "fatG": 82,
+    "micros": {
+     "fiberG": 9,
+     "sugarG": 1,
+     "sodiumMg": 1630,
+     "saturatedFatG": 18,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-garlic-and-herb-butter-sauce-crab-your-way",
+   "name": "Roasted Garlic & Herb Butter Sauce (Crab Your Way)",
+   "group": "sauce",
+   "per": {
+    "calories": 620,
+    "proteinG": 2,
+    "carbsG": 10,
+    "fatG": 58,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 850,
+     "saturatedFatG": 18,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "simply-steamed",
+   "name": "Simply Steamed",
+   "group": "other",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 290,
+     "saturatedFatG": 21,
+     "cholesterolMg": 90
+    }
+   }
+  },
+  {
+   "id": "cajun-style-butter-sauce-seafood-boils",
+   "name": "Cajun Style Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1380,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 144,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 2,
+     "sodiumMg": 1700,
+     "saturatedFatG": 42,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "lemon-pepper-butter-sauce-seafood-boils",
+   "name": "Lemon Pepper Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1460,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 156,
+    "micros": {
+     "fiberG": 3,
+     "sugarG": 2,
+     "sodiumMg": 2750,
+     "saturatedFatG": 22,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "hot-honey-butter-sauce-seafood-boils",
+   "name": "Hot Honey Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1240,
+    "proteinG": 1,
+    "carbsG": 60,
+    "fatG": 113,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 41,
+     "sodiumMg": 1790,
+     "saturatedFatG": 37,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "old-bay-and-butter-sauce-seafood-boils",
+   "name": "OLD BAY® & Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1350,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 149,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 5210,
+     "saturatedFatG": 21,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "rl-signature-butter-sauce-seafood-boils",
+   "name": "RL Signature Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1530,
+    "proteinG": 2,
+    "carbsG": 15,
+    "fatG": 163,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 2,
+     "sodiumMg": 3260,
+     "saturatedFatG": 36,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "roasted-garlic-and-herb-butter-sauce-seafood-boils",
+   "name": "Roasted Garlic & Herb Butter Sauce (Seafood Boils)",
+   "group": "sauce",
+   "per": {
+    "calories": 1250,
+    "proteinG": 3,
+    "carbsG": 20,
+    "fatG": 115,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 1690,
+     "saturatedFatG": 37,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "add-cajun-sausage-to-seafood-boil",
+   "name": "Add Cajun Sausage to Seafood Boil",
+   "group": "add-on",
+   "per": {
+    "calories": 370,
+    "proteinG": 22,
+    "carbsG": 6,
+    "fatG": 29,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 1270,
+     "saturatedFatG": 11,
+     "cholesterolMg": 80
+    }
+   }
+  },
+  {
+   "id": "spicy",
+   "name": "Spicy",
+   "group": "topping",
+   "per": {
+    "calories": 20,
+    "proteinG": 1,
+    "carbsG": 5,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 1,
+     "sodiumMg": 210,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "extra-spicy",
+   "name": "Extra Spicy",
+   "group": "topping",
+   "per": {
+    "calories": 50,
+    "proteinG": 2,
+    "carbsG": 9,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 1,
+     "sodiumMg": 420,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "scorchin",
+   "name": "Scorchin'",
+   "group": "topping",
+   "per": {
+    "calories": 90,
+    "proteinG": 3,
+    "carbsG": 18,
+    "fatG": 3,
+    "micros": {
+     "fiberG": 7,
+     "sugarG": 2,
+     "sodiumMg": 830,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "add-bacon-wrapped-sea-scallops-2-scallops",
+   "name": "Add Bacon-Wrapped Sea Scallops (2 scallops)",
+   "group": "add-on",
+   "unit": "2 scallops",
+   "per": {
+    "calories": 220,
+    "proteinG": 12,
+    "carbsG": 5,
+    "fatG": 19,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 3,
+     "sodiumMg": 700,
+     "saturatedFatG": 4,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "add-garlic-shrimp",
+   "name": "Add Garlic Shrimp",
+   "group": "add-on",
+   "per": {
+    "calories": 230,
+    "proteinG": 10,
+    "carbsG": 1,
+    "fatG": 20,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 1,
+     "sodiumMg": 840,
+     "saturatedFatG": 4,
+     "cholesterolMg": 90
+    }
+   }
+  },
+  {
+   "id": "add-grilled-shrimp",
+   "name": "Add Grilled Shrimp",
+   "group": "add-on",
+   "per": {
+    "calories": 130,
+    "proteinG": 12,
+    "carbsG": 1,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 650,
+     "saturatedFatG": 2,
+     "cholesterolMg": 100
+    }
+   }
+  },
+  {
+   "id": "add-maritime-lobster-tail",
+   "name": "Add Maritime Lobster Tail",
+   "group": "add-on",
+   "per": {
+    "calories": 420,
+    "proteinG": 13,
+    "carbsG": 1,
+    "fatG": 41,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 780,
+     "saturatedFatG": 22,
+     "cholesterolMg": 190
+    }
+   }
+  },
+  {
+   "id": "add-snow-crab-legs-1-2-lb",
+   "name": "Add Snow Crab Legs, 1/2 lb.",
+   "group": "add-on",
+   "unit": "1/2 lb.",
+   "per": {
+    "calories": 380,
+    "proteinG": 18,
+    "carbsG": 1,
+    "fatG": 34,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 1020,
+     "saturatedFatG": 21,
+     "cholesterolMg": 160
+    }
+   }
+  },
+  {
+   "id": "100-pure-melted-butter",
+   "name": "100% Pure Melted Butter",
+   "group": "sauce",
+   "per": {
+    "calories": 300,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 33,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 290,
+     "saturatedFatG": 21,
+     "cholesterolMg": 90
+    }
+   }
+  },
+  {
+   "id": "blue-cheese-dressing",
+   "name": "Blue Cheese Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 230,
+    "proteinG": 2,
+    "carbsG": 2,
+    "fatG": 24,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 300,
+     "saturatedFatG": 5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "butter",
+   "name": "Butter",
+   "group": "topping",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 50,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "caesar-dressing",
+   "name": "Caesar Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 280,
+    "proteinG": 2,
+    "carbsG": 0,
+    "fatG": 31,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 340,
+     "saturatedFatG": 5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "champagne-vinaigrette-dressing",
+   "name": "Champagne Vinaigrette Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 70,
+    "proteinG": 0,
+    "carbsG": 9,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 390,
+     "saturatedFatG": 1,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cocktail-sauce",
+   "name": "Cocktail Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 11,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 580,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cocktail-sauce-8-oz",
+   "name": "Cocktail Sauce, 8 oz",
+   "group": "sauce",
+   "unit": "8 oz",
+   "per": {
+    "calories": 220,
+    "proteinG": 3,
+    "carbsG": 50,
+    "fatG": 2,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 47,
+     "sodiumMg": 2680,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "ketchup",
+   "name": "Ketchup",
+   "group": "sauce",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 13,
+     "sodiumMg": 450,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "marinara-sauce",
+   "name": "Marinara Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 20,
+    "proteinG": 1,
+    "carbsG": 4,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 180,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pico-de-gallo",
+   "name": "Pico de Gallo",
+   "group": "topping",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pina-colada-sauce",
+   "name": "Piña Colada Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 90,
+    "proteinG": 1,
+    "carbsG": 12,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 11,
+     "sodiumMg": 30,
+     "saturatedFatG": 3,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "pina-colada-sauce-8-oz",
+   "name": "Pina Colada Sauce, 8 oz",
+   "group": "sauce",
+   "unit": "8 oz",
+   "per": {
+    "calories": 410,
+    "proteinG": 4,
+    "carbsG": 57,
+    "fatG": 18,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 51,
+     "sodiumMg": 140,
+     "saturatedFatG": 14,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "plum-sauce",
+   "name": "Plum Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 14,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 12,
+     "sodiumMg": 290,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "ranch-dressing",
+   "name": "Ranch Dressing",
+   "group": "dressing",
+   "per": {
+    "calories": 130,
+    "proteinG": 1,
+    "carbsG": 2,
+    "fatG": 15,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 350,
+     "saturatedFatG": 3,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "sour-cream",
+   "name": "Sour Cream",
+   "group": "topping",
+   "per": {
+    "calories": 20,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "saturatedFatG": 1
+    }
+   }
+  },
+  {
+   "id": "tartar-sauce",
+   "name": "Tartar Sauce",
+   "group": "sauce",
+   "per": {
+    "calories": 230,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 23,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 250,
+     "saturatedFatG": 4,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "tartar-sauce-family-8-oz",
+   "name": "Tartar Sauce, Family 8 oz.",
+   "group": "sauce",
+   "unit": "8 oz",
+   "per": {
+    "calories": 1210,
+    "proteinG": 0,
+    "carbsG": 8,
+    "fatG": 120,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 8,
+     "sodiumMg": 1300,
+     "saturatedFatG": 20,
+     "cholesterolMg": 40
+    }
+   }
+  }
+ ]
+}

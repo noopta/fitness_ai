@@ -1,0 +1,1990 @@
+{
+ "chain": "cora",
+ "country": "CA",
+ "source": {
+  "url": "https://www.chezcora.com/wp-content/uploads/2026/10/ValeurNutritive_FRA_OCT26.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "fraise-peche-ananas-et-fruit-du-dragon",
+   "name": "Fraise, pêche, ananas et fruit du dragon",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 30,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraise-peche-et-mangue",
+   "name": "Fraise, pêche et mangue",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraise-bleuet-ananas-et-mure",
+   "name": "Fraise, bleuet, ananas et mûre",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 30,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraise-mangue-ananas-et-framboise",
+   "name": "Fraise, mangue, ananas et framboise",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 30,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraise-mangue-banane-et-fruit-du-dragon",
+   "name": "Fraise, mangue, banane et fruit du dragon",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 45,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mangue-ananas-et-banane",
+   "name": "Mangue, ananas et banane",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 240,
+     "proteinG": 0,
+     "carbsG": 60,
+     "fatG": 0.2,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 15,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peche-mangue-et-ananas",
+   "name": "Pêche, mangue et ananas",
+   "category": "Les cocktails Cora",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 0,
+     "carbsG": 45,
+     "fatG": 0.4,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 45,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pina-colada-a-la-framboise",
+   "name": "Pina Colada à la framboise",
+   "category": "Smoothies à base de yogourt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 60,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 45,
+      "sodiumMg": 100,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "bonbon-a-la-peche",
+   "name": "Bonbon à la pêche",
+   "category": "Smoothies à base de yogourt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 90,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "mangue-et-banane",
+   "name": "Mangue et banane",
+   "category": "Smoothies à base de yogourt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraise-et-banane",
+   "name": "Fraise et banane",
+   "category": "Smoothies à base de yogourt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 220,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 40,
+      "sodiumMg": 70,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "kale-et-mangue",
+   "name": "Kale et mangue",
+   "category": "Smoothies à base de yogourt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 10,
+     "carbsG": 70,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 110,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "melon-d-eau-a-base-d-eau-petillante",
+   "name": "Melon d'eau à base d'eau pétillante",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "melon-d-eau-a-base-de-la-limonade",
+   "name": "Melon d'eau à base de la limonade",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "boisson-rafraichissante-a-la-lime-a-base-d-eau",
+   "name": "Boisson rafraîchissante à la lime à base d'eau",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "boisson-rafraichissante-a-la-lime-avec-limonade",
+   "name": "Boisson rafraîchissante à la lime avec limonade",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cerise-a-base-d-eau-petillante",
+   "name": "Cerise à base d'eau pétillante",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cerise-a-base-de-limonade",
+   "name": "Cerise à base de limonade",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "framboise-bleu-a-base-d-eau-petillante",
+   "name": "Framboise bleu à base d'eau pétillante",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "framboise-bleu-a-base-de-limonade",
+   "name": "Framboise bleu à base de limonade",
+   "category": "Boissons rafraîchissantes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 15,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jus-d-orange",
+   "name": "Jus d'orange",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 180,
+     "proteinG": 5,
+     "carbsG": 45,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 15,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolat-chaud",
+   "name": "Chocolat chaud",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 150,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe-regulier",
+   "name": "Café régulier",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "espresso",
+   "name": "Espresso",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino",
+   "name": "Cappuccino",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 5,
+     "carbsG": 5,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 50,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "bol",
+     "label": "Bol",
+     "calories": 130,
+     "proteinG": 10,
+     "carbsG": 10,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 120,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "mokaccino",
+   "name": "Mokaccino",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 140,
+     "proteinG": 5,
+     "carbsG": 20,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 110,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "bol",
+     "label": "Bol",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 35,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 210,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte",
+   "name": "Latté",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 70,
+     "proteinG": 5,
+     "carbsG": 5,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 70,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "bol",
+     "label": "Bol",
+     "calories": 130,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 15,
+      "sodiumMg": 120,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "latte-a-l-erable-d-ici",
+   "name": "Latté à l'érable d'ici",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 70,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "bol",
+     "label": "Bol",
+     "calories": 310,
+     "proteinG": 10,
+     "carbsG": 50,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 130,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cappuccino-glace",
+   "name": "Cappuccino glacé",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 390,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 80,
+      "saturatedFatG": 11,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "mokaccino-glace",
+   "name": "Mokaccino glacé",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 25,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 200,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "cafe-glace-regulier",
+   "name": "Café glacé régulier",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 60,
+     "proteinG": 5,
+     "carbsG": 5,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 45,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "the",
+   "name": "Thé",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "tisane",
+   "name": "Tisane",
+   "category": "Boissons",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "margarita-a-la-peche-epicee",
+   "name": "Margarita à la pêche épicée",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0.3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 460,
+      "saturatedFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "daiquiri-aux-fraises",
+   "name": "Daiquiri aux fraises",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 25,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mimosa",
+   "name": "Mimosa",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cesar-a-la-cora",
+   "name": "César à la Cora",
+   "category": "Mocktails",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 120,
+     "proteinG": 5,
+     "carbsG": 15,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 1450,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "bol-smoothie-kale-mangue-sg",
+   "name": "Bol smoothie kale-mangue (SG)",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 15,
+     "carbsG": 120,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 80,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "gros-bol-de-fruits-frais-et-roties-sg",
+   "name": "Gros bol de fruits frais et rôties (SG)",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 170,
+     "proteinG": 5,
+     "carbsG": 45,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 30,
+      "sodiumMg": 15,
+      "saturatedFatG": 0.2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gruau-du-dimanche",
+   "name": "Gruau du dimanche",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 480,
+     "proteinG": 10,
+     "carbsG": 80,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 70,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "reveil-samira-sg",
+   "name": "Réveil Samira (SG)",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 430,
+     "proteinG": 5,
+     "carbsG": 110,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 80,
+      "sodiumMg": 35,
+      "saturatedFatG": 0.3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "reveil-samira-avec-fromage-cheddar",
+   "name": "Réveil Samira avec fromage cheddar",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 680,
+     "proteinG": 20,
+     "carbsG": 110,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 80,
+      "sodiumMg": 360,
+      "saturatedFatG": 14,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "yogourt-croque-nature-sg",
+   "name": "Yogourt croque-nature (SG)",
+   "category": "Fruits Frais",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 690,
+     "proteinG": 20,
+     "carbsG": 140,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 90,
+      "sodiumMg": 90,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "recolte-90",
+   "name": "Récolte 90",
+   "category": "Pain Doré",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 35,
+     "carbsG": 160,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 70,
+      "sodiumMg": 990,
+      "saturatedFatG": 15,
+      "cholesterolMg": 300
+     }
+    }
+   ]
+  },
+  {
+   "id": "avalanche-de-fraises",
+   "name": "Avalanche de fraises",
+   "category": "Pain Doré",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 510,
+     "proteinG": 15,
+     "carbsG": 90,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 50,
+      "sodiumMg": 420,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "brioche-d-elise",
+   "name": "Brioche d'Élise",
+   "category": "Pain Doré",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1130,
+     "proteinG": 30,
+     "carbsG": 160,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 70,
+      "sodiumMg": 740,
+      "saturatedFatG": 19,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-dejeuner-surprise-avec-jambon",
+   "name": "Le déjeuner-surprise avec jambon",
+   "category": "Pain Doré",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 590,
+     "proteinG": 25,
+     "carbsG": 90,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 40,
+      "sodiumMg": 800,
+      "saturatedFatG": 6,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-dejeuner-surprise-avec-bacon",
+   "name": "Le déjeuner-surprise avec bacon",
+   "category": "Pain Doré",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 25,
+     "carbsG": 90,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 40,
+      "sodiumMg": 740,
+      "saturatedFatG": 10,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmandise-aux-pommes",
+   "name": "Gourmandise aux pommes",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 770,
+     "proteinG": 25,
+     "carbsG": 90,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 770,
+      "saturatedFatG": 17,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraises-savoureuses-patissiere",
+   "name": "Fraises savoureuses-Pâtissière",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 20,
+     "carbsG": 110,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 40,
+      "sodiumMg": 270,
+      "saturatedFatG": 7,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraises-savoureuses-cacao-noisettes",
+   "name": "Fraises savoureuses-Cacao-noisettes",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 20,
+     "carbsG": 130,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 70,
+      "sodiumMg": 270,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "bananes-choco",
+   "name": "Bananes-choco",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1070,
+     "proteinG": 20,
+     "carbsG": 180,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 90,
+      "sodiumMg": 270,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "avril-89-patissiere",
+   "name": "Avril 89 - Pâtissière",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 760,
+     "proteinG": 20,
+     "carbsG": 140,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 60,
+      "sodiumMg": 280,
+      "saturatedFatG": 8,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "avril-89-cacao-noisettes",
+   "name": "Avril 89 - Cacao-noisettes",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 970,
+     "proteinG": 20,
+     "carbsG": 150,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 90,
+      "sodiumMg": 290,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepe-13-sarrasin-sg",
+   "name": "Crêpe 13” Sarrasin (SG)",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "13",
+     "label": "13”",
+     "calories": 320,
+     "proteinG": 15,
+     "carbsG": 50,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 120,
+      "saturatedFatG": 3,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepe-13-nature",
+   "name": "Crêpe 13” Nature",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "13",
+     "label": "13”",
+     "calories": 360,
+     "proteinG": 15,
+     "carbsG": 60,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 190,
+      "saturatedFatG": 3,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "crepe-13-cacao",
+   "name": "Crêpe 13” Cacao",
+   "category": "Crêpes aux fruits",
+   "sizes": [
+    {
+     "size": "13",
+     "label": "13”",
+     "calories": 560,
+     "proteinG": 20,
+     "carbsG": 90,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 270,
+      "saturatedFatG": 6,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-chocolat",
+   "name": "Triple chocolat",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1470,
+     "proteinG": 25,
+     "carbsG": 250,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 120,
+      "sodiumMg": 2600,
+      "saturatedFatG": 18,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraises-bananes",
+   "name": "Fraises-bananes",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1080,
+     "proteinG": 25,
+     "carbsG": 220,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 80,
+      "sodiumMg": 2650,
+      "saturatedFatG": 5,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-fields",
+   "name": "Blueberry fields",
+   "category": "Pancakes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 20,
+     "carbsG": 160,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 45,
+      "sodiumMg": 2650,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "gaufres-s-mores",
+   "name": "Gaufres S'mores",
+   "category": "Gaufres",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1000,
+     "proteinG": 20,
+     "carbsG": 160,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 90,
+      "sodiumMg": 1810,
+      "saturatedFatG": 13,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruits-frais",
+   "name": "Fruits frais",
+   "category": "Gaufres",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 790,
+     "proteinG": 15,
+     "carbsG": 150,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 70,
+      "sodiumMg": 1370,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "fraises",
+   "name": "Fraises",
+   "category": "Gaufres",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 750,
+     "proteinG": 15,
+     "carbsG": 140,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 60,
+      "sodiumMg": 1360,
+      "saturatedFatG": 6,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "bananes-creme-patissiere-et-caramel-sale",
+   "name": "Bananes crème pâtissière et caramel salé",
+   "category": "Gaufres",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 15,
+     "carbsG": 200,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 100,
+      "sodiumMg": 1480,
+      "saturatedFatG": 9,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "bananes-avec-creme-patissiere-cacao-noisettes",
+   "name": "Bananes avec crème pâtissière cacao-noisettes",
+   "category": "Gaufres",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 20,
+     "carbsG": 190,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 90,
+      "sodiumMg": 1380,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "panini-crepe-passe-partout-avec-bacon",
+   "name": "Panini-crêpe Passe-partout avec bacon",
+   "category": "Crêpes salées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 870,
+     "proteinG": 40,
+     "carbsG": 90,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 800,
+      "saturatedFatG": 18,
+      "cholesterolMg": 480
+     }
+    }
+   ]
+  },
+  {
+   "id": "panini-crepe-passe-partout-avec-jambon",
+   "name": "Panini-crêpe Passe-partout avec jambon",
+   "category": "Crêpes salées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 45,
+     "carbsG": 90,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 1210,
+      "saturatedFatG": 16,
+      "cholesterolMg": 480
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-favori-du-grand-patron",
+   "name": "Le favori du grand patron",
+   "category": "Crêpes salées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1250,
+     "proteinG": 60,
+     "carbsG": 70,
+     "fatG": 81,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 1590,
+      "saturatedFatG": 37,
+      "cholesterolMg": 590
+     }
+    }
+   ]
+  },
+  {
+   "id": "epinards-et-cheddar",
+   "name": "Épinards et cheddar",
+   "category": "Crêpes salées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 40,
+     "carbsG": 70,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 770,
+      "saturatedFatG": 27,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "sarrasin-surprise",
+   "name": "Sarrasin surprise",
+   "category": "Crêpes salées",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1500,
+     "proteinG": 50,
+     "carbsG": 140,
+     "fatG": 88,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 40,
+      "sodiumMg": 1820,
+      "saturatedFatG": 34,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "la-halloumi-et-chorizo",
+   "name": "La Halloumi et chorizo",
+   "category": "Cassolettes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 35,
+     "carbsG": 70,
+     "fatG": 73,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 10,
+      "sodiumMg": 3040,
+      "saturatedFatG": 20,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "la-smoked-meat-de-montreal",
+   "name": "La smoked meat de Montréal",
+   "category": "Cassolettes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 50,
+     "carbsG": 60,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 2640,
+      "saturatedFatG": 27,
+      "cholesterolMg": 320
+     }
+    }
+   ]
+  },
+  {
+   "id": "10-etages",
+   "name": "10 étages",
+   "category": "Cassolettes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1190,
+     "proteinG": 45,
+     "carbsG": 70,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 10,
+      "sodiumMg": 2250,
+      "saturatedFatG": 24,
+      "cholesterolMg": 300
+     }
+    }
+   ]
+  },
+  {
+   "id": "grande-bouffe",
+   "name": "Grande bouffe",
+   "category": "Cassolettes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 45,
+     "carbsG": 60,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 1860,
+      "saturatedFatG": 14,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "la-vege",
+   "name": "La Végé",
+   "category": "Cassolettes",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 25,
+     "carbsG": 80,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 25,
+      "sodiumMg": 1780,
+      "saturatedFatG": 12,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "justin-friand-de-biscuit-a-la-guimauve",
+   "name": "Justin friand de biscuit à la guimauve*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1230,
+     "proteinG": 25,
+     "carbsG": 170,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 80,
+      "sodiumMg": 1460,
+      "saturatedFatG": 11,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "gaufre-bananes-choco-pour-adam",
+   "name": "Gaufre bananes-choco pour Adam*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 980,
+     "proteinG": 25,
+     "carbsG": 130,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 1360,
+      "saturatedFatG": 8,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "gaufre-bananes-caramel-pour-adam",
+   "name": "Gaufre bananes-caramel pour Adam*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 25,
+     "carbsG": 140,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 60,
+      "sodiumMg": 1450,
+      "saturatedFatG": 9,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-tout-inclus-pour-paul",
+   "name": "Le tout-inclus pour Paul*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 25,
+     "carbsG": 110,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 40,
+      "sodiumMg": 1330,
+      "saturatedFatG": 7,
+      "cholesterolMg": 360
+     }
+    }
+   ]
+  },
+  {
+   "id": "le-ptit-dernier-du-club",
+   "name": "Le ptit dernier du club*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1050,
+     "proteinG": 30,
+     "carbsG": 130,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 50,
+      "sodiumMg": 810,
+      "saturatedFatG": 10,
+      "cholesterolMg": 410
+     }
+    }
+   ]
+  },
+  {
+   "id": "fannie-et-son-avalanche-de-fraises",
+   "name": "Fannie et son Avalanche de fraises*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 20,
+     "carbsG": 70,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 25,
+      "sodiumMg": 870,
+      "saturatedFatG": 6,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "jessica-nee-en-89",
+   "name": "Jessica née en 89*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 25,
+     "carbsG": 110,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 35,
+      "sodiumMg": 810,
+      "saturatedFatG": 10,
+      "cholesterolMg": 420
+     }
+    }
+   ]
+  },
+  {
+   "id": "jessica-nee-en-89-cacao-noisette",
+   "name": "Jessica née en 89 cacao-noisette*",
+   "category": "Sucrés-salés",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1010,
+     "proteinG": 25,
+     "carbsG": 120,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 45,
+      "sodiumMg": 810,
+      "saturatedFatG": 10,
+      "cholesterolMg": 410
+     }
+    }
+   ]
+  },
+  {
+   "id": "dejeuner-du-fermier-bologne",
+   "name": "Déjeuner du fermier bologne*",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 920,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 68,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 17
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "saveur-pour-cafe-vanille",
+   "name": "Saveur pour café - Vanille",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 15,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "saveur-pour-cafe-caramel",
+   "name": "Saveur pour café - Caramel",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 15,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "saveur-pour-cafe-biscuit-et-creme",
+   "name": "Saveur pour café - Biscuit et crème",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 10,
+    "fatG": 0.1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 10,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "saveur-pour-cafe-noisette-grillee",
+   "name": "Saveur pour café - Noisette grillée",
+   "group": "syrup",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 15,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 15,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

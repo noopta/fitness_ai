@@ -1,0 +1,1625 @@
+{
+ "chain": "buffalo-wild-wings",
+ "country": "US",
+ "source": {
+  "url": "https://www.buffalowildwings.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "bone-in-wings",
+   "name": "Bone-In Wings",
+   "category": "Wings",
+   "sizes": [
+    {
+     "size": "10 count",
+     "label": "10 Count",
+     "calories": 720,
+     "proteinG": 88,
+     "carbsG": 0,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 270,
+      "saturatedFatG": 13,
+      "cholesterolMg": 360
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 Count",
+     "calories": 1080,
+     "proteinG": 132,
+     "carbsG": 0,
+     "fatG": 61,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 400,
+      "saturatedFatG": 20,
+      "cholesterolMg": 540
+     }
+    },
+    {
+     "size": "20 count",
+     "label": "20 Count",
+     "calories": 1440,
+     "proteinG": 177,
+     "carbsG": 0,
+     "fatG": 82,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 530,
+      "saturatedFatG": 27,
+      "cholesterolMg": 720
+     }
+    },
+    {
+     "size": "30 count",
+     "label": "30 Count",
+     "calories": 2160,
+     "proteinG": 265,
+     "carbsG": 0,
+     "fatG": 122,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 800,
+      "saturatedFatG": 40,
+      "cholesterolMg": 1080
+     }
+    }
+   ]
+  },
+  {
+   "id": "bone-in-wings-flats-only",
+   "name": "Bone-In Wings (Flats Only)",
+   "category": "Wings",
+   "sizes": [
+    {
+     "size": "10 count",
+     "label": "10 Count",
+     "calories": 680,
+     "proteinG": 77,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 230,
+      "saturatedFatG": 14,
+      "cholesterolMg": 350
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 Count",
+     "calories": 1020,
+     "proteinG": 115,
+     "carbsG": 0,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 350,
+      "saturatedFatG": 20,
+      "cholesterolMg": 530
+     }
+    },
+    {
+     "size": "20 count",
+     "label": "20 Count",
+     "calories": 1370,
+     "proteinG": 154,
+     "carbsG": 0,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 470,
+      "saturatedFatG": 27,
+      "cholesterolMg": 705
+     }
+    },
+    {
+     "size": "30 count",
+     "label": "30 Count",
+     "calories": 2050,
+     "proteinG": 230,
+     "carbsG": 0,
+     "fatG": 125,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 700,
+      "saturatedFatG": 41,
+      "cholesterolMg": 1055
+     }
+    }
+   ]
+  },
+  {
+   "id": "bone-in-wings-drums-only",
+   "name": "Bone-In Wings (Drums Only)",
+   "category": "Wings",
+   "sizes": [
+    {
+     "size": "10 count",
+     "label": "10 Count",
+     "calories": 750,
+     "proteinG": 100,
+     "carbsG": 0,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 300,
+      "saturatedFatG": 13,
+      "cholesterolMg": 360
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 Count",
+     "calories": 1120,
+     "proteinG": 150,
+     "carbsG": 0,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 450,
+      "saturatedFatG": 20,
+      "cholesterolMg": 545
+     }
+    },
+    {
+     "size": "20 count",
+     "label": "20 Count",
+     "calories": 1490,
+     "proteinG": 200,
+     "carbsG": 0,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 600,
+      "saturatedFatG": 26,
+      "cholesterolMg": 725
+     }
+    },
+    {
+     "size": "30 count",
+     "label": "30 Count",
+     "calories": 2240,
+     "proteinG": 299,
+     "carbsG": 0,
+     "fatG": 116,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 900,
+      "saturatedFatG": 39,
+      "cholesterolMg": 1085
+     }
+    }
+   ]
+  },
+  {
+   "id": "cauliflower-wings",
+   "name": "Cauliflower Wings",
+   "category": "Cauliflower Wings",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 520,
+     "proteinG": 8,
+     "carbsG": 58,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 650,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1040,
+     "proteinG": 16,
+     "carbsG": 116,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 8,
+      "sodiumMg": 1300,
+      "saturatedFatG": 22,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrots",
+   "name": "Carrots",
+   "category": "Veggies & Dips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 7,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "celery-sticks",
+   "name": "Celery Sticks",
+   "category": "Veggies & Dips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 1,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carrots-and-celery-sticks",
+   "name": "Carrots & Celery Sticks",
+   "category": "Veggies & Dips",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 5,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-chicken-dippers",
+   "name": "Original Chicken Dippers",
+   "category": "Chicken Dippers",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 380,
+     "proteinG": 25,
+     "carbsG": 35,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1280,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 570,
+     "proteinG": 37,
+     "carbsG": 52,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1910,
+      "saturatedFatG": 9,
+      "cholesterolMg": 135
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 960,
+     "proteinG": 62,
+     "carbsG": 87,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 3190,
+      "saturatedFatG": 15,
+      "cholesterolMg": 230
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 1910,
+     "proteinG": 124,
+     "carbsG": 173,
+     "fatG": 80,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 6,
+      "sodiumMg": 6380,
+      "saturatedFatG": 30,
+      "cholesterolMg": 455
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 2870,
+     "proteinG": 186,
+     "carbsG": 260,
+     "fatG": 121,
+     "micros": {
+      "fiberG": 18,
+      "sugarG": 10,
+      "sodiumMg": 9570,
+      "saturatedFatG": 46,
+      "cholesterolMg": 685
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-dippers",
+   "name": "Spicy Chicken Dippers",
+   "category": "Chicken Dippers",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 330,
+     "proteinG": 22,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1130,
+      "saturatedFatG": 6,
+      "cholesterolMg": 80
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 500,
+     "proteinG": 33,
+     "carbsG": 38,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 2,
+      "sodiumMg": 1700,
+      "saturatedFatG": 8,
+      "cholesterolMg": 120
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 830,
+     "proteinG": 55,
+     "carbsG": 63,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 3,
+      "sodiumMg": 2840,
+      "saturatedFatG": 14,
+      "cholesterolMg": 195
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 1650,
+     "proteinG": 109,
+     "carbsG": 127,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 6,
+      "sodiumMg": 5670,
+      "saturatedFatG": 28,
+      "cholesterolMg": 390
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 2480,
+     "proteinG": 164,
+     "carbsG": 190,
+     "fatG": 118,
+     "micros": {
+      "fiberG": 18,
+      "sugarG": 10,
+      "sodiumMg": 8510,
+      "saturatedFatG": 42,
+      "cholesterolMg": 590
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-chicken-dippers",
+   "name": "Grilled Chicken Dippers",
+   "category": "Chicken Dippers",
+   "sizes": [
+    {
+     "size": "2 count",
+     "label": "2 count",
+     "calories": 100,
+     "proteinG": 25,
+     "carbsG": 0,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 760,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "3 count",
+     "label": "3 count",
+     "calories": 160,
+     "proteinG": 37,
+     "carbsG": 0,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1140,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "5 count",
+     "label": "5 count",
+     "calories": 260,
+     "proteinG": 61,
+     "carbsG": 0,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1910,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "10 count",
+     "label": "10 count",
+     "calories": 520,
+     "proteinG": 123,
+     "carbsG": 0,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 3810,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "15 count",
+     "label": "15 count",
+     "calories": 780,
+     "proteinG": 184,
+     "carbsG": 0,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 5720,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-cheddar-jumbo-tots-with-b-dubs-dip-and-ranch",
+   "name": "Bacon Cheddar Jumbo Tots, with B-Dubs Dip & Ranch",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 25,
+     "carbsG": 49,
+     "fatG": 98,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 3200,
+      "saturatedFatG": 26,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "beef-on-weck-sliders-with-au-jus-limited-time",
+   "name": "Beef on Weck Sliders, with Au Jus - limited time",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 64,
+     "carbsG": 86,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 13,
+      "sodiumMg": 4010,
+      "saturatedFatG": 9,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-dip",
+   "name": "Buffalo Chicken Dip",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1460,
+     "proteinG": 50,
+     "carbsG": 119,
+     "fatG": 87,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 4030,
+      "saturatedFatG": 33,
+      "cholesterolMg": 205
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-chicken-tots",
+   "name": "Buffalo Chicken Tots",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 2110,
+     "proteinG": 57,
+     "carbsG": 146,
+     "fatG": 144,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 7090,
+      "saturatedFatG": 51,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-fries-at-select-locations",
+   "name": "Cheeseburger Fries - at select locations",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1480,
+     "proteinG": 43,
+     "carbsG": 115,
+     "fatG": 92,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 15,
+      "sodiumMg": 4650,
+      "saturatedFatG": 40,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger-sliders-with-golden-fire-and-ranch",
+   "name": "Cheeseburger Sliders with Golden Fire & Ranch",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1030,
+     "proteinG": 34,
+     "carbsG": 78,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 36,
+      "sodiumMg": 2120,
+      "saturatedFatG": 19,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-curds-with-b-dubs-dip",
+   "name": "Cheddar Cheese Curds, with B-Dubs Dip",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1320,
+     "proteinG": 58,
+     "carbsG": 43,
+     "fatG": 102,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 8,
+      "sodiumMg": 3160,
+      "saturatedFatG": 49,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-dip-trio",
+   "name": "Chips & Dip Trio",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1490,
+     "proteinG": 37,
+     "carbsG": 155,
+     "fatG": 87,
+     "micros": {
+      "fiberG": 26,
+      "sugarG": 20,
+      "sodiumMg": 4210,
+      "saturatedFatG": 33,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-house-made-guacamole-at-select-locations",
+   "name": "Chips & House-made Guacamole - at select locations",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1060,
+     "proteinG": 16,
+     "carbsG": 122,
+     "fatG": 62,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 2,
+      "sodiumMg": 1320,
+      "saturatedFatG": 19,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "chips-and-salsa-at-select-locations",
+   "name": "Chips & Salsa - at select locations",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 860,
+     "proteinG": 14,
+     "carbsG": 122,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 14,
+      "sugarG": 9,
+      "sodiumMg": 1990,
+      "saturatedFatG": 14,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "everything-pretzel-knots-with-new-belgium-fat-tire-beer-chee",
+   "name": "Everything Pretzel Knots, with New Belgium Fat Tire® Beer Cheese and Honey Mustard",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 890,
+     "proteinG": 20,
+     "carbsG": 106,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 3000,
+      "saturatedFatG": 10,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-pickles-with-b-dubs-dip",
+   "name": "Fried Pickles, with B-Dubs Dip",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 710,
+     "proteinG": 8,
+     "carbsG": 56,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 5,
+      "sodiumMg": 3190,
+      "saturatedFatG": 15,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-mushrooms-with-southwestern-ranch-limited-time",
+   "name": "Garlic Mushrooms, with Southwestern Ranch - limited time",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 660,
+     "proteinG": 6,
+     "carbsG": 44,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 5,
+      "sodiumMg": 1420,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "hatch-queso-with-chips",
+   "name": "Hatch Queso with Chips",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1110,
+     "proteinG": 28,
+     "carbsG": 119,
+     "fatG": 59,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 8,
+      "sodiumMg": 2370,
+      "saturatedFatG": 28,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "mini-corn-dogs-with-honey-mustard-limited-time",
+   "name": "Mini Corn Dogs, with Honey Mustard - limited time",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 850,
+     "proteinG": 17,
+     "carbsG": 64,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 20,
+      "sodiumMg": 1880,
+      "saturatedFatG": 15,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "mini-corn-dogs-with-ranch-limited-time",
+   "name": "Mini Corn Dogs, with Ranch - limited time",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 940,
+     "proteinG": 16,
+     "carbsG": 56,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 13,
+      "sodiumMg": 1760,
+      "saturatedFatG": 17,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "mozzarella-sticks-with-marinara",
+   "name": "Mozzarella Sticks, with Marinara",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 21,
+     "carbsG": 53,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 1700,
+      "saturatedFatG": 13,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion-rings-with-b-dubs-dip",
+   "name": "Onion Rings, with B-Dubs Dip",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1350,
+     "proteinG": 11,
+     "carbsG": 134,
+     "fatG": 86,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 24,
+      "sodiumMg": 2270,
+      "saturatedFatG": 30,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-nachos",
+   "name": "Ultimate Nachos",
+   "category": "Appetizers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1760,
+     "proteinG": 48,
+     "carbsG": 184,
+     "fatG": 95,
+     "micros": {
+      "fiberG": 18,
+      "sugarG": 15,
+      "sodiumMg": 4370,
+      "saturatedFatG": 46,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-beef-on-weck-sliders-with-au-jus-limited-ti",
+   "name": "Ultimate Sampler - Beef on Weck Sliders, with Au Jus - limited time",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 470,
+     "proteinG": 32,
+     "carbsG": 43,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1780,
+      "saturatedFatG": 5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-beer-battered-onion-rings",
+   "name": "Ultimate Sampler - Beer-Battered Onion Rings",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 550,
+     "proteinG": 5,
+     "carbsG": 65,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 750,
+      "saturatedFatG": 13,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-bone-in-wings",
+   "name": "Ultimate Sampler - Bone-In Wings",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 290,
+     "proteinG": 35,
+     "carbsG": 0,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 5,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-boneless-wings",
+   "name": "Ultimate Sampler - Boneless Wings",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 300,
+     "proteinG": 24,
+     "carbsG": 17,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 0,
+      "sodiumMg": 1050,
+      "saturatedFatG": 6,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-buffalo-chips-limited-time",
+   "name": "Ultimate Sampler - Buffalo Chips - limited time",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 370,
+     "proteinG": 6,
+     "carbsG": 54,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 0,
+      "sodiumMg": 750,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-cauliflower-wings",
+   "name": "Ultimate Sampler - Cauliflower Wings",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 520,
+     "proteinG": 8,
+     "carbsG": 58,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 4,
+      "sodiumMg": 650,
+      "saturatedFatG": 11,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-cheddar-cheese-curds",
+   "name": "Ultimate Sampler - Cheddar Cheese Curds",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 530,
+     "proteinG": 28,
+     "carbsG": 18,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 1180,
+      "saturatedFatG": 22,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-cheeseburger-sliders-at-select-locations",
+   "name": "Ultimate Sampler - Cheeseburger Sliders - at select locations",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 38,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 17,
+      "sodiumMg": 810,
+      "saturatedFatG": 7,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-crispy-chicken-dippers",
+   "name": "Ultimate Sampler - Crispy Chicken Dippers",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 380,
+     "proteinG": 25,
+     "carbsG": 35,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 1280,
+      "saturatedFatG": 6,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-spicy-chicken-dippers",
+   "name": "Ultimate Sampler - Spicy Chicken Dippers",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 22,
+     "carbsG": 25,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1130,
+      "saturatedFatG": 6,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-everything-pretzel-knots",
+   "name": "Ultimate Sampler - Everything Pretzel Knots",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 330,
+     "proteinG": 9,
+     "carbsG": 54,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1150,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-fried-pickles",
+   "name": "Ultimate Sampler - Fried Pickles",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 450,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 1,
+      "sodiumMg": 2390,
+      "saturatedFatG": 11,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-garlic-mushrooms-limited-time",
+   "name": "Ultimate Sampler - Garlic Mushrooms - limited time",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 320,
+     "proteinG": 5,
+     "carbsG": 42,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 4,
+      "sodiumMg": 620,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-jumbo-stuffed-tots-at-select-locations",
+   "name": "Ultimate Sampler - Jumbo Stuffed Tots - at select locations",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 17,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 820,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-mini-corn-dogs-limited-time",
+   "name": "Ultimate Sampler - Mini Corn Dogs - limited time",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 6,
+      "sodiumMg": 620,
+      "saturatedFatG": 6,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-sampler-mozzarella-sticks",
+   "name": "Ultimate Sampler - Mozzarella Sticks",
+   "category": "Ultimate Sampler",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 310,
+     "proteinG": 13,
+     "carbsG": 30,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 1,
+      "sodiumMg": 940,
+      "saturatedFatG": 8,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-american-cheeseburger",
+   "name": "All-American Cheeseburger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 820,
+     "proteinG": 48,
+     "carbsG": 38,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 2040,
+      "saturatedFatG": 22,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-american-single-cheeseburger-at-select-locations",
+   "name": "All-American Single Cheeseburger - at select locations",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 540,
+     "proteinG": 27,
+     "carbsG": 36,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1270,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-american-bacon-cheeseburger",
+   "name": "All-American Bacon Cheeseburger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 60,
+     "carbsG": 39,
+     "fatG": 69,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 2500,
+      "saturatedFatG": 28,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "b-dubs-signature-smasher-at-select-locations",
+   "name": "B-Dubs Signature Smasher - at select locations",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 900,
+     "proteinG": 49,
+     "carbsG": 46,
+     "fatG": 57,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 14,
+      "sodiumMg": 2550,
+      "saturatedFatG": 23,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "b-dubs-signature-single-smasher-at-select-locations",
+   "name": "B-Dubs Signature Single Smasher - at select locations",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 620,
+     "proteinG": 28,
+     "carbsG": 45,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 1940,
+      "saturatedFatG": 13,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-mac-and-cheese-burger",
+   "name": "Bacon Mac & Cheese Burger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1160,
+     "proteinG": 63,
+     "carbsG": 55,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 2710,
+      "saturatedFatG": 31,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-smashed-hatch-chile-burger",
+   "name": "Bacon-Smashed Hatch Chile Burger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 990,
+     "proteinG": 60,
+     "carbsG": 42,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 2370,
+      "saturatedFatG": 27,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-bacon-burger",
+   "name": "BBQ Bacon Burger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1140,
+     "proteinG": 61,
+     "carbsG": 54,
+     "fatG": 75,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 12,
+      "sodiumMg": 2660,
+      "saturatedFatG": 31,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackjack-burger-at-select-locations",
+   "name": "Blackjack Burger - at select locations",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1020,
+     "proteinG": 58,
+     "carbsG": 51,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 15,
+      "sodiumMg": 2110,
+      "saturatedFatG": 26,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushroom-swiss-burger-at-select-locations",
+   "name": "Mushroom Swiss Burger - at select locations",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 960,
+     "proteinG": 55,
+     "carbsG": 41,
+     "fatG": 64,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1560,
+      "saturatedFatG": 25,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "southwestern-black-bean-burger",
+   "name": "Southwestern Black Bean Burger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 720,
+     "proteinG": 31,
+     "carbsG": 74,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 12,
+      "sodiumMg": 1750,
+      "saturatedFatG": 11,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "triple-bacon-cheeseburger",
+   "name": "Triple-Bacon Cheeseburger",
+   "category": "Burgers",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1200,
+     "proteinG": 72,
+     "carbsG": 41,
+     "fatG": 83,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 3130,
+      "saturatedFatG": 34,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-patty-melt",
+   "name": "Bacon Patty Melt",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1300,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 98,
+     "micros": {
+      "sugarG": 8,
+      "sodiumMg": 2290,
+      "saturatedFatG": 33
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-pepsi",
+   "name": "Diet Pepsi®",
+   "sizes": [
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}
