@@ -14,11 +14,12 @@ import type { ParsedMealDetail, Micronutrients } from '../llmService.js';
 import type { HybridEnrichmentMeta } from '../nutritionEnrichmentService.js';
 import type { FoodRegion } from '../prompts/regionPrompts.js';
 import type { ExistingItemRef, MealPhotoV2Raw } from './mealPhotoSchema.js';
+import { CALIBRATED_MODEL, CALIBRATION_ON, calibrateItem } from './portionCalibration.js';
 import { LruCache, mealPhotoCacheKey, recordAddPhotoGrant, type AddPhotoGrant } from './mealPhotoCache.js';
 import { mealLevelItem, resolveItems, sumItems, itemId, type ItemLookup, type MealItem } from './mealPhotoItems.js';
 
 /** Bump when the v2 prompt or schema changes so cached answers aren't reused. */
-export const MEAL_PHOTO_PROMPT_VERSION = 'mp2-2026-10b'; // b: gemini-3.8-flash + MEDIUM thinking
+export const MEAL_PHOTO_PROMPT_VERSION = 'mp2-2026-10c'; // b: gemini-3.8-flash + MEDIUM thinking; c: portion calibration
 export const RESPONSE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface PhotoInput {
@@ -157,6 +158,11 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
       const raw = await deps.analyzeV2(req.images, { existingItems: req.existingItems, region: req.region, userFoods: req.userFoods });
       const resolved = await resolveItems(raw.items, prefix, deps.lookup);
       await applyBrandedItems(raw, resolved.items, req.userId, deps);
+      // Portion calibration (portionCalibration.ts): systematic weight bias per
+      // food type, fitted on weighed Nutrition5k dishes for this model only.
+      if (CALIBRATION_ON() && deps.model === CALIBRATED_MODEL) {
+        resolved.items.forEach((it, i) => Object.assign(it, calibrateItem(it, raw.items[i]?.usdaQuery)));
+      }
       usdaHits = resolved.usdaHits;
       const base = detailFromItems(raw, resolved.items);
       const { detail, meta } = await deps.enrich(base, { region: req.region, usdaMicros: resolved.usdaMicros });

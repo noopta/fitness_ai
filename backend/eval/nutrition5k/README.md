@@ -20,3 +20,22 @@ Baseline, 11 Oct 2026 (one run each):
 
 3.8 vs 3.1 difference is within noise (paired 95% CI −4 to +9 points; run-to-run
 swing ~12%). Most error is portion weight (12/40 dishes >25% off on grams).
+
+## Portion calibration (11 Oct 2026)
+
+`scripts/fitPortionCalibration.py` fits one factor per food type on 189 TRAIN
+dishes (collected through the live pipeline) and scores on the 40 TEST dishes.
+Both models learned nearly the same corrections — meat/fish/eggs ~0.7, sauces
+and fats ~0.85, grains ~0.88, dairy 0.92 — i.e. both overestimate protein
+portions by ~30%. Held-out TEST (one run per model):
+
+| model | setup | kcal MAPE | median | within 20% | bias |
+|---|---|---|---|---|---|
+| 3.8-flash | none | 32.1% | 29.4% | 12/40 | +8.0% |
+| 3.8-flash | half-strength (shipped) | 29.3% | 27.5% | 13/40 | −0.9% |
+| 3.8-flash | full | 28.5% | 30.9% | 17/40 | −9.8% |
+| 3.1-pro | none | 40.6% | 28.6% | 16/40 | +23.1% |
+| 3.1-pro | full | 33.2% | 23.4% | 15/40 | −0.8% |
+
+Half strength removes the bias on both TRAIN and TEST without the ~10%
+undercount of full strength. Improvements are within the 40-dish noise band.
