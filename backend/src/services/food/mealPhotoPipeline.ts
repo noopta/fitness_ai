@@ -19,7 +19,7 @@ import { LruCache, mealPhotoCacheKey, recordAddPhotoGrant, type AddPhotoGrant } 
 import { mealLevelItem, resolveItems, sumItems, itemId, type ItemLookup, type MealItem } from './mealPhotoItems.js';
 
 /** Bump when the v2 prompt or schema changes so cached answers aren't reused. */
-export const MEAL_PHOTO_PROMPT_VERSION = 'mp2-2026-10c'; // b: gemini-3.8-flash + MEDIUM thinking; c: portion calibration
+export const MEAL_PHOTO_PROMPT_VERSION = 'mp2-2026-10d'; // b: 3.8-flash MEDIUM; c: calibration; d: quarter strength
 export const RESPONSE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface PhotoInput {

@@ -30,14 +30,16 @@ export function foodGroup(name: string, usdaQuery?: string | null): FoodGroup {
 }
 
 /**
- * Half-strength factors fitted 11 Oct 2026 on 189 Nutrition5k TRAIN dishes for
- * gemini-3.8-flash (scripts/fitPortionCalibration.py). Full-strength factors
- * were {"grain": 0.9, "protein": 0.72, "vegetable": 1.0, "fruit": 0.98, "fat_sauce": 0.84, "dairy": 0.92, "sweet": 1.0, "drink": 1.0, "other": 0.98};
- * 3.1-pro learned nearly the same (meat ~0.7), so the bias is real — but full
- * strength undercounted by ~10%, so half is used.
- * 40 held-out TEST dishes: calorie MAPE 32.1% → 29.3%, bias +8.0% → −0.9%.
+ * Quarter-strength factors for gemini-3.8-flash, chosen 11 Oct 2026 by a
+ * 200-dish × 2-run Nutrition5k TEST study (factors fitted on 189 TRAIN dishes,
+ * scripts/fitPortionCalibration.py). Full-strength factors were
+ * {"grain": 0.9, "protein": 0.72, "vegetable": 1.0, "fruit": 0.98, "fat_sauce": 0.84, "dairy": 0.92, "sweet": 1.0, "drink": 1.0, "other": 0.98}.
+ * Study (calorie MAPE / within 20% / bias): none 28.0% / 44.0% / +1.8%;
+ * quarter 27.7% / 44.2% / −2.1%; half 27.8% / 40.7% / −5.9%; full 29.5% /
+ * 33.7% / −13.6%. Flash barely overestimates on the larger test, so half
+ * strength (shipped first, from a 40-dish test) undercounted.
  */
-export const PORTION_FACTORS: Record<FoodGroup, number> = {grain: 0.95, protein: 0.86, vegetable: 1.0, fruit: 0.99, fat_sauce: 0.92, dairy: 0.96, sweet: 1.0, drink: 1.0, other: 0.99};
+export const PORTION_FACTORS: Record<FoodGroup, number> = {grain: 0.97, protein: 0.93, vegetable: 1.0, fruit: 0.99, fat_sauce: 0.96, dairy: 0.98, sweet: 1.0, drink: 1.0, other: 0.99};
 
 /** The model the factors were fitted for — other models get no correction. */
 export const CALIBRATED_MODEL = 'gemini-3.8-flash';
