@@ -2888,13 +2888,14 @@ const MEAL_PHOTO_MEDIA_RESOLUTION = `MEDIA_RESOLUTION_${(['HIGH', 'MEDIUM', 'LOW
 
 export async function analyzeMealPhotoItems(
   images: Array<{ base64: string; mimeType: string }>,
-  opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion } = {},
+  opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion; userFoods?: string[] } = {},
 ): Promise<MealPhotoV2Raw> {
   if (!images.length) throw new Error('No images supplied.');
   const prompt = buildMealPhotoV2Prompt({
     imageCount: images.length,
     existingItems: opts.existingItems,
     region: opts.region ?? 'global',
+    userFoods: opts.userFoods,
   });
 
   const result = await gemini.models.generateContent({
@@ -2912,7 +2913,8 @@ export async function analyzeMealPhotoItems(
       // de-duplication — the deliberation is where recall comes from. Each
       // extra 1k tokens costs seconds of scan latency, so it's
       // MEAL_PHOTO_THINKING_BUDGET-tunable; default from the Oct 2026 benchmark.
-      thinkingConfig: MEAL_PHOTO_MODEL.startsWith('gemini-3') ? { thinkingLevel: MEAL_PHOTO_THINKING_LEVEL as any } : { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
+      // BUDGET = the pre-Oct-2026 token budget (how 3.1-pro ran), kept for comparisons.
+      thinkingConfig: MEAL_PHOTO_MODEL.startsWith('gemini-3') && MEAL_PHOTO_THINKING_LEVEL !== 'BUDGET' ? { thinkingLevel: MEAL_PHOTO_THINKING_LEVEL as any } : { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
       maxOutputTokens: 12288,
     },
     contents: [{ role: 'user', parts: [

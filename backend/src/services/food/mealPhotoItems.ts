@@ -18,7 +18,10 @@ export interface MealItem {
   carbsG: number;
   fatG: number;
   per100g: Per100g | null;
-  source: 'usda' | 'model';
+  /** usda = priced from USDA; brand = the brand's/chain's own numbers (logo in the photo); model = estimate. */
+  source: 'usda' | 'model' | 'brand';
+  /** Where brand numbers came from, e.g. { site: "mcdonalds.com", url }. */
+  lookupSource?: { site: string | null; url: string | null };
 }
 
 export interface MealTotals {

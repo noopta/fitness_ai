@@ -50,7 +50,8 @@ import { queryDateOrToday, requestTz } from '../services/userTimezone.js';
 import { asksForLookup, resolveAll } from '../services/food/foodResolver.js';
 import { getLookupJob, startLookupJob } from '../services/food/lookupJobs.js';
 import { parseTypedMeal } from '../services/food/typedMeal.js';
-import { TEXT_LOOKUP_ENABLED } from '../services/food/brandedLookup.js';
+import { TEXT_LOOKUP_ENABLED, sourceLabel, domainOf } from '../services/food/brandedLookup.js';
+import { userFoodHints } from '../services/food/userFoodHints.js';
 
 
 const router = Router();
@@ -847,6 +848,20 @@ const photoSchema = z.object({
   regionHint: z.string().max(40).optional(),
 }).refine((b) => !!b.images?.length || (!!b.imageBase64 && !!b.mimeType));
 
+/**
+ * Branded items from a photo through the lookup ladder (records, databases,
+ * web — gated). Capped at 20 s so a slow web lookup never holds the scan:
+ * anything unfinished keeps its estimate.
+ */
+async function photoBrandedLookup(items: Array<{ brand: string; product: string; estimate: { calories: number; proteinG: number; carbsG: number; fatG: number } }>, userId: string, tz: string | null) {
+  const branded = items.map((i) => ({ brand: i.brand, product: i.product, size: null, servings: 1, estimate: i.estimate }));
+  const work = resolveAll(branded, { userId, tz, surface: 'photo' }).then((rs) => rs.map((r) => (r.result.kind === 'found'
+    ? { calories: r.result.facts.calories, proteinG: r.result.facts.proteinG, carbsG: r.result.facts.carbsG, fatG: r.result.facts.fatG, site: sourceLabel(r.result.facts.sources[0]), url: domainOf(r.result.facts.sources[0]?.uri) ? r.result.facts.sources[0].uri : null }
+    : null)));
+  const cap = new Promise<null[]>((resolve) => setTimeout(() => resolve(items.map(() => null)), 20_000));
+  return Promise.race([work, cap]);
+}
+
 router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res) => {
   try {
     const body = photoSchema.parse(req.body);
@@ -874,13 +889,15 @@ router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res)
     }
 
     const region = normalizeFoodRegion(body.regionHint ?? user.foodRegion);
+    const [userFoods, tz] = v2 ? await Promise.all([userFoodHints(userId).catch(() => []), requestTz(req)]) : [[], null];
     const result = await runMealPhotoAnalysis(
-      { userId, images, existingItems, region, v2, addPhotoGrant },
+      { userId, images, existingItems, region, v2, addPhotoGrant, userFoods },
       {
         model: MEAL_PHOTO_V2_MODEL,
         analyzeV2: analyzeMealPhotoItems,
         analyzeLegacy: analyzeMealPhoto,
         enrich: enrichMealDetailHybrid,
+        resolveBranded: (items, uid) => photoBrandedLookup(items, uid, tz),
       },
     );
     res.json(result);

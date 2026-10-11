@@ -222,7 +222,7 @@ const defaultDeps: ResolverDeps = {
 export interface ResolveCtx {
   userId?: string | null;
   tz?: string | null;
-  surface: 'chat' | 'describe' | 'lookup' | 'api';
+  surface: 'chat' | 'describe' | 'lookup' | 'api' | 'photo';
   explicit?: boolean;
   onEvent?: (e: ResolveEvent) => void;
   deps?: Partial<ResolverDeps>;

@@ -20,6 +20,8 @@ export type ItemVisibility = 'full' | 'partial' | 'inferred';
 /** One item as the model reports it, after coercion. */
 export interface RawPhotoItem {
   name: string;
+  /** Brand/chain the photo itself shows (logo, cup, wrapper) — sends the item through the branded lookup. */
+  brand?: string | null;
   usdaQuery: string;
   preparation: string | null;
   grams: number | null;
@@ -59,9 +61,10 @@ const S = (s: Record<string, unknown>) => s as unknown as Schema;
 const ITEM_SCHEMA = S({
   type: 'OBJECT',
   required: ['name', 'usdaQuery', 'grams', 'visibility', 'calories', 'proteinG', 'carbsG', 'fatG'],
-  propertyOrdering: ['name', 'usdaQuery', 'preparation', 'grams', 'visibility', 'calories', 'proteinG', 'carbsG', 'fatG'],
+  propertyOrdering: ['name', 'brand', 'usdaQuery', 'preparation', 'grams', 'visibility', 'calories', 'proteinG', 'carbsG', 'fatG'],
   properties: {
     name: { type: 'STRING', description: 'Short display name, e.g. "Fried egg".' },
+    brand: { type: 'STRING', nullable: true, description: 'Chain or brand ONLY when a logo, cup, wrapper, box or label in the photo shows it, e.g. "Starbucks", "McDonald\'s", "Barebells". Null otherwise — never guess.' },
     usdaQuery: { type: 'STRING', description: 'Plain USDA FoodData Central search phrase, e.g. "egg, whole, fried".' },
     preparation: { type: 'STRING', nullable: true, description: 'raw, grilled, fried, sauteed, boiled, baked, roasted, steamed… or null.' },
     grams: { type: 'NUMBER', nullable: true, description: 'Estimated edible weight in grams; null only if truly unknowable.' },
@@ -101,6 +104,8 @@ export function buildMealPhotoV2Prompt(opts: {
   imageCount: number;
   existingItems?: ExistingItemRef[];
   region?: FoodRegion;
+  /** Foods this user logs often — names/portions to reuse when an item matches. */
+  userFoods?: string[];
 }): string {
   const n = Math.max(1, opts.imageCount);
   const existing = opts.existingItems ?? [];
@@ -115,10 +120,15 @@ export function buildMealPhotoV2Prompt(opts: {
         .join('\n')}\nReturn ONLY items that are NOT in that list. Do not re-list them under a different name or split them into parts. If nothing new is visible, return "items": [].\n`
     : '';
 
+  const usual = (opts.userFoods ?? []).filter(Boolean).slice(0, 20);
+  const habits = usual.length
+    ? `\nFOODS THIS PERSON LOGS OFTEN (their own names): ${usual.join('; ')}.\nIf an item in the photo is one of these, use that name and judge its portion the way they usually have it. Never add an item because it is on this list — only what the photo shows.\n`
+    : '';
+
   return `You are a registered dietitian itemising a meal from photos so each item can be priced against the USDA database.
 
 ${photos}
-${already}
+${already}${habits}
 LIST EVERY ITEM SEPARATELY. Be exhaustive — a missed item is the worst error. Explicitly look for:
 - items partially hidden under or behind others, and stacked/layered foods (rice under curry, cheese inside a sandwich, toppings)
 - side bowls, cups, ramekins and second plates anywhere in frame
@@ -132,6 +142,7 @@ PER ITEM:
 - preparation: raw/grilled/fried/sautéed/boiled/baked/roasted/steamed, or null
 - grams: edible weight estimate using plate (~26 cm dinner plate), utensils, hands and packaging for scale. Give a number whenever you can.
 - visibility: "full" (clearly visible), "partial" (cut off, covered or partly hidden), "inferred" (not visible but almost certainly present, e.g. cooking oil)
+- brand: only when a logo, cup, wrapper, box or label in the photo shows the chain or brand; otherwise null. A branded menu item or packaged product is ONE item named as they sell it ("Big Mac", "Chick-fil-A Chicken Sandwich", "Caffè Latte (grande)") — do not split it into bun, patty, sauce or cooking oil; separate items only for separate things (fries, a drink, a sauce cup)
 - calories/proteinG/carbsG/fatG: your own estimate for THAT item at that weight (used only as a fallback)
 
 DO NOT write meal totals anywhere — totals are computed from the items.
@@ -198,8 +209,10 @@ export function coerceRawItem(raw: any): RawPhotoItem | null {
   const usdaQuery = typeof raw?.usdaQuery === 'string' && raw.usdaQuery.trim()
     ? raw.usdaQuery.trim().slice(0, 120)
     : name;
+  const brand = typeof raw?.brand === 'string' && raw.brand.trim() && !/^(null|none|n\/a|unknown)$/i.test(raw.brand.trim()) ? raw.brand.trim().slice(0, 60) : null;
   return {
     name,
+    ...(brand ? { brand } : {}),
     usdaQuery,
     preparation: coercePreparation(raw?.preparation),
     grams: gramsOf(raw?.grams),

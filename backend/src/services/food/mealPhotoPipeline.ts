@@ -32,6 +32,8 @@ export interface MealPhotoRequest {
   existingItems: ExistingItemRef[];
   region: FoodRegion;
   v2: boolean;
+  /** The user's most-logged foods, as names (photo prompt hints). */
+  userFoods?: string[];
   /** Grant consumed by a free add-photo call; its new items share it. */
   addPhotoGrant?: AddPhotoGrant | null;
 }
@@ -43,7 +45,9 @@ type Enrich = (
 
 export interface MealPhotoDeps {
   model: string;
-  analyzeV2: (images: PhotoInput[], opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion }) => Promise<MealPhotoV2Raw>;
+  analyzeV2: (images: PhotoInput[], opts: { existingItems?: ExistingItemRef[]; region?: FoodRegion; userFoods?: string[] }) => Promise<MealPhotoV2Raw>;
+  /** Items the photo shows a brand for → official numbers (scans, records, food databases, web). Null = keep the estimate. */
+  resolveBranded?: (items: Array<{ brand: string; product: string; estimate: { calories: number; proteinG: number; carbsG: number; fatG: number } }>, userId: string) => Promise<Array<{ calories: number; proteinG: number; carbsG: number; fatG: number; site: string | null; url: string | null } | null>>;
   analyzeLegacy: (imageBase64: string, mimeType: string, region: FoodRegion) => Promise<ParsedMealDetail>;
   enrich: Enrich;
   lookup?: ItemLookup;
@@ -94,11 +98,33 @@ export function detailFromItems(raw: MealPhotoV2Raw, items: MealItem[]): ParsedM
   };
 }
 
+/**
+ * A logo, cup or wrapper in the photo → the brand's own numbers instead of a
+ * USDA guess for a generic food (a Big Mac is not "hamburger, double").
+ * Items keep their order, so raw[i] ↔ items[i]. Failures keep the estimate.
+ */
+export async function applyBrandedItems(raw: MealPhotoV2Raw, items: MealItem[], userId: string, deps: Pick<MealPhotoDeps, 'resolveBranded'>): Promise<number> {
+  if (!deps.resolveBranded) return 0;
+  const idx = raw.items.map((r, i) => (r.brand ? i : -1)).filter((i) => i >= 0 && items[i]);
+  if (!idx.length) return 0;
+  const answers = await deps.resolveBranded(idx.map((i) => ({ brand: raw.items[i].brand!, product: raw.items[i].name, estimate: { calories: items[i].calories, proteinG: items[i].proteinG, carbsG: items[i].carbsG, fatG: items[i].fatG } })), userId).catch(() => []);
+  let n = 0;
+  idx.forEach((i, k) => {
+    const a = answers[k];
+    if (!a) return;
+    Object.assign(items[i], { calories: Math.round(a.calories), proteinG: a.proteinG, carbsG: a.carbsG, fatG: a.fatG, source: 'brand' as const, per100g: null, lookupSource: { site: a.site, url: a.url } });
+    n++;
+  });
+  return n;
+}
+
 export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhotoDeps): Promise<MealPhotoResponse> {
   const now = deps.now ?? Date.now;
   const started = now();
   const analysisId = randomUUID();
-  const version = req.v2 ? `${MEAL_PHOTO_PROMPT_VERSION}|${deps.model}` : 'legacy';
+  // The user's food hints change the answer, so they're part of the cache key.
+  const hints = (req.userFoods ?? []).join('|');
+  const version = req.v2 ? `${MEAL_PHOTO_PROMPT_VERSION}|${deps.model}${hints ? `|h:${hints}` : ''}` : 'legacy';
   const key = mealPhotoCacheKey(req.images, req.existingItems, req.region, version);
   // Item ids are `${prefix}-${i}`: deterministic per photo, so a cache hit
   // returns the same ids, and the prefix doubles as the add-photo grant id.
@@ -128,8 +154,9 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
       usdaHits = cached.items.filter((i) => i.source === 'usda').length;
       response = { ...cached, analysisId };
     } else {
-      const raw = await deps.analyzeV2(req.images, { existingItems: req.existingItems, region: req.region });
+      const raw = await deps.analyzeV2(req.images, { existingItems: req.existingItems, region: req.region, userFoods: req.userFoods });
       const resolved = await resolveItems(raw.items, prefix, deps.lookup);
+      await applyBrandedItems(raw, resolved.items, req.userId, deps);
       usdaHits = resolved.usdaHits;
       const base = detailFromItems(raw, resolved.items);
       const { detail, meta } = await deps.enrich(base, { region: req.region, usdaMicros: resolved.usdaMicros });

@@ -1,0 +1,611 @@
+[
+{
+"id": "dish_1559849053",
+"kcal": 381.528015,
+"mass": 125.0,
+"fat": 28.844002,
+"carb": 25.226002,
+"protein": 13.461,
+"ingredients": [
+"grapes",
+"almonds"
+]
+},
+{
+"id": "dish_1561667238",
+"kcal": 268.80484,
+"mass": 165.0,
+"fat": 12.344784,
+"carb": 15.250226,
+"protein": 23.481403,
+"ingredients": [
+"caesar salad",
+"sugar",
+"bok choy",
+"white rice",
+"pork"
+]
+},
+{
+"id": "dish_1566590056",
+"kcal": 815.647644,
+"mass": 519.0,
+"fat": 34.712166,
+"carb": 63.927059,
+"protein": 62.926941,
+"ingredients": [
+"tomatoes",
+"millet",
+"tofu",
+"jalapenos",
+"olive oil",
+"bell peppers",
+"cherry tomatoes",
+"chicken",
+"chard",
+"spinach (raw)",
+"pizza",
+"cucumbers",
+"onions",
+"figs"
+]
+},
+{
+"id": "dish_1560456326",
+"kcal": 206.872757,
+"mass": 138.0,
+"fat": 7.522188,
+"carb": 3.791613,
+"protein": 29.742077,
+"ingredients": [
+"chicken",
+"arugula",
+"wheat berry"
+]
+},
+{
+"id": "dish_1562788536",
+"kcal": 245.132004,
+"mass": 190.0,
+"fat": 6.61,
+"carb": 44.751999,
+"protein": 5.398,
+"ingredients": [
+"pilaf",
+"corn on the cob"
+]
+},
+{
+"id": "dish_1566587143",
+"kcal": 354.399445,
+"mass": 234.0,
+"fat": 20.705935,
+"carb": 16.010584,
+"protein": 28.907421,
+"ingredients": [
+"bell peppers",
+"chicken",
+"tomatoes",
+"avocado",
+"millet"
+]
+},
+{
+"id": "dish_1559233756",
+"kcal": 189.850006,
+"mass": 222.0,
+"fat": 5.242,
+"carb": 30.417999,
+"protein": 6.142,
+"ingredients": [
+"strawberries",
+"bacon",
+"sweet potato",
+"pineapple"
+]
+},
+{
+"id": "dish_1561663580",
+"kcal": 432.063416,
+"mass": 307.0,
+"fat": 9.844143,
+"carb": 31.344984,
+"protein": 51.432281,
+"ingredients": [
+"chicken",
+"brown rice",
+"carrot"
+]
+},
+{
+"id": "dish_1560456348",
+"kcal": 210.282761,
+"mass": 149.0,
+"fat": 7.533189,
+"carb": 4.561613,
+"protein": 29.940079,
+"ingredients": [
+"green beans",
+"arugula",
+"wheat berry",
+"chicken"
+]
+},
+{
+"id": "dish_1558722247",
+"kcal": 604.616028,
+"mass": 343.0,
+"fat": 43.181,
+"carb": 46.771999,
+"protein": 21.49,
+"ingredients": [
+"almonds",
+"cauliflower",
+"apple"
+]
+},
+{
+"id": "dish_1560367952",
+"kcal": 414.733154,
+"mass": 221.0,
+"fat": 21.073912,
+"carb": 45.956913,
+"protein": 24.938904,
+"ingredients": [
+"fish",
+"spinach (raw)",
+"pizza",
+"country rice"
+]
+},
+{
+"id": "dish_1565123845",
+"kcal": 268.661774,
+"mass": 201.0,
+"fat": 12.761543,
+"carb": 17.499899,
+"protein": 20.015167,
+"ingredients": [
+"zucchini",
+"cheese pizza",
+"millet",
+"beef",
+"chayote squash"
+]
+},
+{
+"id": "dish_1564689219",
+"kcal": 506.847046,
+"mass": 474.0,
+"fat": 28.081553,
+"carb": 44.726837,
+"protein": 27.231215,
+"ingredients": [
+"cherry tomatoes",
+"spinach (raw)",
+"olive oil",
+"mixed greens",
+"chickpeas",
+"pepper",
+"arugula",
+"lentils",
+"blueberries",
+"tofu",
+"cucumbers",
+"pears",
+"lettuce"
+]
+},
+{
+"id": "dish_1558030435",
+"kcal": 246.940002,
+"mass": 221.0,
+"fat": 11.115,
+"carb": 24.954,
+"protein": 11.915,
+"ingredients": [
+"honeydew melons",
+"potatoes",
+"bacon"
+]
+},
+{
+"id": "dish_1566920365",
+"kcal": 490.421692,
+"mass": 871.0,
+"fat": 5.324439,
+"carb": 41.393566,
+"protein": 60.675976,
+"ingredients": [
+"salsa",
+"sweet potato",
+"egg whites"
+]
+},
+{
+"id": "dish_1566589967",
+"kcal": 381.661957,
+"mass": 322.0,
+"fat": 16.1381,
+"carb": 13.400992,
+"protein": 46.94825,
+"ingredients": [
+"onions",
+"olive oil",
+"bell peppers",
+"tomatoes",
+"millet",
+"chicken",
+"spinach (raw)",
+"jalapenos",
+"tofu"
+]
+},
+{
+"id": "dish_1562172600",
+"kcal": 263.599976,
+"mass": 370.0,
+"fat": 6.02,
+"carb": 16.43,
+"protein": 30.68,
+"ingredients": [
+"egg whites",
+"roasted potatoes"
+]
+},
+{
+"id": "dish_1563565454",
+"kcal": 350.788818,
+"mass": 322.0,
+"fat": 22.686897,
+"carb": 26.577688,
+"protein": 22.234623,
+"ingredients": [
+"fish",
+"chard",
+"mushroom",
+"wheat berry",
+"ground turkey",
+"bok choy",
+"arugula",
+"corn on the cob",
+"olive oil",
+"white rice"
+]
+},
+{
+"id": "dish_1564588859",
+"kcal": 183.586426,
+"mass": 257.0,
+"fat": 4.754447,
+"carb": 9.571161,
+"protein": 23.436096,
+"ingredients": [
+"egg whites",
+"greek yogurt",
+"milk",
+"chia seeds"
+]
+},
+{
+"id": "dish_1560444967",
+"kcal": 197.377884,
+"mass": 252.0,
+"fat": 10.071443,
+"carb": 23.811623,
+"protein": 4.947491,
+"ingredients": [
+"cucumbers",
+"olive oil",
+"honeydew melons",
+"bell peppers",
+"yam",
+"scrambled eggs",
+"pineapple",
+"radishes",
+"watermelon"
+]
+},
+{
+"id": "dish_1565035830",
+"kcal": 340.127991,
+"mass": 414.0,
+"fat": 6.475,
+"carb": 14.785001,
+"protein": 54.717999,
+"ingredients": [
+"cherry tomatoes",
+"chicken breast",
+"bell peppers",
+"cauliflower",
+"onions"
+]
+},
+{
+"id": "dish_1558031394",
+"kcal": 237.410004,
+"mass": 318.0,
+"fat": 0.521,
+"carb": 55.475998,
+"protein": 4.23,
+"ingredients": [
+"cantaloupe",
+"deprecated",
+"potatoes",
+"yam"
+]
+},
+{
+"id": "dish_1564588919",
+"kcal": 335.944183,
+"mass": 452.0,
+"fat": 7.606813,
+"carb": 41.001797,
+"protein": 25.093241,
+"ingredients": [
+"milk",
+"greek yogurt",
+"egg whites",
+"blueberries",
+"sweet potato",
+"chia seeds"
+]
+},
+{
+"id": "dish_1561577947",
+"kcal": 623.204285,
+"mass": 424.0,
+"fat": 33.782948,
+"carb": 12.882619,
+"protein": 67.202637,
+"ingredients": [
+"olive oil",
+"arugula",
+"blueberries",
+"cream",
+"mushroom",
+"wheat berry",
+"chard",
+"chicken"
+]
+},
+{
+"id": "dish_1562703408",
+"kcal": 311.209167,
+"mass": 196.0,
+"fat": 12.049189,
+"carb": 32.833611,
+"protein": 17.407734,
+"ingredients": [
+"berries",
+"pizza",
+"millet",
+"beef"
+]
+},
+{
+"id": "dish_1561577848",
+"kcal": 413.34787,
+"mass": 254.0,
+"fat": 13.841578,
+"carb": 6.037907,
+"protein": 63.12289,
+"ingredients": [
+"cream",
+"chicken",
+"mushroom",
+"wheat berry"
+]
+},
+{
+"id": "dish_1564773876",
+"kcal": 258.327576,
+"mass": 219.0,
+"fat": 15.969777,
+"carb": 9.881201,
+"protein": 18.995329,
+"ingredients": [
+"cherry tomatoes",
+"salmon",
+"lentils",
+"broccoli",
+"mayonnaise"
+]
+},
+{
+"id": "dish_1563909550",
+"kcal": 310.31958,
+"mass": 273.0,
+"fat": 11.850177,
+"carb": 44.664116,
+"protein": 8.625765,
+"ingredients": [
+"cucumbers",
+"mustard greens",
+"olive oil",
+"green beans",
+"fried rice",
+"spinach (raw)"
+]
+},
+{
+"id": "dish_1562617939",
+"kcal": 234.966125,
+"mass": 133.0,
+"fat": 14.640826,
+"carb": 20.433863,
+"protein": 7.238798,
+"ingredients": [
+"chickpeas",
+"mustard greens",
+"olive oil",
+"parsley",
+"vinegar",
+"arugula",
+"pepper"
+]
+},
+{
+"id": "dish_1563565508",
+"kcal": 403.862,
+"mass": 387.0,
+"fat": 24.761736,
+"carb": 32.026699,
+"protein": 26.264353,
+"ingredients": [
+"ground turkey",
+"parmesan cheese",
+"white rice",
+"arugula",
+"caesar dressing",
+"olive oil",
+"bok choy",
+"mushroom",
+"chard",
+"kale",
+"fish",
+"wheat berry",
+"corn on the cob"
+]
+},
+{
+"id": "dish_1563996485",
+"kcal": 178.039185,
+"mass": 201.0,
+"fat": 11.607642,
+"carb": 16.567097,
+"protein": 4.172902,
+"ingredients": [
+"chard",
+"arugula",
+"olive oil",
+"roasted potatoes",
+"cauliflower"
+]
+},
+{
+"id": "dish_1558110478",
+"kcal": 205.438995,
+"mass": 161.0,
+"fat": 6.801,
+"carb": 27.931999,
+"protein": 8.301001,
+"ingredients": [
+"eggs",
+"berries",
+"bacon",
+"yam"
+]
+},
+{
+"id": "dish_1565711527",
+"kcal": 484.807251,
+"mass": 302.0,
+"fat": 32.015488,
+"carb": 33.92815,
+"protein": 18.478689,
+"ingredients": [
+"brussels sprouts",
+"scrambled eggs",
+"hash browns"
+]
+},
+{
+"id": "dish_1558376483",
+"kcal": 735.030029,
+"mass": 270.0,
+"fat": 55.444,
+"carb": 32.240002,
+"protein": 33.301003,
+"ingredients": [
+"cantaloupe",
+"almonds",
+"grapes",
+"sausage"
+]
+},
+{
+"id": "dish_1566328776",
+"kcal": 901.810059,
+"mass": 436.0,
+"fat": 28.684999,
+"carb": 78.293999,
+"protein": 77.723999,
+"ingredients": [
+"chicken",
+"cherry tomatoes",
+"pizza"
+]
+},
+{
+"id": "dish_1565123881",
+"kcal": 406.821747,
+"mass": 515.0,
+"fat": 19.355543,
+"carb": 31.0019,
+"protein": 30.063168,
+"ingredients": [
+"caesar salad",
+"cheese pizza",
+"zucchini",
+"millet",
+"beef",
+"chayote squash"
+]
+},
+{
+"id": "dish_1562788601",
+"kcal": 413.170135,
+"mass": 287.0,
+"fat": 19.139153,
+"carb": 48.766399,
+"protein": 23.146877,
+"ingredients": [
+"fish",
+"corn on the cob",
+"brown rice",
+"country rice",
+"pork",
+"pilaf"
+]
+},
+{
+"id": "dish_1563208459",
+"kcal": 186.485947,
+"mass": 161.0,
+"fat": 8.039566,
+"carb": 22.543018,
+"protein": 6.94117,
+"ingredients": [
+"raspberries",
+"yam",
+"sweet potato",
+"chicken apple sausage"
+]
+},
+{
+"id": "dish_1559844366",
+"kcal": 529.220032,
+"mass": 192.0,
+"fat": 39.885998,
+"carb": 34.91,
+"protein": 19.230999,
+"ingredients": [
+"almonds",
+"broccoli",
+"grapes"
+]
+},
+{
+"id": "dish_1565894889",
+"kcal": 257.812988,
+"mass": 74.0,
+"fat": 11.167999,
+"carb": 33.294998,
+"protein": 6.641,
+"ingredients": [
+"cheese pizza",
+"cookies"
+]
+}
+]
