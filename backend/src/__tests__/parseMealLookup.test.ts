@@ -4,7 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const h = vi.hoisted(() => ({ chat: vi.fn(), resolve: vi.fn() }));
+// These cover the OpenRouter parse path; the Gemini default is exercised live.
+const h = vi.hoisted(() => { process.env.MEAL_PARSE_MODEL = 'openrouter'; return { chat: vi.fn(), resolve: vi.fn() }; });
 vi.mock('@prisma/client', () => ({ PrismaClient: vi.fn(function (this: any) { this.user = {}; }) }));
 vi.mock('../services/chatClient.js', () => ({ chatComplete: h.chat }));
 vi.mock('../services/ragService.js', () => ({ buildRAGContext: vi.fn(), retrieveProgramSources: vi.fn() }));

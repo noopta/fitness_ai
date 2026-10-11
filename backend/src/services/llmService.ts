@@ -41,6 +41,29 @@ const gemini = new GoogleGenAI({
 // Single env var (GEMINI_VISION_MODEL) governs both food-photo and form-video
 // analysis. 3.1-pro-preview is on the Vertex `global` endpoint.
 const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-preview';
+// Meal photos have their own model since Oct 2026: gemini-3.8-flash halved
+// same-photo calorie swings vs 3.1-pro (12% vs 23%) at the same speed and a
+// Flash price. Label scans and order screenshots stay on GEMINI_VISION_MODEL.
+const MEAL_PHOTO_MODEL = process.env.MEAL_PHOTO_MODEL || 'gemini-3.8-flash';
+// Typed-meal parsing: an OpenRouter chat model by default; a "gemini-…" id
+// runs it on Vertex instead (MEAL_PARSE_MODEL).
+// Default gemini-3.8-flash since 11 Oct 2026: on 18 verified items with the
+// real prompt, 5.8% calorie error vs DeepSeek V4 Flash 28.7%, and faster
+// (4.8 s vs 7.7 s). Set MEAL_PARSE_MODEL=openrouter to go back.
+const MEAL_PARSE_MODEL = process.env.MEAL_PARSE_MODEL || 'gemini-3.8-flash';
+// Gemini 3 thinks by level. MEDIUM matched 3.1-pro's item recall (96.6%) on
+// the photo benchmark at the same speed; HIGH was slower and no better.
+const MEAL_PHOTO_THINKING_LEVEL = (process.env.MEAL_PHOTO_THINKING_LEVEL || 'MEDIUM').toUpperCase();
+
+/** JSON-mode text from a Gemini model on Vertex. */
+async function geminiJsonText(model: string, prompt: string, maxOutputTokens = 4000): Promise<string> {
+  const r = await gemini.models.generateContent({
+    model,
+    contents: prompt,
+    config: { responseMimeType: 'application/json', maxOutputTokens, thinkingConfig: { thinkingLevel: (process.env.MEAL_PARSE_THINKING_LEVEL || 'LOW') as any } },
+  });
+  return r.text ?? '{}';
+}
 
 export interface DiagnosticContext {
   selectedLift: string;
@@ -2296,13 +2319,13 @@ UNCLEAR SOURCES (required, may be empty):
 - "clarify": for a substantial item (≥250 kcal) that clearly came from a restaurant or takeout but the place isn't named ("a medium pizza", "a burrito from the place by work"), one short question that would identify it: { "item": "medium pizza", "question": "Which pizza place was it?" }. [] otherwise. Never for home cooking.
 ${regionPromptBlock(region, 'text')}`;
 
-  const response = await chatComplete({
-    messages: [{ role: 'user', content: prompt }],
-    max_completion_tokens: 2400,
-    response_format: { type: 'json_object' },
-  });
-
-  const raw = response.choices[0].message.content || '{}';
+  const raw = MEAL_PARSE_MODEL.startsWith('gemini')
+    ? await geminiJsonText(MEAL_PARSE_MODEL, prompt)
+    : (await chatComplete({
+      messages: [{ role: 'user', content: prompt }],
+      max_completion_tokens: 2400,
+      response_format: { type: 'json_object' },
+    })).choices[0].message.content || '{}';
   const json = parseModelJson(raw);
   const base = coerceParsedMealDetail(json);
   const brandedItems = brandedToResolve(base, coerceBrandedItems((json as any)?.branded));
@@ -2859,7 +2882,7 @@ ${regionPromptBlock(region, 'photo')}`;
 // Retake consistency comes from the schema, USDA pricing and the image-hash
 // cache instead.
 
-export const MEAL_PHOTO_V2_MODEL = GEMINI_VISION_MODEL;
+export const MEAL_PHOTO_V2_MODEL = MEAL_PHOTO_MODEL;
 const MEAL_PHOTO_THINKING_BUDGET = Math.max(0, Math.min(16384, Number(process.env.MEAL_PHOTO_THINKING_BUDGET) || 4096));
 const MEAL_PHOTO_MEDIA_RESOLUTION = `MEDIA_RESOLUTION_${(['HIGH', 'MEDIUM', 'LOW'].includes((process.env.MEAL_PHOTO_MEDIA_RESOLUTION ?? '').toUpperCase()) ? process.env.MEAL_PHOTO_MEDIA_RESOLUTION!.toUpperCase() : 'HIGH')}`;
 
@@ -2875,7 +2898,7 @@ export async function analyzeMealPhotoItems(
   });
 
   const result = await gemini.models.generateContent({
-    model: GEMINI_VISION_MODEL,
+    model: MEAL_PHOTO_MODEL,
     config: {
       responseMimeType: 'application/json',
       responseSchema: MEAL_PHOTO_V2_SCHEMA,
@@ -2889,7 +2912,7 @@ export async function analyzeMealPhotoItems(
       // de-duplication — the deliberation is where recall comes from. Each
       // extra 1k tokens costs seconds of scan latency, so it's
       // MEAL_PHOTO_THINKING_BUDGET-tunable; default from the Oct 2026 benchmark.
-      thinkingConfig: { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
+      thinkingConfig: MEAL_PHOTO_MODEL.startsWith('gemini-3') ? { thinkingLevel: MEAL_PHOTO_THINKING_LEVEL as any } : { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
       maxOutputTokens: 12288,
     },
     contents: [{ role: 'user', parts: [

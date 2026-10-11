@@ -36,10 +36,10 @@ describe('analyzeMealPhotoItems', () => {
 
     expect(r.items[0]).toMatchObject({ name: 'Fried egg', grams: 50, visibility: 'full' });
     const call = mockGenerateContent.mock.calls[0][0];
-    expect(call.model).toBe('gemini-3.1-pro-preview');
+    expect(call.model).toBe('gemini-3.8-flash');
     expect(call.config.responseSchema.propertyOrdering[0]).toBe('items');
     expect(call.config.mediaResolution).toBe('MEDIA_RESOLUTION_HIGH');
-    expect(call.config.thinkingConfig.thinkingBudget).toBeGreaterThan(1024);
+    expect(call.config.thinkingConfig).toEqual({ thinkingLevel: 'MEDIUM' });
     expect(call.config).not.toHaveProperty('temperature');
     expect(call.config).not.toHaveProperty('seed');
     const parts = call.contents[0].parts;
