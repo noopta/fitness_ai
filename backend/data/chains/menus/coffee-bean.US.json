@@ -1,0 +1,3663 @@
+{
+ "chain": "coffee-bean",
+ "country": "US",
+ "source": {
+  "url": "https://cdn.shopify.com/s/files/1/0462/8021/2633/files/CBTL_Nutrition.pdf?v=1744407185",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "single-espresso",
+   "name": "Single Espresso",
+   "category": "Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-espresso",
+   "name": "Double Espresso",
+   "category": "Coffee",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-moroccan-mint-tea-latte-with-chocolate-powder",
+   "name": "Iced Moroccan Mint Tea Latte with Chocolate Powder",
+   "sizes": [
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 330,
+     "proteinG": 7,
+     "carbsG": 63,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 52,
+      "sodiumMg": 280,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-matcha-tea-latte",
+   "name": "Iced Matcha Tea Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 180,
+     "proteinG": 7,
+     "carbsG": 29,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 150,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 240,
+     "proteinG": 11,
+     "carbsG": 40,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 210,
+      "saturatedFatG": 4,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 58,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 290,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 460,
+     "proteinG": 19,
+     "carbsG": 77,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 380,
+      "saturatedFatG": 8,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-chai-tea-latte",
+   "name": "Iced Chai Tea Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 75,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 100,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 46,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 150,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 7,
+     "carbsG": 61,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 200,
+      "saturatedFatG": 9,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-dirty-chai-tea-latte",
+   "name": "Iced Dirty Chai Tea Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 80,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 105,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 46,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 40,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 7,
+     "carbsG": 62,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 53,
+      "sodiumMg": 210,
+      "saturatedFatG": 9,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-tea-lemonade",
+   "name": "Iced Tea Lemonade",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-cold-brew-tea",
+   "name": "Mango Cold Brew Tea",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 70,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 66,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-jasmine-cold-brew-tea",
+   "name": "Peach Jasmine Cold Brew Tea",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 120,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 36,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 34,
+      "sodiumMg": 180,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 48,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 45,
+      "sodiumMg": 230,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 250,
+     "proteinG": 1,
+     "carbsG": 61,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 56,
+      "sodiumMg": 300,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemonade-cold-brew-tea",
+   "name": "Lemonade Cold Brew Tea",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 27,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 53,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 50,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 260,
+     "proteinG": 0,
+     "carbsG": 67,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hibiscus-berry-sunrise",
+   "name": "Hibiscus Berry Sunrise",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 21,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 35,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-coffee",
+   "name": "Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 10,
+     "proteinG": 1,
+     "carbsG": 1,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 15,
+     "proteinG": 1,
+     "carbsG": 2,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 95,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "mocha-iced-coffee",
+   "name": "Mocha Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 110,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 150,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 340,
+     "proteinG": 7,
+     "carbsG": 63,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 300,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-iced-coffee",
+   "name": "Vanilla Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 85,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 115,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 270,
+     "proteinG": 5,
+     "carbsG": 46,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 170,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 7,
+     "carbsG": 62,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 230,
+      "saturatedFatG": 9,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-iced-coffee",
+   "name": "Caramel Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 1,
+     "carbsG": 25,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 75,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 42,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 120,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 320,
+     "proteinG": 3,
+     "carbsG": 63,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 180,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 84,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "hazelnut-iced-coffee",
+   "name": "Hazelnut Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 23,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 110,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 46,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 61,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 290,
+      "saturatedFatG": 13,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-chocolate-iced-coffee",
+   "name": "White Chocolate Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 160,
+     "proteinG": 1,
+     "carbsG": 25,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 220,
+     "proteinG": 1,
+     "carbsG": 34,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 220,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 330,
+     "proteinG": 1,
+     "carbsG": 51,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 330,
+      "saturatedFatG": 12,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 430,
+     "proteinG": 2,
+     "carbsG": 68,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 440,
+      "saturatedFatG": 16,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dark-chocolate-iced-coffee",
+   "name": "Dark Chocolate Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 120,
+     "proteinG": 2,
+     "carbsG": 24,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 80,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 110,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 38,
+      "sodiumMg": 160,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 50,
+      "sodiumMg": 220,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter-iced-coffee",
+   "name": "Cookie Butter Iced Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 22,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 105,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 190,
+     "proteinG": 1,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 140,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 45,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 210,
+      "saturatedFatG": 12,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 61,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 290,
+      "saturatedFatG": 16,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-americano",
+   "name": "Iced Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-americano",
+   "name": "Iced Mocha Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 24,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 115,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 4,
+     "carbsG": 32,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 260,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 340,
+     "proteinG": 7,
+     "carbsG": 64,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 51,
+      "sodiumMg": 300,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-americano",
+   "name": "Iced Vanilla Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 3,
+     "carbsG": 23,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 90,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 4,
+     "carbsG": 31,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 120,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 270,
+     "proteinG": 5,
+     "carbsG": 47,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 180,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 360,
+     "proteinG": 7,
+     "carbsG": 62,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 230,
+      "saturatedFatG": 9,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-americano",
+   "name": "Iced Caramel Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 1,
+     "carbsG": 25,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 80,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 210,
+     "proteinG": 2,
+     "carbsG": 42,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 125,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 320,
+     "proteinG": 3,
+     "carbsG": 63,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 180,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 420,
+     "proteinG": 4,
+     "carbsG": 84,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 70,
+      "sodiumMg": 240,
+      "saturatedFatG": 6,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-hazelnut-americano",
+   "name": "Iced Hazelnut Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 23,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 110,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 150,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 47,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 220,
+      "saturatedFatG": 10,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 62,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 300,
+      "saturatedFatG": 13,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-americano",
+   "name": "Iced White Chocolate Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 1,
+     "carbsG": 23,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 150,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 200,
+     "proteinG": 1,
+     "carbsG": 31,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 210,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 300,
+     "proteinG": 1,
+     "carbsG": 47,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 300,
+      "saturatedFatG": 11,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 400,
+     "proteinG": 2,
+     "carbsG": 62,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 400,
+      "saturatedFatG": 14,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-dark-chocolate-americano",
+   "name": "Iced Dark Chocolate Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 2,
+     "carbsG": 24,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 19,
+      "sodiumMg": 85,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 32,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 25,
+      "sodiumMg": 115,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 250,
+     "proteinG": 5,
+     "carbsG": 48,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 38,
+      "sodiumMg": 170,
+      "saturatedFatG": 5,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 330,
+     "proteinG": 6,
+     "carbsG": 64,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 50,
+      "sodiumMg": 220,
+      "saturatedFatG": 7,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-cookie-butter-americano",
+   "name": "Iced Cookie Butter Americano",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 1,
+     "carbsG": 23,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 110,
+      "saturatedFatG": 6,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 190,
+     "proteinG": 2,
+     "carbsG": 31,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 150,
+      "saturatedFatG": 8,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 290,
+     "proteinG": 2,
+     "carbsG": 46,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 220,
+      "saturatedFatG": 12,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 380,
+     "proteinG": 3,
+     "carbsG": 61,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 290,
+      "saturatedFatG": 16,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-latte",
+   "name": "Iced Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 12,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 120,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 190,
+     "proteinG": 9,
+     "carbsG": 16,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 20,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 190,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 310,
+     "proteinG": 15,
+     "carbsG": 27,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 260,
+      "saturatedFatG": 10,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-mocha-latte",
+   "name": "Iced Mocha Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 34,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 29,
+      "sodiumMg": 210,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 250,
+     "proteinG": 12,
+     "carbsG": 43,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 36,
+      "sodiumMg": 270,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 63,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 52,
+      "sodiumMg": 370,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 490,
+     "proteinG": 22,
+     "carbsG": 85,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 71,
+      "sodiumMg": 510,
+      "saturatedFatG": 7,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-vanilla-latte",
+   "name": "Iced Vanilla Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 33,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 180,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 260,
+     "proteinG": 12,
+     "carbsG": 43,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 230,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 370,
+     "proteinG": 16,
+     "carbsG": 61,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 500,
+     "proteinG": 22,
+     "carbsG": 84,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 440,
+      "saturatedFatG": 9,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-latte",
+   "name": "Iced Caramel Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 8,
+     "carbsG": 35,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 170,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 290,
+     "proteinG": 10,
+     "carbsG": 54,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 230,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 420,
+     "proteinG": 13,
+     "carbsG": 78,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 330,
+      "saturatedFatG": 5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 570,
+     "proteinG": 19,
+     "carbsG": 106,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 90,
+      "sodiumMg": 450,
+      "saturatedFatG": 6,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-hazelnut-latte",
+   "name": "Iced Hazelnut Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 33,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 210,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 270,
+     "proteinG": 10,
+     "carbsG": 42,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 260,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 61,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 370,
+      "saturatedFatG": 10,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 530,
+     "proteinG": 18,
+     "carbsG": 83,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 510,
+      "saturatedFatG": 13,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-white-chocolate-latte",
+   "name": "Iced White Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 220,
+     "proteinG": 7,
+     "carbsG": 33,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 25,
+      "sodiumMg": 250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 280,
+     "proteinG": 9,
+     "carbsG": 43,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 320,
+      "saturatedFatG": 7,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 400,
+     "proteinG": 12,
+     "carbsG": 61,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 450,
+      "saturatedFatG": 11,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 550,
+     "proteinG": 17,
+     "carbsG": 84,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 610,
+      "saturatedFatG": 14,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-cookie-butter-latte",
+   "name": "Iced Cookie Butter Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 8,
+     "carbsG": 32,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 200,
+      "saturatedFatG": 6,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 270,
+     "proteinG": 10,
+     "carbsG": 42,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 260,
+      "saturatedFatG": 8,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 360,
+      "saturatedFatG": 12,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 530,
+     "proteinG": 18,
+     "carbsG": 82,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 67,
+      "sodiumMg": 500,
+      "saturatedFatG": 16,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-dark-chocolate-latte",
+   "name": "Iced Dark Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 190,
+     "proteinG": 9,
+     "carbsG": 34,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 180,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 44,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 36,
+      "sodiumMg": 220,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 350,
+     "proteinG": 15,
+     "carbsG": 63,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 51,
+      "sodiumMg": 310,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 480,
+     "proteinG": 21,
+     "carbsG": 86,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 70,
+      "sodiumMg": 430,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-caramel-macchiato",
+   "name": "Iced Caramel Macchiato",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 7,
+     "carbsG": 40,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 170,
+      "saturatedFatG": 1,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 280,
+     "proteinG": 8,
+     "carbsG": 55,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 220,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 370,
+     "proteinG": 10,
+     "carbsG": 72,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 60,
+      "sodiumMg": 280,
+      "saturatedFatG": 2,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 470,
+     "proteinG": 15,
+     "carbsG": 92,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 78,
+      "sodiumMg": 390,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-cappuccino",
+   "name": "Iced Cappuccino",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 60,
+     "proteinG": 6,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 90,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 90,
+     "proteinG": 8,
+     "carbsG": 13,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 11,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 110,
+     "proteinG": 10,
+     "carbsG": 16,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 170,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 150,
+     "proteinG": 14,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 220,
+      "saturatedFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-iced-cappuccino",
+   "name": "Caramel Iced Cappuccino",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 160,
+     "proteinG": 5,
+     "carbsG": 21,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 115,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 280,
+     "proteinG": 7,
+     "carbsG": 42,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 190,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 390,
+     "proteinG": 9,
+     "carbsG": 59,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 250,
+      "saturatedFatG": 7,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 490,
+     "proteinG": 11,
+     "carbsG": 75,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 310,
+      "saturatedFatG": 9,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-coffee",
+   "name": "Cold Brew Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 25,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 40,
+     "proteinG": 2,
+     "carbsG": 6,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 60,
+     "proteinG": 2,
+     "carbsG": 9,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 70,
+     "proteinG": 3,
+     "carbsG": 11,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-latte",
+   "name": "Cold Brew Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 100,
+     "proteinG": 5,
+     "carbsG": 9,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 80,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 120,
+     "proteinG": 6,
+     "carbsG": 11,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 100,
+      "saturatedFatG": 3,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 150,
+     "proteinG": 7,
+     "carbsG": 14,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 10,
+      "sodiumMg": 125,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 200,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 13,
+      "sodiumMg": 170,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-bean-cold-brew-latte",
+   "name": "Vanilla Bean Cold Brew Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 5,
+     "carbsG": 23,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 65,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 39,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 85,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 310,
+     "proteinG": 7,
+     "carbsG": 54,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 100,
+      "saturatedFatG": 4,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 420,
+     "proteinG": 9,
+     "carbsG": 73,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 62,
+      "sodiumMg": 130,
+      "saturatedFatG": 5,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "vietnamese-cold-brew-coffee",
+   "name": "Vietnamese Cold Brew Coffee",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 150,
+     "proteinG": 4,
+     "carbsG": 26,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 35,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 290,
+     "proteinG": 7,
+     "carbsG": 49,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 43,
+      "sodiumMg": 70,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 430,
+     "proteinG": 11,
+     "carbsG": 73,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 64,
+      "sodiumMg": 105,
+      "saturatedFatG": 5,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 570,
+     "proteinG": 14,
+     "carbsG": 96,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 86,
+      "sodiumMg": 140,
+      "saturatedFatG": 7,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "midnight-mocha-cold-brew-latte",
+   "name": "Midnight Mocha Cold Brew Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 5,
+     "carbsG": 35,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 30,
+      "sodiumMg": 80,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 230,
+     "proteinG": 6,
+     "carbsG": 37,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 32,
+      "sodiumMg": 95,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 310,
+     "proteinG": 8,
+     "carbsG": 52,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 45,
+      "sodiumMg": 130,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 360,
+     "proteinG": 10,
+     "carbsG": 57,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 48,
+      "sodiumMg": 160,
+      "saturatedFatG": 6,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-mango-cold-brew-tea",
+   "name": "Lightened Mango Cold Brew Tea",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 14,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 13,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 28,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 230,
+     "proteinG": 0,
+     "carbsG": 56,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-mocha-ice-blended",
+   "name": "Lightened Mocha Ice Blended",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 170,
+     "proteinG": 7,
+     "carbsG": 30,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 25,
+      "sodiumMg": 170,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 220,
+     "proteinG": 9,
+     "carbsG": 39,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 210,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 57,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 48,
+      "sodiumMg": 310,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 440,
+     "proteinG": 18,
+     "carbsG": 78,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 66,
+      "sodiumMg": 430,
+      "saturatedFatG": 6,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-vanilla-latte",
+   "name": "Lightened Vanilla Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 13,
+     "carbsG": 31,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 220,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 270,
+     "proteinG": 17,
+     "carbsG": 43,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 290,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 340,
+     "proteinG": 20,
+     "carbsG": 55,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 48,
+      "sodiumMg": 350,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-vanilla-latte",
+   "name": "Lightened Iced Vanilla Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 150,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 180,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 39,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 34,
+      "sodiumMg": 240,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 330,
+     "proteinG": 19,
+     "carbsG": 54,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 340,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-matcha-latte",
+   "name": "Lightened Matcha Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 14,
+     "carbsG": 32,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 29,
+      "sodiumMg": 230,
+      "saturatedFatG": 2,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 290,
+     "proteinG": 19,
+     "carbsG": 46,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 320,
+      "saturatedFatG": 3,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 370,
+     "proteinG": 23,
+     "carbsG": 58,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 400,
+      "saturatedFatG": 4,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-matcha-latte",
+   "name": "Lightened Iced Matcha Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 110,
+     "proteinG": 6,
+     "carbsG": 18,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 110,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 160,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 160,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 220,
+     "proteinG": 12,
+     "carbsG": 36,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 220,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 290,
+     "proteinG": 15,
+     "carbsG": 47,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 280,
+      "saturatedFatG": 4,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-mocha-latte",
+   "name": "Lightened Mocha Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 13,
+     "carbsG": 32,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 240,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 270,
+     "proteinG": 17,
+     "carbsG": 44,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 38,
+      "sodiumMg": 320,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 330,
+     "proteinG": 20,
+     "carbsG": 56,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 47,
+      "sodiumMg": 390,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-mocha-latte",
+   "name": "Lightened Iced Mocha Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 160,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 200,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 40,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 33,
+      "sodiumMg": 270,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 320,
+     "proteinG": 19,
+     "carbsG": 54,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 46,
+      "sodiumMg": 380,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-hazelnut-latte",
+   "name": "Lightened Hazelnut Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 32,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 230,
+      "saturatedFatG": 3,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 280,
+     "proteinG": 14,
+     "carbsG": 44,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 36,
+      "sodiumMg": 300,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 56,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 44,
+      "sodiumMg": 370,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-hazelnut-latte",
+   "name": "Lightened Iced Hazelnut Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 22,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 18,
+      "sodiumMg": 150,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 28,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 190,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 40,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 31,
+      "sodiumMg": 250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 54,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 360,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-white-chocolate-latte",
+   "name": "Lightened White Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 32,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 26,
+      "sodiumMg": 270,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 290,
+     "proteinG": 14,
+     "carbsG": 43,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 35,
+      "sodiumMg": 360,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 55,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 43,
+      "sodiumMg": 440,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-white-chocolate-latte",
+   "name": "Lightened Iced White Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 22,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 180,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 28,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 220,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 39,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 310,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 54,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 41,
+      "sodiumMg": 430,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-dark-chocolate-latte",
+   "name": "Lightened Dark Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 200,
+     "proteinG": 13,
+     "carbsG": 32,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 220,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 260,
+     "proteinG": 16,
+     "carbsG": 44,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 37,
+      "sodiumMg": 290,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 330,
+     "proteinG": 19,
+     "carbsG": 56,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 47,
+      "sodiumMg": 350,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-dark-chocolate-latte",
+   "name": "Lightened Iced Dark Chocolate Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 130,
+     "proteinG": 8,
+     "carbsG": 22,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 19,
+      "sodiumMg": 140,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 170,
+     "proteinG": 10,
+     "carbsG": 28,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 23,
+      "sodiumMg": 180,
+      "saturatedFatG": 2,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 230,
+     "proteinG": 13,
+     "carbsG": 40,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 33,
+      "sodiumMg": 240,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 320,
+     "proteinG": 18,
+     "carbsG": 55,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 45,
+      "sodiumMg": 340,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightend-cookie-butter-latte",
+   "name": "Lightend Cookie Butter Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 210,
+     "proteinG": 12,
+     "carbsG": 33,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 28,
+      "sodiumMg": 230,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 290,
+     "proteinG": 15,
+     "carbsG": 45,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 37,
+      "sodiumMg": 300,
+      "saturatedFatG": 5,
+      "cholesterolMg": 10
+     }
+    },
+    {
+     "size": "20 oz",
+     "label": "20 oz",
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 56,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 47,
+      "sodiumMg": 370,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "lightened-iced-cookie-butter-latte",
+   "name": "Lightened Iced Cookie Butter Latte",
+   "sizes": [
+    {
+     "size": "12 oz",
+     "label": "12 oz",
+     "calories": 140,
+     "proteinG": 7,
+     "carbsG": 22,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 19,
+      "sodiumMg": 150,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "16 oz",
+     "label": "16 oz",
+     "calories": 180,
+     "proteinG": 9,
+     "carbsG": 28,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 180,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "24 oz",
+     "label": "24 oz",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 40,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 250,
+      "saturatedFatG": 5,
+      "cholesterolMg": 5
+     }
+    },
+    {
+     "size": "32 oz",
+     "label": "32 oz",
+     "calories": 350,
+     "proteinG": 16,
+     "carbsG": 55,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 45,
+      "sodiumMg": 350,
+      "saturatedFatG": 7,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

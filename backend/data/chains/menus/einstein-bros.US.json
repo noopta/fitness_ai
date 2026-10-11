@@ -1,0 +1,3282 @@
+{
+ "chain": "einstein-bros",
+ "country": "US",
+ "source": {
+  "url": "https://www.einsteinbros.com/wp-content/uploads/2026/08/EBB-Nutrition-Guide-Master-2026-2.pdf",
+  "fetchedAt": "2026-10-11",
+  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "cinnamon-sugar-pull-apart-bagel",
+   "name": "Cinnamon Sugar Pull Apart Bagel",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "4 oz",
+     "label": "4 oz",
+     "calories": 300,
+     "proteinG": 10,
+     "carbsG": 61,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 520,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-crunch-pull-apart-bagel",
+   "name": "Pumpkin Crunch Pull Apart Bagel",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "4 oz",
+     "label": "4 oz",
+     "calories": 340,
+     "proteinG": 11,
+     "carbsG": 66,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 520,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creme-brulee-cold-brew",
+   "name": "Crème Brulee Cold Brew",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 270,
+     "proteinG": 3,
+     "carbsG": 63,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creme-brulee-iced-coffee",
+   "name": "Crème Brulee Iced Coffee",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 170,
+     "proteinG": 1,
+     "carbsG": 40,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 39,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 250,
+     "proteinG": 2,
+     "carbsG": 59,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 55,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creme-brulee-latte",
+   "name": "Crème Brulee Latte",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "12 fl oz",
+     "label": "12 fl oz",
+     "calories": 240,
+     "proteinG": 10,
+     "carbsG": 41,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 40,
+      "sodiumMg": 130,
+      "saturatedFatG": 3,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 310,
+     "proteinG": 12,
+     "carbsG": 54,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 160,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 25
+     }
+    },
+    {
+     "size": "20 fl oz",
+     "label": "20 fl oz",
+     "calories": 410,
+     "proteinG": 15,
+     "carbsG": 71,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 69,
+      "sodiumMg": 200,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "frozen-creme-brulee",
+   "name": "Frozen Crème Brulee",
+   "category": "Limited Time Offerings Starting 08.26.26",
+   "sizes": [
+    {
+     "size": "16 fl oz",
+     "label": "16 fl oz",
+     "calories": 460,
+     "proteinG": 7,
+     "carbsG": 89,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 230,
+      "saturatedFatG": 5,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "24 fl oz",
+     "label": "24 fl oz",
+     "calories": 680,
+     "proteinG": 12,
+     "carbsG": 133,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 125,
+      "sodiumMg": 350,
+      "saturatedFatG": 7,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-bagel",
+   "name": "Pumpkin Bagel",
+   "category": "Limited Time Offerings Starting 08.19.26",
+   "sizes": [
+    {
+     "size": "3 oz",
+     "label": "3 oz",
+     "calories": 300,
+     "proteinG": 11,
+     "carbsG": 59,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpkin-shmear",
+   "name": "Pumpkin Shmear",
+   "category": "Limited Time Offerings Starting 08.19.26",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 120,
+     "proteinG": 1,
+     "carbsG": 9,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 90,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "ancient-grain",
+   "name": "Ancient Grain",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 290,
+     "proteinG": 13,
+     "carbsG": 50,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 9,
+      "sodiumMg": 450,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-raisin",
+   "name": "Cinnamon Raisin",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 59,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 460,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cranberry",
+   "name": "Cranberry",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 310,
+     "proteinG": 9,
+     "carbsG": 59,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 12,
+      "sodiumMg": 440,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "everything",
+   "name": "Everything",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 57,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 570,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic",
+   "name": "Garlic",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 57,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-whole-wheat",
+   "name": "Honey Whole Wheat",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 12,
+     "carbsG": 51,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 440,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion",
+   "name": "Onion",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 58,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain",
+   "name": "Plain",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 270,
+     "proteinG": 10,
+     "carbsG": 56,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "poppy-seed",
+   "name": "Poppy Seed",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 56,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pumpernickel",
+   "name": "Pumpernickel",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 270,
+     "proteinG": 10,
+     "carbsG": 55,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 420,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sesame-seed",
+   "name": "Sesame Seed",
+   "category": "Classic Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 290,
+     "proteinG": 11,
+     "carbsG": 56,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 510,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "asiago-cheese",
+   "name": "Asiago Cheese",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 300,
+     "proteinG": 13,
+     "carbsG": 54,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 650,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry",
+   "name": "Blueberry",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 9,
+     "carbsG": 60,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 440,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip",
+   "name": "Chocolate Chip",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 280,
+     "proteinG": 10,
+     "carbsG": 56,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 10,
+      "sodiumMg": 470,
+      "saturatedFatG": 1.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-sugar",
+   "name": "Cinnamon Sugar",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 300,
+     "proteinG": 10,
+     "carbsG": 61,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 520,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pretzel",
+   "name": "Pretzel",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 260,
+     "proteinG": 10,
+     "carbsG": 54,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 4440,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-toast",
+   "name": "French Toast *",
+   "category": "Signature Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 320,
+     "proteinG": 10,
+     "carbsG": 60,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 500,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ancient-grain-thin",
+   "name": "Ancient Grain Thin",
+   "category": "Thintastic Bagels",
+   "sizes": [
+    {
+     "size": "1 thin",
+     "label": "1 Thin",
+     "calories": 190,
+     "proteinG": 9,
+     "carbsG": 35,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 340,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "everything-thin",
+   "name": "Everything Thin",
+   "category": "Thintastic Bagels",
+   "sizes": [
+    {
+     "size": "1 thin",
+     "label": "1 Thin",
+     "calories": 200,
+     "proteinG": 8,
+     "carbsG": 41,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 410,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-whole-wheat-thin",
+   "name": "Honey Whole Wheat Thin",
+   "category": "Thintastic Bagels",
+   "sizes": [
+    {
+     "size": "1 thin",
+     "label": "1 Thin",
+     "calories": 200,
+     "proteinG": 9,
+     "carbsG": 37,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 320,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "plain-thin",
+   "name": "Plain Thin",
+   "category": "Thintastic Bagels",
+   "sizes": [
+    {
+     "size": "1 thin",
+     "label": "1 Thin",
+     "calories": 200,
+     "proteinG": 7,
+     "carbsG": 41,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 370,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "apple-cinnamon",
+   "name": "Apple Cinnamon",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 420,
+     "proteinG": 9,
+     "carbsG": 78,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 28,
+      "sodiumMg": 610,
+      "saturatedFatG": 2,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-jalapeno",
+   "name": "Cheddar Jalapeno",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 330,
+     "proteinG": 13,
+     "carbsG": 51,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 650,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-hash-brown-bagel",
+   "name": "Cheesy Hash Brown Bagel",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 59,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 640,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-chile",
+   "name": "Green Chile",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 55,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 690,
+      "saturatedFatG": 5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "maple-french-toast-gourmet-bagel",
+   "name": "Maple French Toast Gourmet Bagel",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 360,
+     "proteinG": 10,
+     "carbsG": 71,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 24,
+      "sodiumMg": 480,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "six-cheese",
+   "name": "Six-Cheese",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 51,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 650,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "spinach-florentine",
+   "name": "Spinach Florentine",
+   "category": "Gourmet Bagels",
+   "sizes": [
+    {
+     "size": "1 bagel",
+     "label": "1 Bagel",
+     "calories": 370,
+     "proteinG": 14,
+     "carbsG": 52,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 560,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "bagel-roll",
+   "name": "Bagel Roll",
+   "category": "Specialty Breads",
+   "sizes": [
+    {
+     "size": "1 roll",
+     "label": "1 Roll",
+     "calories": 270,
+     "proteinG": 9,
+     "carbsG": 50,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 420,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "ciabatta-roll",
+   "name": "Ciabatta Roll*",
+   "category": "Specialty Breads",
+   "sizes": [
+    {
+     "size": "1 ciabatta",
+     "label": "1 Ciabatta",
+     "calories": 230,
+     "proteinG": 8,
+     "carbsG": 44,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 610,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "flour-tortilla",
+   "name": "Flour Tortilla",
+   "category": "Specialty Breads",
+   "sizes": [
+    {
+     "size": "1 tortilla",
+     "label": "1 Tortilla",
+     "calories": 310,
+     "proteinG": 8,
+     "carbsG": 52,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 630,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-cheddar-1-egg",
+   "name": "Bacon & Cheddar ^ (1 Egg)",
+   "category": "Einstein Bros. Company: Classic 1 Egg Sa",
+   "sizes": [
+    {
+     "size": "6 2 oz",
+     "label": "6.2 oz",
+     "calories": 450,
+     "proteinG": 25,
+     "carbsG": 58,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 980,
+      "saturatedFatG": 7,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-1-egg",
+   "name": "Cheddar Cheese ^ (1 Egg)",
+   "category": "Einstein Bros. Company: Classic 1 Egg Sa",
+   "sizes": [
+    {
+     "size": "5 7 oz",
+     "label": "5.7 oz",
+     "calories": 400,
+     "proteinG": 20,
+     "carbsG": 57,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 740,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-swiss-1-egg",
+   "name": "Ham & Swiss ^ (1 Egg)",
+   "category": "Einstein Bros. Company: Classic 1 Egg Sa",
+   "sizes": [
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 450,
+     "proteinG": 26,
+     "carbsG": 59,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1160,
+      "saturatedFatG": 5,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-sausage-and-cheddar-1-egg",
+   "name": "Pork Sausage & Cheddar ^ (1 Egg)",
+   "category": "Einstein Bros. Company: Classic 1 Egg Sa",
+   "sizes": [
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 580,
+     "proteinG": 26,
+     "carbsG": 57,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1020,
+      "saturatedFatG": 11,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-sausage-and-cheddar-1-egg",
+   "name": "Turkey Sausage & Cheddar ^ (1 Egg)",
+   "category": "Einstein Bros. Company: Classic 1 Egg Sa",
+   "sizes": [
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 490,
+     "proteinG": 27,
+     "carbsG": 57,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1020,
+      "saturatedFatG": 7,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-cheddar-2-egg",
+   "name": "Bacon & Cheddar ^ (2 Egg)",
+   "category": "Einstein Bros. Company: Classic 2 Egg Sa",
+   "sizes": [
+    {
+     "size": "8 2 oz",
+     "label": "8.2 oz",
+     "calories": 550,
+     "proteinG": 31,
+     "carbsG": 58,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1130,
+      "saturatedFatG": 9,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-2-egg",
+   "name": "Cheddar Cheese ^ (2 Egg)",
+   "category": "Einstein Bros. Company: Classic 2 Egg Sa",
+   "sizes": [
+    {
+     "size": "7 7 oz",
+     "label": "7.7 oz",
+     "calories": 480,
+     "proteinG": 26,
+     "carbsG": 57,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 890,
+      "saturatedFatG": 7,
+      "cholesterolMg": 385
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-swiss-2-egg",
+   "name": "Ham & Swiss ^ (2 Egg)",
+   "category": "Einstein Bros. Company: Classic 2 Egg Sa",
+   "sizes": [
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 530,
+     "proteinG": 33,
+     "carbsG": 59,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1300,
+      "saturatedFatG": 7,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "pork-sausage-and-cheddar-2-egg",
+   "name": "Pork Sausage & Cheddar ^ (2 Egg)",
+   "category": "Einstein Bros. Company: Classic 2 Egg Sa",
+   "sizes": [
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 660,
+     "proteinG": 32,
+     "carbsG": 57,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1160,
+      "saturatedFatG": 13,
+      "cholesterolMg": 415
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-sausage-and-cheddar-2-egg",
+   "name": "Turkey Sausage & Cheddar ^ (2 Egg)",
+   "category": "Einstein Bros. Company: Classic 2 Egg Sa",
+   "sizes": [
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 570,
+     "proteinG": 33,
+     "carbsG": 57,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1170,
+      "saturatedFatG": 9,
+      "cholesterolMg": 425
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-and-cheddar-classic-egg-white",
+   "name": "Bacon & Cheddar ^ (Classic Egg White)",
+   "category": "Einstein Bros. Company: Classic Egg Whit",
+   "sizes": [
+    {
+     "size": "6 6 oz",
+     "label": "6.6 oz",
+     "calories": 430,
+     "proteinG": 25,
+     "carbsG": 57,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1010,
+      "saturatedFatG": 5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-classic-egg-white",
+   "name": "Cheddar Cheese ^ (Classic Egg White)",
+   "category": "Einstein Bros. Company: Classic Egg Whit",
+   "sizes": [
+    {
+     "size": "6 1 oz",
+     "label": "6.1 oz",
+     "calories": 360,
+     "proteinG": 20,
+     "carbsG": 56,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 770,
+      "saturatedFatG": 3,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-swiss-classic-egg-white",
+   "name": "Ham & Swiss ^ (Classic Egg White)",
+   "category": "Einstein Bros. Company: Classic Egg Whit",
+   "sizes": [
+    {
+     "size": "7 6 oz",
+     "label": "7.6 oz",
+     "calories": 400,
+     "proteinG": 26,
+     "carbsG": 58,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1180,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-sausage-and-cheddar-classic-egg-white",
+   "name": "Turkey Sausage & Cheddar ^ (Classic Egg White)",
+   "category": "Einstein Bros. Company: Classic Egg Whit",
+   "sizes": [
+    {
+     "size": "7 6 oz",
+     "label": "7.6 oz",
+     "calories": 450,
+     "proteinG": 27,
+     "carbsG": 56,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1050,
+      "saturatedFatG": 5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo-sunrise-on-green-chile-1-egg",
+   "name": "Chorizo Sunrise on Green Chile (1 Egg)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "10 7 oz",
+     "label": "10.7 oz",
+     "calories": 790,
+     "proteinG": 34,
+     "carbsG": 64,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 1410,
+      "saturatedFatG": 18,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "farmhouse-on-cheesy-hash-brown-1-egg",
+   "name": "Farmhouse On Cheesy Hash Brown (1 Egg)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 690,
+     "proteinG": 35,
+     "carbsG": 65,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1670,
+      "saturatedFatG": 14,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-avocado-on-everything-1-egg",
+   "name": "Garden Avocado on Everything (1 Egg)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "8 8 oz",
+     "label": "8.8 oz",
+     "calories": 500,
+     "proteinG": 18,
+     "carbsG": 64,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 840,
+      "saturatedFatG": 4,
+      "cholesterolMg": 190
+     }
+    }
+   ]
+  },
+  {
+   "id": "maplehouse-egg-sandwich-1-egg",
+   "name": "Maplehouse Egg Sandwich 1 Egg",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 3 oz",
+     "label": "9.3 oz",
+     "calories": 860,
+     "proteinG": 31,
+     "carbsG": 92,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 35,
+      "sodiumMg": 1300,
+      "saturatedFatG": 16,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe-sandwich-on-asiago-1-egg",
+   "name": "Santa Fe Sandwich on Asiago (1 Egg)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "8 6 oz",
+     "label": "8.6 oz",
+     "calories": 580,
+     "proteinG": 31,
+     "carbsG": 59,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1340,
+      "saturatedFatG": 11,
+      "cholesterolMg": 260
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-brisket-on-cheddar-jalapeno-1-egg",
+   "name": "Texas Brisket on Cheddar Jalapeno (1 Egg)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 6 oz",
+     "label": "9.6 oz",
+     "calories": 760,
+     "proteinG": 30,
+     "carbsG": 56,
+     "fatG": 48,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1560,
+      "saturatedFatG": 14,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-nighter-on-cheesy-hash-brown",
+   "name": "All-Nighter on Cheesy Hash Brown",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "10 6 oz",
+     "label": "10.6 oz",
+     "calories": 900,
+     "proteinG": 35,
+     "carbsG": 65,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1910,
+      "saturatedFatG": 19,
+      "cholesterolMg": 435
+     }
+    },
+    {
+     "size": "9 8 oz",
+     "label": "9.8 oz",
+     "calories": 930,
+     "proteinG": 33,
+     "carbsG": 66,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1850,
+      "saturatedFatG": 18,
+      "cholesterolMg": 305
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo-sunrise-on-green-chile-2-eggs",
+   "name": "Chorizo Sunrise on Green Chile (2 Eggs)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "12 7 oz",
+     "label": "12.7 oz",
+     "calories": 870,
+     "proteinG": 40,
+     "carbsG": 64,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 1550,
+      "saturatedFatG": 20,
+      "cholesterolMg": 455
+     }
+    }
+   ]
+  },
+  {
+   "id": "farmhouse-on-cheesy-hash-brown-2-eggs",
+   "name": "Farmhouse On Cheesy Hash Brown (2 Eggs)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "11 2 oz",
+     "label": "11.2 oz",
+     "calories": 770,
+     "proteinG": 41,
+     "carbsG": 66,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1810,
+      "saturatedFatG": 16,
+      "cholesterolMg": 445
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-avocado-on-everything-2-eggs",
+   "name": "Garden Avocado on Everything (2 Eggs)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "10 8 oz",
+     "label": "10.8 oz",
+     "calories": 580,
+     "proteinG": 24,
+     "carbsG": 65,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 980,
+      "saturatedFatG": 6,
+      "cholesterolMg": 375
+     }
+    }
+   ]
+  },
+  {
+   "id": "maplehouse-egg-sandwich-2-eggs",
+   "name": "Maplehouse Egg Sandwich 2 Eggs",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "11 3 oz",
+     "label": "11.3 oz",
+     "calories": 940,
+     "proteinG": 38,
+     "carbsG": 93,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 35,
+      "sodiumMg": 1440,
+      "saturatedFatG": 18,
+      "cholesterolMg": 445
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe-sandwich-on-asiago-2-eggs",
+   "name": "Santa Fe Sandwich on Asiago (2 Eggs)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "10 6 oz",
+     "label": "10.6 oz",
+     "calories": 660,
+     "proteinG": 37,
+     "carbsG": 60,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1480,
+      "saturatedFatG": 13,
+      "cholesterolMg": 450
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-brisket-on-cheddar-jalapeno-2-eggs",
+   "name": "Texas Brisket on Cheddar Jalapeno (2 Eggs)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "11 2 oz",
+     "label": "11.2 oz",
+     "calories": 840,
+     "proteinG": 36,
+     "carbsG": 56,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1700,
+      "saturatedFatG": 16,
+      "cholesterolMg": 440
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-avocado-tomato-thin-on-plain",
+   "name": "Bacon Avocado Tomato Thin on Plain",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "8 1 oz",
+     "label": "8.1 oz",
+     "calories": 440,
+     "proteinG": 19,
+     "carbsG": 47,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 890,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo-sunrise-on-green-chile-1-egg-white",
+   "name": "Chorizo Sunrise on Green Chile (1 Egg White)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "11 2 oz",
+     "label": "11.2 oz",
+     "calories": 750,
+     "proteinG": 34,
+     "carbsG": 63,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 1440,
+      "saturatedFatG": 17,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "farmhouse-on-cheesy-hash-brown-1-egg-white",
+   "name": "Farmhouse On Cheesy Hash Brown (1 Egg White)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 7 oz",
+     "label": "9.7 oz",
+     "calories": 650,
+     "proteinG": 34,
+     "carbsG": 65,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1690,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-avocado-on-everything-1-egg-white",
+   "name": "Garden Avocado on Everything (1 Egg White)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 450,
+     "proteinG": 18,
+     "carbsG": 63,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 7,
+      "sodiumMg": 860,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe-sandwich-on-asiago-1-egg-white",
+   "name": "Santa Fe Sandwich on Asiago (1 Egg White)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "9 0 oz",
+     "label": "9.0 oz",
+     "calories": 540,
+     "proteinG": 31,
+     "carbsG": 59,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 1360,
+      "saturatedFatG": 9,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "texas-brisket-on-cheddar-jalapeno-1-egg-white",
+   "name": "Texas Brisket on Cheddar Jalapeno (1 Egg White)",
+   "category": "Einstein Bros. Company Chef's Creations:",
+   "sizes": [
+    {
+     "size": "10 0 oz",
+     "label": "10.0 oz",
+     "calories": 720,
+     "proteinG": 30,
+     "carbsG": 55,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1590,
+      "saturatedFatG": 13,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-breakfast-burrito",
+   "name": "Big Breakfast Burrito*",
+   "category": "Einstein Bros. Company Burrito",
+   "sizes": [
+    {
+     "size": "14 0 oz",
+     "label": "14.0 oz",
+     "calories": 1050,
+     "proteinG": 50,
+     "carbsG": 76,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 5,
+      "sodiumMg": 2320,
+      "saturatedFatG": 27,
+      "cholesterolMg": 500
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorizo-breakfast-burrito",
+   "name": "Chorizo Breakfast Burrito",
+   "category": "Einstein Bros. Company Burrito",
+   "sizes": [
+    {
+     "size": "14 0 oz",
+     "label": "14.0 oz",
+     "calories": 1120,
+     "proteinG": 49,
+     "carbsG": 77,
+     "fatG": 68,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 2430,
+      "saturatedFatG": 30,
+      "cholesterolMg": 490
+     }
+    }
+   ]
+  },
+  {
+   "id": "applewood-bacon-and-cheddar",
+   "name": "Applewood Bacon & Cheddar ^ *",
+   "category": "Einstein Bros. License: Classic Egg Sand",
+   "sizes": [
+    {
+     "size": "6 1 oz",
+     "label": "6.1 oz",
+     "calories": 500,
+     "proteinG": 23,
+     "carbsG": 61,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 7,
+      "sodiumMg": 980,
+      "saturatedFatG": 6,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese",
+   "name": "Cheddar Cheese ^ *",
+   "category": "Einstein Bros. License: Classic Egg Sand",
+   "sizes": [
+    {
+     "size": "5 7 oz",
+     "label": "5.7 oz",
+     "calories": 430,
+     "proteinG": 18,
+     "carbsG": 60,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 740,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-swiss",
+   "name": "Ham & Swiss ^ *",
+   "category": "Einstein Bros. License: Classic Egg Sand",
+   "sizes": [
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 470,
+     "proteinG": 25,
+     "carbsG": 61,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 1160,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-sausage-and-cheddar",
+   "name": "Turkey Sausage & Cheddar ^ *",
+   "category": "Einstein Bros. License: Classic Egg Sand",
+   "sizes": [
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 520,
+     "proteinG": 25,
+     "carbsG": 60,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 1020,
+      "saturatedFatG": 6,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "farmhouse-on-cheesy-hash-brown",
+   "name": "Farmhouse On Cheesy Hash Brown*",
+   "category": "Einstein Bros. License: Signature Egg Sa",
+   "sizes": [
+    {
+     "size": "9 1 oz",
+     "label": "9.1 oz",
+     "calories": 710,
+     "proteinG": 33,
+     "carbsG": 65,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1630,
+      "saturatedFatG": 15,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "garden-avocado-on-everything-license",
+   "name": "Garden Avocado on Everything (License)",
+   "category": "Einstein Bros. License: Signature Egg Sa",
+   "sizes": [
+    {
+     "size": "8 7 oz",
+     "label": "8.7 oz",
+     "calories": 510,
+     "proteinG": 16,
+     "carbsG": 65,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 8,
+      "sodiumMg": 770,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "santa-fe-on-asiago-thin",
+   "name": "Santa Fe on Asiago Thin*",
+   "category": "Einstein Bros. License: Signature Egg Sa",
+   "sizes": [
+    {
+     "size": "7 8 oz",
+     "label": "7.8 oz",
+     "calories": 440,
+     "proteinG": 26,
+     "carbsG": 43,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1070,
+      "saturatedFatG": 8,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "big-bro-s-burrito",
+   "name": "Big Bro's Burrito *",
+   "category": "Einstein Bros. License: Burrito",
+   "sizes": [
+    {
+     "size": "15 3 oz",
+     "label": "15.3 oz",
+     "calories": 1250,
+     "proteinG": 48,
+     "carbsG": 94,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 5,
+      "sodiumMg": 2330,
+      "saturatedFatG": 33,
+      "cholesterolMg": 380
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-veg-out-on-sesame",
+   "name": "Avocado Veg Out on Sesame",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "9 1 oz",
+     "label": "9.1 oz",
+     "calories": 410,
+     "proteinG": 14,
+     "carbsG": 66,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 8,
+      "sodiumMg": 630,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    },
+    {
+     "size": "9 2 oz",
+     "label": "9.2 oz",
+     "calories": 400,
+     "proteinG": 14,
+     "carbsG": 66,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 9,
+      "sodiumMg": 640,
+      "saturatedFatG": 3.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "ham-and-swiss-on-plain-bagel",
+   "name": "Ham & Swiss on Plain Bagel",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "10 4 oz",
+     "label": "10.4 oz",
+     "calories": 540,
+     "proteinG": 27,
+     "carbsG": 63,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1690,
+      "saturatedFatG": 5,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "10 5 oz",
+     "label": "10.5 oz",
+     "calories": 550,
+     "proteinG": 26,
+     "carbsG": 65,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 1720,
+      "saturatedFatG": 5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "nova-lox-on-plain-bagel",
+   "name": "Nova Lox on Plain Bagel",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "8 7 oz",
+     "label": "8.7 oz",
+     "calories": 500,
+     "proteinG": 24,
+     "carbsG": 60,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1340,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "8 8 oz",
+     "label": "8.8 oz",
+     "calories": 510,
+     "proteinG": 24,
+     "carbsG": 63,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1340,
+      "saturatedFatG": 8,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "tasty-turkey-on-asiago-bagel",
+   "name": "Tasty Turkey on Asiago Bagel",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "11 6 oz",
+     "label": "11.6 oz",
+     "calories": 520,
+     "proteinG": 32,
+     "carbsG": 71,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1430,
+      "saturatedFatG": 8,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-and-cheddar-on-plain-bagel",
+   "name": "Turkey & Cheddar on Plain Bagel",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "10 4 oz",
+     "label": "10.4 oz",
+     "calories": 540,
+     "proteinG": 29,
+     "carbsG": 68,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1440,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "10 5 oz",
+     "label": "10.5 oz",
+     "calories": 560,
+     "proteinG": 29,
+     "carbsG": 70,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 9,
+      "sodiumMg": 1470,
+      "saturatedFatG": 4.5,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-bacon-and-avocado-on-plain-bagel",
+   "name": "Turkey, Bacon & Avocado on Plain Bagel",
+   "category": "Einstein Bros. Company: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "11 0 oz",
+     "label": "11.0 oz",
+     "calories": 640,
+     "proteinG": 31,
+     "carbsG": 73,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 10,
+      "sodiumMg": 1630,
+      "saturatedFatG": 5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "pizza-bagel-cheese-on-plain",
+   "name": "Pizza Bagel, Cheese on Plain",
+   "category": "Einstein Bros. Company: Hot and Toasty L",
+   "sizes": [
+    {
+     "size": "6 4 oz",
+     "label": "6.4 oz",
+     "calories": 460,
+     "proteinG": 25,
+     "carbsG": 61,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 1090,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "6 6 oz",
+     "label": "6.6 oz",
+     "calories": 480,
+     "proteinG": 25,
+     "carbsG": 63,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1120,
+      "saturatedFatG": 8,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "pizza-bagel-pepperoni-on-plain",
+   "name": "Pizza Bagel, Pepperoni on Plain",
+   "category": "Einstein Bros. Company: Hot and Toasty L",
+   "sizes": [
+    {
+     "size": "7 1 oz",
+     "label": "7.1 oz",
+     "calories": 560,
+     "proteinG": 28,
+     "carbsG": 61,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 1420,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "7 2 oz",
+     "label": "7.2 oz",
+     "calories": 570,
+     "proteinG": 28,
+     "carbsG": 64,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1440,
+      "saturatedFatG": 11,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "california-turkey-wrap",
+   "name": "California Turkey Wrap*",
+   "category": "Einstein Bros. License: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "12 6 oz",
+     "label": "12.6 oz",
+     "calories": 670,
+     "proteinG": 31,
+     "carbsG": 72,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1700,
+      "saturatedFatG": 10,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-salad-on-plain-bagel",
+   "name": "Chicken Salad on Plain Bagel *",
+   "category": "Einstein Bros. License: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "9 7 oz",
+     "label": "9.7 oz",
+     "calories": 490,
+     "proteinG": 29,
+     "carbsG": 61,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 930,
+      "saturatedFatG": 2.5,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "turkey-bacon-and-avocado-on-ciabatta",
+   "name": "Turkey, Bacon & Avocado on Ciabatta*",
+   "category": "Einstein Bros. License: Signature Lunch ",
+   "sizes": [
+    {
+     "size": "10 6 oz",
+     "label": "10.6 oz",
+     "calories": 600,
+     "proteinG": 29,
+     "carbsG": 61,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1740,
+      "saturatedFatG": 6,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "albuquerque-turkey-on-six-cheese",
+   "name": "Albuquerque Turkey on Six Cheese*",
+   "category": "Einstein Bros. License: Hot Sandwiches",
+   "sizes": [
+    {
+     "size": "12 2 oz",
+     "label": "12.2 oz",
+     "calories": 710,
+     "proteinG": 44,
+     "carbsG": 68,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 11,
+      "sodiumMg": 1810,
+      "saturatedFatG": 15,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-veggie-melt-on-ciabatta",
+   "name": "Cheesy Veggie Melt on Ciabatta*",
+   "category": "Einstein Bros. License: Hot Sandwiches",
+   "sizes": [
+    {
+     "size": "8 2 oz",
+     "label": "8.2 oz",
+     "calories": 620,
+     "proteinG": 23,
+     "carbsG": 50,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1090,
+      "saturatedFatG": 13,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-pepperoni-on-ciabatta",
+   "name": "Chicken and Pepperoni on Ciabatta*",
+   "category": "Einstein Bros. License: Hot Sandwiches",
+   "sizes": [
+    {
+     "size": "8 8 oz",
+     "label": "8.8 oz",
+     "calories": 650,
+     "proteinG": 43,
+     "carbsG": 47,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 1560,
+      "saturatedFatG": 13,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-chicken-on-ciabatta",
+   "name": "Spicy Chicken on Ciabatta*",
+   "category": "Einstein Bros. License: Hot Sandwiches",
+   "sizes": [
+    {
+     "size": "9 7 oz",
+     "label": "9.7 oz",
+     "calories": 610,
+     "proteinG": 41,
+     "carbsG": 53,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1640,
+      "saturatedFatG": 13,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "sea-salt-potato-chips",
+   "name": "Sea Salt Potato Chips",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "1 0 oz",
+     "label": "1.0 oz",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 17,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 95,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "twice-baked-hash-brown",
+   "name": "Twice Baked Hash Brown",
+   "category": "Sides",
+   "sizes": [
+    {
+     "size": "3 0 oz",
+     "label": "3.0 oz",
+     "calories": 170,
+     "proteinG": 7,
+     "carbsG": 11,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 260,
+      "saturatedFatG": 6,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "avocado-toast",
+   "name": "Avocado Toast",
+   "sizes": [
+    {
+     "size": "5 6 oz",
+     "label": "5.6 oz",
+     "calories": 380,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "sugarG": 0,
+      "saturatedFatG": 1.5
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": [
+  {
+   "id": "cold-foam-topping",
+   "name": "Cold Foam Topping",
+   "group": "topping",
+   "unit": "1 oz",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 5,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 25,
+     "saturatedFatG": 6,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "garden-veggie-reduced-fat",
+   "name": "Garden Veggie Reduced Fat",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 2,
+    "carbsG": 5,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 6,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "garlic-and-herb",
+   "name": "Garlic and Herb",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 2,
+    "carbsG": 5,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "honey-almond-reduced-fat",
+   "name": "Honey Almond Reduced Fat",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 120,
+    "proteinG": 2,
+    "carbsG": 10,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 7,
+     "sodiumMg": 80,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "jalapeno-salsa-reduced-fat",
+   "name": "Jalapeno Salsa Reduced Fat",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 2,
+    "carbsG": 5,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 1,
+     "sugarG": 2,
+     "sodiumMg": 190,
+     "saturatedFatG": 5,
+     "cholesterolMg": 25
+    }
+   }
+  },
+  {
+   "id": "onion-and-chive",
+   "name": "Onion and Chive",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 2,
+    "carbsG": 4,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 105,
+     "saturatedFatG": 6,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "plain-shmear",
+   "name": "Plain (Shmear)",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 120,
+    "proteinG": 2,
+    "carbsG": 2,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 120,
+     "saturatedFatG": 7,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "strawberry-reduced-fat",
+   "name": "Strawberry Reduced Fat",
+   "group": "topping",
+   "unit": "1.2 oz",
+   "per": {
+    "calories": 120,
+    "proteinG": 1,
+    "carbsG": 9,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 6,
+     "sodiumMg": 90,
+     "saturatedFatG": 5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "country-pepper-shmear",
+   "name": "Country Pepper Shmear",
+   "group": "topping",
+   "unit": "0.7 oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 75,
+     "saturatedFatG": 3,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "add-syrup",
+   "name": "Add Syrup",
+   "group": "syrup",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 50,
+    "proteinG": 0,
+    "carbsG": 13,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 6,
+     "sodiumMg": 25,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "butter-blend",
+   "name": "Butter Blend",
+   "group": "topping",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 85,
+     "saturatedFatG": 5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "honey",
+   "name": "Honey",
+   "group": "syrup",
+   "unit": "1.0 oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 23,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 22,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "natural-peanut-butter",
+   "name": "Natural Peanut Butter",
+   "group": "topping",
+   "unit": "1.5 oz",
+   "per": {
+    "calories": 240,
+    "proteinG": 9,
+    "carbsG": 10,
+    "fatG": 21,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 5,
+     "sodiumMg": 105,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "natural-strawberry-jam",
+   "name": "Natural Strawberry Jam",
+   "group": "topping",
+   "unit": "1.0 oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 0,
+    "carbsG": 16,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 14,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "peanut-butter-and-jam",
+   "name": "Peanut Butter and Jam *",
+   "group": "topping",
+   "unit": "2.5 oz",
+   "per": {
+    "calories": 300,
+    "proteinG": 9,
+    "carbsG": 26,
+    "fatG": 21,
+    "micros": {
+     "fiberG": 4,
+     "sugarG": 19,
+     "sodiumMg": 105,
+     "saturatedFatG": 4.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "1-cage-free-egg",
+   "name": "1 Cage Free Egg",
+   "group": "protein",
+   "unit": "1 Egg",
+   "per": {
+    "calories": 80,
+    "proteinG": 6,
+    "carbsG": 1,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 140,
+     "saturatedFatG": 2,
+     "cholesterolMg": 185
+    }
+   }
+  },
+  {
+   "id": "2-cage-free-eggs",
+   "name": "2 Cage Free Eggs",
+   "group": "protein",
+   "unit": "2 Egg",
+   "per": {
+    "calories": 160,
+    "proteinG": 13,
+    "carbsG": 2,
+    "fatG": 11,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 280,
+     "saturatedFatG": 4,
+     "cholesterolMg": 370
+    }
+   }
+  },
+  {
+   "id": "1-egg-white",
+   "name": "1 Egg White",
+   "group": "protein",
+   "unit": "1 Egg",
+   "per": {
+    "calories": 35,
+    "proteinG": 6,
+    "carbsG": 1,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 170,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "2-egg-white",
+   "name": "2 Egg White",
+   "group": "protein",
+   "unit": "2 Egg",
+   "per": {
+    "calories": 70,
+    "proteinG": 12,
+    "carbsG": 1,
+    "fatG": 1.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 330,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "fried-egg-patty",
+   "name": "Fried Egg Patty*",
+   "group": "protein",
+   "unit": "1 Egg",
+   "per": {
+    "calories": 90,
+    "proteinG": 5,
+    "carbsG": 1,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 105,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 120
+    }
+   }
+  },
+  {
+   "id": "american-1-slice",
+   "name": "American 1 Slice",
+   "group": "cheese",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 50,
+    "proteinG": 2,
+    "carbsG": 1,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 250,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "cheddar-1-slice",
+   "name": "Cheddar 1 Slice",
+   "group": "cheese",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 3,
+    "carbsG": 0,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 95,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "swiss-1-slice",
+   "name": "Swiss 1 Slice",
+   "group": "cheese",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 60,
+    "proteinG": 4,
+    "carbsG": 0,
+    "fatG": 4.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 25,
+     "saturatedFatG": 2.5,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "bacon",
+   "name": "Bacon",
+   "group": "protein",
+   "unit": "4 Pieces",
+   "per": {
+    "calories": 70,
+    "proteinG": 5,
+    "carbsG": 1,
+    "fatG": 5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 240,
+     "saturatedFatG": 2,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "brisket",
+   "name": "Brisket",
+   "group": "protein",
+   "unit": "2 oz",
+   "per": {
+    "calories": 110,
+    "proteinG": 8,
+    "carbsG": 1,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 430,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "chicken-breast",
+   "name": "Chicken Breast*",
+   "group": "protein",
+   "unit": "3 oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 20,
+    "carbsG": 0,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 260,
+     "saturatedFatG": 0,
+     "cholesterolMg": 60
+    }
+   }
+  },
+  {
+   "id": "chorizo-sausage-patty",
+   "name": "Chorizo Sausage Patty",
+   "group": "protein",
+   "unit": "1 Patty",
+   "per": {
+    "calories": 160,
+    "proteinG": 5,
+    "carbsG": 1,
+    "fatG": 16,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 390,
+     "saturatedFatG": 5,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "ham-breakfast",
+   "name": "Ham, Breakfast",
+   "group": "protein",
+   "unit": "1.5 oz",
+   "per": {
+    "calories": 45,
+    "proteinG": 6,
+    "carbsG": 2,
+    "fatG": 1,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 480,
+     "saturatedFatG": 0,
+     "cholesterolMg": 15
+    }
+   }
+  },
+  {
+   "id": "ham-lunch",
+   "name": "Ham, Lunch",
+   "group": "protein",
+   "unit": "3.0 oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 12,
+    "carbsG": 4,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 3,
+     "sodiumMg": 970,
+     "saturatedFatG": 1,
+     "cholesterolMg": 35
+    }
+   }
+  },
+  {
+   "id": "lox-cold-smoked-salmon",
+   "name": "Lox, Cold Smoked Salmon",
+   "group": "protein",
+   "unit": "2.0 oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 12,
+    "carbsG": 0,
+    "fatG": 6,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 650,
+     "saturatedFatG": 1,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "pepperoni-slices",
+   "name": "Pepperoni Slices",
+   "group": "protein",
+   "unit": "10 Pieces",
+   "per": {
+    "calories": 90,
+    "proteinG": 3,
+    "carbsG": 1,
+    "fatG": 9,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 330,
+     "saturatedFatG": 3.5,
+     "cholesterolMg": 20
+    }
+   }
+  },
+  {
+   "id": "pork-sausage-patty",
+   "name": "Pork Sausage Patty",
+   "group": "protein",
+   "unit": "1 Patty",
+   "per": {
+    "calories": 180,
+    "proteinG": 6,
+    "carbsG": 0,
+    "fatG": 17,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 280,
+     "saturatedFatG": 6,
+     "cholesterolMg": 30
+    }
+   }
+  },
+  {
+   "id": "turkey-lunch",
+   "name": "Turkey, Lunch",
+   "group": "protein",
+   "unit": "3.0 oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 15,
+    "carbsG": 9,
+    "fatG": 2.5,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 2,
+     "sodiumMg": 650,
+     "saturatedFatG": 0,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "turkey-sausage-patty",
+   "name": "Turkey Sausage Patty",
+   "group": "protein",
+   "unit": "1 Patty",
+   "per": {
+    "calories": 90,
+    "proteinG": 7,
+    "carbsG": 0,
+    "fatG": 7,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 280,
+     "saturatedFatG": 2,
+     "cholesterolMg": 40
+    }
+   }
+  },
+  {
+   "id": "chipotle-salsa",
+   "name": "Chipotle Salsa",
+   "group": "sauce",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 80,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "chipotle-mayo",
+   "name": "Chipotle Mayo",
+   "group": "sauce",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 90,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 10,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 115,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "double-egg-mayo",
+   "name": "Double Egg Mayo",
+   "group": "sauce",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 100,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 12,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 40,
+     "saturatedFatG": 2,
+     "cholesterolMg": 10
+    }
+   }
+  },
+  {
+   "id": "roasted-tomato-spread",
+   "name": "Roasted Tomato Spread",
+   "group": "sauce",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 80,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 8,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 110,
+     "saturatedFatG": 1.5,
+     "cholesterolMg": 5
+    }
+   }
+  },
+  {
+   "id": "spicy-brown-mustard",
+   "name": "Spicy Brown Mustard",
+   "group": "sauce",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 15,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 140,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "avocado",
+   "name": "Avocado",
+   "group": "topping",
+   "unit": "1.0 oz",
+   "per": {
+    "calories": 50,
+    "proteinG": 1,
+    "carbsG": 3,
+    "fatG": 4,
+    "micros": {
+     "fiberG": 2,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0.5,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "capers",
+   "name": "Capers",
+   "group": "topping",
+   "unit": "0.1 oz",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 60,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "cucumber",
+   "name": "Cucumber",
+   "group": "topping",
+   "unit": "3 Slices",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "leaf-lettuce",
+   "name": "Leaf Lettuce",
+   "group": "topping",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "pickle-spear",
+   "name": "Pickle Spear",
+   "group": "topping",
+   "unit": "1.0 oz",
+   "per": {
+    "calories": 0,
+    "proteinG": 0,
+    "carbsG": 0,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 260,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "red-onion",
+   "name": "Red Onion",
+   "group": "topping",
+   "unit": "3 Slices",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "spinach",
+   "name": "Spinach",
+   "group": "topping",
+   "unit": "0.5 oz",
+   "per": {
+    "calories": 5,
+    "proteinG": 0,
+    "carbsG": 1,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 0,
+     "sodiumMg": 10,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  },
+  {
+   "id": "tomato",
+   "name": "Tomato",
+   "group": "topping",
+   "unit": "2 Slices",
+   "per": {
+    "calories": 10,
+    "proteinG": 0,
+    "carbsG": 2,
+    "fatG": 0,
+    "micros": {
+     "fiberG": 0,
+     "sugarG": 1,
+     "sodiumMg": 0,
+     "saturatedFatG": 0,
+     "cholesterolMg": 0
+    }
+   }
+  }
+ ]
+}

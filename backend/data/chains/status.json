@@ -598,5 +598,65 @@
   "outcome": "empty",
   "detail": "no items with calories extracted — not written",
   "at": "2026-10-11"
+ },
+ "menchies.CA": {
+  "outcome": "live",
+  "detail": "LIVE 123 items, 123 sizes, 0 modifiers, 5 macro mismatches → data/chains/menus/menchies.CA.json",
+  "at": "2026-10-11"
+ },
+ "menchies.US": {
+  "outcome": "live",
+  "detail": "LIVE 123 items, 123 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/menchies.US.json",
+  "at": "2026-10-11"
+ },
+ "yogurtland.US": {
+  "outcome": "review",
+  "detail": "REVIEW 24 items, 48 sizes, 0 modifiers, 9 macro mismatches → data/chains/menus-review/yogurtland.US.json",
+  "at": "2026-10-11"
+ },
+ "ritas.US": {
+  "outcome": "empty",
+  "detail": "no items with calories extracted — not written",
+  "at": "2026-10-11"
+ },
+ "auntie-annes.US": {
+  "outcome": "review",
+  "detail": "REVIEW 31 items, 49 sizes, 0 modifiers, 40 macro mismatches → data/chains/menus-review/auntie-annes.US.json",
+  "at": "2026-10-11"
+ },
+ "nothing-bundt-cakes.CA": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/nothing-bundt-cakes.CA.json",
+  "at": "2026-10-11"
+ },
+ "nothing-bundt-cakes.US": {
+  "outcome": "review",
+  "detail": "REVIEW 1 items, 1 sizes, 0 modifiers, 1 macro mismatches → data/chains/menus-review/nothing-bundt-cakes.US.json",
+  "at": "2026-10-11"
+ },
+ "caribou-coffee.US": {
+  "outcome": "blocked",
+  "detail": "bot check page — skipped (no workaround by policy)",
+  "at": "2026-10-11"
+ },
+ "jamba.US": {
+  "outcome": "review",
+  "detail": "REVIEW 42 items, 91 sizes, 0 modifiers, 64 macro mismatches → data/chains/menus-review/jamba.US.json",
+  "at": "2026-10-11"
+ },
+ "which-wich.US": {
+  "outcome": "review",
+  "detail": "REVIEW 78 items, 200 sizes, 65 modifiers, 112 macro mismatches → data/chains/menus-review/which-wich.US.json",
+  "at": "2026-10-11"
+ },
+ "coffee-bean.US": {
+  "outcome": "live",
+  "detail": "LIVE 59 items, 220 sizes, 0 modifiers, 0 macro mismatches → data/chains/menus/coffee-bean.US.json",
+  "at": "2026-10-11"
+ },
+ "einstein-bros.US": {
+  "outcome": "live",
+  "detail": "LIVE 100 items, 112 sizes, 47 modifiers, 1 macro mismatches → data/chains/menus/einstein-bros.US.json",
+  "at": "2026-10-11"
  }
 }

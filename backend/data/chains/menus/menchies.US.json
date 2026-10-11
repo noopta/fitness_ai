@@ -1,0 +1,2715 @@
+{
+ "chain": "menchies",
+ "country": "US",
+ "source": {
+  "url": "https://www.menchies.com/nutrition/",
+  "fetchedAt": "2026-10-11",
+  "note": "page → gemini-3.8-flash extraction; numbers only"
+ },
+ "items": [
+  {
+   "id": "banana-pudding-made-with-nilla-wafers",
+   "name": "Banana Pudding Made With Nilla ® Wafers",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-berry-berry",
+   "name": "Carbolite Low Carb No Sugar Added Berry Berry",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-cherry-tart",
+   "name": "Black Cherry Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blackberry-burst",
+   "name": "Blackberry Burst",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-raspberry-tart",
+   "name": "Blue Raspberry Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "blueberry-pomegranate-tart",
+   "name": "Blueberry Pomegranate Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "caramel-apple-pie",
+   "name": "Caramel Apple Pie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-caramel-macchiato",
+   "name": "Carbolite Low Carb Caramel Macchiato",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-chocolate-caramel-macchiato",
+   "name": "Carbolite Low Carb Chocolate Caramel Macchiato",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-strawberry-shortcake",
+   "name": "Carbolite Low Carb No Sugar Added Strawberry Shortcake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-chocolate",
+   "name": "Carbolite Low Carb No Sugar Added Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-chocolate-colombian-suprem",
+   "name": "Carbolite Low Carb No Sugar Added Chocolate Colombian Supremo Coffee",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-chocolate-mint",
+   "name": "Carbolite Low Carb No Sugar Added Chocolate Mint",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-cookies-n-cream",
+   "name": "Carbolite Low Carb No Sugar Added Cookies ‘N’ Cream",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-german-chocolate-cake",
+   "name": "Carbolite Low Carb No Sugar Added German Chocolate Cake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-peanut-butter",
+   "name": "Carbolite Low Carb No Sugar Added Peanut Butter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-pecan-praline",
+   "name": "Carbolite Low Carb No Sugar Added Pecan Praline",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-peppermint",
+   "name": "Carbolite Low Carb No Sugar Added Peppermint",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-pistachio",
+   "name": "Carbolite Low Carb No Sugar Added Pistachio",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-sweet-cream",
+   "name": "Carbolite Low Carb No Sugar Added Sweet Cream",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-vanilla-bean",
+   "name": "Carbolite Low Carb No Sugar Added Vanilla Bean",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-dipped-churro-made-with-hershey-s-chocolate",
+   "name": "Chocolate Dipped Churro Made With Hershey’s ® Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-cake-batter-made-with-hershey-s-chocolate",
+   "name": "Chocolate Cake Batter Made With Hershey’s ® Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 45,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-banana-bread",
+   "name": "Classic Banana Bread",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-strawberry-shortcake",
+   "name": "Classic Strawberry Shortcake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-coffee",
+   "name": "Cold Brew Coffee",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-cocoa-hazelnut",
+   "name": "Creamy Cocoa Hazelnut",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 25,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-country-vanilla",
+   "name": "Creamy Country Vanilla",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-peanut-butter",
+   "name": "Creamy Peanut Butter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dark-chocolate-candy-made-with-dove-chocolate",
+   "name": "Dark Chocolate Candy Made With Dove ® Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dreamy-dulce-de-leche",
+   "name": "Dreamy Dulce De Leche",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-shredded-coconut",
+   "name": "Fresh Shredded Coconut",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "golden-cereal-made-with-cap-n-crunch",
+   "name": "Golden Cereal Made With Cap’N Crunch ®",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-peanut-butter-gelato",
+   "name": "Gourmet Peanut Butter Gelato",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 50,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 40,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-pistachio-gelato",
+   "name": "Gourmet Pistachio Gelato",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-apple-tart",
+   "name": "Green Apple Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hershey-s-kisses-milk-chocolate",
+   "name": "Hershey’s ® Kisses ® Milk Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 45,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0.5,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "holiday-eggnog",
+   "name": "Holiday Eggnog",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dole-soft-serve-pineapple-flavor",
+   "name": "DOLE ® Soft Serve Pineapple Flavor",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "harvest-pumpkin",
+   "name": "Harvest Pumpkin",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "i-dream-of-cookies-n-cream",
+   "name": "I Dream Of Cookies N’ Cream",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jumpin-java-latte",
+   "name": "Jumpin’ Java Latte",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "live-from-ny-cheesecake",
+   "name": "Live From Ny Cheesecake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "milk-chocolate-mania",
+   "name": "Milk Chocolate Mania",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mudslide-pie",
+   "name": "Mudslide Pie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nsa-very-chocolate",
+   "name": "NSA Very Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nsa-very-vanilla",
+   "name": "NSA Very Vanilla",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-strawberry",
+   "name": "Original Strawberry",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-tart",
+   "name": "Original Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-mango-tart",
+   "name": "Peach Mango Tart",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cotton-candy",
+   "name": "Cotton Candy",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "rockin-salted-caramel",
+   "name": "Rockin’ Salted Caramel",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 75,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "takes-the-cake-batter",
+   "name": "Takes The Cake Batter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-snow",
+   "name": "Vanilla Snow",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-snow-and-pure-chocolate-swirl",
+   "name": "Vanilla Snow And Pure Chocolate Swirl",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nsa-strawberry",
+   "name": "NSA Strawberry",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peachy-keen",
+   "name": "Peachy Keen",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pure-chocolate",
+   "name": "Pure Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-cantaloupe",
+   "name": "Sweet Cantaloupe",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-blueberry-lemonade-sorbet",
+   "name": "Vegan Blueberry Lemonade Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "yumm-bubble-gum",
+   "name": "Yumm Bubble Gum",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-cake-batter-made-with-almond-milk",
+   "name": "Vegan Cake Batter Made With Almond Milk",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-cherry-cola-sorbet",
+   "name": "Vegan Cherry Cola Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-dark-chocolate-mousse-made-from-almond-milk",
+   "name": "Vegan Dark Chocolate Mousse Made From Almond Milk",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-fudgy-chocolate-sorbet",
+   "name": "Vegan Fudgy Chocolate Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-honeydew-sorbet",
+   "name": "Vegan Honeydew Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-meyer-lemon",
+   "name": "Vegan Meyer Lemon",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-oatly-vanilla",
+   "name": "Vegan Oatly Vanilla",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-paradise-fruit-punch-sorbet",
+   "name": "Vegan Paradise Fruit Punch Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-pineapple-coconut-milk-smoothie",
+   "name": "Vegan Pineapple Coconut-Milk Smoothie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 5,
+      "saturatedFatG": 1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-pomegranate-razz-sorbet",
+   "name": "Vegan Pomegranate Razz Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-simply-mango-sorbet",
+   "name": "Vegan Simply Mango Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-sweet-juicy-peach-sorbet",
+   "name": "Vegan Sweet Juicy Peach Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-wild-cherry-sorbet-with-a-splash-of-lime",
+   "name": "Vegan Wild Cherry Sorbet With A Splash Of Lime",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-chew-blue-hawaii-tropical-candy",
+   "name": "HI-CHEW ® Blue Hawaii Tropical Candy",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-strawberry-kiwi-sorbet",
+   "name": "Vegan Strawberry Kiwi Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-white-chocolate-macadamia",
+   "name": "Carbolite Low Carb No Sugar Added White Chocolate Macadamia",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "orange-cream-bar",
+   "name": "Orange Cream Bar",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 8,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "peaches-n-cream",
+   "name": "Peaches n Cream",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "whipped-lemonade",
+   "name": "Whipped Lemonade",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dole-soft-serve-pomegranate-flavor",
+   "name": "DOLE Soft Serve ® Pomegranate Flavor",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 25,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "nerds-rainbow-candy-sorbet",
+   "name": "Nerds ® Rainbow Candy Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 8,
+      "saturatedFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "menchie-razzle-dazzle-vegan-sorbet",
+   "name": "Menchie Razzle Dazzle Vegan Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "menchie-snazzy-jazzy-vegan-sorbet",
+   "name": "Menchie Snazzy Jazzy Vegan Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-n-chocolate-fudge-made-with-reese-s-peanut-but",
+   "name": "Peanut Butter ‘n’ Chocolate Fudge made with Reese’s ® Peanut Butter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 2,
+     "carbsG": 7,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "toasty-marshmallow",
+   "name": "Toasty Marshmallow",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-cherry-rocket-pop-sorbet",
+   "name": "Vegan Cherry Rocket Pop Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-chocolate-mint",
+   "name": "Carbolite Low Carb Chocolate Mint",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "carbolite-low-carb-no-sugar-added-colombian-supremo-coffee",
+   "name": "Carbolite Low Carb No Sugar Added Colombian Supremo Coffee",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "s-mores-made-with-hershey-s-milk-chocolate",
+   "name": "S’mores made with Hershey’s ® Milk Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "reese-s-peanut-butter-cup",
+   "name": "Reese’s ® Peanut Butter Cup",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-hawaiian-pog-sorbet",
+   "name": "Vegan Hawaiian POG Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spiced-gingerbread-cookie",
+   "name": "Spiced Gingerbread Cookie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-butter",
+   "name": "Cookie Butter",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-chew-raspberry",
+   "name": "HI-CHEW ® Raspberry",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-chew-key-lime-pie",
+   "name": "HI-CHEW ® Key Lime Pie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-iced-coffee",
+   "name": "No Sugar Added Iced Coffee",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "just-the-cookie",
+   "name": "Just The Cookie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "just-the-creme",
+   "name": "Just The Crème",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-plum",
+   "name": "Sweet Plum",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-blue-raspberry-sorbet",
+   "name": "Vegan Blue Raspberry Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-salted-caramel",
+   "name": "Vegan Salted Caramel",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-mint-chocolate-chip-made-with-almond-milk",
+   "name": "Vegan Mint Chocolate Chip Made With Almond Milk",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-watermelon-sorbet",
+   "name": "Vegan Watermelon Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-rocky-road",
+   "name": "Vegan Rocky Road",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fruity-cereal",
+   "name": "Fruity Cereal",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dubai-chocolate",
+   "name": "Dubai Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-covered-raspberry-made-with-hershey-s-chocolate",
+   "name": "Chocolate Covered Raspberry made with Hershey’s Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 40,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "white-peppermint-bark-made-with-hershey-s-premier-white-chip",
+   "name": "White Peppermint Bark made with Hershey’s Premier White Chips",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "no-sugar-added-blue-raspberry",
+   "name": "No Sugar Added Blue Raspberry",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cinnamon-roll",
+   "name": "Cinnamon Roll",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 35,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "iced-hazelnut-latte",
+   "name": "Iced Hazelnut Latte",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-blueberry-muffin",
+   "name": "Classic Blueberry Muffin",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hi-chew-grapefruit",
+   "name": "Hi-Chew Grapefruit",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-sweet-white-peach-sorbet",
+   "name": "Vegan Sweet White Peach Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "classic-vanilla-cupcake",
+   "name": "Classic Vanilla Cupcake",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-juicy-mango-hibiscus-sorbet",
+   "name": "Vegan Juicy Mango Hibiscus Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegan-strawberry-lemonade-sorbet",
+   "name": "Vegan Strawberry Lemonade Sorbet",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "watermelon-sorbet-made-with-jolly-rancher-flavor",
+   "name": "watermelon sorbet made with jolly rancher ® flavor",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gourmet-cafe-gelato",
+   "name": "Gourmet Café Gelato",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 28,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 20,
+      "saturatedFatG": 1,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "creamy-rootbeer-float",
+   "name": "Creamy Rootbeer Float",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 30,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-frosted-donut-made-with-dove-chocolate",
+   "name": "Chocolate Frosted Donut Made With DOVE ® Chocolate",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 30,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sugar-cookie",
+   "name": "Sugar Cookie",
+   "category": "Flavors",
+   "sizes": [
+    {
+     "size": "1 oz",
+     "label": "1 oz",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 25,
+      "saturatedFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}
