@@ -32,10 +32,30 @@ portions by ~30%. Held-out TEST (one run per model):
 | model | setup | kcal MAPE | median | within 20% | bias |
 |---|---|---|---|---|---|
 | 3.8-flash | none | 32.1% | 29.4% | 12/40 | +8.0% |
-| 3.8-flash | half-strength (shipped) | 29.3% | 27.5% | 13/40 | −0.9% |
+| 3.8-flash | half-strength | 29.3% | 27.5% | 13/40 | −0.9% |
 | 3.8-flash | full | 28.5% | 30.9% | 17/40 | −9.8% |
 | 3.1-pro | none | 40.6% | 28.6% | 16/40 | +23.1% |
 | 3.1-pro | full | 33.2% | 23.4% | 15/40 | −0.8% |
 
-Half strength removes the bias on both TRAIN and TEST without the ~10%
-undercount of full strength. Improvements are within the 40-dish noise band.
+Half strength looked right on 40 dishes, but those improvements were within the
+40-dish noise band — superseded by the larger study below.
+
+## 200-dish study (11 Oct 2026) — quarter strength shipped
+
+200 TEST dishes, two runs per model (400 scored photos each). Same factors,
+scaled to none / quarter / half / three-quarter / full:
+
+| model | setup | kcal MAPE | median | within 20% | bias |
+|---|---|---|---|---|---|
+| 3.8-flash | none | 28.0% | 23.6% | 44.0% | +1.8% |
+| 3.8-flash | **quarter (shipped)** | **27.7%** | **23.5%** | **44.2%** | **−2.1%** |
+| 3.8-flash | half | 27.8% | 24.9% | 40.7% | −5.9% |
+| 3.8-flash | full | 29.5% | 26.6% | 33.7% | −13.6% |
+| 3.1-pro | none | 30.9% | 24.9% | 43.2% | +7.1% |
+| 3.1-pro | half (its best) | 29.2% | 24.7% | 41.5% | −2.2% |
+
+On 200 dishes 3.8-flash barely overestimates, so half strength undercounted;
+quarter strength is best on every measure. 3.8-flash beats 3.1-pro uncalibrated
+by 2.9 points (paired 95% CI 0.2–5.7) and swings less between runs on the same
+dish (12.3% vs 16.6%). Lesson: don't tune on 40 dishes — single runs swing
+±10 points.
