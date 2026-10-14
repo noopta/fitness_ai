@@ -83,6 +83,8 @@ function CaptureScreenInner() {
   const invalidate = useInvalidate();
   const camRef = useRef<any>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  // The photo being read right now (Library, today's photos, or a shot): the frame shows it, frozen, instead of the live camera.
+  const [readingUri, setReadingUri] = useState<string | null>(null);
   const [log, setLog] = useState<{ verb: ReceiptVerb; text: string }[]>([]);
   const [items, setItems] = useState<Item[] | null>(null);
   const [gap, setGap] = useState<string | null>(null);
@@ -242,11 +244,12 @@ function CaptureScreenInner() {
 
   /** Read a plate (or a label) from a local photo. Expects busy already set; clears it. */
   const analyze = async (uri: string) => {
+    setReadingUri(uri);
     try {
       if (labelFor) {
         const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1280 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
         await readLabel(labelFor, small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any })));
-        setBusy(false);
+        setReadingUri(null); setBusy(false);
         return;
       }
       let b64: string;
@@ -266,7 +269,7 @@ function CaptureScreenInner() {
         : await nutritionApi.analyzePhoto(b64, 'image/jpeg');
       if (photoV2 && (r?.noFoodDetected || r?.meal?.noFoodDetected)) {
         Alert.alert('No food spotted', 'Try again from above with the whole plate — and any sides or drinks — in frame.');
-        setPhotoUri(null); setLog([]); setBusy(false);
+        setPhotoUri(null); setLog([]); setReadingUri(null); setBusy(false);
         return;
       }
       const its: Item[] = itemsFromPhoto(r);
@@ -280,6 +283,7 @@ function CaptureScreenInner() {
       Alert.alert(labelFor ? 'Couldn\'t read the label' : 'Couldn\'t read the plate', e?.message ?? (labelFor ? 'Try again, flat and in focus.' : 'Try again with the whole plate in frame.'));
       setPhotoUri(null); setLog([]);
     }
+    setReadingUri(null);
     setBusy(false);
   };
 
@@ -449,7 +453,7 @@ function CaptureScreenInner() {
           {!lookupPending ? <SourceLinks sources={mealSources(raw)} style={{ marginTop: 12 }} /> : null}
           <View style={styles.totals}>
             {[[tot.calories, 'kcal', v2.color.ink], [tot.proteinG, 'protein', v2.color.macro.protein], [tot.carbsG, 'carbs', v2.color.macro.carbs], [tot.fatG, 'fat', v2.color.macro.fat]].map(([n, l, c]) => (
-              <View key={String(l)}><Text style={[T.hero, { fontSize: 28, lineHeight: 32, letterSpacing: -0.8, color: String(c) }]}>{String(n)}</Text><Text style={T.caption}>{String(l)}</Text></View>
+              <View key={String(l)}><Text style={[T.hero, { fontSize: 28, lineHeight: 32, letterSpacing: -0.8, color: String(c) }]} numberOfLines={1}>{String(Math.round(Number(n) || 0))}</Text><Text style={T.caption}>{String(l)}</Text></View>
             ))}
           </View>
           {gap ? <Text style={[T.bodyMuted, { marginTop: 14 }]}>{gap}</Text> : null}
@@ -494,13 +498,14 @@ function CaptureScreenInner() {
       </View>
       <View style={styles.frame}>
         {hasCam && device && perm.hasPermission && mode !== 'describe' ? (
-          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive photo={mode === 'photo'} codeScanner={codeScanner} {...(zoom != null ? { zoom } : {})} />
+          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive={!readingUri} photo={mode === 'photo'} codeScanner={codeScanner} {...(zoom != null ? { zoom } : {})} />
         ) : (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
             {mode === 'describe' ? null : <Text style={[T.body, { color: v2.color.darkMuted, textAlign: 'center' }]}>{hasCam ? 'Camera permission is off. Allow it in Settings, or describe the meal.' : 'This build has no camera module. Describe the meal instead.'}</Text>}
           </View>
         )}
-        {mode !== 'describe' ? (
+        {readingUri ? <Image source={{ uri: readingUri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityLabel="The photo being read" /> : null}
+        {mode !== 'describe' && !readingUri ? (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             {[['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']].map(([y, x]) => (
               <View key={y + x} style={[styles.corner, { [y]: 18, [x]: 18, [`border${y[0].toUpperCase() + y.slice(1)}Width`]: 1.5, [`border${x[0].toUpperCase() + x.slice(1)}Width`]: 1.5 } as any]} />
@@ -509,7 +514,7 @@ function CaptureScreenInner() {
             {photoV2 && mode === 'photo' ? <View style={styles.plateGuide} /> : null}
           </View>
         ) : null}
-        {hasUltraWide ? (
+        {hasUltraWide && !readingUri ? (
           <View style={styles.lensWrap} pointerEvents="box-none"><View style={styles.lensToggle}>
             {(['uw', 'wide'] as const).map((l) => (
               <Pressable key={l} onPress={() => { haptics.select(); setLens(l); }} hitSlop={6} style={[styles.lensBtn, lens === l && styles.lensBtnOn]} accessibilityRole="button" accessibilityLabel={l === 'uw' ? 'Ultra-wide lens' : 'Standard lens'}>
