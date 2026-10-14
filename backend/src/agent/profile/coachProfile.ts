@@ -10,6 +10,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete } from '../../services/cacheService.js';
+import { dayLabel, shiftDate, todayIn } from '../cards/format.js';
 
 const prisma = new PrismaClient();
 
@@ -221,11 +222,33 @@ export function readInjuries(blob: Record<string, any>, constraintsText: string 
   if (Array.isArray(blob.injuryList)) return blob.injuryList as Injury[];
   const text = [blob.injuries, constraintsText].filter((x) => typeof x === 'string' && x.trim()).join('; ');
   const parts = [...new Set(text.split(/;\s*|\n/).map((s) => s.trim()).filter(Boolean))];
-  return parts.map((p) => ({ area: p }));
+  return parts.filter((p) => !NO_INJURY.test(p)).map((p) => ({ area: p }));
 }
-export async function writeInjuries(userId: string, list: Injury[]) {
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, constraintsText: true } });
+
+// An intake answer of "No" / "None" is not an injury, but splitting the text
+// on ";" made one ("No; Achilles tendon …" → an injury called "No").
+const NO_INJURY = /^(no|none|nope|n\/?a|nothing|no injuries?)\.?$/i;
+
+/**
+ * Injury notes are read every day, so "today" has to become a date when it's
+ * written: a note saved as "underwent surgical repair today" (since: today)
+ * made Anakin say "surgery today" every day after. Pure; exported for tests.
+ */
+export function absoluteInjuryDates(list: Injury[], today: string): Injury[] {
+  const yest = shiftDate(today, -1);
+  const fix = (t: string) => t
+    .replace(/\bthis morning\b/gi, `on the morning of ${dayLabel(today)}`)
+    .replace(/\b(earlier )?today\b/gi, `on ${dayLabel(today)}`)
+    .replace(/\byesterday\b/gi, `on ${dayLabel(yest)}`);
+  const since = (v: string) => /^\s*today\s*$/i.test(v) ? today : /^\s*yesterday\s*$/i.test(v) ? yest : v;
+  return list
+    .filter((i) => i?.area && !NO_INJURY.test(String(i.area).trim()))
+    .map((i) => ({ ...i, area: fix(i.area), ...(i.note ? { note: fix(i.note) } : {}), ...(i.since ? { since: since(i.since) } : {}) }));
+}
+export async function writeInjuries(userId: string, input: Injury[]) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, constraintsText: true, timezone: true } });
   if (!u) throw new Error('User not found');
+  const list = absoluteInjuryDates(input, todayIn(u.timezone || 'America/New_York'));
   const blob = parseBlob(u.coachProfile);
   const previous = { injuryList: blob.injuryList ?? null, injuries: blob.injuries ?? null, constraintsText: u.constraintsText ?? null };
   const active = list.filter((i) => !i.resolvedAt);

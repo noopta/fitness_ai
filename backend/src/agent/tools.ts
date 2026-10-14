@@ -15,6 +15,7 @@ import { buildSwapProposal, getCurrentWeekSchedule, SwapProposalError } from '..
 import { bodyWeightKg, displayWeight, normalizePreference, parseToKg, unitLabel } from '../services/weightUnits.js';
 import { latestNutritionPlan } from '../services/nutritionPlanService.js';
 import { computeMicroTargets, statusFor } from '../services/microTargetsService.js';
+import { todayIn } from './cards/format.js';
 import { scoreGutWeek, distinctPlants } from '../services/gutHealthScoreService.js';
 import { freeTextToExercises } from '../services/workoutExercises.js';
 import type { AgentTool } from './types.js';
@@ -187,7 +188,7 @@ const readWellness: AgentTool = {
 const readMicroStatus: AgentTool = {
   name: 'read_micro_status',
   description:
-    "Read the user's micronutrient status vs their personal targets over recent days, plus their weekly gut pillars (fiber, plant diversity, fermented foods, ultra-processed share, logging rhythm). Values are ±30% estimates — speak in status bands ('low on magnesium'), never precise milligrams. Call before answering any 'how's my iron/fiber/gut health' question or suggesting micronutrient-driven food changes.",
+    "Read the user's micronutrient status vs their personal targets over recent days, plus their weekly gut pillars (fiber, plant diversity, fermented foods, ultra-processed share, logging rhythm). Values are ±30% estimates — give the amount with \"about\" and against the target ('about 7 mg zinc a day, under your 11 mg'), never false precision. Call before answering any 'how's my iron/fiber/gut health' question or suggesting micronutrient-driven food changes.",
   input_schema: {
     type: 'object',
     properties: {
@@ -196,7 +197,9 @@ const readMicroStatus: AgentTool = {
   },
   execute: async (input, userId) => {
     const days = Math.max(1, Math.min(14, Number(input.days) || 7));
-    const end = todayStr();
+    // The user's day, not the server's UTC day.
+    const tzRow = await Promise.resolve().then(() => prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } })).catch(() => null);
+    const end = todayIn(tzRow?.timezone || 'America/New_York');
     const start = (() => {
       const d = new Date(`${end}T00:00:00Z`);
       d.setUTCDate(d.getUTCDate() - (days - 1));

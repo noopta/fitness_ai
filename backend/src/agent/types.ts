@@ -54,6 +54,8 @@ export interface AgentTool {
 /** Everything the agent knows about the user at the start of a turn. */
 export interface UserContext {
   userId: string;
+  /** The user's local date and time (their timezone), stated to the model. */
+  now?: { date: string; yesterday: string; label: string; tz: string };
   /** Adaptive-progression snapshot — a pending proposal is usually what a
    *  user means by "your suggestion"; details come from read_adaptation. */
   adaptation?: { pendingCount: number; latestTitle: string | null } | null;

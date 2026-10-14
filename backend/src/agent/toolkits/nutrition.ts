@@ -14,6 +14,8 @@ import { dayLabel, num, plural, clockTime } from '../cards/format.js';
 import type { CardAction, CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import type { ItemLookupResult } from '../../services/food/brandedLookup.js';
+import { latestNutritionPlan } from '../../services/nutritionPlanService.js';
+import { computeMicroTargets } from '../../services/microTargetsService.js';
 
 type Slot = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'meal';
 const SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner', 'snack', 'meal'];
@@ -28,7 +30,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 // ── Day totals vs targets (the program's macros are the app's source of truth) ─
 export async function dayNutrition(userId: string, date: string) {
   const [meals, u, workouts] = await Promise.all([
-    prisma.mealEntry.findMany({ where: { userId, date }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, mealType: true, calories: true, proteinG: true, carbsG: true, fatG: true, createdAt: true, servings: true } }),
+    prisma.mealEntry.findMany({ where: { userId, date }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, mealType: true, calories: true, proteinG: true, carbsG: true, fatG: true, createdAt: true, servings: true, nutrientsJson: true } }),
     prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, subtractWorkoutBurnFromCalories: true } }),
     prisma.workoutLog.findMany({ where: { userId, date }, select: { caloriesBurnedKcal: true } }),
   ]);
@@ -368,14 +370,27 @@ export const NUTRITION_TOOLS = [
   }),
   tool({
     name: 'read_nutrition_today', kind: 'read', core: true, fn: 'NUT-10',
-    description: 'What the user has eaten on a day (default today): each meal, totals, targets (with workout calories added when that setting is on) and what’s left. Call before any nutrition advice.',
+    description: 'What the user has eaten on a day (default today): each meal with its logged micronutrients, totals, macro targets (with workout calories added when that setting is on), what’s left, and the day’s micronutrients against their targets. Call before any nutrition advice, and for “what micronutrients did that hit?”.',
     input_schema: schema({ date: { type: 'string' } }),
     receipt: () => ({ verb: 'Pulled', text: 'Today’s food' }),
     refine: (r) => r?.totals ? `Nutrition — ${Math.round(r.totals.calories)} kcal so far` : null,
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const d = await dayNutrition(userId, /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today);
-      return { ...d, meals: d.meals.map((m) => ({ id: m.id, name: m.name, mealType: m.mealType, calories: m.calories, proteinG: m.proteinG })) };
+      // Micros as logged, so "what did that meal hit?" gets amounts against the
+      // user's targets instead of a list of nutrient names (14 Oct 2026).
+      const plan = await latestNutritionPlan(userId).catch(() => null);
+      const targets = (plan?.targets?.targets?.length ? plan.targets : computeMicroTargets({})).targets;
+      const microsOf = (m: any): Record<string, number> => { try { return JSON.parse(m.nutrientsJson ?? '{}') ?? {}; } catch { return {}; } };
+      const pick = (n: Record<string, number>) => Object.fromEntries(targets.map((t) => [t.key, Math.round((Number(n[t.key]) || 0) * 10) / 10]).filter(([, v]) => (v as number) > 0));
+      const day: Record<string, number> = {};
+      for (const m of d.meals) for (const [k, v] of Object.entries(microsOf(m))) if (Number.isFinite(Number(v))) day[k] = (day[k] ?? 0) + Number(v);
+      return {
+        ...d,
+        meals: d.meals.map((m) => ({ id: m.id, name: m.name, mealType: m.mealType, calories: m.calories, proteinG: m.proteinG, micros: pick(microsOf(m)) })),
+        micros: targets.map((t) => ({ nutrient: t.label, unit: t.unit, amount: Math.round((day[t.key] ?? 0) * 10) / 10, target: t.target, pctOfTarget: t.target ? Math.round(((day[t.key] ?? 0) / t.target) * 100) : null, direction: t.direction })),
+        microsNote: 'Logged estimates (about ±30%). Quote amounts with "about" and as a share of the target.',
+      };
     },
     card: (_i, r, ctx) => ({
       fn: r.date === ctx.today ? 'NUT-10' : 'NUT-11', pattern: 'glance', rule: 'show', meta: { label: r.date === ctx.today ? 'Today' : dayLabel(r.date), open: { page: 'fuel' } },
@@ -473,15 +488,17 @@ export const NUTRITION_TOOLS = [
     }),
   }),
   tool({
-    name: 'open_food_capture', kind: 'intent', fn: 'NUT-02',
-    description: 'Open the camera to log food: mode photo (snap a meal), barcode (scan a package; label scan if it isn’t found), order (screenshot of a takeout order), or describe (type it). The result comes back into the chat.',
+    // Core (always loaded): when it sat behind tool search the model skipped it and
+    // said "Camera's open" with nothing on screen (14 Oct 2026).
+    name: 'open_food_capture', kind: 'intent', fn: 'NUT-02', core: true,
+    description: 'The ONLY way to open the camera / food logger. Call it whenever the user wants to log food but hasn’t said what it was ("I want to log food", "log my lunch", "I have a pic", "let me scan this") — don’t ask what they ate first. Modes: photo (default; the screen also has Barcode and Describe tabs), barcode (a package), order (a takeout screenshot). The result comes back into the chat. Never say the camera is open unless you called this.',
     input_schema: schema({ mode: { type: 'string', enum: ['photo', 'barcode', 'order', 'describe'] } }),
     receipt: (i) => ({ verb: 'Opened', text: i.mode === 'barcode' ? 'Scanner' : i.mode === 'order' ? 'Order scan' : 'Camera' }),
     execute: async (input) => ({ mode: ['photo', 'barcode', 'order', 'describe'].includes(str(input.mode)) ? str(input.mode) : 'photo' }),
     card: (_i, r) => ({
       fn: r.mode === 'barcode' ? 'NUT-03' : r.mode === 'order' ? 'NUT-05' : 'NUT-02', pattern: 'capture', rule: 'log_undo',
       meta: { label: r.mode === 'barcode' ? 'Scanner open' : r.mode === 'order' ? 'Order scan' : 'Camera open' },
-      note: 'Waiting for your photo. Cancel on the camera and nothing is logged.',
+      note: r.mode === 'barcode' ? 'Scan the barcode. Cancel on the camera and nothing is logged.' : 'Snap the plate — or switch to Barcode or Describe on that screen. Cancel and nothing is logged.',
       handoff: { label: r.mode === 'barcode' ? 'Scan' : 'Open camera', action: 'open_camera', args: { mode: r.mode } },
       actions: [{ id: 'cancel', label: 'Cancel', kind: 'cancel' }],
       pending: { answer: { op: 'capture.meal_logged', valueKey: 'value' }, actions: { cancel: { kind: 'cancel', line: 'Cancelled — nothing logged' } } },

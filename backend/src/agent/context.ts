@@ -10,12 +10,22 @@ import { bodyWeightKg, displayWeight, normalizePreference, unitLabel } from '../
 import type { UserContext } from './types.js';
 import { CONSENT_LABEL, parseConsent, type ConsentKey } from './consent.js';
 import { buildTrainingSummary, trainingSummaryEnabledFor } from '../services/trainingSummary.js';
+import { shiftDate } from './cards/format.js';
 
 const prisma = new PrismaClient();
 
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/**
+ * The user's own clock. The model was never told the date, so "yesterday" was
+ * a guess (13 Oct 2026: it called yesterday Oct 11, then treated a finished
+ * Oct 12 as today), and "today's intake" used the server's UTC day — after
+ * 8 pm in Toronto that is already tomorrow. Pure; exported for tests.
+ */
+export function localNow(tz: string, now = new Date()): { date: string; yesterday: string; label: string; tz: string } {
+  let zone = tz;
+  try { new Intl.DateTimeFormat('en-US', { timeZone: zone }); } catch { zone = 'America/New_York'; }
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  const label = now.toLocaleString('en-US', { timeZone: zone, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return { date, yesterday: shiftDate(date, -1), label, tz: zone };
 }
 
 function avg(xs: number[]): number {
@@ -23,7 +33,9 @@ function avg(xs: number[]): number {
 }
 
 export async function assembleContext(userId: string): Promise<UserContext> {
-  const date = todayStr();
+  const tzRow = await Promise.resolve().then(() => prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } })).catch(() => null);
+  const now = localNow(tzRow?.timezone || 'America/New_York');
+  const date = now.date;
 
   // Run the independent reads in parallel — they don't depend on each other.
   const userP = prisma.user.findUnique({
@@ -115,6 +127,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
 
   return {
     userId,
+    now,
     profile: {
       name: user.name,
       tier: user.tier,
@@ -153,6 +166,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
 export function renderContext(ctx: UserContext): string {
   const p = ctx.profile;
   const lines: string[] = ['## What you know about this user'];
+  if (ctx.now) lines.push(`Right now it is ${ctx.now.label} for the user (${ctx.now.tz}). Today = ${ctx.now.date}; yesterday = ${ctx.now.yesterday}. Use these dates for "today", "yesterday" and "last night" — never guess.`);
 
   const profileBits: string[] = [];
   if (p.name) profileBits.push(`name: ${p.name}`);
@@ -184,7 +198,7 @@ export function renderContext(ctx: UserContext): string {
     // Omitted on purpose; no "nothing logged" line to mislead the model.
   } else if (ctx.todayNutrition) {
     const n = ctx.todayNutrition;
-    lines.push(`Today's intake so far — ${Math.round(n.calories)} kcal, ${Math.round(n.proteinG)}g P / ${Math.round(n.carbsG)}g C / ${Math.round(n.fatG)}g F across ${n.mealCount} meal(s).`);
+    lines.push(`Today's intake (${n.date}) so far — ${Math.round(n.calories)} kcal, ${Math.round(n.proteinG)}g P / ${Math.round(n.carbsG)}g C / ${Math.round(n.fatG)}g F across ${n.mealCount} meal(s).`);
   } else {
     lines.push("Today's intake — nothing logged yet.");
   }

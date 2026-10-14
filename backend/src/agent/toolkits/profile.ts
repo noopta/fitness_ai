@@ -257,7 +257,7 @@ export const PROFILE_TOOLS = [
     name: 'update_injuries', kind: 'set', core: true, fn: 'PRO-10',
     description: 'Record a new injury or pain the user reports, or mark one healed. Ask (in words) how long it has hurt and how bad it is if they didn’t say; pass since and severity when known. Red-flag symptoms (radiating pain, numbness, chest pain, dizziness) mean: tell them to see a clinician before loading it. After recording, offer to swap the affected lifts — don’t swap without asking.',
     input_schema: schema({
-      add: { type: 'array', items: { type: 'object', properties: { area: { type: 'string', description: 'e.g. "Left shoulder on overhead press"' }, note: { type: 'string' }, since: { type: 'string', description: 'e.g. "2 weeks"' }, severity: { type: 'string', enum: ['mild', 'moderate', 'severe'] } }, required: ['area'] } },
+      add: { type: 'array', items: { type: 'object', properties: { area: { type: 'string', description: 'e.g. "Left shoulder on overhead press"' }, note: { type: 'string' }, since: { type: 'string', description: 'How long ("2 weeks") or the start date as YYYY-MM-DD — never "today"; notes are read on later days, so write dates, not "today"' }, severity: { type: 'string', enum: ['mild', 'moderate', 'severe'] } }, required: ['area'] } },
       resolve: { type: 'array', items: { type: 'string' }, description: 'Areas that have healed.' },
     }),
     receipt: (i) => ({ verb: 'Noted', text: Array.isArray(i.add) && i.add.length ? `Injury · ${(i.add as any[])[0].area}` : 'Injury healed' }),

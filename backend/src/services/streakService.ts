@@ -207,7 +207,7 @@ export async function recordActivity(
     Math.random() < SURPRISE_REWARD_PROBABILITY;
 
   // Personalized log hour for at-risk timing
-  const observedHour = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/New_York' }), 10);
+  const observedHour = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: 'America/New_York' }), 10);
   const hourField =
     kind === 'workout' ? 'typicalWorkoutLogHour' : 'typicalNutritionLogHour';
   const prevHour = kind === 'workout' ? user.typicalWorkoutLogHour : user.typicalNutritionLogHour;
@@ -254,7 +254,7 @@ export async function findAtRiskStreaks(
 ): Promise<Array<{ userId: string; kind: StreakKind; streak: number }>> {
   const today = todayString(now);
   const hourEST = parseInt(
-    now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/New_York' }),
+    now.toLocaleString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: 'America/New_York' }),
     10,
   );
   const cutoff20h = new Date(now.getTime() - 20 * 3600 * 1000);

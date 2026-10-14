@@ -18,6 +18,7 @@ import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
 import { needsPlanCard, PLAN_CARD_NUDGE } from './nutrientAdvice.js';
+import { claimsCaptureWithoutTool, CAPTURE_NUDGE } from './actionClaims.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -51,7 +52,9 @@ How changes work — the app enforces these, so follow them:
 - Calorie and macro targets never depend on a program: change them whenever asked, program or not (freestyle included). Never tell someone a target will be set "after" something else.
 - Only say a card is on their screen when this turn's tool result says card_shown. If a tool returned an error, say in one line what failed and what you'll do instead — never re-promise the same card. If they say Apply failed, believe them: build it again with a different tool (e.g. propose_new_program with fromLogs for "use my workouts") rather than repeating the one that failed.
 - DRAFT tools (posts, comments, messages, friend requests, invites, group posts, partner sessions) only draft; nothing is sent until the user taps Send. CONFIRM tools (deletes, leaving, restarting the intake, account deletion) show what will be lost; the tap deletes. Never describe a draft as sent or a delete as done.
-- INTENT tools open something on the phone (camera, scanner, store sheet, settings, a session). Say what they'll see in one line.
+- INTENT tools open something on the phone (camera, scanner, store sheet, settings, a session). Say what they'll see in one line. Never say something is open, logged, saved or changed unless a tool call in THIS turn did it — the chat can't open the camera or receive a photo by itself.
+- Logging food: when they want to log food but haven't said what ("I want to log food", "log my dinner", "I have a pic", "let me scan it"), call open_food_capture in that same turn — don't ask "what did you eat?" first. If they then type what they ate instead, use log_meal.
+- Micronutrients: when they ask what a meal or day hit, read_nutrition_today (that day) and answer with the logged amounts against their targets ("about 125 mg vitamin C, past your 90 mg") — never just a list of nutrient names. Any number about today comes from today's data; never reuse a figure from an earlier day.
 - When log_meal returns needsDetail, nothing was logged: ask exactly that question in one short sentence and stop. Their answer goes back into log_meal with the fuller description (clarified=true if they don't know). When a meal was looked up, say where the numbers came from in a few words ("from Open Food Facts", "from starbucks.ca"). When it stayed an estimate, just say it's an estimate — never claim a brand doesn't publish its nutrition.
 - If they say a screen shows nothing logged but you can read their entries, say what's saved and for which day, and that it's an app problem you've flagged — never blame their phone or tell them to force-quit.
 - When the user asks to undo something you changed, use undo_change (read_change_log first if you need the id).
@@ -226,6 +229,7 @@ export async function runAgentTurn(
   let truncationRetried = false;
   // Nutrient advice without a plan card gets one more step (nutrientAdvice.ts).
   let planNudged = false;
+  let captureNudged = false;
   let nudgedReply = '';
 
   while (iterations < MAX_ITERATIONS) {
@@ -250,6 +254,12 @@ export async function runAgentTurn(
           role: 'user',
           content: '(Your previous attempt was cut off before any text was produced. Answer the question now in concise prose using the information you already gathered — do not call more tools.)',
         });
+        continue;
+      }
+      if (opts.cardContract === 2 && !captureNudged && claimsCaptureWithoutTool(reply, toolsUsed)) {
+        // The claim was false: drop that reply, let the model open the camera.
+        captureNudged = true;
+        messages.push({ role: 'user', content: CAPTURE_NUDGE });
         continue;
       }
       if (opts.cardContract === 2 && !planNudged && needsPlanCard(reply, toolsUsed)) {
@@ -384,6 +394,7 @@ export async function streamAgentTurn(
   onEvent({ type: 'receipt', id: 'r0', verb: 'Read', text: ctx.todayNutrition ? 'Your profile and today' : 'Your profile', final: true });
   let truncationRetried = false;
   let planNudged = false;
+  let captureNudged = false;
 
   const finish = async (reply: string): Promise<AgentTurnResult> => {
     if (contract === 2) {
@@ -419,6 +430,13 @@ export async function streamAgentTurn(
           role: 'user',
           content: '(Your previous attempt was cut off before any text was produced. Answer the question now in concise prose using the information you already gathered — do not call more tools.)',
         });
+        continue;
+      }
+      if (contract === 2 && !captureNudged && claimsCaptureWithoutTool(text, toolsUsed)) {
+        // Already streamed, but the done reply replaces it on the phone: drop it.
+        captureNudged = true;
+        finalText = '';
+        messages.push({ role: 'user', content: CAPTURE_NUDGE });
         continue;
       }
       if (contract === 2 && !planNudged && needsPlanCard(text, toolsUsed)) {
