@@ -16,6 +16,7 @@ import type { FoodRegion } from '../prompts/regionPrompts.js';
 import type { ExistingItemRef, MealPhotoV2Raw } from './mealPhotoSchema.js';
 import { CALIBRATED_MODEL, CALIBRATION_ON, calibrateItem } from './portionCalibration.js';
 import { applyLabelMicros, type LabelMicros } from './brandedLookup.js';
+import { anchorToPastMeal, type MemoryMatch, type PastMeal } from './mealMemory.js';
 import { LruCache, mealPhotoCacheKey, recordAddPhotoGrant, type AddPhotoGrant } from './mealPhotoCache.js';
 import { mealLevelItem, resolveItems, sumItems, itemId, type ItemLookup, type MealItem } from './mealPhotoItems.js';
 
@@ -38,6 +39,8 @@ export interface MealPhotoRequest {
   userFoods?: string[];
   /** Grant consumed by a free add-photo call; its new items share it. */
   addPhotoGrant?: AddPhotoGrant | null;
+  /** The user's recent itemised meals: a photo of the same meal reuses their numbers (mealMemory.ts). */
+  pastMeals?: PastMeal[];
 }
 
 type Enrich = (
@@ -64,6 +67,8 @@ export type MealPhotoResponse = ParsedMealDetail & {
   framingWarning: string | null;
   noFoodDetected: boolean;
   analysisId: string;
+  /** Set when the photo matched a meal the user already logged and reused its numbers. */
+  memory?: MemoryMatch | null;
 };
 
 // Final v2 responses (minus analysisId) keyed by image hash. 200 entries of a
@@ -200,6 +205,13 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
       response = { ...body, analysisId };
     }
     recordAddPhotoGrant(req.userId, prefix, req.addPhotoGrant ?? null, now());
+    // Same meal, same numbers: a photo of a meal this user already logged reuses
+    // that log's items. Applied per user after the (image-keyed) cache, and not
+    // on add-photo calls, which extend a meal already on screen.
+    if (!req.existingItems?.length && req.pastMeals?.length) {
+      const m = anchorToPastMeal(response.items, req.pastMeals);
+      if (m.match) response = { ...response, items: m.items, ...sumItems(m.items), memory: m.match };
+    }
   }
 
   (deps.log ?? ((l: string) => console.log('[meal-photo]', l)))(JSON.stringify({
@@ -211,6 +223,7 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
     itemCount: response.items.length,
     usdaHits,
     cacheHit,
+    memory: response.memory ? response.memory.items : 0,
     latencyMs: now() - started,
     existingItems: req.existingItems.length,
     framingWarning: !!response.framingWarning,

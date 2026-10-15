@@ -115,10 +115,15 @@ function CaptureScreenInner() {
   const perm = hasCam ? vision.useCameraPermission() : { hasPermission: false, requestPermission: async () => false };
   useEffect(() => { if (hasCam && !perm.hasPermission) void perm.requestPermission(); }, [hasCam]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const codeScanner = hasCam && mode === 'barcode' ? vision.useCodeScanner({
+  // Always the same hooks on every render: calling useCodeScanner only in barcode
+  // mode crashed the screen ("Should have a queue") whenever the mode changed —
+  // e.g. the switch to the label photo after a miss (14 Oct 2026). The scanner is
+  // attached to the camera only in barcode mode instead.
+  const modeRef = useRef(mode); modeRef.current = mode;
+  const codeScanner = hasCam ? vision.useCodeScanner({
     codeTypes: ['ean-13', 'ean-8', 'upc-a', 'upc-e', 'code-128'],
     onCodeScanned: (codes: any[]) => {
-      if (scanned.current || busy) return;
+      if (modeRef.current !== 'barcode' || scanned.current || busy) return;
       const c = codes?.[0]?.value; if (!c) return;
       scanned.current = true;
       void lookup(String(c));
@@ -139,6 +144,9 @@ function CaptureScreenInner() {
       micros: Object.keys(scaleMicros(base, f)).length ? scaleMicros(base, f) : scaleMicros(p.nutrients, f),
     };
   };
+  // Lookups can take 30 s (the web search); nothing may pop up after the user has left.
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
   const lookup = async (code: string) => {
     setBusy(true); setLog([{ verb: 'Read', text: `Barcode ${code}` }]);
     try {
@@ -169,6 +177,7 @@ function CaptureScreenInner() {
       haptics.success();
     } catch {
       setLog([]);
+      if (!mounted.current) return;
       Alert.alert('Nothing on the web either', 'Scan the nutrition label, or type it in.', [
         { text: 'Scan the label', onPress: () => startLabel(code) },
         { text: 'Type it', onPress: () => typeIt() },
@@ -407,6 +416,8 @@ function CaptureScreenInner() {
   const scanLine = useSharedValue(0);
   useEffect(() => { scanLine.value = withRepeat(withTiming(1, { duration: 1400 }), -1, true); }, [scanLine]);
   const lineStyle = useAnimatedStyle(() => ({ top: `${12 + scanLine.value * 76}%` }));
+  // A code was read and is being looked up (or its result / miss sheet is up): stop scanning until they rescan.
+  const barcodeHeld = mode === 'barcode' && (busy || !!missed || !!product);
   const tot = useMemo(() => (items ?? []).reduce((a, i) => ({ calories: a.calories + i.calories, proteinG: a.proteinG + i.proteinG, carbsG: a.carbsG + i.carbsG, fatG: a.fatG + i.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }), [items]);
   const time = new Date();
   const header = `${slot.charAt(0).toUpperCase()}${slot.slice(1)} · ${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
@@ -498,7 +509,7 @@ function CaptureScreenInner() {
       </View>
       <View style={styles.frame}>
         {hasCam && device && perm.hasPermission && mode !== 'describe' ? (
-          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive={!readingUri} photo={mode === 'photo'} codeScanner={codeScanner} {...(zoom != null ? { zoom } : {})} />
+          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive={!readingUri && !barcodeHeld} photo={mode === 'photo'} codeScanner={mode === 'barcode' ? codeScanner : undefined} {...(zoom != null ? { zoom } : {})} />
         ) : (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
             {mode === 'describe' ? null : <Text style={[T.body, { color: v2.color.darkMuted, textAlign: 'center' }]}>{hasCam ? 'Camera permission is off. Allow it in Settings, or describe the meal.' : 'This build has no camera module. Describe the meal instead.'}</Text>}
@@ -510,7 +521,7 @@ function CaptureScreenInner() {
             {[['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']].map(([y, x]) => (
               <View key={y + x} style={[styles.corner, { [y]: 18, [x]: 18, [`border${y[0].toUpperCase() + y.slice(1)}Width`]: 1.5, [`border${x[0].toUpperCase() + x.slice(1)}Width`]: 1.5 } as any]} />
             ))}
-            {mode === 'barcode' ? <Animated.View style={[styles.scanLine, lineStyle]} /> : null}
+            {mode === 'barcode' && !barcodeHeld ? <Animated.View style={[styles.scanLine, lineStyle]} /> : null}
             {photoV2 && mode === 'photo' ? <View style={styles.plateGuide} /> : null}
           </View>
         ) : null}

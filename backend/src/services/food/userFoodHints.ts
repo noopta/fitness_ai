@@ -3,6 +3,7 @@
 // Saved foods (use count) first, then frequent meal names from 60 days.
 
 import { PrismaClient } from '@prisma/client';
+import { parsePastItems, type PastMeal } from './mealMemory.js';
 
 const prisma = new PrismaClient();
 const TTL_MS = 60 * 60 * 1000;
@@ -34,4 +35,15 @@ export async function userFoodHints(userId: string): Promise<string[]> {
   const foods = pickHints(saved, meals);
   cache.set(userId, { at: Date.now(), foods });
   return foods;
+}
+
+/** The user's itemised meals from the last 60 days, newest first, for "same meal, same numbers". */
+export async function userPastMeals(userId: string): Promise<PastMeal[]> {
+  const since = new Date(Date.now() - 60 * 86_400_000);
+  const rows = await prisma.mealEntry.findMany({
+    where: { userId, createdAt: { gte: since }, ingredientNutrientsJson: { not: null } },
+    orderBy: { createdAt: 'desc' }, take: 40,
+    select: { id: true, date: true, name: true, ingredientNutrientsJson: true },
+  }).catch(() => []);
+  return rows.map((r) => ({ id: r.id, date: r.date, name: r.name, items: parsePastItems(r.ingredientNutrientsJson) })).filter((m) => m.items.length > 0);
 }

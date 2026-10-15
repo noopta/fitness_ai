@@ -41,10 +41,14 @@ const gemini = new GoogleGenAI({
 // Single env var (GEMINI_VISION_MODEL) governs both food-photo and form-video
 // analysis. 3.1-pro-preview is on the Vertex `global` endpoint.
 const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-preview';
-// Meal photos have their own model since Oct 2026: gemini-3.8-flash halved
-// same-photo calorie swings vs 3.1-pro (12% vs 23%) at the same speed and a
-// Flash price. Label scans and order screenshots stay on GEMINI_VISION_MODEL.
-const MEAL_PHOTO_MODEL = process.env.MEAL_PHOTO_MODEL || 'gemini-3.8-flash';
+// Meal photos have their own model. Since 15 Oct 2026: gemini-4-argon — on 200
+// lab-weighed Nutrition5k dishes × 3 runs it averaged 25.8% calorie error vs
+// 28.2% for gemini-3.8-flash with portion calibration (paired 95% CI −4.6 to
+// −0.2 pts; better in every run), within 20% on 48% vs 44% of dishes, and it
+// needs no calibration (bias −2%). MEAL_PHOTO_MODEL=gemini-3.8-flash reverts
+// (calibration then applies again). Label scans and order screenshots stay on
+// GEMINI_VISION_MODEL.
+const MEAL_PHOTO_MODEL = process.env.MEAL_PHOTO_MODEL || 'gemini-4-argon';
 // Typed-meal parsing: an OpenRouter chat model by default; a "gemini-…" id
 // runs it on Vertex instead (MEAL_PARSE_MODEL).
 // Default gemini-3.8-flash since 11 Oct 2026: on 18 verified items with the
@@ -2915,7 +2919,7 @@ export async function analyzeMealPhotoItems(
       // extra 1k tokens costs seconds of scan latency, so it's
       // MEAL_PHOTO_THINKING_BUDGET-tunable; default from the Oct 2026 benchmark.
       // BUDGET = the pre-Oct-2026 token budget (how 3.1-pro ran), kept for comparisons.
-      thinkingConfig: MEAL_PHOTO_MODEL.startsWith('gemini-3') && MEAL_PHOTO_THINKING_LEVEL !== 'BUDGET' ? { thinkingLevel: MEAL_PHOTO_THINKING_LEVEL as any } : { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
+      thinkingConfig: /^gemini-([3-9]|\d{2,})/.test(MEAL_PHOTO_MODEL) && MEAL_PHOTO_THINKING_LEVEL !== 'BUDGET' ? { thinkingLevel: MEAL_PHOTO_THINKING_LEVEL as any } : { thinkingBudget: MEAL_PHOTO_THINKING_BUDGET },
       maxOutputTokens: 12288,
     },
     contents: [{ role: 'user', parts: [

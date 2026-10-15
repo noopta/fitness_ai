@@ -51,7 +51,7 @@ import { asksForLookup, resolveAll } from '../services/food/foodResolver.js';
 import { getLookupJob, startLookupJob } from '../services/food/lookupJobs.js';
 import { parseTypedMeal } from '../services/food/typedMeal.js';
 import { TEXT_LOOKUP_ENABLED, sourceLabel, domainOf } from '../services/food/brandedLookup.js';
-import { userFoodHints } from '../services/food/userFoodHints.js';
+import { userFoodHints, userPastMeals } from '../services/food/userFoodHints.js';
 
 
 const router = Router();
@@ -889,9 +889,9 @@ router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res)
     }
 
     const region = normalizeFoodRegion(body.regionHint ?? user.foodRegion);
-    const [userFoods, tz] = v2 ? await Promise.all([userFoodHints(userId).catch(() => []), requestTz(req)]) : [[], null];
+    const [userFoods, tz, pastMeals] = v2 ? await Promise.all([userFoodHints(userId).catch(() => []), requestTz(req), userPastMeals(userId).catch(() => [])]) : [[], null, []];
     const result = await runMealPhotoAnalysis(
-      { userId, images, existingItems, region, v2, addPhotoGrant, userFoods },
+      { userId, images, existingItems, region, v2, addPhotoGrant, userFoods, pastMeals },
       {
         model: MEAL_PHOTO_V2_MODEL,
         analyzeV2: analyzeMealPhotoItems,
