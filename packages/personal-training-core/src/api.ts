@@ -314,7 +314,7 @@ export function createApi(fetcher: Fetcher) {
     archiveExercise: (eid: string) => fetcher(`${API_PREFIX}/exercises/${encodeURIComponent(eid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
     programs: (filter: { clientId?: string; templates?: boolean } = {}) =>
       fetcher(`${API_PREFIX}/programs${filter.clientId ? `?clientId=${encodeURIComponent(filter.clientId)}` : filter.templates ? '?templates=1' : ''}`) as Promise<{ programs: ProgramSummary[] }>,
-    program: (pid: string) => fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}`) as Promise<{ program: TrainerProgram }>,
+    trainerProgram: (pid: string) => fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}`) as Promise<{ program: TrainerProgram }>,
     createProgram: (input: { clientId?: string; isTemplate?: boolean; name?: string; description?: string; doc?: ProgramDoc; fromProgramId?: string; daysPerWeek?: number; startDate?: string }) =>
       fetcher(`${API_PREFIX}/programs`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ program: TrainerProgram }>,
     /** Axiom drafts it; the rules engine checks it; it lands as a draft on the canvas. */

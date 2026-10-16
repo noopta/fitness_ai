@@ -6,6 +6,7 @@ import type { ClientGoal, PortalHome } from '@axiom/personal-training-core';
 import { Card, Eyebrow, PortalButton, ProgressBar } from '../components';
 import { checkInMinutes, formatDay, formatMonth, formatValue } from '../helpers';
 import { usePortalNav } from '../hooks';
+import { NextSessionCard } from './BookScreen';
 
 const TIP_KEY = 'axiom.ptPortal.homeTipDismissed';
 
@@ -50,6 +51,8 @@ export function HomeScreen({ home }: { home: PortalHome }) {
           {home.checkIns.length > 0 ? `${trainerFirst} is waiting to hear how you're doing.` : "You're all caught up."}
         </p>
       </div>
+
+      <NextSessionCard />
 
       {home.checkIns.map((c) => (
         <button

@@ -131,7 +131,8 @@ describe('roster', () => {
     await screen.findByRole('table');
     const rail = screen.getAllByRole('navigation', { name: /personal training/i })[0];
     expect(within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '/personal-training', '/personal-training/clients', '/personal-training/check-ins', '/personal-training/progress', '/personal-training/anakin',
+      '/personal-training', '/personal-training/clients', '/personal-training/inbox', '/personal-training/check-ins', '/personal-training/progress',
+      '/personal-training/programs', '/personal-training/schedule', '/personal-training/billing', '/personal-training/anakin',
     ]);
     expect(within(rail).getByRole('link', { name: /clients/i })).toHaveAttribute('aria-current', 'page');
     expect(within(rail).getByRole('link', { name: /briefing/i })).not.toHaveAttribute('aria-current');

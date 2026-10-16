@@ -5,13 +5,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Dumbbell, Home, ImageIcon, LinkIcon, MessageCircle, NotebookPen } from 'lucide-react';
+import { CalendarDays, CreditCard, Dumbbell, Home, ImageIcon, LinkIcon, MessageCircle, MoreHorizontal, NotebookPen } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import type { PortalHome } from '@axiom/personal-training-core';
 import { cn } from '@/lib/utils';
 import { createPortalClient, isInactiveLinkError, type FullPortalApi } from './api';
 import { LoadFailed, PracticeMark, SkeletonBlock } from './components';
 import { accentVars } from './helpers';
 import { PortalApiContext, useHome, usePortalNav, type PortalTab } from './hooks';
+import { BillingScreen } from './screens/BillingScreen';
+import { BookScreen } from './screens/BookScreen';
 import { CheckInScreen } from './screens/CheckInScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IntakeScreen } from './screens/IntakeScreen';
@@ -21,12 +24,19 @@ import { PhotosScreen } from './screens/PhotosScreen';
 import { ProgramScreen } from './screens/ProgramScreen';
 import { ReportScreen } from './screens/ReportScreen';
 
-const TABS: { id: PortalTab; label: string; icon: typeof Home }[] = [
+type Dest = { id: PortalTab; label: string; icon: typeof Home };
+
+/** The bar holds four destinations and More; the rest live in the More sheet. */
+const BAR: Dest[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'log', label: 'Log', icon: NotebookPen },
-  { id: 'photos', label: 'Photos', icon: ImageIcon },
+  { id: 'book', label: 'Book', icon: CalendarDays },
   { id: 'messages', label: 'Messages', icon: MessageCircle },
+  { id: 'log', label: 'Log', icon: NotebookPen },
+];
+const MORE: Dest[] = [
   { id: 'program', label: 'Program', icon: Dumbbell },
+  { id: 'photos', label: 'Photos', icon: ImageIcon },
+  { id: 'billing', label: 'Pay', icon: CreditCard },
 ];
 
 /** Keep search engines away from a page whose URL is a credential. */
@@ -71,41 +81,76 @@ function LoadingShell() {
   );
 }
 
-function TabBar({ active, unread, onSelect }: { active: PortalTab | null; unread: number; onSelect: (t: PortalTab) => void }) {
+const barItem = (selected: boolean) => cn(
+  'relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors',
+  'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-ring/20',
+  selected ? 'text-foreground' : 'text-axiom-zinc-500 hover:text-foreground',
+);
+
+function Indicator({ on }: { on: boolean }) {
+  return <span aria-hidden className={cn('absolute inset-x-4 top-0 h-[3px] rounded-b-full', on ? 'bg-[var(--portal-accent)]' : 'bg-transparent')} />;
+}
+
+/**
+ * Bottom navigation: links with aria-current rather than tabs, since each
+ * destination is its own screen with its own URL. More opens a sheet.
+ */
+function TabBar({ active, unread, onSelect, style }: { active: PortalTab | null; unread: number; onSelect: (t: PortalTab) => void; style?: React.CSSProperties }) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const inMore = MORE.some((m) => m.id === active);
   return (
-    <nav aria-label="Portal" className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-      <div role="tablist" aria-label="Sections" className="mx-auto flex max-w-[560px]">
-        {TABS.map(({ id, label, icon: Icon }) => {
+    <nav aria-label="Sections" className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <ul className="mx-auto flex max-w-[560px]">
+        {BAR.map(({ id, label, icon: Icon }) => {
           const selected = active === id;
           return (
-            <button
-              key={id}
-              id={`portal-tab-${id}`}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls="portal-panel"
-              onClick={() => onSelect(id)}
-              className={cn(
-                'relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors',
-                'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-ring/20',
-                selected ? 'text-foreground' : 'text-axiom-zinc-500 hover:text-foreground',
-              )}
-            >
-              <span aria-hidden className={cn('absolute inset-x-4 top-0 h-[3px] rounded-b-full', selected ? 'bg-[var(--portal-accent)]' : 'bg-transparent')} />
-              <span className="relative">
-                <Icon aria-hidden className="size-5" />
-                {id === 'messages' && unread > 0 && (
-                  <span aria-hidden className="absolute -right-2.5 -top-1.5 grid min-w-4 place-items-center rounded-full bg-[var(--portal-accent)] px-1 text-[10px] font-bold leading-4 text-[var(--portal-on-accent)]">
-                    {unread > 9 ? '9+' : unread}
-                  </span>
-                )}
-              </span>
-              <span>{label}{id === 'messages' && unread > 0 && <span className="sr-only">, {unread} unread</span>}</span>
-            </button>
+            <li key={id} className="flex flex-1">
+              <button type="button" aria-current={selected ? 'page' : undefined} onClick={() => onSelect(id)} className={barItem(selected)}>
+                <Indicator on={selected} />
+                <span className="relative">
+                  <Icon aria-hidden className="size-5" />
+                  {id === 'messages' && unread > 0 && (
+                    <span aria-hidden className="absolute -right-2.5 -top-1.5 grid min-w-4 place-items-center rounded-full bg-[var(--portal-accent)] px-1 text-[10px] font-bold leading-4 text-[var(--portal-on-accent)]">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </span>
+                <span>{label}{id === 'messages' && unread > 0 && <span className="sr-only">, {unread} unread</span>}</span>
+              </button>
+            </li>
           );
         })}
-      </div>
+        <li className="flex flex-1">
+          <button type="button" aria-haspopup="dialog" aria-expanded={moreOpen} aria-current={inMore ? 'page' : undefined} onClick={() => setMoreOpen(true)} className={barItem(inMore)}>
+            <Indicator on={inMore} />
+            <MoreHorizontal aria-hidden className="size-5" />
+            <span>More</span>
+          </button>
+        </li>
+      </ul>
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="mx-auto max-w-[560px] rounded-t-2xl pb-[calc(1rem+env(safe-area-inset-bottom))]" style={style}>
+          <SheetHeader className="mb-2 text-left">
+            <SheetTitle>More</SheetTitle>
+            <SheetDescription className="sr-only">Other sections of your page</SheetDescription>
+          </SheetHeader>
+          <ul className="space-y-1">
+            {MORE.map(({ id, label, icon: Icon }) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  aria-current={active === id ? 'page' : undefined}
+                  onClick={() => { setMoreOpen(false); onSelect(id); }}
+                  className={cn('flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-[15px] font-semibold focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/20', active === id ? 'bg-axiom-zinc-100' : 'hover:bg-axiom-zinc-50')}
+                >
+                  <Icon aria-hidden className="size-5 text-axiom-zinc-600" />
+                  {label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </SheetContent>
+      </Sheet>
     </nav>
   );
 }
@@ -121,6 +166,9 @@ function Portal({ home }: { home: PortalHome }) {
   }, [branding.practiceName]);
 
   const activeTab: PortalTab | null = checkIn || report || tab === 'intake' ? null : tab;
+  // The sheet renders in a portal outside this root, so it gets the accent too.
+  const accent = accentVars(branding.brandColor) as React.CSSProperties;
+  const screenName = checkIn ? 'Check-in' : report ? 'Report' : tab === 'intake' ? 'Intake' : [...BAR, ...MORE].find((d) => d.id === tab)?.label ?? 'Home';
   const screen = checkIn ? <CheckInScreen key={checkIn} id={checkIn} />
     : report ? <ReportScreen key={report} id={report} trainerName={branding.trainerName} />
     : tab === 'log' ? <LogScreen weightUnit={home.client.unit} />
@@ -128,10 +176,12 @@ function Portal({ home }: { home: PortalHome }) {
     : tab === 'intake' ? <IntakeScreen trainerName={branding.trainerName} />
     : tab === 'messages' ? <MessagesScreen trainerName={branding.trainerName} />
     : tab === 'program' ? <ProgramScreen />
+    : tab === 'book' ? <BookScreen trainerName={branding.trainerName} />
+    : tab === 'billing' ? <BillingScreen />
     : <HomeScreen home={home} />;
 
   return (
-    <div className="min-h-screen bg-axiom-zinc-50 text-foreground" style={accentVars(branding.brandColor) as React.CSSProperties}>
+    <div className="min-h-screen bg-axiom-zinc-50 text-foreground" style={accent}>
       <header className="border-b border-border bg-background">
         <Column className="flex items-center gap-3 py-3">
           <PracticeMark branding={branding} />
@@ -143,14 +193,12 @@ function Portal({ home }: { home: PortalHome }) {
       </header>
       <main
         id="portal-panel"
-        role="tabpanel"
-        aria-labelledby={activeTab ? `portal-tab-${activeTab}` : undefined}
-        aria-label={activeTab ? undefined : checkIn ? 'Check-in' : report ? 'Report' : 'Intake'}
+        aria-label={screenName}
         className="overflow-x-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-5"
       >
         <Column>{screen}</Column>
       </main>
-      <TabBar active={activeTab} unread={home.unreadMessages} onSelect={(t) => go({ tab: t })} />
+      <TabBar active={activeTab} unread={home.unreadMessages} onSelect={(t) => go({ tab: t })} style={accent} />
     </div>
   );
 }

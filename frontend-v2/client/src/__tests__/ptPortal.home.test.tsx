@@ -96,7 +96,7 @@ describe('portal home', () => {
     expect(screen.getByText(/Now 6 km · Target 10 km/)).toBeInTheDocument();
 
     expect(screen.getByText('2 new messages')).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /^Messages\s*,\s*2 unread$/ })).toBeInTheDocument();
+    expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: /^Messages\s*,\s*2 unread$/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /September 2026/ })).toBeInTheDocument();
 
     expect(document.title).toBe('Kofi Coaching · Axiom');
@@ -136,7 +136,7 @@ describe('portal home', () => {
     renderPortal();
     expect(await screen.findByRole('heading', { name: 'This link is no longer active.' })).toBeInTheDocument();
     expect(screen.getByText('Ask your trainer for a new one.')).toBeInTheDocument();
-    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Sections' })).not.toBeInTheDocument();
   });
 });
 
@@ -197,6 +197,7 @@ describe('portal messages and program', () => {
   it('says when there is no program yet', async () => {
     renderPortal('?tab=program');
     expect(await screen.findByText("Your trainer hasn't shared a program here yet.")).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Program' })).toHaveAttribute('aria-selected', 'true');
+    // Program lives under More, which is marked as the current section.
+    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-current', 'page');
   });
 });

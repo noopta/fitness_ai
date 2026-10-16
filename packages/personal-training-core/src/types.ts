@@ -1074,6 +1074,10 @@ export interface BookingView {
   usedCredit: boolean;
   location: string | null;
   notes: string | null;
+  /** On a cancel: whether the session credit went back to the client's plan. */
+  creditReturned?: boolean;
+  /** Hours of notice a client needs to cancel and keep their credit. */
+  cancelNoticeHours?: number;
 }
 
 // ─── Retention and multi-coach teams ────────────────────────────────────────

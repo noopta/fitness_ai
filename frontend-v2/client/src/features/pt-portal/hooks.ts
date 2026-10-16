@@ -20,9 +20,9 @@ export function usePortalApi(): FullPortalApi {
 
 // ─── Navigation (query params, so email and DM deep links work) ─────────────
 
-export type PortalTab = 'home' | 'log' | 'photos' | 'messages' | 'program' | 'intake';
-/** Every `?tab=` value; the intake is reached from Home, not the tab bar. */
-export const PORTAL_TABS: PortalTab[] = ['home', 'log', 'photos', 'messages', 'program', 'intake'];
+export type PortalTab = 'home' | 'book' | 'messages' | 'log' | 'photos' | 'program' | 'billing' | 'intake';
+/** Every `?tab=` value; the intake is reached from Home, the rest from the bar or More. */
+export const PORTAL_TABS: PortalTab[] = ['home', 'book', 'messages', 'log', 'photos', 'program', 'billing', 'intake'];
 
 export function usePortalNav() {
   const { token = '' } = useParams<{ token: string }>();
@@ -33,6 +33,9 @@ export function usePortalNav() {
   const tab: PortalTab = rawTab && PORTAL_TABS.includes(rawTab) ? rawTab : 'home';
   const checkIn = params.get('checkin');
   const report = params.get('report');
+  /** The offer a trainer's payment link picked, and Stripe's return flag. */
+  const offer = params.get('offer');
+  const paid = params.get('paid') === '1';
   const go = useCallback((next: { tab?: PortalTab; checkin?: string; report?: string }) => {
     const q = new URLSearchParams();
     if (next.checkin) q.set('checkin', next.checkin);
@@ -44,7 +47,7 @@ export function usePortalNav() {
       try { window.scrollTo(0, 0); } catch { /* not in every environment */ }
     }
   }, [navigate, token]);
-  return { token, tab, checkIn, report, go };
+  return { token, tab, checkIn, report, offer, paid, go };
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -232,4 +235,69 @@ export function useLogMeal() {
 export function useReport(id: string) {
   const api = usePortalApi();
   return useQuery({ queryKey: portalKeys.report(id), queryFn: () => api.report(id), enabled: !!id });
+}
+
+// ─── Paying and booking ──────────────────────────────────────────────────────
+
+export const portalBusinessKeys = {
+  billing: ['pt-portal', 'billing'] as const,
+  slots: ['pt-portal', 'slots'] as const,
+  bookings: ['pt-portal', 'bookings'] as const,
+};
+
+export function usePortalBilling() {
+  const api = usePortalApi();
+  return useQuery({ queryKey: portalBusinessKeys.billing, queryFn: () => api.billing(), staleTime: 30_000, refetchOnWindowFocus: true });
+}
+
+export function useCheckout() {
+  const api = usePortalApi();
+  return useMutation({ mutationFn: (offerId: string) => api.checkout(offerId) });
+}
+
+export function useManageBilling() {
+  const api = usePortalApi();
+  return useMutation({ mutationFn: () => api.manageBilling() });
+}
+
+export function useSlots() {
+  const api = usePortalApi();
+  return useQuery({ queryKey: portalBusinessKeys.slots, queryFn: () => api.slots(14), staleTime: 30_000, refetchOnWindowFocus: true });
+}
+
+export function usePortalBookings() {
+  const api = usePortalApi();
+  return useQuery({ queryKey: portalBusinessKeys.bookings, queryFn: () => api.bookings(), staleTime: 30_000, refetchOnWindowFocus: true });
+}
+
+export function useBook() {
+  const api = usePortalApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (slot: { startsAt: string; trainerId?: string }) => api.book(slot.startsAt, slot.trainerId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.bookings });
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.slots });
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.billing });
+    },
+    onError: (err) => {
+      // Someone else took it: show what is actually open now.
+      if ((err as { code?: string | null }).code === 'slot_taken') void qc.invalidateQueries({ queryKey: portalBusinessKeys.slots });
+    },
+  });
+}
+
+export function useCancelBooking() {
+  const api = usePortalApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.cancelBooking(id),
+    onSuccess: ({ booking }) => {
+      qc.setQueryData<{ bookings: import('@axiom/personal-training-core').BookingView[] }>(portalBusinessKeys.bookings, (d) =>
+        d ? { bookings: d.bookings.map((b) => (b.id === booking.id ? booking : b)) } : d);
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.bookings });
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.slots });
+      void qc.invalidateQueries({ queryKey: portalBusinessKeys.billing });
+    },
+  });
 }

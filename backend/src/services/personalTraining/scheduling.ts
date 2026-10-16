@@ -126,6 +126,7 @@ type Row = Awaited<ReturnType<typeof prisma.ptBooking.findMany>>[number];
 const view = (b: Row, names: Map<string, string>): BookingView => ({
   id: b.id, clientId: b.clientId, clientName: names.get(b.clientId) ?? 'Client', trainerId: b.trainerId, startsAt: b.startsAt.toISOString(), endsAt: b.endsAt.toISOString(),
   status: b.status as BookingView['status'], source: b.source as BookingView['source'], usedCredit: !!b.planId, location: b.location, notes: b.notes,
+  cancelNoticeHours: CANCEL_NOTICE_HOURS,
 });
 
 async function names(ids: string[]) {
@@ -196,7 +197,7 @@ export async function cancel(input: { practiceId: string; bookingId: string; by:
   // A trainer's cancel, or a client's with enough notice, gives the credit back.
   if (row.planId && !lateForClient) await refundCredit(row.planId);
   await audit({ practiceId: input.practiceId, trainerId: row.trainerId, clientId: row.clientId, action: 'session_cancelled', itemType: 'booking', itemId: row.id, meta: { by: input.by, creditReturned: !!row.planId && !lateForClient } });
-  return view(updated, await names([row.clientId]));
+  return { ...view(updated, await names([row.clientId])), creditReturned: !!row.planId && !lateForClient };
 }
 
 export async function markSession(practiceId: string, trainerId: string, bookingId: string, status: unknown): Promise<BookingView> {
