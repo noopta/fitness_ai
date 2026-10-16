@@ -74,8 +74,23 @@ jobs:
           # Through env, first line only: a commit message with quotes in it
           # broke the shell command when interpolated inline (7 Oct).
           MSG: ${{ github.event.head_commit.message }}
+          # EAS Update code signing (Oct 2026 audit). When the private key
+          # secret is present the update is signed; binaries built with the
+          # matching certificate in app.json refuse unsigned/foreign updates.
+          EXPO_UPDATES_PRIVATE_KEY: ${{ secrets.EXPO_UPDATES_PRIVATE_KEY }}
         run: |
-          npx eas-cli update --branch production --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
+          SIGN=""
+          if [ -n "$EXPO_UPDATES_PRIVATE_KEY" ]; then
+            mkdir -p "$RUNNER_TEMP/eas-keys"
+            printf '%s' "$EXPO_UPDATES_PRIVATE_KEY" > "$RUNNER_TEMP/eas-keys/private-key.pem"
+            SIGN="--private-key-path $RUNNER_TEMP/eas-keys/private-key.pem"
+          else
+            # No key secret yet: publish unsigned (as before) rather than fail.
+            # Binaries built with the certificate will ignore unsigned updates,
+            # so add EXPO_UPDATES_PRIVATE_KEY before shipping such a build.
+            node -e "const f='app.json',j=require('./'+f);delete j.expo.updates.codeSigningCertificate;delete j.expo.updates.codeSigningMetadata;require('fs').writeFileSync(f,JSON.stringify(j,null,2)+'\n')"
+          fi
+          npx eas-cli update --branch production --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive $SIGN
 
   # ── Backport branches: OTA for an older store runtime ─────────────────────
   # The runtime comes from the branch's own app.json, so a 3.1.0 backport only
@@ -103,8 +118,20 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EAS_SKIP_AUTO_FINGERPRINT: '1'
           MSG: ${{ github.event.head_commit.message }}
+          EXPO_UPDATES_PRIVATE_KEY: ${{ secrets.EXPO_UPDATES_PRIVATE_KEY }}
         run: |
-          npx eas-cli update --branch production --platform ios --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive
+          SIGN=""
+          if [ -n "$EXPO_UPDATES_PRIVATE_KEY" ]; then
+            mkdir -p "$RUNNER_TEMP/eas-keys"
+            printf '%s' "$EXPO_UPDATES_PRIVATE_KEY" > "$RUNNER_TEMP/eas-keys/private-key.pem"
+            SIGN="--private-key-path $RUNNER_TEMP/eas-keys/private-key.pem"
+          else
+            # No key secret yet: publish unsigned (as before) rather than fail.
+            # Binaries built with the certificate will ignore unsigned updates,
+            # so add EXPO_UPDATES_PRIVATE_KEY before shipping such a build.
+            node -e "const f='app.json',j=require('./'+f);delete j.expo.updates.codeSigningCertificate;delete j.expo.updates.codeSigningMetadata;require('fs').writeFileSync(f,JSON.stringify(j,null,2)+'\n')"
+          fi
+          npx eas-cli update --branch production --platform ios --message "$(printf '%s' "$MSG" | head -n1)" --non-interactive $SIGN
 
   # ── Manual trigger only: full build + TestFlight submit ───────────────────
   build-and-submit:
