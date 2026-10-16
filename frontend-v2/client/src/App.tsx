@@ -57,6 +57,11 @@ import PersonalTrainingNotificationSettingsPage from "./features/personal-traini
 import PersonalTrainingImportPage from "./features/personal-training/pages/ImportPage";
 import PersonalTrainingPracticeSettingsPage from "./features/personal-training/pages/PracticeSettingsPage";
 import PtPortalApp from "./features/pt-portal/PortalApp";
+import PersonalTrainingLeadsPage from "./features/personal-training/pages/LeadsPage";
+import PersonalTrainingTeamJoinPage from "./features/personal-training/pages/TeamJoinPage";
+import PersonalTrainingTeamPage from "./features/personal-training/pages/TeamPage";
+import PersonalTrainingRetentionPage from "./features/personal-training/pages/RetentionPage";
+import PtPublicPracticePage from "./features/pt-public/PublicPracticePage";
 import PersonalTrainingProgramsPage from "./features/personal-training/pages/ProgramsPage";
 import PersonalTrainingProgramBuilderPage from "./features/personal-training/pages/ProgramBuilderPage";
 import PersonalTrainingLibraryPage from "./features/personal-training/pages/LibraryPage";
@@ -190,6 +195,10 @@ const ProtectedPersonalTrainingProgress = () => <ProtectedRoute component={Perso
 const ProtectedPersonalTrainingAnakin   = () => <ProtectedRoute component={PersonalTrainingAnakinPage} />;
 const ProtectedPersonalTrainingNotificationSettings = () => <ProtectedRoute component={PersonalTrainingNotificationSettingsPage} />;
 const ProtectedPersonalTrainingPracticeSettings = () => <ProtectedRoute component={PersonalTrainingPracticeSettingsPage} />;
+const ProtectedPersonalTrainingLeadsPage = () => <ProtectedRoute component={PersonalTrainingLeadsPage} />;
+const ProtectedPersonalTrainingTeamJoinPage = () => <ProtectedRoute component={PersonalTrainingTeamJoinPage} />;
+const ProtectedPersonalTrainingTeamPage = () => <ProtectedRoute component={PersonalTrainingTeamPage} />;
+const ProtectedPersonalTrainingRetentionPage = () => <ProtectedRoute component={PersonalTrainingRetentionPage} />;
 const ProtectedPersonalTrainingProgramsPage = () => <ProtectedRoute component={PersonalTrainingProgramsPage} />;
 const ProtectedPersonalTrainingProgramBuilderPage = () => <ProtectedRoute component={PersonalTrainingProgramBuilderPage} />;
 const ProtectedPersonalTrainingLibraryPage = () => <ProtectedRoute component={PersonalTrainingLibraryPage} />;
@@ -265,6 +274,12 @@ function Router() {
       <Route path="/personal-training/anakin/:threadId?" component={ProtectedPersonalTrainingAnakin} />
       <Route path="/personal-training/settings/notifications" component={ProtectedPersonalTrainingNotificationSettings} />
       <Route path="/personal-training/settings/practice" component={ProtectedPersonalTrainingPracticeSettings} />
+      <Route path="/personal-training/leads" component={ProtectedPersonalTrainingLeadsPage} />
+      <Route path="/personal-training/team/join/:token" component={ProtectedPersonalTrainingTeamJoinPage} />
+      <Route path="/personal-training/team" component={ProtectedPersonalTrainingTeamPage} />
+      <Route path="/personal-training/at-risk" component={ProtectedPersonalTrainingRetentionPage} />
+      {/* A practice's opt-in public page with its enquiry form. */}
+      <Route path="/p/:slug" component={PtPublicPracticePage} />
       <Route path="/personal-training/programs/:id" component={ProtectedPersonalTrainingProgramBuilderPage} />
       <Route path="/personal-training/programs" component={ProtectedPersonalTrainingProgramsPage} />
       <Route path="/personal-training/library" component={ProtectedPersonalTrainingLibraryPage} />
