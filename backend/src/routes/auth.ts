@@ -1311,15 +1311,16 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
     if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
     // Downscale to a thumbnail before storing. Avatars render at ~36px but were
-    // being stored at full camera resolution (~68KB base64) and embedded per
-    // user in every social-feed response. Resizing to 96px JPEG strips ~96% of
-    // that. If decoding fails (corrupt/unsupported image), fall back to the
-    // original so the upload still succeeds.
-    let toStore = avatarBase64;
+    // being stored at full camera resolution and embedded per user in every
+    // social-feed response. If the image can't be decoded (corrupt, oversized,
+    // decompression bomb) the upload is REJECTED — never store bytes we could
+    // not decode ourselves.
+    let toStore: string;
     try {
       toStore = await resizeAvatarBase64(avatarBase64);
-    } catch (e) {
-      console.error('[avatar] resize failed, storing original:', e);
+    } catch (e: any) {
+      console.warn('[avatar] rejected:', e?.message || e);
+      return res.status(typeof e?.status === 'number' ? e.status : 400).json({ error: 'That image could not be processed. Try a smaller JPEG or PNG.' });
     }
     await prisma.user.update({ where: { id: req.user!.id }, data: { avatarBase64: toStore } });
     res.json({ success: true });
