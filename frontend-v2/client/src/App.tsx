@@ -57,6 +57,12 @@ import PersonalTrainingNotificationSettingsPage from "./features/personal-traini
 import PersonalTrainingImportPage from "./features/personal-training/pages/ImportPage";
 import PersonalTrainingPracticeSettingsPage from "./features/personal-training/pages/PracticeSettingsPage";
 import PtPortalApp from "./features/pt-portal/PortalApp";
+import PersonalTrainingProgramsPage from "./features/personal-training/pages/ProgramsPage";
+import PersonalTrainingProgramBuilderPage from "./features/personal-training/pages/ProgramBuilderPage";
+import PersonalTrainingLibraryPage from "./features/personal-training/pages/LibraryPage";
+import PersonalTrainingInboxPage from "./features/personal-training/pages/InboxPage";
+import PersonalTrainingBillingPage from "./features/personal-training/pages/BillingPage";
+import PersonalTrainingSchedulePage from "./features/personal-training/pages/SchedulePage";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
@@ -184,6 +190,12 @@ const ProtectedPersonalTrainingProgress = () => <ProtectedRoute component={Perso
 const ProtectedPersonalTrainingAnakin   = () => <ProtectedRoute component={PersonalTrainingAnakinPage} />;
 const ProtectedPersonalTrainingNotificationSettings = () => <ProtectedRoute component={PersonalTrainingNotificationSettingsPage} />;
 const ProtectedPersonalTrainingPracticeSettings = () => <ProtectedRoute component={PersonalTrainingPracticeSettingsPage} />;
+const ProtectedPersonalTrainingProgramsPage = () => <ProtectedRoute component={PersonalTrainingProgramsPage} />;
+const ProtectedPersonalTrainingProgramBuilderPage = () => <ProtectedRoute component={PersonalTrainingProgramBuilderPage} />;
+const ProtectedPersonalTrainingLibraryPage = () => <ProtectedRoute component={PersonalTrainingLibraryPage} />;
+const ProtectedPersonalTrainingInboxPage = () => <ProtectedRoute component={PersonalTrainingInboxPage} />;
+const ProtectedPersonalTrainingBillingPage = () => <ProtectedRoute component={PersonalTrainingBillingPage} />;
+const ProtectedPersonalTrainingSchedulePage = () => <ProtectedRoute component={PersonalTrainingSchedulePage} />;
 const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
 // Tracks page views on every Wouter route change and syncs PostHog identity
@@ -253,6 +265,12 @@ function Router() {
       <Route path="/personal-training/anakin/:threadId?" component={ProtectedPersonalTrainingAnakin} />
       <Route path="/personal-training/settings/notifications" component={ProtectedPersonalTrainingNotificationSettings} />
       <Route path="/personal-training/settings/practice" component={ProtectedPersonalTrainingPracticeSettings} />
+      <Route path="/personal-training/programs/:id" component={ProtectedPersonalTrainingProgramBuilderPage} />
+      <Route path="/personal-training/programs" component={ProtectedPersonalTrainingProgramsPage} />
+      <Route path="/personal-training/library" component={ProtectedPersonalTrainingLibraryPage} />
+      <Route path="/personal-training/inbox/:clientId?" component={ProtectedPersonalTrainingInboxPage} />
+      <Route path="/personal-training/billing" component={ProtectedPersonalTrainingBillingPage} />
+      <Route path="/personal-training/schedule" component={ProtectedPersonalTrainingSchedulePage} />
       {/* A no-install client's portal: the secret link is the only key, so no Axiom sign-in. */}
       <Route path="/c/:token" component={PtPortalApp} />
       <Route path="/personal-training" component={ProtectedPersonalTrainingBriefing} />

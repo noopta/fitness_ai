@@ -78,5 +78,14 @@ export function createPortalApiExtra(fetcher: Fetcher) {
     /** `trainerProgram` is the trainer's published program; `program` is the client's own app program, if any. */
     programs: () => fetcher(`${P}/program`) as Promise<{ trainerProgram: PortalProgram | null; program: import('./types').ClientProgramView | null }>,
     applyProgram: () => fetcher(`${P}/program/apply`, { method: 'POST' }) as Promise<{ ok: true }>,
+    billing: () => fetcher(`${P}/billing`) as Promise<{ available: boolean; offers: import('./types').OfferView[]; plans: import('./types').ClientPlanView[]; payments: import('./types').PaymentView[] }>,
+    /** Returns Stripe's hosted checkout URL to navigate to. */
+    checkout: (offerId: string) => fetcher(`${P}/billing/checkout`, { method: 'POST', body: JSON.stringify({ offerId }) }) as Promise<{ url: string }>,
+    /** Stripe's customer portal: update card, cancel. */
+    manageBilling: () => fetcher(`${P}/billing/manage`, { method: 'POST' }) as Promise<{ url: string }>,
+    slots: (days = 14) => fetcher(`${P}/slots?days=${days}`) as Promise<{ slots: import('./types').Slot[] }>,
+    bookings: () => fetcher(`${P}/bookings`) as Promise<{ bookings: import('./types').BookingView[] }>,
+    book: (startsAt: string, trainerId?: string) => fetcher(`${P}/bookings`, { method: 'POST', body: JSON.stringify({ startsAt, ...(trainerId ? { trainerId } : {}) }) }) as Promise<{ booking: import('./types').BookingView }>,
+    cancelBooking: (id: string) => fetcher(`${P}/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' }) as Promise<{ booking: import('./types').BookingView }>,
   };
 }

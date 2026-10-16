@@ -8,6 +8,8 @@ import type {
   NotificationSettingsPatch, Practice, ProgressResponse, Report, ResolveAction, RosterResponse, ScheduledQuestion, TimelineKind,
   SheetMapping, TimelinePage, ClientGoal, ClientLinkInfo, Contraindication, CreateLinkClientResponse, GuardrailReport, Measurement,
   MeasurementKind, PracticeProfile, ProgressPhoto, TagCount, ClientState,
+  IntakeState, NutritionSummary, InboxThread, InboxConversation, LibraryExercise, ProgramSummary, TrainerProgram, ProgramDoc, ProgramAiRequest,
+  BillingStatus, OfferView, ClientPlanView, PaymentView, RevenueSummary, AvailabilityWindow, BookingView, Slot,
 } from './types';
 
 export const API_PREFIX = '/personal-training';
@@ -57,6 +59,19 @@ export const queryKeys = {
   goals: (id: string) => ['personal-training', 'clients', id, 'goals'] as const,
   measurements: (id: string) => ['personal-training', 'clients', id, 'measurements'] as const,
   photos: (id: string) => ['personal-training', 'clients', id, 'photos'] as const,
+  intake: (id: string) => ['personal-training', 'clients', id, 'intake'] as const,
+  nutrition: (id: string) => ['personal-training', 'clients', id, 'nutrition'] as const,
+  inbox: ['personal-training', 'inbox'] as const,
+  inboxThread: (id: string) => ['personal-training', 'inbox', id] as const,
+  exercises: (q: string) => ['personal-training', 'exercises', q] as const,
+  programs: (filter: string) => ['personal-training', 'programs', filter] as const,
+  programDetail: (id: string) => ['personal-training', 'program', id] as const,
+  billingStatus: ['personal-training', 'billing', 'status'] as const,
+  offers: ['personal-training', 'billing', 'offers'] as const,
+  revenue: ['personal-training', 'billing', 'revenue'] as const,
+  clientBilling: (id: string) => ['personal-training', 'clients', id, 'billing'] as const,
+  availability: ['personal-training', 'schedule', 'availability'] as const,
+  bookings: (range: string) => ['personal-training', 'schedule', 'bookings', range] as const,
 };
 
 /** One body part the editor offers, with the movement patterns it refuses by default. */
@@ -268,6 +283,74 @@ export function createApi(fetcher: Fetcher) {
       fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/photos`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ photos: ProgressPhoto[] }>,
     deletePhoto: (id: string, pid: string) =>
       fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/photos/${encodeURIComponent(pid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+
+    // ── Intake, nutrition, inbox, export ──
+    intake: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/intake`) as Promise<{ intake: IntakeState }>,
+    resetIntake: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/intake`, { method: 'DELETE' }) as Promise<{ intake: IntakeState }>,
+    nutrition: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/nutrition`) as Promise<{ nutrition: NutritionSummary }>,
+    setNutritionTargets: (id: string, t: { calories?: number | null; proteinG?: number | null; carbsG?: number | null; fatG?: number | null }) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/nutrition-targets`, { method: 'PUT', body: JSON.stringify(t) }) as Promise<{ nutrition: NutritionSummary }>,
+    inbox: () => fetcher(`${API_PREFIX}/inbox`) as Promise<{ threads: InboxThread[] }>,
+    inboxThread: (clientId: string) => fetcher(`${API_PREFIX}/inbox/${encodeURIComponent(clientId)}`) as Promise<InboxConversation>,
+    /** A drafted reply (pending). Send it with sendDraft; it goes through the undo window like every draft. */
+    draftInboxReply: (clientId: string) => fetcher(`${API_PREFIX}/inbox/${encodeURIComponent(clientId)}/draft`, { method: 'POST' }) as Promise<{ draft: Draft }>,
+    /** Relative paths for download links; the platform prefixes its API base. */
+    exportPaths: { json: `${API_PREFIX}/export`, clients: `${API_PREFIX}/export/clients.csv`, workouts: `${API_PREFIX}/export/workouts.csv`, measurements: `${API_PREFIX}/export/measurements.csv`, contraindications: `${API_PREFIX}/export/contraindications.csv` },
+
+    // ── Exercise library and programs ──
+    exercises: (q: { q?: string; pattern?: string; equipment?: string } = {}) => {
+      const qs = Object.entries(q).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v!)}`).join('&');
+      return fetcher(`${API_PREFIX}/exercises${qs ? `?${qs}` : ''}`) as Promise<{ exercises: LibraryExercise[]; equipment: string[] }>;
+    },
+    createExercise: (input: { name: string; patterns?: string[]; equipment?: string[]; videoUrl?: string | null; cues?: string; primaryMuscle?: string }) =>
+      fetcher(`${API_PREFIX}/exercises`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ exercise: LibraryExercise }>,
+    updateExercise: (eid: string, input: { name?: string; patterns?: string[]; equipment?: string[]; videoUrl?: string | null; cues?: string; primaryMuscle?: string }) =>
+      fetcher(`${API_PREFIX}/exercises/${encodeURIComponent(eid)}`, { method: 'PATCH', body: JSON.stringify(input) }) as Promise<{ exercise: LibraryExercise }>,
+    archiveExercise: (eid: string) => fetcher(`${API_PREFIX}/exercises/${encodeURIComponent(eid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    programs: (filter: { clientId?: string; templates?: boolean } = {}) =>
+      fetcher(`${API_PREFIX}/programs${filter.clientId ? `?clientId=${encodeURIComponent(filter.clientId)}` : filter.templates ? '?templates=1' : ''}`) as Promise<{ programs: ProgramSummary[] }>,
+    program: (pid: string) => fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}`) as Promise<{ program: TrainerProgram }>,
+    createProgram: (input: { clientId?: string; isTemplate?: boolean; name?: string; description?: string; doc?: ProgramDoc; fromProgramId?: string; daysPerWeek?: number; startDate?: string }) =>
+      fetcher(`${API_PREFIX}/programs`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ program: TrainerProgram }>,
+    /** Axiom drafts it; the rules engine checks it; it lands as a draft on the canvas. */
+    generateProgram: (clientId: string, req: ProgramAiRequest) =>
+      fetcher(`${API_PREFIX}/programs/generate`, { method: 'POST', body: JSON.stringify({ clientId, ...req }) }) as Promise<{ program: TrainerProgram }>,
+    /** 409 with `check` on a live program the rules engine refuses (nothing saved). */
+    saveProgram: (pid: string, patch: { doc?: ProgramDoc; name?: string; description?: string; startDate?: string | null }) =>
+      fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}`, { method: 'PUT', body: JSON.stringify(patch) }) as Promise<{ program: TrainerProgram }>,
+    acknowledgeWarnings: (pid: string, keys: string[]) =>
+      fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}/acknowledge`, { method: 'POST', body: JSON.stringify({ keys }) }) as Promise<{ program: TrainerProgram }>,
+    publishProgram: (pid: string) => fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}/publish`, { method: 'POST' }) as Promise<{ program: TrainerProgram }>,
+    copyProgram: (pid: string, input: { clientIds?: string[]; asTemplate?: boolean; name?: string }) =>
+      fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}/copy`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ programs: TrainerProgram[] }>,
+    archiveProgram: (pid: string) => fetcher(`${API_PREFIX}/programs/${encodeURIComponent(pid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+
+    // ── Billing and scheduling ──
+    billingStatus: (refresh = false) => fetcher(`${API_PREFIX}/billing/status${refresh ? '?refresh=1' : ''}`) as Promise<{ status: BillingStatus }>,
+    connectStripe: () => fetcher(`${API_PREFIX}/billing/connect`, { method: 'POST' }) as Promise<{ url: string }>,
+    saveBillingSettings: (s: { dunningNudges?: boolean; bookingNeedsCredit?: boolean }) =>
+      fetcher(`${API_PREFIX}/billing/settings`, { method: 'PUT', body: JSON.stringify(s) }) as Promise<{ status: BillingStatus }>,
+    offers: () => fetcher(`${API_PREFIX}/billing/offers`) as Promise<{ offers: OfferView[] }>,
+    createOffer: (o: { name: string; description?: string; kind: OfferView['kind']; priceCents: number; interval?: 'week' | 'month' | 'year'; intervalCount?: number; sessionCredits?: number | null }) =>
+      fetcher(`${API_PREFIX}/billing/offers`, { method: 'POST', body: JSON.stringify(o) }) as Promise<{ offer: OfferView }>,
+    archiveOffer: (oid: string) => fetcher(`${API_PREFIX}/billing/offers/${encodeURIComponent(oid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    revenue: () => fetcher(`${API_PREFIX}/billing/revenue`) as Promise<{ revenue: RevenueSummary }>,
+    clientBilling: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/billing`) as Promise<{ plans: ClientPlanView[]; payments: PaymentView[] }>,
+    /** A link to send the client: their portal's billing tab with this offer picked. */
+    paymentRequestLink: (id: string, offerId: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/billing/request`, { method: 'POST', body: JSON.stringify({ offerId }) }) as Promise<{ url: string }>,
+    availability: () => fetcher(`${API_PREFIX}/schedule/availability`) as Promise<{ windows: AvailabilityWindow[] }>,
+    setAvailability: (windows: AvailabilityWindow[]) =>
+      fetcher(`${API_PREFIX}/schedule/availability`, { method: 'PUT', body: JSON.stringify({ windows }) }) as Promise<{ windows: AvailabilityWindow[] }>,
+    bookings: (range: { from?: string; to?: string; clientId?: string } = {}) => {
+      const qs = Object.entries(range).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v!)}`).join('&');
+      return fetcher(`${API_PREFIX}/schedule/bookings${qs ? `?${qs}` : ''}`) as Promise<{ bookings: BookingView[] }>;
+    },
+    bookSession: (input: { clientId: string; startsAt: string; minutes?: number; notes?: string }) =>
+      fetcher(`${API_PREFIX}/schedule/bookings`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ booking: BookingView }>,
+    updateBooking: (bid: string, status: 'cancelled' | 'completed' | 'no_show') =>
+      fetcher(`${API_PREFIX}/schedule/bookings/${encodeURIComponent(bid)}`, { method: 'PATCH', body: JSON.stringify({ status }) }) as Promise<{ booking: BookingView }>,
+    slots: (days = 14) => fetcher(`${API_PREFIX}/schedule/slots?days=${days}`) as Promise<{ slots: Slot[] }>,
   };
 }
 
