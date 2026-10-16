@@ -21,12 +21,16 @@ import {
   RecordError, addMeasurement, addPhoto, createGoal, deleteMeasurement, deletePhoto, listGoals, listMeasurements, listPhotos, updateGoal,
 } from '../services/personalTraining/records.js';
 import { PROSPECT_PREFIX, loadClients } from '../services/personalTraining/roster.js';
+import { IntakeError, getIntake, resetIntake } from '../services/personalTraining/intake.js';
+import { InboxError, draftReply, listThreads, openThread } from '../services/personalTraining/inbox.js';
+import { NutritionError, nutritionSummary, setTargets } from '../services/personalTraining/nutrition.js';
+import { exportCsv, practiceExport, type CsvTable } from '../services/personalTraining/exportData.js';
 
 const router = Router();
 const trainer: RequestHandler[] = [requireAuth, requirePersonalTraining, requireTrainer];
 
 type Handler = (req: Request, res: Response) => Promise<unknown>;
-const KNOWN = [ContraindicationError, LinkError, PracticeError, RecordError];
+const KNOWN = [ContraindicationError, LinkError, PracticeError, RecordError, IntakeError, InboxError, NutritionError];
 
 export const handle = (name: string, fn: Handler): RequestHandler => async (req, res) => {
   try {
@@ -202,6 +206,68 @@ router.delete('/clients/:id/photos/:pid', ...trainer, handle('DELETE photo', asy
   const client = await clientOf(req);
   await deletePhoto(req.practice!.id, req.user!.id, client.id, req.params.pid, 'trainer');
   res.json({ ok: true });
+}));
+
+// ─── Intake ──────────────────────────────────────────────────────────────────
+
+router.get('/clients/:id/intake', ...trainer, handle('GET intake', async (req, res) => {
+  const client = await clientOf(req);
+  res.json({ intake: await getIntake(req.practice!.id, client.id, { forTrainer: true }) });
+}));
+
+router.delete('/clients/:id/intake', ...trainer, handle('DELETE intake', async (req, res) => {
+  const client = await clientOf(req);
+  await resetIntake(req.practice!.id, req.user!.id, client.id);
+  res.json({ intake: await getIntake(req.practice!.id, client.id, { forTrainer: true }) });
+}));
+
+// ─── Nutrition ───────────────────────────────────────────────────────────────
+
+router.get('/clients/:id/nutrition', ...trainer, handle('GET nutrition', async (req, res) => {
+  const client = await clientOf(req);
+  res.json({ nutrition: await nutritionSummary(req.practice!.id, client.id) });
+}));
+
+router.put('/clients/:id/nutrition-targets', ...trainer, socialWriteLimiter, handle('PUT nutrition targets', async (req, res) => {
+  const client = await clientOf(req);
+  await setTargets(req.practice!.id, req.user!.id, client.id, req.body ?? {});
+  res.json({ nutrition: await nutritionSummary(req.practice!.id, client.id) });
+}));
+
+// ─── Messaging inbox ─────────────────────────────────────────────────────────
+
+router.get('/inbox', ...trainer, handle('GET inbox', async (req, res) => {
+  res.json({ threads: await listThreads(req.practice!.id, req.user!.id) });
+}));
+
+router.get('/inbox/:clientId', ...trainer, handle('GET inbox thread', async (req, res) => {
+  res.json(await openThread(req.practice!.id, req.user!.id, req.params.clientId));
+}));
+
+// A drafted reply to the client's latest message. Sent only through POST /drafts/:id/send.
+router.post('/inbox/:clientId/draft', ...trainer, socialWriteLimiter, handle('POST inbox draft', async (req, res) => {
+  res.status(201).json({ draft: await draftReply(req.practice!.id, req.user!.id, req.params.clientId) });
+}));
+
+// ─── Export ──────────────────────────────────────────────────────────────────
+
+// GET /export — everything about the practice's clients as one JSON document.
+router.get('/export', ...trainer, handle('GET export', async (req, res) => {
+  const data = await practiceExport(req.practice!.id);
+  await prisma.ptAuditLog.create({ data: { practiceId: req.practice!.id, trainerId: req.user!.id, action: 'exported', itemType: 'practice', itemId: req.practice!.id, metaJson: JSON.stringify({ format: 'json', clients: data.clients.length }) } });
+  res.setHeader('Content-Disposition', `attachment; filename="axiom-${req.practice!.slug}-${new Date().toISOString().slice(0, 10)}.json"`);
+  res.json(data);
+}));
+
+// GET /export/clients.csv | workouts.csv | measurements.csv | contraindications.csv
+router.get('/export/:table.csv', ...trainer, handle('GET export csv', async (req, res) => {
+  const table = req.params.table as CsvTable;
+  if (!['clients', 'workouts', 'measurements', 'contraindications'].includes(table)) return res.status(404).json({ error: 'Unknown table' });
+  const data = await practiceExport(req.practice!.id);
+  await prisma.ptAuditLog.create({ data: { practiceId: req.practice!.id, trainerId: req.user!.id, action: 'exported', itemType: 'practice', itemId: req.practice!.id, metaJson: JSON.stringify({ format: 'csv', table }) } });
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="axiom-${table}-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.send(exportCsv(data, table));
 }));
 
 export default router;

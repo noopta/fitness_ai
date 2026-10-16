@@ -34,7 +34,8 @@ export function redact(cell: string): string {
 }
 
 const FIELD_HELP = `Fields (give the zero-based column index for each one the sheet has; omit the rest):
-- client: the client's name          - email, phone, goal, injuries, notes: details about a client
+- client: the client's name (or firstName and lastName when the name is split across two columns, as TrueCoach, Trainerize and Everfit exports do)
+- email, phone, goal, injuries, notes: details about a client
 - date: the date of a session or weigh-in
 - exercise: the exercise or lift name - sets, reps, weight (the load lifted), rpe
 - sessionTitle: a name for the session ("Lower", "Day 2", "Push")

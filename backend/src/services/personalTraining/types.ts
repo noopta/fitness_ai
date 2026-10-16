@@ -528,7 +528,7 @@ export interface ClientNote {
 
 export type ImportSheetKind = 'clients' | 'workouts' | 'bodyweight' | 'ignore';
 export type ImportField =
-  | 'client' | 'email' | 'phone' | 'goal' | 'injuries' | 'notes'
+  | 'client' | 'firstName' | 'lastName' | 'email' | 'phone' | 'goal' | 'injuries' | 'notes'
   | 'date' | 'exercise' | 'sets' | 'reps' | 'weight' | 'rpe' | 'sessionTitle' | 'bodyweight';
 
 /** How one sheet is read. Proposed automatically, then corrected by the trainer before anything is imported. */
@@ -720,4 +720,94 @@ export interface PortalHome {
   hasProgram: boolean;
   intake: { status: 'not_started' | 'in_progress' | 'complete'; completeness: number } | null;
   reports: { id: string; month: string; title: string; sentAt: string }[];
+}
+
+// ─── Conversational intake ──────────────────────────────────────────────────
+
+export type IntakeField =
+  | 'goal' | 'experience' | 'schedule' | 'equipment' | 'injuries' | 'medical' | 'lifestyle' | 'nutrition' | 'preferences';
+
+export interface IntakeTurn {
+  role: 'trainer' | 'client';
+  text: string;
+  at: string;
+  /** The field a trainer turn asks about. */
+  field?: IntakeField;
+  /** True when the turn is a follow-up to a vague answer. */
+  probe?: boolean;
+}
+
+export interface IntakeState {
+  status: 'not_started' | 'in_progress' | 'complete';
+  /** 0–100, computed by rules from the answers. */
+  completeness: number;
+  transcript: IntakeTurn[];
+  /** The trainer's view lists every field, answered or not; the client's only what they answered. */
+  fields: { key: IntakeField; label: string; required: boolean; answer?: string; vague?: boolean }[];
+  /** The field being asked now; null once complete. */
+  current: IntakeField | null;
+  completedAt?: string;
+}
+
+// ─── Nutrition (targets + compliance) ───────────────────────────────────────
+
+export interface NutritionTargets {
+  calories: number | null;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+}
+
+export interface NutritionRollup {
+  windowDays: number;
+  daysLogged: number;
+  avgCalories: number | null;
+  avgProteinG: number | null;
+  avgCarbsG: number | null;
+  avgFatG: number | null;
+  /** Logged days within ±10% of the calorie target; null without a target. */
+  caloriesOnTarget: number | null;
+  /** Logged days at 90% or more of the protein target; null without a target. */
+  proteinOnTarget: number | null;
+}
+
+export interface NutritionSummary {
+  /** What the trainer set; null until they set something. */
+  targets: NutritionTargets | null;
+  /** The client's own calorie target in the app, for reference. */
+  appCalorieTarget: number | null;
+  week: NutritionRollup;
+  month: NutritionRollup;
+  /** One sentence on what the log says. */
+  line: string;
+  days: { date: string; calories: number; proteinG: number; carbsG: number; fatG: number }[];
+}
+
+// ─── Messaging inbox ────────────────────────────────────────────────────────
+
+export interface InboxThread {
+  clientId: string;
+  client: ClientRef & { status: ClientStatus; channel: Channel };
+  lastMessage: { body: string; at: string; fromClient: boolean } | null;
+  /** Messages from the client the trainer has not opened. */
+  unread: number;
+  /** The client wrote last. */
+  awaitingReply: boolean;
+}
+
+export interface InboxContext {
+  status: ClientStatus;
+  statusReason?: string;
+  block: ClientProgram | null;
+  lastSessionAt?: string;
+  nextCheckInDue?: string;
+  contraindications: string[];
+  goals: string[];
+  nutrition?: string;
+}
+
+export interface InboxConversation {
+  client: ClientRef & { status: ClientStatus; channel: Channel };
+  context: InboxContext;
+  messages: { id: string; body: string; at: string; fromClient: boolean }[];
 }

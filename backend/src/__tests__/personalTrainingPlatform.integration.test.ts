@@ -268,3 +268,105 @@ describe('practice profile and branding', () => {
     expect(link).toBeTruthy();
   });
 });
+
+describe('conversational intake (rules path, model off under test)', () => {
+  let auth = '';
+  let cid = '';
+  beforeAll(async () => {
+    const r = await request(app).post(`${api}/clients`).set('Authorization', as.trainer).send({ name: 'Ivy Intake' });
+    cid = r.body.client.id;
+    auth = `PtLink ${tokenOf(r.body.link.url)}`;
+  });
+
+  it('asks one question at a time, probes a vague answer once, and records injuries as not-cleared contraindications', async () => {
+    const start = await request(app).post(`${portal}/intake/start`).set('Authorization', auth);
+    expect(start.body.intake).toMatchObject({ status: 'in_progress', current: 'goal' });
+    const say = (text: string) => request(app).post(`${portal}/intake/answer`).set('Authorization', auth).send({ text });
+
+    let r = await say('get fit');
+    // Vague: the same field again, as a follow-up.
+    expect(r.body.intake.current).toBe('goal');
+    expect(r.body.intake.transcript.at(-1)).toMatchObject({ role: 'trainer', field: 'goal', probe: true });
+    r = await say('Lose 5 kg by March and deadlift 100 kg');
+    expect(r.body.intake.current).toBe('experience');
+    r = await say('About two years of gym training, mostly machines');
+    r = await say('Three days a week, 60 minutes each');
+    r = await say('Commercial gym with full equipment');
+    r = await say('Left knee meniscus tear last year, physio has not cleared me for running');
+    expect(r.body.intake.current).toBe('medical');
+    r = await say('none');
+    r = await say('Seven hours of sleep, medium stress');
+    r = await say('Three meals a day, I skip breakfast often');
+    r = await say('I love deadlifts and hate burpees');
+    expect(r.body.intake.status).toBe('complete');
+    expect(r.body.intake.completeness).toBeGreaterThanOrEqual(90);
+
+    const contras = await request(app).get(`${api}/clients/${cid}/contraindications`).set('Authorization', as.trainer);
+    expect(contras.body.contraindications).toHaveLength(1);
+    expect(contras.body.contraindications[0]).toMatchObject({ bodyPart: 'knee', side: 'left', severity: 'severe', clearance: 'not_cleared', source: 'intake', needsReview: true });
+
+    const trainerView = await request(app).get(`${api}/clients/${cid}/intake`).set('Authorization', as.trainer);
+    expect(trainerView.body.intake.fields.find((f: any) => f.key === 'goal').answer).toContain('Lose 5 kg');
+    expect((await say('one more')).status).toBe(409);
+  });
+});
+
+describe('nutrition targets and compliance', () => {
+  it('rolls up what a link client logged against the trainer targets', async () => {
+    const r = await request(app).post(`${api}/clients`).set('Authorization', as.trainer).send({ name: 'Nia Nutrition' });
+    const cid = r.body.client.id;
+    const auth = `PtLink ${tokenOf(r.body.link.url)}`;
+    await request(app).put(`${api}/clients/${cid}/nutrition-targets`).set('Authorization', as.trainer).send({ calories: 2000, proteinG: 150 });
+    const today = new Date().toISOString().slice(0, 10);
+    expect((await request(app).post(`${portal}/meals`).set('Authorization', auth).send({ name: 'Chicken and rice', calories: 1100, proteinG: 80, date: today })).status).toBe(201);
+    await request(app).post(`${portal}/meals`).set('Authorization', auth).send({ name: 'Oats', calories: 900, proteinG: 60, date: today });
+    const n = await request(app).get(`${api}/clients/${cid}/nutrition`).set('Authorization', as.trainer);
+    expect(n.body.nutrition.week).toMatchObject({ daysLogged: 1, avgCalories: 2000, avgProteinG: 140, caloriesOnTarget: 1, proteinOnTarget: 1 });
+    expect(n.body.nutrition.line).toBe('Logged 1 of 7 days, protein on target 1 of 1, calories within 10% on 1.');
+    expect((await request(app).put(`${api}/clients/${cid}/nutrition-targets`).set('Authorization', as.trainer).send({ calories: 100 })).status).toBe(400);
+  });
+});
+
+describe('messaging inbox', () => {
+  it('lists threads awaiting a reply first, with a context strip, and drafts a reply that is not sent', async () => {
+    const t = await request(app).get(`${api}/inbox`).set('Authorization', as.trainer);
+    expect(t.status).toBe(200);
+    expect(t.body.threads.length).toBeGreaterThan(0);
+    expect(t.body.threads[0].awaitingReply).toBe(true);
+    const first = t.body.threads[0];
+    const open = await request(app).get(`${api}/inbox/${first.clientId}`).set('Authorization', as.trainer);
+    expect(open.body.context).toHaveProperty('contraindications');
+    expect(open.body.messages.at(-1).fromClient).toBe(true);
+    const after = await request(app).get(`${api}/inbox`).set('Authorization', as.trainer);
+    expect(after.body.threads.find((x: any) => x.clientId === first.clientId).unread).toBe(0);
+    const before = await prisma.message.count();
+    const d = await request(app).post(`${api}/inbox/${first.clientId}/draft`).set('Authorization', as.trainer);
+    expect(d.status).toBe(201);
+    expect(d.body.draft.status).toBe('pending');
+    expect(await prisma.message.count()).toBe(before);
+  });
+});
+
+describe('export', () => {
+  it('exports every client with their records as JSON and CSV, and audits it', async () => {
+    const j = await request(app).get(`${api}/export`).set('Authorization', as.trainer);
+    expect(j.status).toBe(200);
+    expect(j.body.format).toBe('axiom-practice-export');
+    const maya = j.body.clients.find((c: any) => c.id === id.maya);
+    expect(maya.contraindications.map((c: any) => c.condition)).toContain('ACL reconstruction');
+    const csv = await request(app).get(`${api}/export/clients.csv`).set('Authorization', as.trainer);
+    expect(csv.headers['content-type']).toContain('text/csv');
+    expect(csv.text.split('\r\n')[0]).toBe('client_id,name,email,contact_email,phone,channel,status,state,tags,joined_at,injuries');
+    expect(csv.text).toContain('Maya Okafor');
+    expect((await request(app).get(`${api}/export/secrets.csv`).set('Authorization', as.trainer)).status).toBe(404);
+    expect(await prisma.ptAuditLog.count({ where: { action: 'exported' } })).toBe(2);
+    // Another practice exports only its own (empty) roster.
+    const other = await request(app).get(`${api}/export`).set('Authorization', as.other);
+    expect(other.body.clients).toEqual([]);
+  });
+
+  it('neutralises spreadsheet formulas in CSV cells', async () => {
+    const { toCsv } = await import('../services/personalTraining/exportData.js');
+    expect(toCsv([['=SUM(A1)', 'a,b', 'say "hi"']])).toBe(`'=SUM(A1),"a,b","say ""hi"""\r\n`);
+  });
+});

@@ -225,3 +225,31 @@ describe('upload limits', () => {
     expect(sanitiseGrids('nope')).toEqual({ grids: [], dropped: [] });
   });
 });
+
+describe('incumbent exports with split names', () => {
+  it('reads First Name / Last Name columns as one client name', async () => {
+    const { suggestMapping, extract } = await import('../services/personalTraining/importParse.js');
+    const grid = { name: 'clients_export', rows: [
+      ['First Name', 'Last Name', 'Email', 'Phone', 'Status'],
+      ['Ada', 'Obi', 'ada@mail.test', '+1 555 0100', 'Active'],
+      ['Ben', 'Cole', 'ben@mail.test', '', 'Active'],
+    ] };
+    const m = suggestMapping(grid, { unit: 'kg', dateOrder: 'mdy' });
+    expect(m.kind).toBe('clients');
+    expect(m.columns).toMatchObject({ firstName: 0, lastName: 1, email: 2, phone: 3 });
+    expect(m.clientFrom).toBe('column');
+    const out = extract([grid], [m], '2026-10-16');
+    expect(out.clients.map((c: any) => c.name)).toEqual(['Ada Obi', 'Ben Cole']);
+  });
+
+  it('reads a workout history export with a Completed column as the date', async () => {
+    const { suggestMapping } = await import('../services/personalTraining/importParse.js');
+    const grid = { name: 'history', rows: [
+      ['First Name', 'Last Name', 'Completed', 'Exercise', 'Sets', 'Reps', 'Weight (lbs)'],
+      ['Ada', 'Obi', '10/01/2026', 'Back Squat', '3', '5', '185'],
+    ] };
+    const m = suggestMapping(grid, { unit: 'kg', dateOrder: 'mdy' });
+    expect(m).toMatchObject({ kind: 'workouts', unit: 'lb', clientFrom: 'column' });
+    expect(m.columns).toMatchObject({ firstName: 0, lastName: 1, date: 2, exercise: 3 });
+  });
+});

@@ -381,7 +381,7 @@ export const COPY = {
     dateOrder: 'Dates are written',
     dateOrders: { dmy: 'Day / month / year', mdy: 'Month / day / year', ymd: 'Year-month-day' },
     fields: {
-      client: 'Client name', email: 'Email', phone: 'Phone', goal: 'Goal', injuries: 'Injuries', notes: 'Notes', date: 'Date',
+      client: 'Client name', firstName: 'First name', lastName: 'Last name', email: 'Email', phone: 'Phone', goal: 'Goal', injuries: 'Injuries', notes: 'Notes', date: 'Date',
       exercise: 'Exercise', sets: 'Sets', reps: 'Reps', weight: 'Load', rpe: 'RPE', sessionTitle: 'Session name', bodyweight: 'Bodyweight',
     },
     notInSheet: 'Not in this sheet',

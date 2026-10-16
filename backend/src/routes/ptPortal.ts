@@ -21,6 +21,8 @@ import { resolveToken, type LinkSession } from '../services/personalTraining/lin
 import { brandingFor } from '../services/personalTraining/practice.js';
 import { RecordError, addMeasurement, addPhoto, deletePhoto, listGoals, listMeasurements, listPhotos } from '../services/personalTraining/records.js';
 import type { PortalHome, PortalMessage } from '../services/personalTraining/types.js';
+import { IntakeError, answerIntake, getIntake, startIntake } from '../services/personalTraining/intake.js';
+import { NutritionError, logMealFromPortal, nutritionSummary } from '../services/personalTraining/nutrition.js';
 
 const router = Router();
 
@@ -58,7 +60,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res, req.ptLink!);
   } catch (err: any) {
-    if (err instanceof CheckInError || err instanceof RecordError) return void (res.headersSent || res.status(err.status).json({ error: err.message }));
+    if (err instanceof CheckInError || err instanceof RecordError || err instanceof IntakeError || err instanceof NutritionError) return void (res.headersSent || res.status(err.status).json({ error: err.message }));
     console.error(`[pt-portal] ${name}`, err);
     if (!res.headersSent) res.status(500).json({ error: 'Something went wrong. Try again.' });
   }
@@ -215,6 +217,34 @@ router.get('/reports/:id', handle('GET report', async (req, res, s) => {
   let stats: unknown = null;
   try { stats = JSON.parse(r.statsJson); } catch { /* shown without stats */ }
   res.json({ report: { id: r.id, month: r.month, narrative: r.narrative, coachNote: r.coachNote, nextLine: r.nextLine, stats, sentAt: r.sentAt?.toISOString() ?? null } });
+}));
+
+// ─── Intake ──────────────────────────────────────────────────────────────────
+
+router.get('/intake', handle('GET intake', async (_req, res, s) => {
+  res.json({ intake: await getIntake(s.practiceId, s.clientId) });
+}));
+
+router.post('/intake/start', writeLimiter, handle('POST intake start', async (_req, res, s) => {
+  res.json({ intake: await startIntake(s.practiceId, s.clientId) });
+}));
+
+router.post('/intake/answer', aiLimiter, handle('POST intake answer', async (req, res, s) => {
+  res.json({ intake: await answerIntake(s.practiceId, s.clientId, req.body?.text) });
+}));
+
+// ─── Nutrition ───────────────────────────────────────────────────────────────
+
+router.get('/nutrition', handle('GET nutrition', async (_req, res, s) => {
+  const n = await nutritionSummary(s.practiceId, s.clientId);
+  // The client sees their targets and their own log, not the trainer's compliance sentence.
+  res.json({ nutrition: { targets: n.targets, week: n.week, days: n.days.slice(-7) } });
+}));
+
+router.post('/meals', writeLimiter, handle('POST meal', async (req, res, s) => {
+  await logMealFromPortal(s.clientId, req.body ?? {});
+  const n = await nutritionSummary(s.practiceId, s.clientId);
+  res.status(201).json({ nutrition: { targets: n.targets, week: n.week, days: n.days.slice(-7) } });
 }));
 
 export default router;

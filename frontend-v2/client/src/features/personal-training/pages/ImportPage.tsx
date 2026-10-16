@@ -21,9 +21,9 @@ import { readSpreadsheet, SpreadsheetError } from '../spreadsheet';
 const selectClass = 'h-10 w-full rounded-xl border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15';
 
 const FIELDS: Record<ImportSheetKind, ImportField[]> = {
-  clients: ['client', 'email', 'phone', 'goal', 'injuries', 'notes', 'bodyweight'],
-  workouts: ['client', 'date', 'exercise', 'sets', 'reps', 'weight', 'rpe', 'sessionTitle', 'notes'],
-  bodyweight: ['client', 'date', 'bodyweight'],
+  clients: ['client', 'firstName', 'lastName', 'email', 'phone', 'goal', 'injuries', 'notes', 'bodyweight'],
+  workouts: ['client', 'firstName', 'lastName', 'date', 'exercise', 'sets', 'reps', 'weight', 'rpe', 'sessionTitle', 'notes'],
+  bodyweight: ['client', 'firstName', 'lastName', 'date', 'bodyweight'],
   ignore: [],
 };
 

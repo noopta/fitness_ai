@@ -48,16 +48,19 @@ const HEADER_PATTERNS: [ImportField, RegExp][] = [
   ['sets', /\bsets?\b/i],
   ['reps', /\breps?\b|repetition/i],
   ['weight', /weight|\bload\b|\bkgs?\b|\blbs?\b|pounds|kilo/i],
-  ['date', /\bdate\b|\bday\b|\bwhen\b|session date/i],
+  ['date', /\bdate\b|\bday\b|\bwhen\b|session date|completed( on| at)?$|performed( on)?$/i],
   ['sessionTitle', /session|workout|split|routine|\bblock\b/i],
+  // Incumbent exports (TrueCoach, Trainerize, Everfit) split the name into two columns.
+  ['firstName', /first\s*-?\s*name|given\s*name|forename/i],
+  ['lastName', /last\s*-?\s*name|surname|family\s*name/i],
   ['client', /client|athlete|member|trainee|\bname\b|participant|\bwho\b/i],
   ['notes', /note|comment|remark|feedback/i],
 ];
 
 const FIELDS_BY_KIND: Record<ImportSheetKind, ImportField[]> = {
-  clients: ['client', 'email', 'phone', 'goal', 'injuries', 'notes', 'bodyweight'],
-  workouts: ['client', 'date', 'exercise', 'sets', 'reps', 'weight', 'rpe', 'sessionTitle', 'notes'],
-  bodyweight: ['client', 'date', 'bodyweight'],
+  clients: ['client', 'firstName', 'lastName', 'email', 'phone', 'goal', 'injuries', 'notes', 'bodyweight'],
+  workouts: ['client', 'firstName', 'lastName', 'date', 'exercise', 'sets', 'reps', 'weight', 'rpe', 'sessionTitle', 'notes'],
+  bodyweight: ['client', 'firstName', 'lastName', 'date', 'bodyweight'],
   ignore: [],
 };
 export const fieldsFor = (kind: ImportSheetKind) => FIELDS_BY_KIND[kind];
@@ -109,7 +112,7 @@ export function suggestMapping(grid: Grid, defaults: { unit: 'kg' | 'lb'; dateOr
   const kind: ImportSheetKind =
     columns.exercise !== undefined ? 'workouts'
     : columns.bodyweight !== undefined && columns.date !== undefined ? 'bodyweight'
-    : columns.client !== undefined || columns.email !== undefined ? 'clients'
+    : columns.client !== undefined || columns.firstName !== undefined || columns.email !== undefined ? 'clients'
     : 'ignore';
 
   const header = grid.rows[headerRow] ?? [];
@@ -127,7 +130,7 @@ export function suggestMapping(grid: Grid, defaults: { unit: 'kg' | 'lb'; dateOr
     headerRow,
     columns: mapped,
     // No name column on a training or weigh-in sheet: one sheet per client, named after them.
-    clientFrom: kind !== 'ignore' && kind !== 'clients' && mapped.client === undefined ? 'sheetName' : 'column',
+    clientFrom: kind !== 'ignore' && kind !== 'clients' && mapped.client === undefined && mapped.firstName === undefined ? 'sheetName' : 'column',
     unit,
     dateOrder: detectDateOrder(body.map((r) => r[columns.date ?? -1] ?? ''), defaults.dateOrder),
   };
@@ -151,7 +154,7 @@ export function validateMapping(raw: any, grid: Grid, base: SheetMapping): Sheet
     kind,
     headerRow,
     columns,
-    clientFrom: raw?.clientFrom === 'sheetName' || (kind !== 'clients' && columns.client === undefined && kind !== 'ignore') ? 'sheetName' : 'column',
+    clientFrom: raw?.clientFrom === 'sheetName' || (kind !== 'clients' && columns.client === undefined && columns.firstName === undefined && kind !== 'ignore') ? 'sheetName' : 'column',
     unit: raw?.unit === 'lb' || raw?.unit === 'kg' ? raw.unit : base.unit,
     dateOrder: ['dmy', 'mdy', 'ymd'].includes(raw?.dateOrder) ? raw.dateOrder : base.dateOrder,
   };
@@ -278,7 +281,7 @@ export function extract(grids: Grid[], mappings: SheetMapping[], today: string):
       if (row.every((c) => c === '')) return;
 
       // Who. Sheets with merged or "only on the first line" cells leave the name blank on later rows.
-      let name = mapping.clientFrom === 'sheetName' ? grid.name : cell(row, 'client');
+      let name = mapping.clientFrom === 'sheetName' ? grid.name : cell(row, 'client') || `${cell(row, 'firstName')} ${cell(row, 'lastName')}`.trim();
       let filled = false;
       if (!name && mapping.kind !== 'clients' && lastName) { name = lastName; filled = true; }
       if (!name) return skip('no client name', where(i));
