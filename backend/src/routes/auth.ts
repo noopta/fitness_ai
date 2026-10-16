@@ -1443,6 +1443,23 @@ async function deleteUserAccount(userId: string, reason: 'user_request' | 'under
     }
   }
 
+  // Practices this user was the LAST active coach of. Once they go, nobody can
+  // see or manage what was imported there about prospects, so that data is
+  // orphaned personal data about third parties and goes with them. Computed
+  // before the transaction removes the memberships.
+  let solePractices: string[] = [];
+  try {
+    const coached = await prisma.institutionMember.findMany({ where: { userId, role: 'coach', active: true }, select: { institutionId: true } });
+    for (const { institutionId } of coached) {
+      const others = await prisma.institutionMember.count({ where: { institutionId, role: 'coach', active: true, NOT: { userId } } });
+      if (others === 0) solePractices.push(institutionId);
+    }
+  } catch (e: any) {
+    warnings.push('ptImported:solePractices');
+    console.error(`[account-delete] sole-practice lookup failed for ${userId}: ${e?.message ?? e}`);
+    solePractices = [];
+  }
+
   await prisma.$transaction(async (tx) => {
     const t = tx as any;
 
@@ -1553,6 +1570,15 @@ async function deleteUserAccount(userId: string, reason: 'user_request' | 'under
       await t.ptProspect.deleteMany({ where: { id: { in: prospectIds } } });
     });
     await tryDelete('ptImport', () => t.ptImport.deleteMany({ where: { trainerId: userId } }));
+    if (solePractices.length) {
+      await tryDelete('ptImported:orphanPractice', async () => {
+        const where = { practiceId: { in: solePractices } };
+        await t.ptImportedWorkout.deleteMany({ where });
+        await t.ptImportedWeight.deleteMany({ where });
+        await t.ptProspect.deleteMany({ where });
+        await t.ptImport.deleteMany({ where });
+      });
+    }
     // The coach-platform dossier: what a practice recorded about this person as a client.
     await tryDelete('ptClientProfile', () => t.ptClientProfile.deleteMany({ where: { clientId: userId } }));
     await tryDelete('ptClientLink', () => t.ptClientLink.deleteMany({ where: { clientId: userId } }));
