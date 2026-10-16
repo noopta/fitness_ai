@@ -43,6 +43,15 @@ export function weekCard(rep: WeekReport): CardDraft {
   } as CardDraft;
 }
 
+/** The Sunday chat opener: warm, leading with the best win. Pure. */
+export function recapText(rep: WeekReport, first: string): string {
+  const name = first ? `, ${first}` : '';
+  const top = rep.wins[0];
+  if (!top) return `Here's your week${name} — the full picture is below, and I've got a couple of ideas for next week.`;
+  const more = rep.wins.length > 1 ? ` Plus ${rep.wins.length - 1} more win${rep.wins.length > 2 ? 's' : ''} below.` : '';
+  return `What a week${name}! ${top.title} — ${top.detail.charAt(0).toLowerCase()}${top.detail.slice(1)}${more} I've put your week and next week's level-ups below. Proud of you.`;
+}
+
 const hasActivity = (r: WeekReport) => r.training.sessions > 0 || r.nutrition.loggedDays > 0 || r.body.logs > 0;
 
 /** Send one user's week (if it's theirs to get). Returns what went out. */
@@ -64,7 +73,7 @@ export async function sendWeekFor(userId: string, opts: { now?: Date; force?: bo
   await mergeBlobKeys(userId, { weeklyWinsWeek: wk, winsCelebrated: [...celebrated].slice(-200) });
 
   const first = (u.name || '').trim().split(/\s+/)[0];
-  postInitiatedLater(userId, async () => ({ text: rep.wins.length ? `Your week${first ? `, ${first}` : ''} — ${rep.wins[0].title.charAt(0).toLowerCase()}${rep.wins[0].title.slice(1)}.` : `Your week${first ? `, ${first}` : ''}.`, cards: [weekCard(rep)] }));
+  postInitiatedLater(userId, async () => ({ text: recapText(rep, first), cards: [weekCard(rep)] }));
 
   const prefs = parseNotificationPrefs(u.notificationPrefsJson);
   let push = false;

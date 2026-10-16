@@ -8,7 +8,7 @@ vi.mock('../services/cacheService.js', () => ({ cacheDelete: vi.fn(), cacheClear
 
 const { buildWeekReport } = await import('../services/weeklyWins.js');
 const { weeklyWinsEmail } = await import('../services/emailTemplates.js');
-const { isSendHour } = await import('../services/weeklyWinsJob.js');
+const { isSendHour, recapText } = await import('../services/weeklyWinsJob.js');
 const { winsNotice } = await import('../agent/notices.js');
 
 const bench = (kg: number, reps = 5) => ({ name: 'Bench Press', sets: 3, reps: String(reps), weightKg: kg, setEntries: [{ weightKg: kg, reps, rpe: 8 }] });
@@ -74,6 +74,9 @@ describe('the Sunday email', () => {
     // Magnesium (sleep) outranks the even-lower vitamin E for a fat-loss goal.
     expect(msg.text).toMatch(/EASY TOP-UPS FOR NEXT WEEK\nMagnesium \(Sleep & recovery, about 33% of target\) — Magnesium helps muscles relax after training and supports deeper, more restful sleep\. Try pumpkin seeds/);
   });
+  it('opens the Sunday chat recap warmly with the best win', () => {
+    expect(recapText(buildWeekReport(base), 'Tarek')).toMatch(/^What a week, Tarek! Down 2 lbs this week — your 7-day average went from .* Plus \d+ more wins below\. .* Proud of you\.$/);
+  });
   it('goes out at 6 pm on Sunday in the user’s own zone', () => {
     expect(isSendHour('America/Regina', new Date('2026-10-19T00:30:00Z'))).toBe(true); // Sun 18:30 in Regina
     expect(isSendHour('America/Toronto', new Date('2026-10-19T00:30:00Z'))).toBe(false); // 20:30 there
@@ -81,11 +84,15 @@ describe('the Sunday email', () => {
 });
 
 describe('celebrating in chat', () => {
-  it('posts wins once, leaves strength to the log-time PR message', () => {
+  it('notes only noticeable progress, warmly, and each win once', () => {
     const r = buildWeekReport(base);
     const n = winsNotice(r.wins, new Set())!;
-    expect(n.cards[0].rows?.some((row) => /Bench/.test(row.key))).toBe(false);
-    expect(n.text).toMatch(/^A few things worth celebrating/);
+    const keys = n.cards[0].rows?.map((row) => row.key) ?? [];
+    expect(keys.some((k) => /Bench|workouts|Logged food/.test(k))).toBe(false); // PRs post at log time; routine counts wait for Sunday
+    expect(keys[0]).toBe('Down 2 lbs this week');
+    expect(n.text).toMatch(/^Look at this: down 2 lbs this week, and down 3\.5 lbs since you started.* You're doing the work and it's showing/);
+    const one = winsNotice(r.wins.filter((w) => w.key.startsWith('weight-total')), new Set())!;
+    expect(one.text).toMatch(/^Down 3\.5 lbs since you started! .* Proud of you\.$/);
     const all = new Set(r.wins.map((w) => w.key));
     expect(winsNotice(r.wins, all)).toBeNull();
   });

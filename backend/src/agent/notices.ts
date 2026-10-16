@@ -68,13 +68,25 @@ export function weightlessNotice(sessions: ReturnType<typeof weightlessSessions>
  * bests are left out: they're celebrated the moment the workout is logged.
  * Pure: the wins not yet celebrated → one message with the numbers and a Share.
  */
+// Progress worth a chat note: the scale moving toward their goal, or nutrition
+// targets hit consistently. Strength bests post when the workout is logged;
+// routine counts (workouts, days logged) wait for the Sunday recap. Not spam:
+// each win once, and at most one progress note every 3 days.
+const NOTEWORTHY = (w: Win) => w.kind === 'weight' || (w.kind === 'nutrition' && !w.key.startsWith('logged:'));
+export const PROGRESS_NOTE_GAP_DAYS = 3;
+
+const lc = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+
 export function winsNotice(wins: Win[], celebrated: Set<string>): Notice | null {
-  const fresh = wins.filter((w) => w.kind !== 'strength' && !celebrated.has(w.key)).slice(0, 3);
+  const fresh = wins.filter((w) => NOTEWORTHY(w) && !celebrated.has(w.key)).slice(0, 3);
   if (!fresh.length) return null;
   const lead = fresh[0];
+  const text = fresh.length === 1
+    ? `${lead.title}! ${lead.detail} That's real progress — you're doing the work and it's showing. Proud of you.`
+    : `Look at this: ${fresh.map((w) => lc(w.title)).join(', and ')}. You're doing the work and it's showing — keep it going.`;
   return {
     key: `wins:${fresh.map((w) => w.key).join('|')}`,
-    text: fresh.length === 1 ? `Worth celebrating: ${lead.title.charAt(0).toLowerCase()}${lead.title.slice(1)}. ${lead.detail}` : `A few things worth celebrating — ${fresh.map((w) => w.title.charAt(0).toLowerCase() + w.title.slice(1)).join('; ')}.`,
+    text,
     cards: [{
       fn: 'NTC-02', pattern: 'glance', rule: 'show', meta: { label: 'Progress' },
       hero: { value: lead.share.value, unit: lead.share.line },
@@ -103,7 +115,8 @@ export async function postPendingNotices(userId: string): Promise<number> {
   const celebrated = new Set<string>(Array.isArray(blob.winsCelebrated) ? blob.winsCelebrated : []);
   const today = localDate(u.timezone);
   let winsPatch: Record<string, unknown> = {};
-  if (blob.winsPostedOn !== today) {
+  const daysSince = blob.winsPostedOn ? Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${blob.winsPostedOn}T12:00:00Z`)) / 86_400_000) : Infinity;
+  if (daysSince >= PROGRESS_NOTE_GAP_DAYS) {
     const input = await loadWeekInput(userId, today).catch(() => null);
     const wn = input ? winsNotice(buildWeekReport(input).wins, celebrated) : null;
     if (wn && await postInitiatedTurn(userId, { text: wn.text, cards: wn.cards })) {

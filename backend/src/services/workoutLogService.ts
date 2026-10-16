@@ -244,7 +244,7 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
       // Log-trend cards (freestyle release) aren't all "ready to move" — a
       // deload or a reset needs a different opener.
       const text = prs.length
-        ? `New best on ${prs.map((p) => p.displayName).join(' and ')}.`
+        ? `New best on ${prs.map((p) => p.displayName).join(' and ')}! That's the strongest you've ever been on ${prs.length > 1 ? 'them' : 'it'} — all that work is paying off. Nice lifting.`
         : first?.kind === 'deload' ? 'Your last few sessions point to a lighter week.'
         : first?.kind === 'next_session' ? `I have a suggestion for your next ${first?.proposal?.exercise ?? 'session'}.`
         : 'Your last session says a lift is ready to move.';
