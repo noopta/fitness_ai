@@ -1,7 +1,8 @@
 // The client dossier (design handoff §6.3): header with injuries and actions,
-// then four tabs. Timeline is the type-filtered, day-grouped feed with
+// then the tabs. Timeline is the type-filtered, day-grouped feed with
 // cursor-based "Load earlier"; Overview, Program and Notes live in
-// components/ClientDossier.tsx.
+// components/ClientDossier.tsx; Health, Goals and Photos in their own files.
+// The header's actions menu edits the practice's record (ClientRecord.tsx).
 
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useRoute } from 'wouter';
@@ -16,9 +17,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { MessageDialog, NotesTab, OverviewTab, ProgramTab, ProspectInviteDialog } from '../components/ClientDossier';
+import { ArchivedBanner, ClientActionsMenu, ContraindicationChips, ConvertToLinkDialog } from '../components/ClientRecord';
 import { Gate } from '../components/Gate';
+import { GoalsTab } from '../components/GoalsTab';
+import { HealthTab } from '../components/HealthTab';
+import { PhotosTab } from '../components/PhotosTab';
 import { Avatar, Eyebrow, FilterChip, Pill, SkeletonBlock, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
+import { PCOPY } from '../copyPlatform';
 import { useCheckInActions, useClient, useTimeline } from '../hooks';
 
 const KIND_ICON: Record<TimelineKind, LucideIcon> = {
@@ -32,23 +38,35 @@ const KIND_ICON: Record<TimelineKind, LucideIcon> = {
   billing: CreditCard,
 };
 
-type DossierTab = 'overview' | 'timeline' | 'program' | 'notes';
-const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'program', 'notes'];
+type DossierTab = 'overview' | 'timeline' | 'health' | 'goals' | 'program' | 'photos' | 'notes';
+const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'health', 'goals', 'program', 'photos', 'notes'];
+const TAB_LABEL: Record<DossierTab, string> = { ...COPY.dossier.tabs, health: PCOPY.health.tab, goals: PCOPY.goals.tab, photos: PCOPY.photos.tab };
 const isTab = (v: string | undefined): v is DossierTab => !!v && (DOSSIER_TABS as string[]).includes(v);
 
 function HeaderActions({ client }: { client: Client }) {
-  return client.status === 'notJoined' ? <NotJoinedActions client={client} /> : <JoinedActions client={client} />;
+  if (client.status === 'notJoined') return <NotJoinedActions client={client} />;
+  // An archived client keeps their history, but nothing new goes to them until they are restored.
+  if (client.state === 'archived') return <div className="mt-4"><ClientActionsMenu client={client} /></div>;
+  return <JoinedActions client={client} />;
 }
 
-/** Someone imported from a spreadsheet has no account to message; the one thing to do is invite them. */
+/**
+ * Someone imported from a spreadsheet has no account to message: invite them
+ * to the app, or give them a web link, which makes them a link client.
+ */
 function NotJoinedActions({ client }: { client: Client }) {
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const firstName = client.name.split(' ')[0];
   return (
     <div className="mt-4">
       <p className="mb-3 rounded-xl bg-axiom-zinc-50 px-4 py-3 text-sm text-axiom-zinc-600">{COPY.import.notJoinedBanner(firstName)}</p>
-      <Button className="h-11 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.import.inviteProspect}</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button className="h-11 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.import.inviteProspect}</Button>
+        <Button variant="secondary" className="h-11 rounded-xl md:h-10" onClick={() => setLinkOpen(true)}>{PCOPY.actions.giveLink}</Button>
+      </div>
       <ProspectInviteDialog clientId={client.id} clientName={firstName} email={client.email} open={inviteOpen} onOpenChange={setInviteOpen} />
+      <ConvertToLinkDialog client={client} open={linkOpen} onOpenChange={setLinkOpen} />
     </div>
   );
 }
@@ -63,6 +81,7 @@ function JoinedActions({ client }: { client: Client }) {
       <Button variant="secondary" className="h-11 rounded-xl md:h-10" disabled={request.isPending || request.isSuccess} onClick={() => request.mutate([client.id])}>
         {COPY.dossier.requestCheckIn}
       </Button>
+      <ClientActionsMenu client={client} />
       {request.isSuccess && <p role="status" className="text-xs text-axiom-zinc-600">{request.data.requested ? COPY.dossier.checkInRequested : COPY.dossier.checkInAlready}</p>}
       {request.isError && <p role="alert" className="text-xs text-axiom-destructive-ink">{(request.error as Error).message}</p>}
       <MessageDialog clientId={client.id} clientName={client.name.split(' ')[0]} open={messageOpen} onOpenChange={setMessageOpen} />
@@ -70,7 +89,7 @@ function JoinedActions({ client }: { client: Client }) {
   );
 }
 
-function ClientHeader({ client }: { client: Client }) {
+function ClientHeader({ client, onOpenHealth }: { client: Client; onOpenHealth: () => void }) {
   const line = [
     client.program?.goal,
     client.program ? `${client.program.blockLabel} · week ${client.program.week} of ${client.program.weeks}` : COPY.roster.noProgram,
@@ -79,6 +98,7 @@ function ClientHeader({ client }: { client: Client }) {
 
   return (
     <header className="mb-6">
+      {client.state === 'archived' && <ArchivedBanner client={client} />}
       <div className="flex items-start gap-4">
         <Avatar initials={client.initials} size={56} />
         <div className="min-w-0 flex-1">
@@ -90,21 +110,7 @@ function ClientHeader({ client }: { client: Client }) {
           <p className="mt-1 text-xs text-axiom-zinc-500">{line}</p>
         </div>
       </div>
-      <ul className="mt-4 flex flex-wrap gap-2" aria-label="Injuries">
-        {client.contraindications.length === 0 && <li className="text-xs text-axiom-zinc-500">{COPY.timeline.noContraindications}</li>}
-        {client.contraindications.map((c) => (
-          <li
-            key={c.label}
-            title={c.note}
-            className={cn(
-              'rounded-lg px-2 py-0.5 text-[11px] font-semibold',
-              c.active ? 'bg-axiom-destructive-soft text-axiom-destructive-ink' : 'bg-axiom-zinc-100 text-axiom-zinc-600',
-            )}
-          >
-            {c.label}{c.active ? '' : ` · ${COPY.timeline.cleared}`}
-          </li>
-        ))}
-      </ul>
+      <ContraindicationChips client={client} onOpenHealth={onOpenHealth} />
       <HeaderActions client={client} />
     </header>
   );
@@ -212,7 +218,7 @@ function Dossier({ me, clientId, tab }: { me: MeResponse; clientId: string; tab:
         </div>
       ) : (
         <>
-          <ClientHeader client={client.data.client} />
+          <ClientHeader client={client.data.client} onOpenHealth={() => navigate(`/personal-training/clients/${clientId}/health`)} />
           <div className="mb-5 flex gap-5 overflow-x-auto border-b border-border" role="tablist" aria-label="Client dossier">
             {DOSSIER_TABS.map((t) => (
               <button
@@ -228,7 +234,7 @@ function Dossier({ me, clientId, tab }: { me: MeResponse; clientId: string; tab:
                   t === tab ? 'border-foreground text-foreground' : 'border-transparent text-axiom-zinc-600 hover:text-foreground',
                 )}
               >
-                {COPY.dossier.tabs[t]}
+                {TAB_LABEL[t]}
               </button>
             ))}
           </div>
@@ -237,6 +243,9 @@ function Dossier({ me, clientId, tab }: { me: MeResponse; clientId: string; tab:
             {tab === 'timeline' && <Feed clientId={clientId} />}
             {tab === 'program' && <ProgramTab clientId={clientId} />}
             {tab === 'notes' && <NotesTab clientId={clientId} />}
+            {tab === 'health' && <HealthTab clientId={clientId} />}
+            {tab === 'goals' && <GoalsTab clientId={clientId} />}
+            {tab === 'photos' && <PhotosTab clientId={clientId} />}
           </div>
         </>
       )}

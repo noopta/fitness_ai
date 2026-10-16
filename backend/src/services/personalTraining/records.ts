@@ -290,6 +290,7 @@ export async function addPhoto(input: {
 }
 
 export async function listPhotos(practiceId: string, clientId: string): Promise<ProgressPhoto[]> {
+  if (!blobStoreEnabled()) throw new RecordError('Photo storage is not set up on this server', 503);
   const rows = await prisma.ptProgressPhoto.findMany({ where: { practiceId, clientId }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }], take: 200 });
   const out: ProgressPhoto[] = [];
   for (const r of rows) {

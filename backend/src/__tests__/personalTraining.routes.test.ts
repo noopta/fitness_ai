@@ -120,7 +120,7 @@ describe('GET /me and POST /practice', () => {
     mocks.user.findUnique.mockResolvedValue({ id: TRAINER, name: 'Kofi Mensah', email: 'trainer@axiom.io' });
     const r = await request(app).get('/api/personal-training/me').set(auth(trainerToken));
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ trainer: { id: TRAINER, name: 'Kofi Mensah', initials: 'KM' }, practice: null });
+    expect(r.body).toEqual({ trainer: { id: TRAINER, name: 'Kofi Mensah', initials: 'KM', unit: 'lb' }, practice: null });
   });
 
   it('creates a practice with the trainer as its coach', async () => {

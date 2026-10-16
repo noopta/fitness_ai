@@ -159,7 +159,7 @@ app.use(cors({
 const jsonVerify = (req: any, _res: any, buf: Buffer) => {
   // Stripe and Meta both sign the raw bytes, so those two need the untouched
   // buffer stashed before JSON.parse gets to it.
-  if (req.url === '/api/payments/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
+  if (req.url === '/api/payments/webhook' || req.url === '/api/personal-training/billing/webhook' || req.url?.startsWith('/api/webhooks/instagram')) {
     req.rawBody = buf;
   }
 };

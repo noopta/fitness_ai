@@ -39,10 +39,11 @@ function validTimezone(tz: string): boolean {
 export async function getPracticeProfile(practiceId: string): Promise<PracticeProfile> {
   const [row, inst] = await Promise.all([
     prisma.ptPracticeProfile.findUnique({ where: { practiceId } }),
-    prisma.institution.findUnique({ where: { id: practiceId }, select: { logoUrl: true } }),
+    prisma.institution.findUnique({ where: { id: practiceId }, select: { logoUrl: true, name: true } }),
   ]);
   const logoUrl = row?.logoBlobKey ? await objectUrl(row.logoBlobKey) : inst?.logoUrl ?? null;
   return {
+    name: inst?.name ?? '',
     bio: row?.bio ?? '',
     specialties: list(row?.specialtiesJson),
     styleTags: list(row?.styleTagsJson),

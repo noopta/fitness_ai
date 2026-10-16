@@ -1,6 +1,6 @@
-// Invite a client to the practice. v1 is the app invite only — the client
-// signs in with their Axiom account and accepts. The no-install web link in
-// the design is a separate client channel and is not built.
+// Invite a client to the practice through the app: the client signs in with
+// their Axiom account and accepts. The no-install web link is the other path,
+// offered next to this one by AddClientDialog.
 
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';

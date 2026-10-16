@@ -111,11 +111,11 @@ describe('roster', () => {
     expect(screen.getByText(/no clients match/i)).toBeInTheDocument();
   });
 
-  it('shows an empty state with the invite action', async () => {
+  it('shows an empty state with the add-client action', async () => {
     api.roster.mockResolvedValue({ clients: [], counts: { all: 0, support: 0, new: 0, onPlan: 0, paused: 0 } });
     renderAt('/personal-training/clients', <RosterPage />);
     expect(await screen.findByText('No clients yet.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /invite client/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add client/i })).toBeInTheDocument();
   });
 
   it('offers a retry when the roster fails', async () => {
@@ -141,7 +141,8 @@ describe('roster', () => {
     api.invite.mockResolvedValue({ token: 't', link: 'https://axiomtraining.io/personal-training/join/t', email: null, expiresAt: '2026-10-09T00:00:00.000Z' });
     renderAt('/personal-training/clients', <RosterPage />);
     await screen.findByRole('table');
-    await userEvent.click(screen.getByRole('button', { name: /invite client/i }));
+    await userEvent.click(screen.getByRole('button', { name: /add client/i }));
+    await userEvent.click(await screen.findByRole('button', { name: /invite to the app/i }));
     await userEvent.click(await screen.findByRole('button', { name: /create invite link/i }));
     await waitFor(() => expect(api.invite).toHaveBeenCalledWith(undefined));
     expect(await screen.findByDisplayValue('https://axiomtraining.io/personal-training/join/t')).toBeInTheDocument();
@@ -175,7 +176,8 @@ describe('client timeline', () => {
     renderAt('/personal-training/clients/c1/timeline', <TimelinePage />);
     expect(await screen.findByRole('heading', { name: 'Maya Okafor' })).toBeInTheDocument();
     expect(screen.getByText('Left knee')).toBeInTheDocument();
-    expect(screen.getByText(/shoulder · cleared/i)).toBeInTheDocument();
+    // Cleared injuries stay on the Health tab, not in the header.
+    expect(screen.queryByText(/shoulder/i)).not.toBeInTheDocument();
     expect(await screen.findByText('PR · Back squat')).toBeInTheDocument();
     expect(screen.getByText('Add 2.5 kg to bench')).toBeInTheDocument();
     expect(api.timeline).toHaveBeenCalledWith('c1', [], null);

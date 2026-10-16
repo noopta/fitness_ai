@@ -3,6 +3,7 @@
 // no such trainer each tick is one cheap query and nothing else.
 
 import { personalTrainingAvailableFor } from '../featureFlags.js';
+import { sendReminders } from './scheduling.js';
 import { generateBriefing } from './briefingService.js';
 import { runCheckInSchedule } from './checkins.js';
 import { prisma } from './db.js';
@@ -43,6 +44,7 @@ export async function runSweeps(now: Date = new Date()) {
     }
     await sweepNotifications(t.practiceId, t.trainerId, now);
   }
+  await sendReminders(now);
 }
 
 export async function runMorningBriefings(now: Date = new Date()) {

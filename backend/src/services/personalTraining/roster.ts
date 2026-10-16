@@ -162,6 +162,7 @@ export function applyProfile(c: Client, p: ProfileView | undefined): Client {
     state: p.state,
     contactEmail: p.contactEmail,
     contactPhone: p.contactPhone,
+    pausedUntil: p.pausedUntil ? p.pausedUntil.toISOString() : null,
     ...(paused && c.status !== 'notJoined'
       ? { status: 'paused' as const, statusReason: [p.stateReason || 'Paused by you', p.pausedUntil ? `until ${p.pausedUntil.toISOString().slice(0, 10)}` : ''].filter(Boolean).join(' · ') }
       : {}),

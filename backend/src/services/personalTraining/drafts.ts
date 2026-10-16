@@ -292,7 +292,7 @@ export async function deliverDueDrafts(now: Date = new Date()): Promise<number> 
  * to edit — but it is audited like one.
  */
 export async function sendAutomated(input: {
-  practiceId: string; trainerId: string; clientId: string; body: string; action: 'checkin_prompt' | 'checkin_nudge'; itemId: string;
+  practiceId: string; trainerId: string; clientId: string; body: string; action: 'checkin_prompt' | 'checkin_nudge' | 'payment_reminder' | 'booking_reminder'; itemId: string;
 }): Promise<void> {
   const [a, b] = input.trainerId < input.clientId ? [input.trainerId, input.clientId] : [input.clientId, input.trainerId];
   const conversation = await prisma.directConversation.upsert({
@@ -303,10 +303,12 @@ export async function sendAutomated(input: {
   const message = await prisma.message.create({ data: { conversationId: conversation.id, senderId: input.trainerId, body: input.body } });
   await audit({
     practiceId: input.practiceId, trainerId: input.trainerId, clientId: input.clientId,
-    action: input.action, itemType: 'checkin', itemId: input.itemId, editedText: input.body, meta: { messageId: message.id, automated: true },
+    action: input.action, itemType: input.action.startsWith('checkin') ? 'checkin' : input.action === 'payment_reminder' ? 'payment' : 'booking', itemId: input.itemId, editedText: input.body, meta: { messageId: message.id, automated: true },
   });
-  sendPushToUser(input.clientId, 'Check-in from your trainer', input.body.slice(0, 80), { type: 'message', conversationId: conversation.id }).catch(() => {});
-  void notifyLink(input.practiceId, input.clientId, input.action === 'checkin_nudge' ? 'A reminder about your check-in' : 'Your check-in is ready',
+  const title = input.action.startsWith('checkin') ? 'Check-in from your trainer' : input.action === 'payment_reminder' ? 'A payment needs attention' : 'Session reminder';
+  sendPushToUser(input.clientId, title, input.body.slice(0, 80), { type: 'message', conversationId: conversation.id }).catch(() => {});
+  // Billing and booking send their own email to a link client; check-ins are announced here.
+  if (input.action.startsWith('checkin')) void notifyLink(input.practiceId, input.clientId, input.action === 'checkin_nudge' ? 'A reminder about your check-in' : 'Your check-in is ready',
     input.action === 'checkin_nudge' ? 'Your trainer is waiting on your check-in. It takes about two minutes.' : 'Your trainer has sent this week\'s check-in. It takes about two minutes.',
     `?checkin=${encodeURIComponent(input.itemId)}`);
 }

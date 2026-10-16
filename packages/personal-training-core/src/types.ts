@@ -70,6 +70,8 @@ export interface Client {
   tags?: string[];
   /** Paused clients keep their history but drop out of the briefing and every automated send. */
   state?: ClientState;
+  /** When a pause ends by itself. */
+  pausedUntil?: string | null;
   contactEmail?: string | null;
   contactPhone?: string | null;
 }
@@ -113,7 +115,7 @@ export interface Practice {
 }
 
 export interface MeResponse {
-  trainer: { id: string; name: string; initials: string };
+  trainer: { id: string; name: string; initials: string; unit?: 'kg' | 'lb' };
   /** Null until the trainer has set up a practice. */
   practice: Practice | null;
 }
@@ -680,6 +682,7 @@ export interface CreateLinkClientResponse {
 }
 
 export interface PracticeProfile {
+  name: string;
   bio: string;
   specialties: string[];
   styleTags: string[];
@@ -958,4 +961,111 @@ export interface PortalProgram {
   /** App clients can run it in the Axiom app; link clients follow it here. */
   canApplyInApp: boolean;
   appliedAt: string | null;
+}
+
+// ─── Billing (Stripe Connect, 0% platform fee) ──────────────────────────────
+
+export interface BillingStatus {
+  /** False when this server has no Stripe keys. */
+  available: boolean;
+  connected: boolean;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+  currency: string;
+  dunningNudges: boolean;
+  bookingNeedsCredit: boolean;
+  /** Always 0: Axiom takes no cut. */
+  platformFeePercent: number;
+}
+
+export interface OfferView {
+  id: string;
+  name: string;
+  description: string;
+  kind: 'subscription' | 'package' | 'one_time';
+  priceCents: number;
+  currency: string;
+  interval: 'week' | 'month' | 'year' | null;
+  intervalCount: number;
+  sessionCredits: number | null;
+  active: boolean;
+}
+
+export interface ClientPlanView {
+  id: string;
+  clientId: string;
+  offer: OfferView | null;
+  status: 'pending' | 'active' | 'past_due' | 'canceled' | 'complete';
+  creditsTotal: number;
+  creditsUsed: number;
+  creditsLeft: number;
+  currentPeriodEnd?: string;
+  createdAt: string;
+}
+
+export interface PaymentView {
+  id: string;
+  clientId: string | null;
+  kind: 'invoice' | 'checkout';
+  amountDueCents: number;
+  amountPaidCents: number;
+  currency: string;
+  status: 'open' | 'paid' | 'failed' | 'void' | 'uncollectible';
+  attemptCount: number;
+  nextAttemptAt?: string;
+  paidAt?: string;
+  hostedUrl?: string;
+  createdAt: string;
+}
+
+export interface RevenueSummary {
+  currency: string;
+  mrrCents: number;
+  collected30Cents: number;
+  activeSubscriptions: number;
+  pastDue: number;
+  failingCents: number;
+  churned30: number;
+  /** Percent; null with no subscriptions at the start of the window. */
+  churnRate30: number | null;
+  perOffer: { offerId: string; name: string; active: number; sold30: number }[];
+  recent: PaymentView[];
+  platformFeePercent: number;
+}
+
+// ─── Scheduling ─────────────────────────────────────────────────────────────
+
+export interface AvailabilityWindow {
+  id?: string;
+  weekday: number;
+  startMinute: number;
+  endMinute: number;
+  slotMinutes: number;
+  location: string | null;
+}
+
+export interface Slot {
+  trainerId: string;
+  trainerName: string;
+  startsAt: string;
+  endsAt: string;
+  location: string | null;
+  /** The practice's local date and minute of day, for grouping without time-zone maths in the view. */
+  localDate: string;
+  localMinute: number;
+}
+
+export interface BookingView {
+  id: string;
+  clientId: string;
+  clientName: string;
+  trainerId: string;
+  startsAt: string;
+  endsAt: string;
+  status: 'booked' | 'cancelled' | 'completed' | 'no_show';
+  source: 'portal' | 'trainer';
+  usedCredit: boolean;
+  location: string | null;
+  notes: string | null;
 }

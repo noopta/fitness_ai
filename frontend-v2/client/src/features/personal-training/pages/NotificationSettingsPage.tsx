@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Gate } from '../components/Gate';
 import { Eyebrow, Notice, PageTitle, SegmentedControl, SkeletonBlock } from '../components/primitives';
+import { SettingsNav } from '../components/SettingsNav';
 import { Shell } from '../components/Shell';
 import { useNotificationSettings, useRoster, useSaveNotificationSettings } from '../hooks';
 
@@ -151,6 +152,7 @@ function Page({ me }: { me: MeResponse }) {
   return (
     <Shell me={me} active="settings" title={COPY.notifications.title} width="narrow">
       <PageTitle>{COPY.notifications.title}</PageTitle>
+      <SettingsNav active="notifications" />
       {settings.isPending ? <div aria-busy="true" className="space-y-3"><SkeletonBlock className="h-10 w-72" /><SkeletonBlock className="h-64 w-full" /></div>
         : settings.isError ? <Notice alert action={<Button variant="secondary" className="h-10 rounded-xl" onClick={() => settings.refetch()}>{COPY.roster.retry}</Button>}>{COPY.notifications.loadFailed}</Notice>
         : <Settings settings={settings.data} />}

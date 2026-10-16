@@ -497,3 +497,151 @@ describe('app program converter', () => {
     expect(app.phases[0].trainingDays[0].exercises[0]).toMatchObject({ exercise: 'Bench Press', intensity: '70% 1RM', notes: 'Superset A1 · 3 rounds' });
   });
 });
+
+describe('billing on the trainer\'s Stripe account (0% platform fee)', () => {
+  const calls: { op: string; args: any; opts?: any }[] = [];
+  let n = 0;
+  const fake = {
+    accounts: { create: async (a: any) => { calls.push({ op: 'accounts.create', args: a }); return { id: 'acct_1' }; }, retrieve: async () => ({ charges_enabled: true, payouts_enabled: true, details_submitted: true, default_currency: 'usd' }) },
+    accountLinks: { create: async (a: any) => { calls.push({ op: 'accountLinks.create', args: a }); return { url: 'https://connect.stripe.test/onboard' }; } },
+    products: { create: async (a: any, o: any) => { calls.push({ op: 'products.create', args: a, opts: o }); return { id: `prod_${++n}` }; } },
+    prices: { create: async (a: any, o: any) => { calls.push({ op: 'prices.create', args: a, opts: o }); return { id: `price_${++n}` }; } },
+    checkout: { sessions: { create: async (a: any, o: any) => { calls.push({ op: 'checkout.create', args: a, opts: o }); return { id: `cs_${++n}`, url: 'https://checkout.stripe.test/x' }; } } },
+    billingPortal: { sessions: { create: async () => ({ url: 'https://billing.stripe.test/p' }) } },
+    subscriptions: {}, customers: {},
+  };
+  let cid = '';
+  let auth = '';
+  beforeAll(async () => {
+    process.env.STRIPE_SECRET_KEY = 'sk_test_fake';
+    const { setStripeClient } = await import('../services/personalTraining/billing.js');
+    setStripeClient(fake as any);
+    const r = await request(app).post(`${api}/clients`).set('Authorization', as.trainer).send({ name: 'Pat Payer', email: 'pat@mail.test' });
+    cid = r.body.client.id;
+    auth = `PtLink ${tokenOf(r.body.link.url)}`;
+  });
+
+  it('connects a standard account and takes no application fee on any charge', async () => {
+    const c = await request(app).post(`${api}/billing/connect`).set('Authorization', as.trainer);
+    expect(c.body.url).toBe('https://connect.stripe.test/onboard');
+    expect(calls.find((x) => x.op === 'accounts.create')!.args.type).toBe('standard');
+    const st = await request(app).get(`${api}/billing/status?refresh=1`).set('Authorization', as.trainer);
+    expect(st.body.status).toMatchObject({ connected: true, chargesEnabled: true, platformFeePercent: 0 });
+
+    const sub = await request(app).post(`${api}/billing/offers`).set('Authorization', as.trainer).send({ name: 'Online coaching', kind: 'subscription', priceCents: 15000, interval: 'month', sessionCredits: 4 });
+    expect(sub.status).toBe(201);
+    const pkg = await request(app).post(`${api}/billing/offers`).set('Authorization', as.trainer).send({ name: '10 sessions', kind: 'package', priceCents: 60000, sessionCredits: 10 });
+    expect(pkg.status).toBe(201);
+    expect(calls.filter((x) => x.op === 'prices.create').every((x) => x.opts.stripeAccount === 'acct_1')).toBe(true);
+
+    const home = await request(app).get(`${portal}/billing`).set('Authorization', auth);
+    expect(home.body.offers.map((o: any) => o.name)).toEqual(['Online coaching', '10 sessions']);
+    const co = await request(app).post(`${portal}/billing/checkout`).set('Authorization', auth).send({ offerId: pkg.body.offer.id });
+    expect(co.body.url).toBe('https://checkout.stripe.test/x');
+    const created = calls.filter((x) => x.op === 'checkout.create').at(-1)!;
+    expect(created.opts).toEqual({ stripeAccount: 'acct_1' });
+    expect(JSON.stringify(created.args)).not.toContain('application_fee');
+    expect(created.args).toMatchObject({ mode: 'payment', customer_email: 'pat@mail.test', client_reference_id: cid });
+  });
+
+  it('a paid package grants its credits once, idempotently; a failed invoice notifies and reminds once', async () => {
+    const { handleConnectEvent } = await import('../services/personalTraining/billing.js');
+    const plan = await prisma.ptClientPlan.findFirst({ where: { clientId: cid } });
+    const evt = { id: 'evt_1', type: 'checkout.session.completed', account: 'acct_1', data: { object: { id: plan.stripeCheckoutId, payment_status: 'paid', customer: 'cus_1', amount_total: 60000, currency: 'usd' } } };
+    expect(await handleConnectEvent(evt)).toBe('checkout');
+    expect(await handleConnectEvent(evt)).toBe('checkout');
+    const after = await prisma.ptClientPlan.findUnique({ where: { id: plan.id } });
+    expect(after).toMatchObject({ status: 'active', creditsTotal: 10, stripeCustomerId: 'cus_1' });
+    expect(await handleConnectEvent({ id: 'e', type: 'checkout.session.completed', account: 'acct_unknown', data: { object: {} } })).toBe('ignored: unknown account');
+
+    // A subscription: checkout, then a failed invoice twice.
+    const sub = await prisma.ptOffer.findFirst({ where: { kind: 'subscription' } });
+    await request(app).post(`${portal}/billing/checkout`).set('Authorization', auth).send({ offerId: sub.id });
+    const subPlan = await prisma.ptClientPlan.findFirst({ where: { clientId: cid, offerId: sub.id } });
+    await handleConnectEvent({ id: 'e2', type: 'checkout.session.completed', account: 'acct_1', data: { object: { id: subPlan.stripeCheckoutId, payment_status: 'paid', customer: 'cus_1', subscription: 'sub_1' } } });
+    await handleConnectEvent({ id: 'e3', type: 'invoice.paid', account: 'acct_1', data: { object: { id: 'in_1', subscription: 'sub_1', amount_due: 15000, amount_paid: 15000, currency: 'usd' } } });
+    expect((await prisma.ptClientPlan.findUnique({ where: { id: subPlan.id } })).creditsTotal).toBe(4);
+    const failed = { id: 'e4', type: 'invoice.payment_failed', account: 'acct_1', data: { object: { id: 'in_2', subscription: 'sub_1', amount_due: 15000, amount_paid: 0, currency: 'usd', attempt_count: 1, hosted_invoice_url: 'https://pay.stripe.test/in_2' } } };
+    await handleConnectEvent(failed);
+    await handleConnectEvent(failed);
+    const reminders = await prisma.message.findMany({ where: { body: { contains: 'https://pay.stripe.test/in_2' } } });
+    expect(reminders).toHaveLength(1);
+    expect(await prisma.ptNotification.count({ where: { eventType: 'payment_failed' } })).toBe(1);
+    await handleConnectEvent({ id: 'e5', type: 'customer.subscription.updated', account: 'acct_1', data: { object: { id: 'sub_1', status: 'past_due' } } });
+
+    const rev = await request(app).get(`${api}/billing/revenue`).set('Authorization', as.trainer);
+    expect(rev.body.revenue).toMatchObject({ mrrCents: 15000, collected30Cents: 75000, pastDue: 1, failingCents: 15000, platformFeePercent: 0 });
+  });
+
+  it('validates offers', async () => {
+    expect((await request(app).post(`${api}/billing/offers`).set('Authorization', as.trainer).send({ name: 'X pack', kind: 'package', priceCents: 5000 })).status).toBe(400);
+    expect((await request(app).post(`${api}/billing/offers`).set('Authorization', as.trainer).send({ name: 'Cheap', kind: 'one_time', priceCents: 10 })).status).toBe(400);
+  });
+
+  it('the webhook rejects a bad signature', async () => {
+    process.env.STRIPE_CONNECT_WEBHOOK_SECRET = 'whsec_test';
+    const r = await request(app).post(`${api}/billing/webhook`).set('stripe-signature', 't=1,v1=bad').send({});
+    expect(r.status).toBe(400);
+  });
+});
+
+describe('scheduling', () => {
+  let cid = '';
+  let auth = '';
+  beforeAll(async () => {
+    const plan = await prisma.ptClientPlan.findFirst({ where: { creditsTotal: 10 } });
+    cid = plan.clientId;
+    const link = await request(app).post(`${api}/clients/${cid}/link`).set('Authorization', as.trainer);
+    auth = `PtLink ${tokenOf(link.body.link.url)}`;
+  });
+
+  it('converts local wall time in a zone to an instant, across DST', async () => {
+    const { zonedInstant } = await import('../services/personalTraining/scheduling.js');
+    expect(zonedInstant('2026-07-01', 9 * 60, 'America/New_York').toISOString()).toBe('2026-07-01T13:00:00.000Z');
+    expect(zonedInstant('2026-12-01', 9 * 60, 'America/New_York').toISOString()).toBe('2026-12-01T14:00:00.000Z');
+    expect(zonedInstant('2026-12-01', 9 * 60, 'Europe/London').toISOString()).toBe('2026-12-01T09:00:00.000Z');
+  });
+
+  it('offers slots from availability, books one with a credit, refuses a double booking, and refunds on a timely cancel', async () => {
+    const windows = [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({ weekday, startMinute: 9 * 60, endMinute: 11 * 60, slotMinutes: 60 }));
+    const set = await request(app).put(`${api}/schedule/availability`).set('Authorization', as.trainer).send({ windows });
+    expect(set.body.windows).toHaveLength(7);
+    const slots = (await request(app).get(`${portal}/slots?days=7`).set('Authorization', auth)).body.slots;
+    expect(slots.length).toBeGreaterThan(8);
+    const later = slots.find((s: any) => Date.parse(s.startsAt) - Date.now() > 3 * 86_400_000);
+    const b = await request(app).post(`${portal}/bookings`).set('Authorization', auth).send({ startsAt: later.startsAt });
+    expect(b.status).toBe(201);
+    expect(b.body.booking).toMatchObject({ status: 'booked', usedCredit: true, source: 'portal' });
+    expect((await prisma.ptClientPlan.findFirst({ where: { clientId: cid, creditsTotal: 10 } })).creditsUsed).toBe(1);
+    expect((await request(app).post(`${portal}/bookings`).set('Authorization', auth).send({ startsAt: later.startsAt })).status).toBe(409);
+    const again = (await request(app).get(`${portal}/slots?days=7`).set('Authorization', auth)).body.slots;
+    expect(again.some((s: any) => s.startsAt === later.startsAt)).toBe(false);
+    const c = await request(app).delete(`${portal}/bookings/${b.body.booking.id}`).set('Authorization', auth);
+    expect(c.body.booking.status).toBe('cancelled');
+    expect((await prisma.ptClientPlan.findFirst({ where: { clientId: cid, creditsTotal: 10 } })).creditsUsed).toBe(0);
+    // The slot is free again.
+    expect((await request(app).post(`${portal}/bookings`).set('Authorization', auth).send({ startsAt: later.startsAt })).status).toBe(201);
+  });
+
+  it('refuses booking without credit when the practice requires it, and rejects overlapping windows', async () => {
+    const r = await request(app).post(`${api}/clients`).set('Authorization', as.trainer).send({ name: 'No Credit' });
+    const a2 = `PtLink ${tokenOf(r.body.link.url)}`;
+    await request(app).put(`${api}/billing/settings`).set('Authorization', as.trainer).send({ bookingNeedsCredit: true });
+    const slot = (await request(app).get(`${portal}/slots?days=7`).set('Authorization', a2)).body.slots.at(-1);
+    const b = await request(app).post(`${portal}/bookings`).set('Authorization', a2).send({ startsAt: slot.startsAt });
+    expect(b.status).toBe(409);
+    expect(b.body.code).toBe('no_credit');
+    await request(app).put(`${api}/billing/settings`).set('Authorization', as.trainer).send({ bookingNeedsCredit: false });
+    const bad = await request(app).put(`${api}/schedule/availability`).set('Authorization', as.trainer).send({ windows: [{ weekday: 1, startMinute: 540, endMinute: 660, slotMinutes: 60 }, { weekday: 1, startMinute: 600, endMinute: 700, slotMinutes: 60 }] });
+    expect(bad.status).toBe(400);
+  });
+
+  it('sends one reminder for a session in the next day', async () => {
+    const { sendReminders } = await import('../services/personalTraining/scheduling.js');
+    const soon = new Date(Date.now() + 5 * 3_600_000);
+    await request(app).post(`${api}/schedule/bookings`).set('Authorization', as.trainer).send({ clientId: cid, startsAt: soon.toISOString(), minutes: 60 });
+    expect(await sendReminders()).toBe(1);
+    expect(await sendReminders()).toBe(0);
+    expect(await prisma.ptAuditLog.count({ where: { action: 'booking_reminder' } })).toBe(1);
+  });
+});

@@ -1940,3 +1940,142 @@ model PtProgram {
   @@index([practiceId, clientId, status])
   @@index([practiceId, isTemplate])
 }
+
+// ─── Personal training: billing (handoff B7) ─────────────────────────────────
+// The trainer's own Stripe account (Connect, standard). Charges are made
+// directly on it with no application fee: Axiom takes 0%. These rows mirror
+// what Stripe says, from webhooks; Stripe is the source of truth for money.
+
+model PtStripeAccount {
+  id               String   @id @default(uuid())
+  practiceId       String   @unique
+  stripeAccountId  String   @unique
+  chargesEnabled   Boolean  @default(false)
+  payoutsEnabled   Boolean  @default(false)
+  detailsSubmitted Boolean  @default(false)
+  currency         String   @default("usd")
+  // Send the client an automatic reminder (with the pay link) when a payment fails.
+  dunningNudges    Boolean  @default(true)
+  // Booking a session needs a credit from a package or subscription.
+  bookingNeedsCredit Boolean @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+}
+
+// Something a client can buy: a subscription, a package of sessions, a one-off.
+model PtOffer {
+  id              String   @id @default(uuid())
+  practiceId      String
+  name            String
+  description     String?
+  // subscription | package | one_time
+  kind            String
+  priceCents      Int
+  currency        String   @default("usd")
+  // week | month | year (subscriptions only)
+  interval        String?
+  intervalCount   Int      @default(1)
+  // Sessions it grants: per period for a subscription, in total for a package.
+  sessionCredits  Int?
+  stripeProductId String?
+  stripePriceId   String?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@index([practiceId, active])
+}
+
+// A client's purchase of an offer: a live subscription, or a package with credits.
+model PtClientPlan {
+  id                   String    @id @default(uuid())
+  practiceId           String
+  clientId             String
+  offerId              String
+  // pending | active | past_due | canceled | complete
+  status               String    @default("pending")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?   @unique
+  stripeCheckoutId     String?   @unique
+  currentPeriodEnd     DateTime?
+  creditsTotal         Int       @default(0)
+  creditsUsed          Int       @default(0)
+  canceledAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, clientId])
+  @@index([practiceId, status])
+}
+
+// Money that moved, or should have: Stripe invoices (subscriptions) and paid checkouts (packages).
+model PtPayment {
+  id              String    @id @default(uuid())
+  practiceId      String
+  clientId        String?
+  planId          String?
+  // invoice | checkout
+  kind            String
+  // in_… for an invoice, cs_… for a checkout.
+  stripeId        String    @unique
+  amountDueCents  Int
+  amountPaidCents Int       @default(0)
+  currency        String
+  // open | paid | failed | void | uncollectible
+  status          String
+  attemptCount    Int       @default(0)
+  nextAttemptAt   DateTime?
+  hostedUrl       String?
+  paidAt          DateTime?
+  nudgedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, status])
+  @@index([practiceId, createdAt])
+}
+
+// ─── Personal training: scheduling (handoff B8) ──────────────────────────────
+
+// A weekly window a trainer takes sessions in, in the practice's time zone.
+model PtAvailability {
+  id           String   @id @default(uuid())
+  practiceId   String
+  trainerId    String
+  // 0 = Sunday … 6 = Saturday
+  weekday      Int
+  // Minutes from midnight, local time.
+  startMinute  Int
+  endMinute    Int
+  slotMinutes  Int      @default(60)
+  location     String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([practiceId, trainerId])
+}
+
+model PtBooking {
+  id             String    @id @default(uuid())
+  practiceId     String
+  trainerId      String
+  clientId       String
+  startsAt       DateTime
+  endsAt         DateTime
+  // booked | cancelled | completed | no_show
+  status         String    @default("booked")
+  // `${trainerId}|${startsAt ISO}` while booked, null once cancelled: two bookings can never hold one slot.
+  slotKey        String?   @unique
+  // portal | trainer
+  source         String
+  // The plan a session credit came from, refunded on a timely cancel.
+  planId         String?
+  location       String?
+  notes          String?
+  reminderSentAt DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([practiceId, startsAt])
+  @@index([clientId, startsAt])
+}

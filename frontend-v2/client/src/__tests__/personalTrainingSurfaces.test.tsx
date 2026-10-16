@@ -377,7 +377,7 @@ describe('client dossier tabs', () => {
     });
     renderAt('/personal-training/clients/c1/overview', <TimelinePage />);
     const tabs = await screen.findAllByRole('tab');
-    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Timeline', 'Program', 'Notes']);
+    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Timeline', 'Health', 'Goals', 'Program', 'Photos', 'Notes']);
     for (const t of tabs) expect(t).toBeEnabled();
     expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true');
     expect(await screen.findByText('Maya is in week 6 of 12 of Strength. Squat has stalled.')).toBeInTheDocument();

@@ -55,6 +55,8 @@ import PersonalTrainingProgressPage from "./features/personal-training/pages/Pro
 import PersonalTrainingAnakinPage from "./features/personal-training/pages/AnakinPage";
 import PersonalTrainingNotificationSettingsPage from "./features/personal-training/pages/NotificationSettingsPage";
 import PersonalTrainingImportPage from "./features/personal-training/pages/ImportPage";
+import PersonalTrainingPracticeSettingsPage from "./features/personal-training/pages/PracticeSettingsPage";
+import PtPortalApp from "./features/pt-portal/PortalApp";
 import NavDemoPage from "./pages/nav-demo";
 import ProfilePage from "./pages/profile";
 import FeaturesPage from "./pages/features";
@@ -181,6 +183,7 @@ const ProtectedPersonalTrainingCheckInAnswer = () => <ProtectedRoute component={
 const ProtectedPersonalTrainingProgress = () => <ProtectedRoute component={PersonalTrainingProgressPage} />;
 const ProtectedPersonalTrainingAnakin   = () => <ProtectedRoute component={PersonalTrainingAnakinPage} />;
 const ProtectedPersonalTrainingNotificationSettings = () => <ProtectedRoute component={PersonalTrainingNotificationSettingsPage} />;
+const ProtectedPersonalTrainingPracticeSettings = () => <ProtectedRoute component={PersonalTrainingPracticeSettingsPage} />;
 const ProtectedProfile                  = () => <ProtectedRoute component={ProfilePage} />;
 
 // Tracks page views on every Wouter route change and syncs PostHog identity
@@ -249,6 +252,9 @@ function Router() {
       <Route path="/personal-training/progress" component={ProtectedPersonalTrainingProgress} />
       <Route path="/personal-training/anakin/:threadId?" component={ProtectedPersonalTrainingAnakin} />
       <Route path="/personal-training/settings/notifications" component={ProtectedPersonalTrainingNotificationSettings} />
+      <Route path="/personal-training/settings/practice" component={ProtectedPersonalTrainingPracticeSettings} />
+      {/* A no-install client's portal: the secret link is the only key, so no Axiom sign-in. */}
+      <Route path="/c/:token" component={PtPortalApp} />
       <Route path="/personal-training" component={ProtectedPersonalTrainingBriefing} />
       <Route path="/institution/join/:token" component={ProtectedInstitutionJoin} />
       <Route path="/institution/:slug/coach" component={ProtectedInstitutionCoach} />

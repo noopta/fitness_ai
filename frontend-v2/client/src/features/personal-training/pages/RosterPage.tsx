@@ -1,6 +1,7 @@
 // Client roster (design handoff §6.2). Desktop is a table that scrolls inside
 // its own card so it can never widen the page; below 768px it becomes a list
-// of rows. Each row leads to the client's timeline.
+// of rows. Each row leads to the client's timeline. Tag chips narrow the
+// list on the client, alongside the status chips.
 
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
@@ -13,10 +14,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Gate } from '../components/Gate';
+import { AddClientDialog } from '../components/AddClientDialog';
 import { InvitePanel } from '../components/InvitePanel';
 import { Avatar, Eyebrow, FilterChip, SkeletonBlock, Sparkline, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
+import { PCOPY } from '../copyPlatform';
 import { useAnakinFilter, useRoster } from '../hooks';
+import { hasTag, tagCounts } from '../platform';
 
 const timelineHref = (c: Client) => `/personal-training/clients/${c.id}/timeline`;
 
@@ -25,7 +29,12 @@ function ClientCell({ client, evidence }: { client: Client; evidence?: string })
   const reason = evidence ?? reasonLine(client);
   return (
     <div className="min-w-0">
-      <p className="truncate text-[13px] font-semibold">{client.name}</p>
+      <div className="flex min-w-0 items-center gap-2">
+        <p className="truncate text-[13px] font-semibold">{client.name}</p>
+        {client.channel === 'webLink' && (
+          <span className="shrink-0 rounded-md border border-border px-1.5 py-px text-[10px] font-semibold text-axiom-zinc-600">{PCOPY.roster.webLink}</span>
+        )}
+      </div>
       {/* The reason is the evidence for the status, so it wraps rather than truncates. */}
       {reason && <p className="line-clamp-2 text-xs text-axiom-zinc-500">{reason}</p>}
     </div>
@@ -104,7 +113,9 @@ function Roster({ me }: { me: MeResponse }) {
   const roster = useRoster();
   const [filter, setFilter] = useState<RosterFilter>('all');
   const [q, setQ] = useState('');
+  const [tag, setTag] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   // "Apply as roster filter" from Ask Anakin: the filter lives in the URL
   // (?anakin=threadId:messageId) so it survives a reload and can be shared.
@@ -117,8 +128,9 @@ function Roster({ me }: { me: MeResponse }) {
   const everyone = roster.data?.clients ?? [];
   const all = useMemo(() => (evidence ? everyone.filter((c) => evidence.has(c.id)) : everyone), [everyone, evidence]);
   // Counts follow the search box but not the chip, so each chip keeps showing how many it would reveal.
-  const counts = useMemo(() => countByStatus(all.filter((c) => matchesQuery(c, q))), [all, q]);
-  const visible = useMemo(() => filterClients(all, filter, q), [all, filter, q]);
+  const counts = useMemo(() => countByStatus(all.filter((c) => matchesQuery(c, q) && hasTag(c, tag))), [all, q, tag]);
+  const tags = useMemo(() => tagCounts(all.filter((c) => matchesQuery(c, q))), [all, q]);
+  const visible = useMemo(() => filterClients(all, filter, q).filter((c) => hasTag(c, tag)), [all, filter, q, tag]);
 
   return (
     <Shell me={me} active="clients" title={COPY.roster.title}>
@@ -129,7 +141,7 @@ function Roster({ me }: { me: MeResponse }) {
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
           <Button asChild variant="secondary" className="h-11 rounded-xl md:h-10"><Link href="/personal-training/import">{COPY.import.entry}</Link></Button>
-          <Button className="h-11 rounded-xl md:h-10" onClick={() => setInviteOpen(true)}>{COPY.roster.invite}</Button>
+          <Button className="h-11 rounded-xl md:h-10" onClick={() => setAddOpen(true)}>{PCOPY.addClient.entry}</Button>
         </div>
       </div>
 
@@ -160,6 +172,17 @@ function Roster({ me }: { me: MeResponse }) {
           ))}
         </div>
       </div>
+      {/* A tag that no longer matches anyone stays visible while chosen, so it can be cleared. */}
+      {(tags.length > 0 || tag) && (
+        <div className="-mx-4 mb-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 md:mx-0 md:px-0" role="group" aria-label={PCOPY.roster.tags}>
+          <Eyebrow className="shrink-0">{PCOPY.roster.tags}</Eyebrow>
+          <FilterChip active={tag === null} onClick={() => setTag(null)}>{PCOPY.roster.allTags}</FilterChip>
+          {tag && !tags.some((t) => t.tag === tag) && <FilterChip active onClick={() => setTag(null)} count={0}>{tag}</FilterChip>}
+          {tags.map((t) => (
+            <FilterChip key={t.tag} active={tag === t.tag} onClick={() => setTag(tag === t.tag ? null : t.tag)} count={t.count}>{t.tag}</FilterChip>
+          ))}
+        </div>
+      )}
 
       {roster.isPending ? (
         <div aria-busy="true" className="space-y-2">
@@ -177,7 +200,7 @@ function Roster({ me }: { me: MeResponse }) {
         </div>
       ) : visible.length === 0 ? (
         <div className={cn('rounded-2xl border border-border p-8 text-center')}>
-          <Eyebrow>{FILTER_LABEL[filter]}</Eyebrow>
+          <Eyebrow>{tag ? `${FILTER_LABEL[filter]} · ${tag}` : FILTER_LABEL[filter]}</Eyebrow>
           <p className="mt-2 text-sm text-axiom-zinc-600">{COPY.roster.noMatches}</p>
         </div>
       ) : (
@@ -187,6 +210,7 @@ function Roster({ me }: { me: MeResponse }) {
         </>
       )}
 
+      <AddClientDialog open={addOpen} onOpenChange={setAddOpen} onInviteToApp={() => setInviteOpen(true)} />
       <InvitePanel open={inviteOpen} onOpenChange={setInviteOpen} />
     </Shell>
   );

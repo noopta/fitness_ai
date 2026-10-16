@@ -24,6 +24,7 @@ import type { ClientStatus, TimelineEvent } from '../services/personalTraining/t
 import { PROSPECT_PREFIX, linkProspectsOnJoin } from '../services/personalTraining/imports.js';
 import surfaces from './personalTrainingSurfaces.js';
 import platform from './personalTrainingPlatform.js';
+import business from './personalTrainingBusiness.js';
 
 const router = Router();
 
@@ -104,12 +105,12 @@ router.post('/invites/:token/accept', requireAuth, socialWriteLimiter, async (re
 router.get('/me', requireAuth, requirePersonalTraining, async (req, res) => {
   try {
     const [user, practice] = await Promise.all([
-      prisma.user.findUnique({ where: { id: req.user!.id }, select: { id: true, name: true, email: true } }),
+      prisma.user.findUnique({ where: { id: req.user!.id }, select: { id: true, name: true, email: true, unitPreference: true } }),
       findPractice(req.user!.id, typeof req.query.practice === 'string' ? req.query.practice : undefined),
     ]);
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json({
-      trainer: { id: user.id, name: displayNameOf(user.name, user.email), initials: initialsOf(user.name, user.email) },
+      trainer: { id: user.id, name: displayNameOf(user.name, user.email), initials: initialsOf(user.name, user.email), unit: user.unitPreference === 'metric' ? 'kg' : 'lb' },
       practice,
     });
   } catch (err) {
@@ -213,7 +214,7 @@ router.post('/clients/invite', ...trainer, socialWriteLimiter, async (req, res) 
 // GET /personal-training/clients/:id — one client (timeline header)
 router.get('/clients/:id', ...trainer, async (req, res) => {
   try {
-    const [client] = await loadClients(req.practice!.id, { ids: [req.params.id], includeProspects: true });
+    const [client] = await loadClients(req.practice!.id, { ids: [req.params.id], includeProspects: true, includeArchived: true });
     if (!client) return res.status(404).json({ error: 'Client not found' });
     return res.json({ client });
   } catch (err) {
@@ -369,5 +370,7 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
 router.use(surfaces);
 // Practice profile, link clients, and the structured dossier.
 router.use(platform);
+// Billing and scheduling.
+router.use(business);
 
 export default router;

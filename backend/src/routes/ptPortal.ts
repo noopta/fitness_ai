@@ -11,6 +11,9 @@
 import { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 import { rateLimit } from '../middleware/rateLimiter.js';
 import { blobStoreEnabled } from '../services/blobStore.js';
+import { BillingError } from '../services/personalTraining/billing.js';
+import { ScheduleError } from '../services/personalTraining/scheduling.js';
+import { portalBusinessRoutes } from './personalTrainingBusiness.js';
 import { moderateText } from '../services/moderationService.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import { transcribeAudio } from '../services/llmService.js';
@@ -62,7 +65,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res, req.ptLink!);
   } catch (err: any) {
-    if (err instanceof CheckInError || err instanceof RecordError || err instanceof IntakeError || err instanceof NutritionError) return void (res.headersSent || res.status(err.status).json({ error: err.message }));
+    if (err instanceof CheckInError || err instanceof RecordError || err instanceof IntakeError || err instanceof NutritionError || err instanceof BillingError || err instanceof ScheduleError) return void (res.headersSent || res.status(err.status).json({ error: err.message, ...((err as any).code ? { code: (err as any).code } : {}) }));
     console.error(`[pt-portal] ${name}`, err);
     if (!res.headersSent) res.status(500).json({ error: 'Something went wrong. Try again.' });
   }
@@ -281,5 +284,9 @@ router.post('/meals', writeLimiter, handle('POST meal', async (req, res, s) => {
   const n = await nutritionSummary(s.practiceId, s.clientId);
   res.status(201).json({ nutrition: { targets: n.targets, week: n.week, days: n.days.slice(-7) } });
 }));
+
+// ─── Paying and booking ──────────────────────────────────────────────────────
+
+portalBusinessRoutes(router, handle, writeLimiter);
 
 export default router;
