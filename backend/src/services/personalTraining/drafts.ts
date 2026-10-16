@@ -274,6 +274,8 @@ export async function deliverDueDrafts(now: Date = new Date()): Promise<number> 
       const sender = await prisma.user.findUnique({ where: { id: draft.trainerId }, select: { name: true } });
       const preview = body.length > 60 ? `${body.slice(0, 57)}…` : body;
       sendPushToUser(draft.clientId, `Message from ${sender?.name ?? 'your trainer'}`, preview, { type: 'message', conversationId: conversation.id }).catch(() => {});
+      // A link client has no app to push to; they hear by email when the trainer gave one.
+      void notifyLink(draft.practiceId, draft.clientId, `New message from ${sender?.name ?? 'your trainer'}`, preview, '?tab=messages');
       delivered += 1;
     } catch (err) {
       // Put it back so the next sweep retries rather than losing the message.
@@ -304,4 +306,15 @@ export async function sendAutomated(input: {
     action: input.action, itemType: 'checkin', itemId: input.itemId, editedText: input.body, meta: { messageId: message.id, automated: true },
   });
   sendPushToUser(input.clientId, 'Check-in from your trainer', input.body.slice(0, 80), { type: 'message', conversationId: conversation.id }).catch(() => {});
+  void notifyLink(input.practiceId, input.clientId, input.action === 'checkin_nudge' ? 'A reminder about your check-in' : 'Your check-in is ready',
+    input.action === 'checkin_nudge' ? 'Your trainer is waiting on your check-in. It takes about two minutes.' : 'Your trainer has sent this week\'s check-in. It takes about two minutes.',
+    `?checkin=${encodeURIComponent(input.itemId)}`);
+}
+
+/** Loaded lazily: links.ts records its own audit rows through this file. */
+async function notifyLink(practiceId: string, clientId: string, subject: string, preview: string, path: string) {
+  try {
+    const { notifyLinkClient } = await import('./links.js');
+    await notifyLinkClient(practiceId, clientId, { subject, preview, path });
+  } catch { /* best-effort */ }
 }

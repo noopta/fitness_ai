@@ -119,7 +119,7 @@ function rosterStats(data: PracticeData) {
 export async function getToday(practiceId: string, trainerId: string, now: Date = new Date()): Promise<BriefingResponse> {
   const [trainer, data, latest] = await Promise.all([
     prisma.user.findUnique({ where: { id: trainerId }, select: { name: true, timezone: true } }),
-    loadPracticeData(practiceId, trainerId, { now }),
+    loadPracticeData(practiceId, trainerId, { now, excludePaused: true }),
     prisma.ptBriefing.findFirst({ where: { practiceId, trainerId, status: 'ready' }, orderBy: { date: 'desc' } }),
   ]);
   const today = dateStringIn(trainer?.timezone, now);
@@ -165,7 +165,7 @@ async function generate(practiceId: string, trainerId: string, opts: { now?: Dat
 
   const existing = await prisma.ptBriefing.findUnique({ where: { practiceId_trainerId_date: { practiceId, trainerId, date } } });
   if (existing?.status === 'ready' && !opts.force) {
-    const clients = (await loadPracticeData(practiceId, trainerId, { now })).clients;
+    const clients = (await loadPracticeData(practiceId, trainerId, { now, excludePaused: true })).clients;
     return loadBriefing(existing, clients);
   }
   // A forced rebuild, or one that died mid-stream: start clean. Unsent drafts go with it.
@@ -183,7 +183,7 @@ async function generate(practiceId: string, trainerId: string, opts: { now?: Dat
     const [trainer, settings, data] = await Promise.all([
       prisma.user.findUnique({ where: { id: trainerId }, select: { name: true, unitPreference: true } }),
       loadSettings(practiceId, trainerId),
-      loadPracticeData(practiceId, trainerId, { now }),
+      loadPracticeData(practiceId, trainerId, { now, excludePaused: true }),
     ]);
     emit({ type: 'status', text: `Reading ${data.clients.length} client${data.clients.length === 1 ? '' : 's'}' last 24 hours` });
     for (const source of ['workouts', 'checkIns', 'messages', 'programs'] as const) emit({ type: 'source', source });

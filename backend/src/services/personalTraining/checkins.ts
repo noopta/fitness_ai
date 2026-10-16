@@ -4,6 +4,7 @@
 // what it was based on.
 
 import { prisma } from './db.js';
+import { checkInUrlFor } from './links.js';
 import { audit, createDraft, DraftError, requestSend, sendAutomated, toDraft, writeDraftText } from './drafts.js';
 import { shortDay } from './briefingEngine.js';
 import { DEFAULT_QUESTIONS, analyse, type Analysis } from './checkinAnalysis.js';
@@ -151,7 +152,7 @@ async function createCheckIn(practiceId: string, trainerId: string, clientId: st
   });
   await sendAutomated({
     practiceId, trainerId, clientId, action: 'checkin_prompt', itemId: row.id,
-    body: `Your check-in is ready. It takes about two minutes: ${linkFor(row.id)}`,
+    body: `Your check-in is ready. It takes about two minutes: ${await checkInUrlFor(practiceId, clientId, row.id, linkFor(row.id))}`,
   });
   return row;
 }
@@ -188,7 +189,7 @@ export async function runCheckInSchedule(practiceId: string, trainerId: string, 
         if (claimed.count === 1) {
           await sendAutomated({
             practiceId, trainerId, clientId: c.id, action: 'checkin_nudge', itemId: k.id,
-            body: `A quick reminder about your check-in: ${linkFor(k.id)}`,
+            body: `A quick reminder about your check-in: ${await checkInUrlFor(practiceId, c.id, k.id, linkFor(k.id))}`,
           });
         }
       }
@@ -340,7 +341,7 @@ export async function inbox(practiceId: string, clients: Client[], opts: { since
     // No evidence, no summary on screen (handoff §2.2).
     if (!draft || evidence.reasons.length === 0) { console.error('[personal-training] check-in withheld: no draft or evidence', r.id); continue; }
     checkIns.push({
-      id: r.id, clientId: r.clientId, client: ref(r.clientId), submittedAt: r.submittedAt.toISOString(), channel: 'app',
+      id: r.id, clientId: r.clientId, client: ref(r.clientId), submittedAt: r.submittedAt.toISOString(), channel: r.channel === 'webLink' ? 'webLink' : 'app',
       classification: (r.classification ?? 'routine') as CheckIn['classification'], summary: r.summary ?? '',
       signals: json<CheckInSignal[]>(r.signalsJson, []), answers: json(r.answersJson, []), evidence, draft: toDraft(draft),
       ...(r.reviewedAt ? { reviewedAt: r.reviewedAt.toISOString() } : {}),

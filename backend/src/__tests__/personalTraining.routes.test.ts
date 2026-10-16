@@ -27,6 +27,8 @@ const mocks = vi.hoisted(() => ({
   message: { findMany: vi.fn(), findFirst: vi.fn() },
   ptNote: { findMany: vi.fn() },
   ptProspect: { findMany: vi.fn(), findUnique: vi.fn() },
+  ptClientProfile: { findMany: vi.fn(), findUnique: vi.fn() },
+  ptContraindication: { findMany: vi.fn() },
   ptImportedWorkout: { findMany: vi.fn() },
   ptImportedWeight: { findMany: vi.fn() },
   $transaction: vi.fn(),
@@ -76,6 +78,8 @@ beforeEach(() => {
   mocks.directConversation.findUnique.mockResolvedValue(null);
   mocks.ptNote.findMany.mockResolvedValue([]);
   mocks.ptProspect.findMany.mockResolvedValue([]);
+  mocks.ptClientProfile.findMany.mockResolvedValue([]);
+  mocks.ptContraindication.findMany.mockResolvedValue([]);
   mocks.ptImportedWorkout.findMany.mockResolvedValue([]);
   mocks.ptImportedWeight.findMany.mockResolvedValue([]);
 });

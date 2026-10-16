@@ -1,9 +1,12 @@
 // Roster assembly for a trainer's practice. A practice is an Institution; a
-// client is an active 'athlete' member of it. Everything here is read-only
-// over data clients already log — there is no personal-training table yet.
+// client is an active 'athlete' member of it. What the client logs is read
+// as-is; what the practice keeps about them (channel, tags, paused, curated
+// contraindications) comes from the Pt* tables and is merged in here.
 
 import { parseBlob, readInjuries } from '../../agent/profile/coachProfile.js';
+import { clientInjuryTexts, loadRows, mergeContraindications, prospectInjuryTexts } from './contraindications.js';
 import { prisma } from './db.js';
+import { loadProfiles, type ProfileView } from './profiles.js';
 import { computePhaseState, parseSavedProgram } from '../programPhaseService.js';
 import {
   DEFAULT_WEEKLY_SESSIONS, ENGAGEMENT_WEEKS, deriveStatus, engagementSeries, engagementTrend, estDateString,
@@ -82,7 +85,7 @@ export function buildClient(user: ClientUserRow, joinedAt: Date, activity: Clien
     email: user.email,
     status,
     ...(reason ? { statusReason: reason } : {}),
-    // Every client today joined through the app; the no-install web link is not built.
+    // A link client's channel comes from their practice profile (applyProfile).
     channel: 'app',
     program: program && phase
       ? {
@@ -129,12 +132,54 @@ const emptyActivity = (): ClientActivity => ({
  */
 export async function loadClients(
   practiceId: string,
-  opts: { ids?: string[]; now?: Date; includeProspects?: boolean } = {},
+  opts: { ids?: string[]; now?: Date; includeProspects?: boolean; includeArchived?: boolean; excludePaused?: boolean } = {},
 ): Promise<Client[]> {
   const now = opts.now ?? new Date();
+  const injuryText: InjuryTexts = new Map();
+  const all = await loadClientsRaw(practiceId, now, opts, injuryText);
+  if (all.length === 0) return all;
+  const ids = all.map((c) => c.id);
+  const [profiles, rows] = await Promise.all([loadProfiles(practiceId, ids, now), loadRows(practiceId, ids)]);
+  const out: Client[] = [];
+  for (const c of all) {
+    const p = profiles.get(c.id);
+    // An archived client is gone from every list; a direct read by id can still open their record.
+    if (p?.state === 'archived' && !opts.includeArchived) continue;
+    if (p?.state === 'paused' && opts.excludePaused) continue;
+    out.push(applyProfile({ ...c, contraindications: mergeContraindications(rows.get(c.id) ?? [], injuryText.get(c.id) ?? []) }, p));
+  }
+  return sortClients(out);
+}
+
+/** What the practice keeps about a client, laid over what was derived from their logs. */
+export function applyProfile(c: Client, p: ProfileView | undefined): Client {
+  if (!p) return { ...c, tags: [], state: 'active' };
+  const paused = p.state === 'paused';
+  return {
+    ...c,
+    channel: c.status === 'notJoined' ? c.channel : p.channel,
+    tags: p.tags,
+    state: p.state,
+    contactEmail: p.contactEmail,
+    contactPhone: p.contactPhone,
+    ...(paused && c.status !== 'notJoined'
+      ? { status: 'paused' as const, statusReason: [p.stateReason || 'Paused by you', p.pausedUntil ? `until ${p.pausedUntil.toISOString().slice(0, 10)}` : ''].filter(Boolean).join(' · ') }
+      : {}),
+  };
+}
+
+/** Each client's own injury text, which the merge reads into structured contraindications. */
+type InjuryTexts = Map<string, ReturnType<typeof clientInjuryTexts> | ReturnType<typeof prospectInjuryTexts>>;
+
+async function loadClientsRaw(
+  practiceId: string,
+  now: Date,
+  opts: { ids?: string[]; includeProspects?: boolean },
+  injuryText: InjuryTexts,
+): Promise<Client[]> {
   // "Not joined" clients from spreadsheet imports are opt-in: anything that
   // sends to a client (briefing, check-ins, notifications) must not see them.
-  const prospects = opts.includeProspects ? await loadProspectClients(practiceId, now, opts.ids) : [];
+  const prospects = opts.includeProspects ? await loadProspectClients(practiceId, now, opts.ids, injuryText) : [];
   const wantedUsers = opts.ids?.filter((id) => !id.startsWith(PROSPECT_PREFIX));
   const members = wantedUsers && wantedUsers.length === 0 ? [] : await prisma.institutionMember.findMany({
     where: {
@@ -156,6 +201,7 @@ export async function loadClients(
   if (members.length === 0) return sortClients(prospects);
 
   const userIds = members.map((m) => m.user.id);
+  for (const m of members) injuryText.set(m.user.id, clientInjuryTexts(m.user));
   const since = estDateString(new Date(now.getTime() - ENGAGEMENT_WEEKS * 7 * DAY_MS));
   const inWindow = { userId: { in: userIds }, date: { gte: since } };
 
@@ -203,7 +249,7 @@ export const PROSPECT_PREFIX = 'prospect:';
  * always 'notJoined' — the support rules are about people the trainer can
  * actually reach.
  */
-async function loadProspectClients(practiceId: string, now: Date, ids?: string[]): Promise<Client[]> {
+async function loadProspectClients(practiceId: string, now: Date, ids: string[] | undefined, injuryText: InjuryTexts): Promise<Client[]> {
   const wanted = ids?.filter((id) => id.startsWith(PROSPECT_PREFIX)).map((id) => id.slice(PROSPECT_PREFIX.length));
   if (wanted && wanted.length === 0) return [];
   const rows = await prisma.ptProspect.findMany({ where: { practiceId, userId: null, ...(wanted ? { id: { in: wanted } } : {}) } });
@@ -213,6 +259,7 @@ async function loadProspectClients(practiceId: string, now: Date, ids?: string[]
     select: { prospectId: true, date: true, at: true },
     orderBy: { at: 'asc' },
   });
+  for (const p of rows) injuryText.set(`${PROSPECT_PREFIX}${p.id}`, prospectInjuryTexts(p.injuries));
   return rows.map((p) => {
     const mine = sessions.filter((s) => s.prospectId === p.id);
     const engagement8w = engagementSeries({ workoutDates: mine.map((s) => s.date), logDates: [], targetSessions: DEFAULT_WEEKLY_SESSIONS, now });

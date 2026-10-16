@@ -235,7 +235,7 @@ export function inQuietHours(hour: number, start: number, end: number): boolean 
 export async function sweepNotifications(practiceId: string, trainerId: string, now: Date = new Date()): Promise<number> {
   const trainer = await prisma.user.findUnique({ where: { id: trainerId }, select: { email: true, unitPreference: true, timezone: true } });
   const pref = normalizePreference(trainer?.unitPreference);
-  const data = await loadPracticeData(practiceId, trainerId, { now });
+  const data = await loadPracticeData(practiceId, trainerId, { now, excludePaused: true });
   if (data.clients.length === 0) return 0;
 
   const events = detectEvents(data, new Date(now.getTime() - DAY_MS), pref);

@@ -1681,3 +1681,203 @@ model PtImportedWeight {
   @@index([prospectId, at])
   @@index([importId])
 }
+
+// ─── Personal training: platform foundation (Oct 2026 handoff) ───────────────
+// Same conventions as above: plain string ids (no relations to User), JSON as
+// strings, and the delete-account flow removes a user's rows explicitly.
+
+// What the practice keeps about one client beyond what the client logs: how
+// they reach Axiom, contact details, tags and whether coaching is paused.
+// A client without a row is an active app client with no tags.
+model PtClientProfile {
+  id             String    @id @default(uuid())
+  practiceId     String
+  // A User id. For a no-install client it is a login-less account made for
+  // them ("link client"), so everything they submit lands in the same tables
+  // an app client's does.
+  clientId       String
+  // app | webLink
+  channel        String    @default("app")
+  contactEmail   String?
+  contactPhone   String?
+  // ["strength","online"] — practice-defined labels.
+  tagsJson       String    @default("[]")
+  // active | paused | archived
+  state          String    @default("active")
+  pausedUntil    DateTime?
+  stateReason    String?
+  stateChangedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@unique([practiceId, clientId])
+  @@index([practiceId, state])
+}
+
+// A secret link that opens one client's no-install portal. Only a hash is
+// looked up; the token itself is kept encrypted so the trainer can copy the
+// same link again. Revoking it (or issuing a new one) kills the old link.
+model PtClientLink {
+  id           String    @id @default(uuid())
+  practiceId   String
+  clientId     String
+  tokenHash    String    @unique
+  tokenCipher  String
+  createdById  String
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+
+  @@index([practiceId, clientId])
+}
+
+// An injury or condition as data (handoff §2.2). The rules engine reads these
+// and refuses programs that conflict with anything not cleared.
+model PtContraindication {
+  id               String    @id @default(uuid())
+  practiceId       String
+  clientId         String
+  // Controlled vocabulary — see contraindicationRules.ts BODY_PARTS.
+  bodyPart         String
+  // left | right | both | null (midline)
+  side             String?
+  condition        String
+  // mild | moderate | severe
+  severity         String    @default("moderate")
+  // trainer | client_reported | intake | import | medical
+  source           String
+  // What it was created from (e.g. the client's own injury text) so a re-sync never duplicates it.
+  sourceRef        String?
+  // YYYY-MM-DD
+  onsetDate        String?
+  // not_cleared | modified | cleared
+  clearance        String    @default("not_cleared")
+  clearedById      String?
+  clearedAt        DateTime?
+  // Movement patterns the trainer blocked on top of what the body part implies.
+  extraBlocksJson  String    @default("[]")
+  // Movement patterns the trainer explicitly allowed despite the body part.
+  allowJson        String    @default("[]")
+  notes            String?
+  // Null until a trainer has looked at one that came from the client or intake.
+  reviewedAt       DateTime?
+  createdById      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+  archivedAt       DateTime?
+
+  @@index([practiceId, clientId])
+}
+
+// A goal with a number on it: what, how much, by when.
+model PtGoal {
+  id          String    @id @default(uuid())
+  practiceId  String
+  clientId    String
+  // bodyweight | e1rm:<lift> | measurement:<kind> | sessions_per_week | custom
+  metric      String
+  label       String
+  baseline    Float?
+  target      Float?
+  // kg | lb | cm | in | % | count | custom text
+  unit        String?
+  // up | down | hold
+  direction   String    @default("up")
+  // YYYY-MM-DD
+  deadline    String?
+  // active | achieved | dropped
+  status      String    @default("active")
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, clientId])
+}
+
+// Body measurements other than bodyweight (which stays in BodyWeightLog).
+model PtMeasurement {
+  id         String   @id @default(uuid())
+  practiceId String
+  clientId   String
+  // waist | hips | chest | arm | thigh | calf | neck | body_fat | resting_hr | custom
+  kind       String
+  label      String?
+  // Canonical: cm for lengths, % for body fat, bpm for heart rate.
+  value      Float
+  unit       String
+  date       String
+  at         DateTime
+  // trainer | client
+  source     String
+  createdAt  DateTime @default(now())
+
+  @@index([practiceId, clientId, at])
+}
+
+model PtProgressPhoto {
+  id         String   @id @default(uuid())
+  practiceId String
+  clientId   String
+  // Object key in the private media bucket; read through short-lived signed URLs only.
+  blobKey    String
+  // front | side | back | other
+  pose       String   @default("front")
+  date       String
+  note       String?
+  // trainer | client
+  source     String
+  createdAt  DateTime @default(now())
+
+  @@index([practiceId, clientId, createdAt])
+}
+
+// The practice as clients and (later) prospective clients see it.
+model PtPracticeProfile {
+  id              String   @id @default(uuid())
+  practiceId      String   @unique
+  bio             String?
+  specialtiesJson String   @default("[]")
+  styleTagsJson   String   @default("[]")
+  languagesJson   String   @default("[]")
+  // online | hybrid | in_person
+  format          String?
+  timezone        String?
+  // Hex colours applied to client-facing pages.
+  brandColor      String?
+  accentColor     String?
+  logoBlobKey     String?
+  updatedAt       DateTime @default(now()) @updatedAt
+}
+
+// A client's intake, answered in conversation. Completeness is computed by
+// rules from the structured answers, never by the model.
+model PtIntake {
+  id               String    @id @default(uuid())
+  practiceId       String
+  clientId         String
+  // in_progress | complete
+  status           String    @default("in_progress")
+  answersJson      String    @default("{}")
+  transcriptJson   String    @default("[]")
+  completeness     Int       @default(0)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  @@unique([practiceId, clientId])
+}
+
+// Daily macro targets the trainer set for a client.
+model PtNutritionTarget {
+  id          String   @id @default(uuid())
+  practiceId  String
+  clientId    String
+  calories    Float?
+  proteinG    Float?
+  carbsG      Float?
+  fatG        Float?
+  setById     String
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([practiceId, clientId])
+}

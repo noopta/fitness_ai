@@ -1,22 +1,19 @@
 // Server-side safety checks (handoff §2.3). Before a suggestion that touches
-// training load is returned, the client's active injuries are checked against
-// the lift involved. The client only renders the resulting badge; it never
-// computes it.
+// training load is returned, the client's active contraindications are run
+// through the rules engine against the lift involved. The client only renders
+// the resulting badge; it never computes it.
 
+import { patternBlocked, type Pattern } from './contraindicationRules.js';
+import { toRuleInput } from './contraindications.js';
 import type { Contraindication, LiftKey } from './types.js';
 
-// Which main lifts load which injured area. Conservative on purpose: a false
-// "conflict" costs the trainer a second look; a missed one could cost a client.
-const AREA_LIFTS: { area: RegExp; lifts: LiftKey[] }[] = [
-  { area: /knee|patell|acl|mcl|menisc|quad tendon/i, lifts: ['squat'] },
-  { area: /shoulder|rotator|ac joint|labr|pec/i, lifts: ['bench', 'ohp'] },
-  { area: /back|lumbar|disc|sciatic|spine|\bsi joint/i, lifts: ['deadlift', 'squat', 'ohp'] },
-  { area: /hamstring|glute/i, lifts: ['deadlift'] },
-  { area: /hip|groin|adductor/i, lifts: ['squat', 'deadlift'] },
-  { area: /elbow|wrist|forearm/i, lifts: ['bench', 'ohp'] },
-  { area: /ankle|achilles|calf/i, lifts: ['squat'] },
-  { area: /neck|trap/i, lifts: ['ohp', 'squat'] },
-];
+/** The movement patterns each main lift loads. */
+export const LIFT_PATTERNS: Record<LiftKey, Pattern[]> = {
+  squat: ['squat', 'axial_load'],
+  bench: ['horizontal_press'],
+  deadlift: ['hinge', 'axial_load', 'grip'],
+  ohp: ['overhead_press', 'axial_load'],
+};
 
 export interface GuardrailResult {
   /** Active contraindications that were examined. */
@@ -26,19 +23,22 @@ export interface GuardrailResult {
   label: string;
 }
 
+/** Main lifts a free-text area would refuse while not cleared. Kept for callers that only have a label. */
 export function liftsLoadedBy(area: string): LiftKey[] {
-  const hit = new Set<LiftKey>();
-  for (const row of AREA_LIFTS) if (row.area.test(area)) row.lifts.forEach((l) => hit.add(l));
-  return [...hit];
+  const c = toRuleInput({ label: area, active: true });
+  return (Object.keys(LIFT_PATTERNS) as LiftKey[]).filter((lift) => LIFT_PATTERNS[lift].some((p) => patternBlocked([c], p).length));
 }
 
 /**
- * Check a client's active injuries against `lift` (null = a suggestion that
- * is not about a specific lift). Cleared injuries are not examined.
+ * Check a client's active contraindications against `lift` (null = a
+ * suggestion that is not about a specific lift). Cleared ones are not examined.
  */
 export function checkContraindications(contraindications: Contraindication[], lift: LiftKey | null): GuardrailResult {
   const active = contraindications.filter((c) => c.active);
-  const conflicts = lift ? active.filter((c) => liftsLoadedBy(c.label).includes(lift)).map((c) => c.label) : [];
+  const rules = active.map(toRuleInput);
+  const conflicts = lift
+    ? rules.filter((r) => LIFT_PATTERNS[lift].some((p) => patternBlocked([r], p).length)).map((r) => r.condition)
+    : [];
   return {
     checked: active.length,
     conflicts,

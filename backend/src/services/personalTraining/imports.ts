@@ -16,6 +16,8 @@ export { PROSPECT_PREFIX };
 export const isProspectId = (id: string) => id.startsWith(PROSPECT_PREFIX);
 export const prospectDbId = (id: string) => id.slice(PROSPECT_PREFIX.length);
 
+import { moveClientRecords } from './links.js';
+
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 const MAX_UPLOAD_CELLS = 400_000;
 
@@ -262,8 +264,8 @@ export async function linkProspectsOnJoin(practiceId: string, userId: string, to
   });
   for (const p of matches) {
     await prisma.ptProspect.update({ where: { id: p.id }, data: { userId, joinedAt: new Date() } });
-    // Notes the trainer wrote while they were "Not joined" follow them to their real record.
-    await prisma.ptNote.updateMany({ where: { practiceId, clientId: `${PROSPECT_PREFIX}${p.id}` }, data: { clientId: userId } });
+    // Notes, contraindications, goals and the rest the trainer recorded while they were "Not joined" follow them to their real record.
+    await moveClientRecords(practiceId, `${PROSPECT_PREFIX}${p.id}`, userId);
   }
   return matches.length;
 }

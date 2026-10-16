@@ -14,6 +14,7 @@ import { chatComplete } from './chatClient.js';
 import { regionPromptBlock, type FoodRegion } from './prompts/regionPrompts.js';
 import { coerceNutritionLabel } from './food/communityProduct.js';
 import { cleanInjuryText, hardConstraintBlock, lowerBodyBlocked, lowerBodyExercises, stripLowerBody } from './injuryGuard.js';
+import { hardRulesPrompt, stripBlocked, type RuleInput } from './personalTraining/contraindicationRules.js';
 import { agentProgress } from '../agent/turnRun.js';
 import { applyBrandedLookups, applyLabelMicros, coerceBrandedItems, TEXT_LOOKUP_ENABLED, type BrandedItem, type ItemLookupResult } from './food/brandedLookup.js';
 import { clarifyQuestion, resolveAll, type ResolveCtx, type ResolvedItem } from './food/foodResolver.js';
@@ -1438,6 +1439,8 @@ export async function generateTrainingProgram(params: {
   recentWorkouts?: RawWorkout[] | null;
   /** User.constraintsText — injuries live here AND in coachProfile.injuries (both are read). */
   constraintsText?: string | null;
+  /** Contraindications a personal trainer recorded for this user (see practiceContraindicationsForUser). Enforced, not advised. */
+  practiceRules?: RuleInput[] | null;
 }): Promise<TrainingProgram> {
   // Injuries are a hard rule at the top of the prompt, not one profile line among many.
   const injuryProfile = (() => { try { const p = params.coachProfile ? JSON.parse(params.coachProfile) : null; const inj = p?.injuries; return Array.isArray(inj) ? inj.filter((i: any) => !i?.resolvedAt).map((i: any) => [i?.area, i?.note].filter(Boolean).join(' — ')).join('; ') : typeof inj === 'string' ? inj : ''; } catch { return ''; } })();
@@ -1586,7 +1589,9 @@ OUTPUT FORMAT — Return valid JSON only:
   const { ragContext, sources } = await retrieveProgramSources(ragQuery, 8);
   agentProgress('prog-sources', 'Read', `${sources.length || 'No'} source${sources.length === 1 ? '' : 's'} on your goal`);
   const withRag = ragContext ? `${prompt}\n\n${ragContext}` : prompt;
-  const finalPrompt = hard.block ? `${hard.block}\n\n${withRag}\n\n${hard.block}` : withRag;
+  const trainerRules = hardRulesPrompt(params.practiceRules ?? []);
+  const hardBlock = [hard.block, trainerRules].filter(Boolean).join('\n\n');
+  const finalPrompt = hardBlock ? `${hardBlock}\n\n${withRag}\n\n${hardBlock}` : withRag;
   agentProgress('prog-write', 'Reading', `Writing your ${params.durationWeeks}-week program — about 20 seconds`);
 
   let parsed = await writeProgramDraft(finalPrompt, params.daysPerWeek);
@@ -1616,6 +1621,11 @@ OUTPUT FORMAT — Return valid JSON only:
     } catch { /* keep the spread first draft */ }
   }
   parsed = rec.program;
+  // A trainer's not-cleared contraindication is a rule the draft cannot break, whatever the model wrote.
+  if (params.practiceRules?.length) {
+    const { removed } = stripBlocked(parsed, params.practiceRules);
+    if (removed.length) console.warn(`[llm] program: removed by trainer contraindications: ${removed.join(', ')}`);
+  }
   agentProgress('prog-write', 'Drafted', `${params.durationWeeks}-week program`);
 
   // Attach the real sources that informed this plan (may be empty if the

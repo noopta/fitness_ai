@@ -11,11 +11,32 @@ export type Channel = 'app' | 'webLink';
 export type EngagementTrend = 'rising' | 'steady' | 'falling';
 export type Tone = 'red' | 'amber' | 'green' | 'zinc';
 
+export type BodyPart =
+  | 'neck' | 'shoulder' | 'elbow' | 'wrist_hand' | 'chest' | 'upper_back' | 'lower_back' | 'abdominal'
+  | 'hip' | 'groin' | 'hamstring' | 'quad' | 'knee' | 'calf_achilles' | 'ankle_foot' | 'systemic';
+export type Clearance = 'not_cleared' | 'modified' | 'cleared';
+export type ContraindicationSource = 'trainer' | 'client_reported' | 'intake' | 'import' | 'medical';
+
 export interface Contraindication {
+  /** A row id, or `inferred:<ref>` for one read from the client's own words and not yet confirmed. */
+  id?: string;
   label: string;
   note?: string;
-  /** False once the client (or coach) marked the injury resolved. */
+  /** False once it is cleared, or the client marked the injury resolved. */
   active: boolean;
+  bodyPart?: BodyPart | 'unknown';
+  side?: 'left' | 'right' | 'both' | null;
+  severity?: 'mild' | 'moderate' | 'severe';
+  /** The rules engine refuses conflicting work until this is 'cleared'; 'modified' turns some refusals into warnings. */
+  clearance?: Clearance;
+  source?: ContraindicationSource;
+  onsetDate?: string;
+  /** Movement patterns the trainer refused on top of the body part's defaults. */
+  extraBlocks?: string[];
+  /** Movement patterns the trainer allowed despite the defaults. */
+  allow?: string[];
+  /** True until a trainer has confirmed or edited it. */
+  needsReview?: boolean;
 }
 
 export interface ClientProgram {
@@ -45,7 +66,15 @@ export interface Client {
   lastSessionAt?: string;
   joinedAt: string;
   contraindications: Contraindication[];
+  /** Practice-defined labels. */
+  tags?: string[];
+  /** Paused clients keep their history but drop out of the briefing and every automated send. */
+  state?: ClientState;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
 }
+
+export type ClientState = 'active' | 'paused' | 'archived';
 
 export type StatusCounts = Record<'all' | ClientStatus, number>;
 
@@ -570,4 +599,128 @@ export interface ImportSummary {
   workouts: number;
   createdAt: string;
   importedAt?: string;
+}
+
+// ─── Coach platform: dossier records (Oct 2026 handoff) ─────────────────────
+
+export type GoalMetric = 'bodyweight' | 'sessions_per_week' | 'custom' | `e1rm:${LiftKey}` | `measurement:${string}`;
+
+export interface ClientGoal {
+  id: string;
+  metric: GoalMetric;
+  label: string;
+  direction: 'up' | 'down' | 'hold';
+  status: 'active' | 'achieved' | 'dropped';
+  /** In the viewer's unit. */
+  baseline: number | null;
+  target: number | null;
+  /** Read from the client's data, never typed. Null when nothing is logged. */
+  current: number | null;
+  unit: string;
+  deadline?: string;
+  daysLeft?: number | null;
+  /** 0–100 from baseline to target; null when it cannot be computed. */
+  progress: number | null;
+}
+
+export type MeasurementKind =
+  | 'bodyweight' | 'waist' | 'hips' | 'chest' | 'arm' | 'thigh' | 'calf' | 'neck' | 'body_fat' | 'resting_hr' | 'custom';
+
+export interface Measurement {
+  id: string;
+  kind: MeasurementKind;
+  label: string;
+  value: number;
+  unit: string;
+  date: string;
+  source: 'trainer' | 'client';
+  /** False for the client's own weigh-ins, which the trainer cannot remove. */
+  deletable: boolean;
+}
+
+export interface ProgressPhoto {
+  id: string;
+  /** Short-lived signed URL. */
+  url: string;
+  pose: 'front' | 'side' | 'back' | 'other';
+  date: string;
+  note?: string;
+  source: 'trainer' | 'client';
+}
+
+/** What the rules engine said about a set of exercises for one client. */
+export interface GuardrailViolation {
+  exercise: string;
+  pattern: string;
+  contraindicationId: string;
+  condition: string;
+  bodyPart: string;
+  level: 'block' | 'warn';
+  reason: string;
+}
+
+export interface GuardrailReport {
+  checked: number;
+  violations: GuardrailViolation[];
+  unclassified: string[];
+  unclassifiedConditions: string[];
+  ok: boolean;
+  label: string;
+}
+
+export interface ClientLinkInfo {
+  url: string;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export interface CreateLinkClientResponse {
+  client: Client;
+  link: ClientLinkInfo;
+}
+
+export interface PracticeProfile {
+  bio: string;
+  specialties: string[];
+  styleTags: string[];
+  languages: string[];
+  format: 'online' | 'hybrid' | 'in_person' | null;
+  timezone: string | null;
+  brandColor: string | null;
+  accentColor: string | null;
+  logoUrl: string | null;
+}
+
+export interface TagCount {
+  tag: string;
+  count: number;
+}
+
+// ─── Client portal (no-install web link) ────────────────────────────────────
+
+export interface PortalBranding {
+  practiceName: string;
+  trainerName: string;
+  logoUrl: string | null;
+  brandColor: string | null;
+  accentColor: string | null;
+}
+
+export interface PortalMessage {
+  id: string;
+  fromClient: boolean;
+  body: string;
+  at: string;
+}
+
+export interface PortalHome {
+  client: { firstName: string; name: string; unit: 'kg' | 'lb' };
+  branding: PortalBranding;
+  /** Check-ins waiting for an answer, oldest first. */
+  checkIns: { id: string; dueAt: string; questionCount: number }[];
+  goals: ClientGoal[];
+  unreadMessages: number;
+  hasProgram: boolean;
+  intake: { status: 'not_started' | 'in_progress' | 'complete'; completeness: number } | null;
+  reports: { id: string; month: string; title: string; sentAt: string }[];
 }

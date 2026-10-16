@@ -1327,6 +1327,15 @@ router.delete('/auth/account', requireAuth, async (req, res) => {
         await t.ptProspect.deleteMany({ where: { id: { in: ids } } });
       });
       await tryDelete('ptImport', () => t.ptImport.deleteMany({ where: { trainerId: userId } }));
+      // The coach-platform dossier: what a practice recorded about this person as a client.
+      await tryDelete('ptClientProfile', () => t.ptClientProfile.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptClientLink', () => t.ptClientLink.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptContraindication', () => t.ptContraindication.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptGoal', () => t.ptGoal.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptMeasurement', () => t.ptMeasurement.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptProgressPhoto', () => t.ptProgressPhoto.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptIntake', () => t.ptIntake.deleteMany({ where: { clientId: userId } }));
+      await tryDelete('ptNutritionTarget', () => t.ptNutritionTarget.deleteMany({ where: { clientId: userId } }));
       // The audit trail keeps that an action happened, not what was written to or about this person.
       await tryDelete('ptAuditLog', () => t.ptAuditLog.updateMany({ where: { clientId: userId }, data: { clientId: null, originalText: null, editedText: null } }));
       // Keyed by email, not a user FK, so the cascade doesn't reach it.

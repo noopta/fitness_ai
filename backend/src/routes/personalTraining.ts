@@ -23,6 +23,7 @@ import {
 import type { ClientStatus, TimelineEvent } from '../services/personalTraining/types.js';
 import { PROSPECT_PREFIX, linkProspectsOnJoin } from '../services/personalTraining/imports.js';
 import surfaces from './personalTrainingSurfaces.js';
+import platform from './personalTrainingPlatform.js';
 
 const router = Router();
 
@@ -180,7 +181,7 @@ router.get('/clients', ...trainer, async (req, res) => {
 router.post('/clients/invite', ...trainer, socialWriteLimiter, async (req, res) => {
   const { mode = 'app', email } = req.body ?? {};
   if (mode === 'link') {
-    return res.status(400).json({ error: 'No-install links are not available yet', code: 'mode_unavailable' });
+    return res.status(400).json({ error: 'Add a no-install client with POST /personal-training/clients', code: 'mode_unavailable' });
   }
   if (mode !== 'app') return res.status(400).json({ error: 'mode must be "app"' });
   if (email !== undefined && (typeof email !== 'string' || email.length > 255 || !EMAIL_RE.test(email.trim()))) {
@@ -366,5 +367,7 @@ router.get('/clients/:id/timeline', ...trainer, async (req, res) => {
 
 // Briefing, drafts, check-ins, progress, reports, Ask Anakin and notifications.
 router.use(surfaces);
+// Practice profile, link clients, and the structured dossier.
+router.use(platform);
 
 export default router;

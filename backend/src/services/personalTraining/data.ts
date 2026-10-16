@@ -42,10 +42,10 @@ export const emptyClientData = (): ClientData => ({ workouts: [], wellness: [], 
 export async function loadPracticeData(
   practiceId: string,
   trainerId: string,
-  opts: { now?: Date; clientIds?: string[]; includeProspects?: boolean } = {},
+  opts: { now?: Date; clientIds?: string[]; includeProspects?: boolean; excludePaused?: boolean } = {},
 ): Promise<PracticeData> {
   const now = opts.now ?? new Date();
-  const clients = await loadClients(practiceId, { now, ids: opts.clientIds, includeProspects: opts.includeProspects });
+  const clients = await loadClients(practiceId, { now, ids: opts.clientIds, includeProspects: opts.includeProspects, excludePaused: opts.excludePaused, includeArchived: !!opts.clientIds });
   const byClient = new Map<string, ClientData>(clients.map((c) => [c.id, emptyClientData()]));
   if (clients.length === 0) return { now, clients, byClient };
 

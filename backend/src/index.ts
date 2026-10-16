@@ -44,6 +44,7 @@ import onboardingV2Routes from './routes/onboardingV2.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import personalTrainingRoutes from './routes/personalTraining.js';
+import ptPortalRoutes from './routes/ptPortal.js';
 import { startPersonalTrainingJobs } from './services/personalTraining/jobs.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
@@ -174,13 +175,20 @@ const LARGE_BODY_PATHS = [
   '/api/nutrition/barcode/',
   // A trainer's client spreadsheet, posted as its cells.
   '/api/personal-training/imports',
+  '/api/personal-training/practice/logo',
+  // A no-install client's progress photos and voice check-ins.
+  '/api/pt-portal/photos',
+  '/api/pt-portal/transcribe',
+  '/api/pt-portal/intake/voice',
 ];
+// Paths with an id in the middle (a trainer uploading a client's progress photo).
+const LARGE_BODY_PATTERNS = [/^\/api\/personal-training\/clients\/[^/]+\/photos$/];
 
 const largeJson = express.json({ limit: '10mb', verify: jsonVerify });
 const standardJson = express.json({ limit: '1mb', verify: jsonVerify });
 
 app.use((req, res, next) => {
-  const parser = LARGE_BODY_PATHS.some((p) => req.path.startsWith(p)) ? largeJson : standardJson;
+  const parser = LARGE_BODY_PATHS.some((p) => req.path.startsWith(p)) || LARGE_BODY_PATTERNS.some((re) => re.test(req.path)) ? largeJson : standardJson;
   return parser(req, res, next);
 });
 
@@ -245,6 +253,8 @@ if (growth) app.use('/api', growth.routes);
 app.use('/api/institutions', institutionsRoutes);
 // Human-trainer dashboard. Its own prefix: /api/coach/* is the AI coach.
 app.use('/api/personal-training', personalTrainingRoutes);
+// A no-install client's portal. Authenticated by the client's secret link only.
+app.use('/api/pt-portal', ptPortalRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
 app.use('/api', trainTogetherRoutes);

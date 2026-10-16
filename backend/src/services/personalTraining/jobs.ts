@@ -38,7 +38,7 @@ export async function runSweeps(now: Date = new Date()) {
     // Check-in prompts go out once per practice, from its longest-standing trainer.
     if (!seenPractice.has(t.practiceId)) {
       seenPractice.add(t.practiceId);
-      const clients = await loadClients(t.practiceId, { now });
+      const clients = await loadClients(t.practiceId, { now, excludePaused: true });
       if (clients.length) await runCheckInSchedule(t.practiceId, t.trainerId, clients, now, t.tz ?? undefined);
     }
     await sweepNotifications(t.practiceId, t.trainerId, now);

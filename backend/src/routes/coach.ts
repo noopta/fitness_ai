@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { practiceContraindicationsForUser } from '../services/personalTraining/contraindications.js';
 import { describeCheckin } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
@@ -767,6 +768,7 @@ async function generateProgramForUserOnce(userId: string, opts: ProgramOpts): Pr
       selectedLift: user.sessions[0]?.selectedLift || null,
       accessories, coachProfile: user.coachProfile, diagnosticSignals, gender: resolvedGender,
       recentWorkouts, constraintsText: (user as any).constraintsText ?? null,
+      practiceRules: await practiceContraindicationsForUser(userId).catch(() => []),
     }),
     generateNutritionPlan({
       goal, bodyCompositionGoal, weightKg: user.weightKg || null, heightCm: user.heightCm || null,

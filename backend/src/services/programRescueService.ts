@@ -9,6 +9,7 @@
 // push telling them it's ready. The 30-minute delay keeps the sweep from
 // racing a user who is actively finishing the flow in-app.
 import { PrismaClient } from '@prisma/client';
+import { practiceContraindicationsForUser } from './personalTraining/contraindications.js';
 import { generateTrainingProgram } from './llmService.js';
 import { sendPushToUser } from './notificationService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
@@ -80,7 +81,7 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
       ],
     },
     select: {
-      id: true, email: true, coachProfile: true, trainingAge: true,
+      id: true, email: true, coachProfile: true, constraintsText: true, trainingAge: true,
       equipment: true, weightKg: true, heightCm: true, draftProgram: true,
     },
     take: 50,
@@ -117,6 +118,8 @@ export async function runProgramRescueSweep(): Promise<{ rescued: number; failed
           coachProfile: user.coachProfile,
           diagnosticSignals: null,
           gender: profile?.gender ?? null,
+          constraintsText: (user as any).constraintsText ?? null,
+          practiceRules: await practiceContraindicationsForUser(user.id).catch(() => []),
         });
       }
 
