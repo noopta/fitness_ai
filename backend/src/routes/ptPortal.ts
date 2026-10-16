@@ -285,6 +285,25 @@ router.post('/meals', writeLimiter, handle('POST meal', async (req, res, s) => {
   res.status(201).json({ nutrition: { targets: n.targets, week: n.week, days: n.days.slice(-7) } });
 }));
 
+// A photo of a meal, estimated for the client to check and correct before logging. Nothing is logged here.
+const estimatesToday = new Map<string, number>();
+router.post('/meals/estimate', aiLimiter, handle('POST meal estimate', async (req, res, s) => {
+  const key = `${s.linkId}|${new Date().toISOString().slice(0, 10)}`;
+  if ((estimatesToday.get(key) ?? 0) >= 15) return res.status(429).json({ error: 'That is the limit for photo estimates today. You can still type a meal in.' });
+  const image = req.body?.imageBase64;
+  const mime = typeof req.body?.mimeType === 'string' ? req.body.mimeType : 'image/jpeg';
+  if (typeof image !== 'string' || image.length < 100 || image.length > 8 * 1024 * 1024) return res.status(400).json({ error: 'Send a photo under 6 MB' });
+  estimatesToday.set(key, (estimatesToday.get(key) ?? 0) + 1);
+  const user = await prisma.user.findUnique({ where: { id: s.clientId }, select: { foodRegion: true } });
+  try {
+    const { analyzeMealPhoto } = await import('../services/llmService.js');
+    const m = await analyzeMealPhoto(image.replace(/^data:[^,]+,/, ''), mime, (user?.foodRegion ?? 'global') as any);
+    res.json({ estimate: { name: m.name, calories: Math.round(m.calories), proteinG: Math.round(m.proteinG), carbsG: Math.round(m.carbsG), fatG: Math.round(m.fatG), mealType: m.mealType, confidence: (m as any).confidence ?? null } });
+  } catch (err: any) {
+    res.status(422).json({ error: 'Could not read that photo. Try another, or type the meal in.' });
+  }
+}));
+
 // ─── Paying and booking ──────────────────────────────────────────────────────
 
 portalBusinessRoutes(router, handle, writeLimiter);

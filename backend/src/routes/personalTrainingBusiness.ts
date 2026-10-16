@@ -15,6 +15,7 @@ import { prisma } from '../services/personalTraining/db.js';
 import { issueLink, currentLink } from '../services/personalTraining/links.js';
 import { loadClients } from '../services/personalTraining/roster.js';
 import { atRisk, draftOutreach } from '../services/personalTraining/retention.js';
+import { LeadError, addLead, convertLead, listLeads, updateLead } from '../services/personalTraining/leads.js';
 import { TeamError, acceptCoachInvite, assignClient, inviteCoach, removeCoach, team, teamAnalytics } from '../services/personalTraining/team.js';
 import { ScheduleError, book, cancel, getAvailability, listBookings, markSession, openSlots, setAvailability } from '../services/personalTraining/scheduling.js';
 
@@ -26,7 +27,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res);
   } catch (err: any) {
-    if (err instanceof BillingError || err instanceof ScheduleError || err instanceof TeamError) return void (res.headersSent || res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) }));
+    if (err instanceof BillingError || err instanceof ScheduleError || err instanceof TeamError || err instanceof LeadError) return void (res.headersSent || res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) }));
     console.error(`[personal-training] ${name}`, err);
     if (!res.headersSent) res.status(500).json({ error: 'Internal server error' });
   }
@@ -146,6 +147,26 @@ router.get('/retention', ...trainer, handle('GET retention', async (req, res) =>
 router.post('/retention/:clientId/draft', ...trainer, socialWriteLimiter, handle('POST retention draft', async (req, res) => {
   const c = await clientOf(req, req.params.clientId);
   res.status(201).json({ draft: await draftOutreach(req.practice!.id, req.user!.id, c.id) });
+}));
+
+// ─── Leads ───────────────────────────────────────────────────────────────────
+
+router.get('/leads', ...trainer, handle('GET leads', async (req, res) => {
+  res.json({ leads: await listLeads(req.practice!.id) });
+}));
+
+router.post('/leads', ...trainer, socialWriteLimiter, handle('POST lead', async (req, res) => {
+  res.status(201).json({ lead: await addLead(req.practice!.id, req.user!.id, req.body ?? {}) });
+}));
+
+router.patch('/leads/:lid', ...trainer, handle('PATCH lead', async (req, res) => {
+  res.json({ lead: await updateLead(req.practice!.id, req.user!.id, req.params.lid, req.body ?? {}) });
+}));
+
+router.post('/leads/:lid/convert', ...trainer, socialWriteLimiter, handle('POST lead convert', async (req, res) => {
+  const { clientId, link } = await convertLead(req.practice!.id, req.user!.id, req.params.lid);
+  const [client] = await loadClients(req.practice!.id, { ids: [clientId] });
+  res.status(201).json({ client, link });
 }));
 
 // ─── Team (multi-coach practices) ────────────────────────────────────────────

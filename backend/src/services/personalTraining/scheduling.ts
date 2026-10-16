@@ -129,8 +129,13 @@ const view = (b: Row, names: Map<string, string>): BookingView => ({
 });
 
 async function names(ids: string[]) {
-  const users = await prisma.user.findMany({ where: { id: { in: [...new Set(ids)] } }, select: { id: true, name: true } });
-  return new Map(users.map((u) => [u.id, u.name?.trim() || 'Client']));
+  const leadIds = ids.filter((i) => i.startsWith('lead:')).map((i) => i.slice(5));
+  const [users, leads] = await Promise.all([
+    prisma.user.findMany({ where: { id: { in: [...new Set(ids)] } }, select: { id: true, name: true } }),
+    leadIds.length ? prisma.ptLead.findMany({ where: { id: { in: leadIds } }, select: { id: true, name: true } }) : [],
+  ]);
+  // A consult with an enquiry who is not a client yet.
+  return new Map([...users.map((u) => [u.id, u.name?.trim() || 'Client'] as [string, string]), ...leads.map((l) => [`lead:${l.id}`, `${l.name} (consult)`] as [string, string])]);
 }
 
 /**

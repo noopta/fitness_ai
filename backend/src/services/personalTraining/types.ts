@@ -691,6 +691,8 @@ export interface PracticeProfile {
   brandColor: string | null;
   accentColor: string | null;
   logoUrl: string | null;
+  /** The opt-in public page at /p/<slug>, with an enquiry form. */
+  publicPage: boolean;
 }
 
 export interface TagCount {
@@ -787,6 +789,8 @@ export interface NutritionSummary {
   month: NutritionRollup;
   /** One sentence on what the log says. */
   line: string;
+  /** Patterns over four weeks worth a conversation, stated as observations. */
+  patterns: string[];
   days: { date: string; calories: number; proteinG: number; carbsG: number; fatG: number }[];
 }
 
@@ -1104,4 +1108,40 @@ export interface TeamAnalytics {
     sessionsNext7d: number;
     mrrCents: number;
   }[];
+}
+
+// ─── Leads and the public practice page ─────────────────────────────────────
+
+export interface PublicPractice {
+  slug: string;
+  name: string;
+  trainerName: string;
+  bio: string;
+  specialties: string[];
+  styleTags: string[];
+  languages: string[];
+  format: PracticeProfile['format'];
+  brandColor: string | null;
+  accentColor: string | null;
+  logoUrl: string | null;
+  /** The trainer has availability, so the form offers a free consult slot. */
+  offersConsults: boolean;
+}
+
+export interface LeadView {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  goal: string | null;
+  message: string | null;
+  source: 'public_page' | 'manual';
+  status: 'new' | 'contacted' | 'consult_booked' | 'won' | 'lost';
+  consultAt?: string;
+  clientId: string | null;
+  notes: string | null;
+  followUpAt?: string;
+  createdAt: string;
+  /** New for more than a day, or a follow-up date has come. */
+  needsFollowUp: boolean;
 }

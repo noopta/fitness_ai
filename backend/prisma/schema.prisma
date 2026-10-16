@@ -1848,6 +1848,8 @@ model PtPracticeProfile {
   brandColor      String?
   accentColor     String?
   logoBlobKey     String?
+  // Opt-in: the practice's public page (/p/<slug>) with a lead form.
+  publicPage      Boolean  @default(false)
   updatedAt       DateTime @default(now()) @updatedAt
 }
 
@@ -2080,4 +2082,31 @@ model PtBooking {
 
   @@index([practiceId, startsAt])
   @@index([clientId, startsAt])
+}
+
+// ─── Personal training: leads (handoff gap #13, lightweight capture) ─────────
+// Someone who asked about coaching on the practice's public page. Not a
+// client and not an account; converting one makes them a link client.
+model PtLead {
+  id          String    @id @default(uuid())
+  practiceId  String
+  name        String
+  email       String?
+  phone       String?
+  goal        String?
+  message     String?
+  // public_page | manual
+  source      String    @default("public_page")
+  // new | contacted | consult_booked | won | lost
+  status      String    @default("new")
+  consultAt   DateTime?
+  bookingId   String?
+  clientId    String?
+  notes       String?
+  followUpAt  DateTime?
+  contactedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, status, createdAt])
 }

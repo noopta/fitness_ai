@@ -45,6 +45,7 @@ import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
 import personalTrainingRoutes from './routes/personalTraining.js';
 import ptPortalRoutes from './routes/ptPortal.js';
+import ptPublicRoutes from './routes/ptPublic.js';
 import { startPersonalTrainingJobs } from './services/personalTraining/jobs.js';
 import activityRoutes from './routes/activity.js';
 import formAnalysisRoutes, { sweepStalePendingFormAnalyses } from './routes/formAnalysis.js';
@@ -179,6 +180,7 @@ const LARGE_BODY_PATHS = [
   // A no-install client's progress photos and voice check-ins.
   '/api/pt-portal/photos',
   '/api/pt-portal/transcribe',
+  '/api/pt-portal/meals/estimate',
 ];
 // Paths with an id in the middle (a trainer uploading a client's progress photo).
 const LARGE_BODY_PATTERNS = [/^\/api\/personal-training\/clients\/[^/]+\/photos$/];
@@ -254,6 +256,8 @@ app.use('/api/institutions', institutionsRoutes);
 app.use('/api/personal-training', personalTrainingRoutes);
 // A no-install client's portal. Authenticated by the client's secret link only.
 app.use('/api/pt-portal', ptPortalRoutes);
+// A practice's opt-in public page and enquiry form.
+app.use('/api/pt-public', ptPublicRoutes);
 app.use('/api', activityRoutes);
 app.use('/api', instagramWebhookRoutes);
 app.use('/api', trainTogetherRoutes);

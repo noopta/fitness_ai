@@ -53,6 +53,7 @@ export async function getPracticeProfile(practiceId: string): Promise<PracticePr
     brandColor: row?.brandColor ?? null,
     accentColor: row?.accentColor ?? null,
     logoUrl,
+    publicPage: row?.publicPage ?? false,
   };
 }
 
@@ -86,6 +87,10 @@ export async function savePracticeProfile(practiceId: string, body: Record<strin
     if (body[k] === undefined) continue;
     if (body[k] !== null && (typeof body[k] !== 'string' || !HEX.test(body[k] as string))) throw new PracticeError(`${k} must be a hex colour like #1F6FEB`, 400);
     data[k] = body[k];
+  }
+  if (body.publicPage !== undefined) {
+    if (typeof body.publicPage !== 'boolean') throw new PracticeError('publicPage must be true or false', 400);
+    data.publicPage = body.publicPage;
   }
   if (body.name !== undefined) {
     const name = typeof body.name === 'string' ? body.name.trim() : '';

@@ -89,3 +89,16 @@ export function createPortalApiExtra(fetcher: Fetcher) {
     cancelBooking: (id: string) => fetcher(`${P}/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' }) as Promise<{ booking: import('./types').BookingView }>,
   };
 }
+
+export interface MealEstimate {
+  name: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  mealType: string;
+  confidence: string | null;
+}
+
+/** A photo estimate for the client to check before logging. Nothing is logged by this call. */
+export const estimateMealPath = `${PORTAL_PREFIX}/meals/estimate`;

@@ -697,3 +697,54 @@ describe('multi-coach team', () => {
     expect(p.assignedTrainerId).toBeNull();
   });
 });
+
+describe('leads and the public page', () => {
+  let pub: express.Express;
+  beforeAll(async () => {
+    const { default: publicRoutes } = await import('../routes/ptPublic.js');
+    pub = express();
+    pub.use(express.json());
+    pub.use('/api/pt-public', publicRoutes);
+  });
+
+  it('is off until the trainer opts in', async () => {
+    expect((await request(pub).get('/api/pt-public/pt-kofi')).status).toBe(404);
+    await request(app).put(`${api}/practice/profile`).set('Authorization', as.trainer).send({ publicPage: true });
+    const r = await request(pub).get('/api/pt-public/pt-kofi');
+    expect(r.body.practice).toMatchObject({ name: 'Kofi Coaching', trainerName: 'Kofi Mensah', offersConsults: true, specialties: ['Powerlifting', 'Rehab'] });
+  });
+
+  it('takes an enquiry with a consult slot, notifies the trainer, drops honeypot spam, and converts to a client', async () => {
+    const slot = (await request(pub).get('/api/pt-public/pt-kofi/slots')).body.slots.at(-1);
+    const r = await request(pub).post('/api/pt-public/pt-kofi/leads').send({ name: 'Lena Lead', email: 'lena@mail.test', goal: 'Get strong for hiking', consultAt: slot.startsAt });
+    expect(r.status).toBe(201);
+    expect((await request(pub).post('/api/pt-public/pt-kofi/leads').send({ name: 'Bot', email: 'b@b.b', website: 'spam.example' })).status).toBe(201);
+    expect((await request(pub).post('/api/pt-public/pt-kofi/leads').send({ name: 'No Contact' })).status).toBe(400);
+    const leads = await request(app).get(`${api}/leads`).set('Authorization', as.trainer);
+    expect(leads.body.leads.map((l: any) => l.name)).toEqual(['Lena Lead']);
+    expect(leads.body.leads[0]).toMatchObject({ status: 'consult_booked', consultAt: slot.startsAt });
+    expect(await prisma.ptNotification.count({ where: { eventType: 'newLead' } })).toBeGreaterThan(0);
+    const sched = await request(app).get(`${api}/schedule/bookings`).set('Authorization', as.trainer);
+    expect(sched.body.bookings.some((b: any) => b.clientName === 'Lena Lead (consult)')).toBe(true);
+    const c = await request(app).post(`${api}/leads/${leads.body.leads[0].id}/convert`).set('Authorization', as.trainer);
+    expect(c.status).toBe(201);
+    expect(c.body.client).toMatchObject({ name: 'Lena Lead', channel: 'webLink', contactEmail: 'lena@mail.test' });
+    const booking = await prisma.ptBooking.findFirst({ where: { notes: 'Free consult: Lena Lead' } });
+    expect(booking.clientId).toBe(c.body.client.id);
+    expect((await request(app).post(`${api}/leads/${leads.body.leads[0].id}/convert`).set('Authorization', as.trainer)).status).toBe(409);
+  });
+});
+
+describe('nutrition patterns', () => {
+  it('states patterns over the log as observations', async () => {
+    const { nutritionPatterns } = await import('../services/personalTraining/nutrition.js');
+    const days = ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-10', '2026-10-11'].map((date) => {
+      const weekend = [0, 6].includes(new Date(`${date}T12:00:00Z`).getUTCDay());
+      return { date, calories: weekend ? 3000 : 2000, proteinG: 90, carbsG: 0, fatG: 0 };
+    });
+    const p = nutritionPatterns(days, { calories: 2000, proteinG: 150, carbsG: null, fatG: null });
+    expect(p).toContain('Protein under 80% of target on 6 of 6 logged days');
+    expect(p.some((x) => x.startsWith('Weekends average 50% more calories'))).toBe(true);
+    expect(nutritionPatterns(days.slice(0, 2), null)).toEqual([]);
+  });
+});

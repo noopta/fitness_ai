@@ -10,7 +10,7 @@ import type {
   MeasurementKind, PracticeProfile, ProgressPhoto, TagCount, ClientState,
   IntakeState, NutritionSummary, InboxThread, InboxConversation, LibraryExercise, ProgramSummary, TrainerProgram, ProgramDoc, ProgramAiRequest,
   BillingStatus, OfferView, ClientPlanView, PaymentView, RevenueSummary, AvailabilityWindow, BookingView, Slot,
-  RetentionRow, TeamMember, TeamAnalytics,
+  RetentionRow, TeamMember, TeamAnalytics, LeadView, PublicPractice,
 } from './types';
 
 export const API_PREFIX = '/personal-training';
@@ -76,6 +76,7 @@ export const queryKeys = {
   retention: ['personal-training', 'retention'] as const,
   team: ['personal-training', 'team'] as const,
   teamAnalytics: ['personal-training', 'team', 'analytics'] as const,
+  leads: ['personal-training', 'leads'] as const,
 };
 
 /** One body part the editor offers, with the movement patterns it refuses by default. */
@@ -364,9 +365,25 @@ export function createApi(fetcher: Fetcher) {
     acceptCoachInvite: (token: string) => fetcher(`${API_PREFIX}/team/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) as Promise<{ practice: Practice }>,
     removeCoach: (userId: string) => fetcher(`${API_PREFIX}/team/${encodeURIComponent(userId)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
     teamAnalytics: () => fetcher(`${API_PREFIX}/team/analytics`) as Promise<TeamAnalytics>,
+    leads: () => fetcher(`${API_PREFIX}/leads`) as Promise<{ leads: LeadView[] }>,
+    addLead: (input: { name: string; email?: string; phone?: string; goal?: string; notes?: string }) =>
+      fetcher(`${API_PREFIX}/leads`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ lead: LeadView }>,
+    updateLead: (lid: string, patch: { status?: LeadView['status']; notes?: string | null; followUpAt?: string | null }) =>
+      fetcher(`${API_PREFIX}/leads/${encodeURIComponent(lid)}`, { method: 'PATCH', body: JSON.stringify(patch) }) as Promise<{ lead: LeadView }>,
+    convertLead: (lid: string) => fetcher(`${API_PREFIX}/leads/${encodeURIComponent(lid)}/convert`, { method: 'POST' }) as Promise<CreateLinkClientResponse>,
     assignClient: (clientId: string, trainerId: string | null) =>
       fetcher(`${API_PREFIX}/clients/${encodeURIComponent(clientId)}/assignment`, { method: 'PUT', body: JSON.stringify({ trainerId }) }) as Promise<{ ok: true }>,
   };
 }
 
 export type PersonalTrainingApi = ReturnType<typeof createApi>;
+
+/** The opt-in public practice page: /api/pt-public, no auth. */
+export function createPublicApi(fetcher: Fetcher) {
+  return {
+    practice: (slug: string) => fetcher(`/pt-public/${encodeURIComponent(slug)}`) as Promise<{ practice: PublicPractice }>,
+    slots: (slug: string) => fetcher(`/pt-public/${encodeURIComponent(slug)}/slots`) as Promise<{ slots: Slot[] }>,
+    enquire: (slug: string, input: { name: string; email?: string; phone?: string; goal?: string; message?: string; consultAt?: string; website?: string }) =>
+      fetcher(`/pt-public/${encodeURIComponent(slug)}/leads`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ ok: true }>,
+  };
+}

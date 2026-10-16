@@ -92,6 +92,34 @@ export function complianceLine(r: ReturnType<typeof rollup>, targets: NutritionT
   return `${parts.join(', ')}.`;
 }
 
+/**
+ * Patterns across the last four weeks worth a coaching conversation (gap #7,
+ * V2). Each is a plain observation from the log; nothing is inferred about why.
+ * Pure — exported for tests.
+ */
+export function nutritionPatterns(days: DayTotal[], targets: NutritionTargets | null): string[] {
+  const out: string[] = [];
+  if (days.length < 4) return out;
+  if (targets?.proteinG) {
+    const low = days.filter((d) => d.proteinG < targets.proteinG! * 0.8).length;
+    if (low >= Math.ceil(days.length * 0.6)) out.push(`Protein under 80% of target on ${low} of ${days.length} logged days`);
+  }
+  if (targets?.calories) {
+    const over = days.filter((d) => d.calories > targets.calories! * 1.1).length;
+    const under = days.filter((d) => d.calories < targets.calories! * 0.8).length;
+    if (over >= Math.ceil(days.length * 0.6)) out.push(`Calories more than 10% over target on ${over} of ${days.length} logged days`);
+    if (under >= Math.ceil(days.length * 0.6)) out.push(`Calories well under target on ${under} of ${days.length} logged days`);
+  }
+  const weekend = days.filter((d) => [0, 6].includes(new Date(`${d.date}T12:00:00Z`).getUTCDay()));
+  const weekday = days.filter((d) => ![0, 6].includes(new Date(`${d.date}T12:00:00Z`).getUTCDay()));
+  if (weekend.length >= 2 && weekday.length >= 3) {
+    const we = weekend.reduce((s, d) => s + d.calories, 0) / weekend.length;
+    const wd = weekday.reduce((s, d) => s + d.calories, 0) / weekday.length;
+    if (wd > 0 && we > wd * 1.25) out.push(`Weekends average ${Math.round(((we - wd) / wd) * 100)}% more calories than weekdays`);
+  }
+  return out;
+}
+
 export async function nutritionSummary(practiceId: string, clientId: string, now: Date = new Date()): Promise<NutritionSummary> {
   const since28 = new Date(now.getTime() - 27 * DAY_MS).toISOString().slice(0, 10);
   const since7 = new Date(now.getTime() - 6 * DAY_MS).toISOString().slice(0, 10);
@@ -108,6 +136,7 @@ export async function nutritionSummary(practiceId: string, clientId: string, now
     week,
     month: rollup(days, targets, 28),
     line: complianceLine(week, targets),
+    patterns: nutritionPatterns(days, targets),
     days: days.map((d) => ({ ...d, calories: Math.round(d.calories), proteinG: Math.round(d.proteinG), carbsG: Math.round(d.carbsG), fatG: Math.round(d.fatG) })),
   };
 }
