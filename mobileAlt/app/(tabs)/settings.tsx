@@ -19,6 +19,7 @@ import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
+import { contactSupport } from '../../src/lib/openExternal';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
@@ -581,6 +582,17 @@ export default function SettingsScreen() {
                 <View style={styles.rowDivider} />
               </>
             ) : null}
+            <TouchableOpacity
+              onPress={() => contactSupport()}
+              activeOpacity={0.7}
+              style={styles.accountRow}
+              accessibilityLabel="Contact or report a concern"
+            >
+              <Ionicons name="mail-outline" size={20} color={colors.foreground} />
+              <Text style={[styles.signOutText, { color: colors.foreground }]}>Contact / Report a concern</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+            <View style={styles.rowDivider} />
             <TouchableOpacity
               onPress={handleSignOut}
               activeOpacity={0.7}

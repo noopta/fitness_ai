@@ -34,6 +34,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { google } from 'googleapis';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import posthog from '../services/posthogClient.js';
 
 const router = Router();
@@ -79,6 +80,8 @@ interface PlaySubState {
   expiryMs: number | null;     // null if no expiry returned (rare)
   isActive: boolean;
   state: string;               // 'SUBSCRIPTION_STATE_ACTIVE' | '..._CANCELED' | etc.
+  /** productId Google reports on the purchase (lineItems[0]); null if absent. */
+  lineProductId: string | null;
   linkedPurchaseToken: string | null; // present after an upgrade/downgrade
 }
 
@@ -95,7 +98,13 @@ export function resolvePlaySubscriptionState(
     'SUBSCRIPTION_STATE_ACTIVE',
     'SUBSCRIPTION_STATE_IN_GRACE_PERIOD',
   ]);
-  const lineItem = data?.lineItems?.[0];
+  const lineItems: any[] = Array.isArray(data?.lineItems) ? data.lineItems : [];
+  const lineItem = lineItems[0];
+  const lineProductId: string | null = typeof lineItem?.productId === 'string' ? lineItem.productId : null;
+  // The productId the CLIENT sent proves nothing; what Google says was bought
+  // must be one of our Pro subscriptions. A response without line items can't
+  // prove that either.
+  const isOurProduct = lineItems.length > 0 && lineItems.every((li) => PRO_PRODUCT_IDS.includes(li?.productId));
   const expiryIso = lineItem?.expiryTime ?? null;
   const expiryMs = expiryIso ? Date.parse(expiryIso) : null;
 
@@ -110,8 +119,9 @@ export function resolvePlaySubscriptionState(
     productId,
     purchaseToken,
     expiryMs,
-    isActive: ACTIVE_STATES.has(state) || stillPaidThroughExpiry,
+    isActive: isOurProduct && (ACTIVE_STATES.has(state) || stillPaidThroughExpiry),
     state,
+    lineProductId,
     linkedPurchaseToken: data?.linkedPurchaseToken ?? null,
   };
 }
@@ -152,6 +162,15 @@ router.post('/payments/google-iap/verify', requireAuth, async (req, res) => {
       return res.status(402).json({ error: 'No active Pro subscription found for this purchase' });
     }
 
+    // A purchase belongs to one account. googlePurchaseToken is @unique, which
+    // would only surface as an opaque P2002; refuse explicitly instead of
+    // letting a shared/leaked token grant Pro to a second account.
+    const holder = await prisma.user.findFirst({ where: { googlePurchaseToken: sub.purchaseToken }, select: { id: true } });
+    if (holder && holder.id !== req.user!.id) {
+      console.warn(`Google IAP: purchase token already bound to another user (requested by ${req.user!.id})`);
+      return res.status(409).json({ error: 'This purchase is already linked to a different Axiom account. Sign in to that account, or contact support.', code: 'purchase_owned_by_other_user' });
+    }
+
     await prisma.user.update({
       where: { id: req.user!.id },
       data: {
@@ -162,6 +181,7 @@ router.post('/payments/google-iap/verify', requireAuth, async (req, res) => {
         stripeSubStatus: null,
       },
     });
+    invalidateAuthCache(req.user!.id);
 
     console.log(`Google IAP: upgraded user ${req.user!.id} to Pro`, {
       productId: sub.productId,
@@ -248,6 +268,7 @@ router.post('/payments/google-iap/notifications', async (req, res) => {
           googleSubExpiresAt: state.expiryMs ? new Date(state.expiryMs) : null,
         },
       });
+      invalidateAuthCache();
       console.log(`Google IAP: confirmed active for purchaseToken ${purchaseToken.slice(0, 12)}…`);
     } else {
       // Expired, revoked, refunded, on hold past grace period.
@@ -255,6 +276,7 @@ router.post('/payments/google-iap/notifications', async (req, res) => {
         where: { googlePurchaseToken: purchaseToken },
         data: { tier: 'free' },
       });
+      invalidateAuthCache();
       console.log(`Google IAP: downgraded for purchaseToken ${purchaseToken.slice(0, 12)}… state=${state.state}`);
     }
 

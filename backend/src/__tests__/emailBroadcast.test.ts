@@ -57,8 +57,9 @@ const app = express();
 app.use(express.json());
 app.use('/api', emailRouter);
 
-const NEW = () => ({ id: 'u-new', name: 'Sam Lee', email: 'sam@x.com', emailVerified: true, marketingEmailsOptOut: false, createdAt: new Date('2026-09-10T12:00:00Z'), welcomeEmailSentAt: null });
-const OLD = () => ({ id: 'u-old', name: 'Old Timer', email: 'old@x.com', emailVerified: true, marketingEmailsOptOut: false, createdAt: new Date('2026-05-01T00:00:00Z'), welcomeEmailSentAt: null });
+const CONSENT = new Date('2026-10-01T00:00:00Z');
+const NEW = () => ({ id: 'u-new', name: 'Sam Lee', email: 'sam@x.com', emailVerified: true, marketingEmailsOptOut: false, marketingConsentAt: CONSENT as Date | null, createdAt: new Date('2026-09-10T12:00:00Z'), welcomeEmailSentAt: null });
+const OLD = () => ({ id: 'u-old', name: 'Old Timer', email: 'old@x.com', emailVerified: true, marketingEmailsOptOut: false, marketingConsentAt: CONSENT as Date | null, createdAt: new Date('2026-05-01T00:00:00Z'), welcomeEmailSentAt: null });
 
 beforeEach(() => {
   store.users = [];
@@ -69,7 +70,7 @@ beforeEach(() => {
 });
 
 describe('welcome email', () => {
-  it('sends once to a new account, with first name, reply-to support, and an unsubscribe link', async () => {
+  it('sends once to a consenting new account, with first name, reply-to support, promo block and an unsubscribe link', async () => {
     store.users = [NEW()];
     expect(await maybeSendWelcomeEmail('u-new')).toBe('sent');
     expect(mail.sendEmail).toHaveBeenCalledTimes(1);
@@ -78,8 +79,11 @@ describe('welcome email', () => {
     expect(arg.subject).toBe('Welcome to Axiom, Sam');
     expect(arg.replyTo).toBe('inquiries@axiomtraining.io');
     expect(arg.html).toContain('Hi Sam,');
-    expect(arg.html).toContain('+105%');            // Alex's social proof
+    expect(arg.html).toContain('What members use most');   // promo block: consented
+    expect(arg.html).not.toContain('+105%');                // unsubstantiated testimonial removed
     expect(arg.html).toContain('/email/unsubscribe?u=u-new');
+    expect(arg.headers['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click');
+    expect(arg.html).toContain('[POSTAL ADDRESS]');
     expect(arg.text).toContain('Where to start');
 
     expect(await maybeSendWelcomeEmail('u-new')).toBe('already_sent');
@@ -111,13 +115,13 @@ describe('welcome email', () => {
 describe('blog broadcast', () => {
   const POST = () => ({ id: 'p1', slug: 'launch', title: 'Launch week', excerpt: 'We shipped.', content: '## New\n\n- **Form check**\n- Recipes\n\nSee [the site](https://axiomtraining.io).', category: 'Update', published: true, emailedAt: null, emailedCount: 0 });
 
-  it('emails verified, opted-in users once per post and records the count', async () => {
+  it('emails verified users with recorded marketing consent once per post and records the count', async () => {
     store.posts = [POST()];
     store.users = [
       NEW(),
       { ...OLD(), id: 'u2', email: 'two@x.com' },
       { ...OLD(), id: 'u-unverified', email: 'unv@x.com', emailVerified: false },
-      { ...OLD(), id: 'u-optout', email: 'out@x.com', marketingEmailsOptOut: true },
+      { ...OLD(), id: 'u-noconsent', email: 'out@x.com', marketingConsentAt: null },   // never opted in
       { ...OLD(), id: 'u-noemail', email: null },
     ];
     const r = await broadcastBlogPost('p1');
@@ -126,7 +130,10 @@ describe('blog broadcast', () => {
     expect(tos).toEqual(['sam@x.com', 'two@x.com']);
     const arg = mail.sendEmail.mock.calls[0][0] as any;
     expect(arg.subject).toBe('Launch week');
-    expect(arg.headers['List-Unsubscribe']).toMatch(/^<.*\/email\/unsubscribe\?u=.*>$/);
+    expect(arg.headers['List-Unsubscribe']).toMatch(/^<https?:.*\/email\/unsubscribe\?u=[^>]+>, <mailto:/);
+    expect(arg.headers['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click');
+    expect(arg.html).toContain('[POSTAL ADDRESS]');
+    expect(arg.text).toContain('[POSTAL ADDRESS]');
     expect(arg.html).toContain('<strong>Form check</strong>');
     expect(arg.html).toContain('href="https://axiomtraining.io"');
     expect(arg.html).toContain('/blog/launch');
@@ -137,13 +144,15 @@ describe('blog broadcast', () => {
     expect(mail.sendEmail).toHaveBeenCalledTimes(2);
   });
 
-  it('includes admin-added subscribers, skips unsubscribed ones, and dedupes against accounts', async () => {
+  it('includes confirmed subscribers only, skips pending/unsubscribed ones, and dedupes against accounts', async () => {
     store.posts = [POST()];
     store.users = [NEW()];
+    const ok = new Date();
     store.subs = [
-      { id: 's1', email: 'friend@x.com', unsubscribedAt: null },
-      { id: 's-gone', email: 'gone@x.com', unsubscribedAt: new Date() },
-      { id: 's-dup', email: 'SAM@x.com', unsubscribedAt: null },   // same person as u-new
+      { id: 's1', email: 'friend@x.com', unsubscribedAt: null, confirmedAt: ok },
+      { id: 's-pending', email: 'pending@x.com', unsubscribedAt: null, confirmedAt: null },   // no double opt-in yet
+      { id: 's-gone', email: 'gone@x.com', unsubscribedAt: new Date(), confirmedAt: ok },
+      { id: 's-dup', email: 'SAM@x.com', unsubscribedAt: null, confirmedAt: ok },   // same person as u-new
     ];
     const r = await broadcastBlogPost('p1');
     expect(r).toEqual({ status: 'sent', sent: 2, failed: 0, recipients: 2 });
@@ -204,6 +213,7 @@ describe('unsubscribe', () => {
     expect(ok.status).toBe(200);
     expect(ok.text).toContain('unsubscribed');
     expect(store.users[0].marketingEmailsOptOut).toBe(true);
+    expect(store.users[0].marketingConsentAt).toBeNull();      // opt-in record cleared
     expect(store.users[1].marketingEmailsOptOut).toBe(false);
 
     const forged = await request(app).get(`/api/email/unsubscribe?u=u2&t=${encodeURIComponent(unsubscribeToken('u-new'))}`);

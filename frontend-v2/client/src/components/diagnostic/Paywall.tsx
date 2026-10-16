@@ -4,9 +4,10 @@ import { CreditCard, X } from 'lucide-react';
 import { COPY } from '@axiom/diagnostic-core';
 import { authFetch } from '@/lib/api';
 import { WebAnalytics } from '@/lib/analytics';
+import { PRO_PRICE, AUTO_RENEW_DISCLOSURE } from '@/lib/pricing';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
-const PRICE = '$12.99';
+const PRICE = PRO_PRICE;
 
 function applePayAvailable(): boolean {
   try {
@@ -100,6 +101,9 @@ export function DiagnosticPaywall({ open, source, onClose }: Props) {
             <CreditCard size={18} />
             {COPY.payByCard}
           </button>
+          <p className="text-center text-[12px] leading-snug text-zinc-500" data-testid="auto-renew-disclosure">
+            {AUTO_RENEW_DISCLOSURE}
+          </p>
           {error ? <p className="text-center text-[13px] text-zinc-500">{error}</p> : null}
           <div className="flex items-center justify-center gap-2 pt-1 text-[13px] font-medium text-zinc-500">
             <a href="/settings" className="hover:text-zinc-950">{COPY.restore}</a>

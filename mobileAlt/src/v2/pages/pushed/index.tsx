@@ -39,6 +39,7 @@ import { GroupsList } from '../feed/lists';
 import { FriendsPage, GroupPage, LeaderboardPage, TrainTogetherPage } from '../feed/People';
 import { ComposePage } from '../feed/Compose';
 import { AnalyzePage } from './analyze';
+import { userSafetyMenu } from '../../../lib/moderation';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -452,7 +453,11 @@ function PersonPage({ id, params }: { id: string; params: Record<string, string>
   return (
     <PushedPage back="Feed" title={params.name || 'Person'} meta={params.goal || null} lead={params.did ? `Latest — ${params.did}${params.whenAt ? `, ${params.whenAt} ago` : ''}` : null}
       cta={id ? { label: 'Follow', onPress: () => void follow(), loading: busy } : null}
-      foot={id ? [{ label: 'Full profile', onPress: () => router.push({ pathname: '/social/profile', params: { userId: id } } as any) }] : undefined}>
+      foot={id ? [
+        { label: 'Full profile', onPress: () => router.push({ pathname: '/social/profile', params: { userId: id } } as any) },
+        // Guideline 1.2: report or block, reachable from every profile.
+        { label: 'Report or block', onPress: () => userSafetyMenu({ userId: id, name: params.name, onBlockChange: (b) => { if (b && router.canGoBack()) router.back(); } }) },
+      ] : undefined}>
       {params.did ? <Row name="Latest" sub={params.did} value={params.whenAt} last /> : null}
     </PushedPage>
   );

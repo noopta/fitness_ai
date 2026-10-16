@@ -178,7 +178,8 @@ export async function sendJunkFoodEncouragement(
       body: msg.body,
       data: { screen: 'coach', tab: 'Nutrition' },
     });
-    console.log(`[reengagement] Indulgent-meal encouragement sent to user ${userId} for "${mealName}" (${Math.round(calories)} kcal)`);
+    // No meal name in logs: what someone ate is health data, and journald is not the place for it.
+    console.log(`[reengagement] Indulgent-meal encouragement sent to user ${userId}`);
   } catch (err) {
     console.error('[reengagement] Indulgent-meal encouragement error:', err);
   }

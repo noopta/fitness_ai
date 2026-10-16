@@ -5,7 +5,8 @@ import { sendPushToUser } from '../services/notificationService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
 import { friendRequestCard, incomingMessageCard } from '../agent/toolkits/cards.js';
 import { getUserGoalTags, getCachedFeedItems, recordFeedViews, maybeFetchFromSources } from '../services/feedService.js';
-import { putImageBase64, objectUrl } from '../services/blobStore.js';
+import { putImageBase64, objectUrl, isValidImageKey, signImageKey, verifyImageKeySig } from '../services/blobStore.js';
+import { parseSharePayload, payloadBytesWithoutImage, MAX_SHARE_PAYLOAD_BYTES, SHARE_ITEM_TYPES } from '../validation/sharePayload.js';
 import { moderateText, moderatePost } from '../services/moderationService.js';
 import { socialWriteLimiter } from '../middleware/rateLimiter.js';
 import { rankBoard, type BoardLift } from '../services/leaderboardBoard.js';
@@ -80,6 +81,51 @@ async function isBlockedBetween(userA: string, userB: string): Promise<boolean> 
   // strict check would treat an undefined from any other source as "blocked"
   // and silently deny every interaction.
   return row != null;
+}
+
+/**
+ * Every user the viewer has blocked or been blocked by — computed once per
+ * request and used to filter feed/search/count queries and embedded comments
+ * (Oct 2026 audit L5: blocks only gated direct interactions, so a blocked
+ * user's public posts and comments still showed up and vice-versa).
+ * Rows are re-checked for status so a mock or a stale query that returns other
+ * friendship rows can never widen the set.
+ */
+export async function blockedIdsFor(userId: string): Promise<string[]> {
+  const rows = await prisma.friendship.findMany({
+    where: { status: 'blocked', OR: [{ requesterId: userId }, { addresseeId: userId }] },
+    select: { requesterId: true, addresseeId: true, status: true },
+  });
+  const out = new Set<string>();
+  for (const r of rows ?? []) {
+    if ((r as any)?.status !== 'blocked') continue;
+    const other = r.requesterId === userId ? r.addresseeId : r.requesterId;
+    if (other && other !== userId) out.add(other);
+  }
+  return [...out];
+}
+
+/**
+ * Posts created before image keys were signed carry an unsigned key written by
+ * the old share route or scripts/backfillPostImages.ts. Those are honoured up
+ * to this cutoff (set LEGACY_IMAGE_KEY_CUTOFF to the deploy time); after it,
+ * only a key with a valid server signature is ever turned into a signed URL.
+ */
+const LEGACY_IMAGE_KEY_CUTOFF = (() => {
+  const d = new Date(process.env.LEGACY_IMAGE_KEY_CUTOFF ?? '2026-11-01T00:00:00Z');
+  return Number.isNaN(d.getTime()) ? new Date('2026-11-01T00:00:00Z') : d;
+})();
+
+export function isServerSetImageKey(p: { imageKey?: unknown; imageKeySig?: unknown }, createdAt?: Date | string | null): boolean {
+  if (!isValidImageKey(p?.imageKey)) return false;
+  if (verifyImageKeySig(p.imageKey, p.imageKeySig)) return true;
+  const at = createdAt ? new Date(createdAt) : null;
+  return !!at && !Number.isNaN(at.getTime()) && at < LEGACY_IMAGE_KEY_CUTOFF;
+}
+
+/** Prisma fragment excluding blocked authors (empty object when none). */
+function notBlockedSharer(blocked: string[]) {
+  return blocked.length ? { sharerId: { notIn: blocked } } : {};
 }
 
 /**
@@ -196,10 +242,10 @@ router.get('/social/friends/requests', wrap(async (req, res) => {
 // someone who has already requested *you* simply accepts theirs. The response
 // always carries the resulting `status` so the client can render the right
 // pill ("Requested" / "Friends") without guessing.
-router.post('/social/friends/request', wrap(async (req, res) => {
-  const { targetUserId } = req.body;
+router.post('/social/friends/request', socialWriteLimiter, wrap(async (req, res) => {
+  const { targetUserId } = req.body ?? {};
   const userId = req.user!.id;
-  if (!targetUserId || targetUserId === userId) return res.status(400).json({ error: 'Invalid target' });
+  if (typeof targetUserId !== 'string' || !targetUserId || targetUserId === userId) return res.status(400).json({ error: 'Invalid target' });
 
   const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
   if (!target) return res.status(404).json({ error: 'User not found' });
@@ -216,7 +262,10 @@ router.post('/social/friends/request', wrap(async (req, res) => {
 
   if (existing) {
     if (existing.status === 'blocked') {
-      return res.status(403).json({ error: 'Cannot send request' });
+      // Same response as a freshly-created request: a distinct error here told
+      // the sender they had been blocked (Oct 2026 audit). Nothing is written
+      // and nobody is notified.
+      return res.status(201).json({ status: 'pending' });
     }
     if (existing.status === 'accepted') {
       return res.json({ status: 'accepted', friendship: existing });
@@ -239,7 +288,7 @@ router.post('/social/friends/request', wrap(async (req, res) => {
   }
 
   try {
-    const friendship = await prisma.friendship.create({
+    await prisma.friendship.create({
       data: { requesterId: userId, addresseeId: targetUserId, status: 'pending' },
     });
     // Notify the recipient
@@ -247,7 +296,8 @@ router.post('/social/friends/request', wrap(async (req, res) => {
     const senderDisplay = sender?.username ? `@${sender.username}` : (sender?.name ?? 'Someone');
     sendPushToUser(targetUserId, 'New Friend Request', `${senderDisplay} sent you a friend request`, { type: 'friend_request', requesterId: userId }).catch(() => {});
     postInitiatedLater(targetUserId, async () => ({ text: `${senderDisplay} wants to be friends.`, cards: [friendRequestCard({ requesterId: userId, name: senderDisplay })] }));
-    return res.status(201).json({ status: 'pending', friendship });
+    // No row in the body: it must look exactly like the blocked no-op above.
+    return res.status(201).json({ status: 'pending' });
   } catch (err: any) {
     // P2002 = unique-constraint race (a concurrent identical request landed
     // first). The request still exists, so report success.
@@ -258,7 +308,8 @@ router.post('/social/friends/request', wrap(async (req, res) => {
 
 // POST /api/social/friends/accept
 router.post('/social/friends/accept', wrap(async (req, res) => {
-  const { requesterId } = req.body;
+  const { requesterId } = req.body ?? {};
+  if (typeof requesterId !== 'string' || !requesterId) return res.status(400).json({ error: 'requesterId required' });
   const friendship = await prisma.friendship.findUnique({
     where: { requesterId_addresseeId: { requesterId, addresseeId: req.user!.id } },
   });
@@ -273,7 +324,8 @@ router.post('/social/friends/accept', wrap(async (req, res) => {
 
 // POST /api/social/friends/decline
 router.post('/social/friends/decline', wrap(async (req, res) => {
-  const { requesterId } = req.body;
+  const { requesterId } = req.body ?? {};
+  if (typeof requesterId !== 'string' || !requesterId) return res.status(400).json({ error: 'requesterId required' });
   await prisma.friendship.deleteMany({
     where: {
       OR: [
@@ -304,8 +356,12 @@ router.delete('/social/friends/:userId', wrap(async (req, res) => {
 
 // POST /api/social/friends/block
 router.post('/social/friends/block', wrap(async (req, res) => {
-  const { targetUserId } = req.body;
+  const { targetUserId } = req.body ?? {};
   const userId = req.user!.id;
+  if (typeof targetUserId !== 'string' || !targetUserId) return res.status(400).json({ error: 'targetUserId required' });
+  if (targetUserId === userId) return res.status(400).json({ error: 'You cannot block yourself' });
+  const target = await prisma.user.findUnique({ where: { id: targetUserId }, select: { id: true } });
+  if (!target) return res.status(404).json({ error: 'User not found' });
   // Remove any existing friendship first
   await prisma.friendship.deleteMany({
     where: {
@@ -392,6 +448,7 @@ router.get('/social/users/search', wrap(async (req, res) => {
 
 // GET /api/social/users/:userId/avatar — returns only the avatarBase64 (lazy-load, cached by client)
 router.get('/social/users/:userId/avatar', wrap(async (req, res) => {
+  if (await isBlockedBetween(req.user!.id, req.params.userId)) return res.status(404).json({ error: 'Not found' });
   const user = await prisma.user.findUnique({
     where: { id: req.params.userId },
     select: { avatarBase64: true },
@@ -404,6 +461,9 @@ router.get('/social/users/:userId/avatar', wrap(async (req, res) => {
 router.get('/social/profile/:userId', wrap(async (req, res) => {
   const viewerId = req.user!.id;
   const { userId } = req.params;
+
+  // Blocked in either direction: the profile doesn't exist for this viewer.
+  if (await isBlockedBetween(viewerId, userId)) return res.status(404).json({ error: 'User not found' });
 
   const targetUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -544,8 +604,9 @@ router.post('/social/conversations', wrap(async (req, res) => {
 router.get('/social/conversations/:conversationId/messages', wrap(async (req, res) => {
   const userId = req.user!.id;
   const { conversationId } = req.params;
-  const limit = parseInt(req.query.limit as string) || 50;
-  const before = req.query.before as string | undefined;
+  const rawLimit = Number.parseInt(String(req.query.limit ?? ''), 10);
+  const limit = Number.isFinite(rawLimit) ? Math.min(200, Math.max(1, rawLimit)) : 50;
+  const before = typeof req.query.before === 'string' ? req.query.before : undefined;
 
   const convo = await prisma.directConversation.findUnique({ where: { id: conversationId } });
   if (!convo || (convo.participantAId !== userId && convo.participantBId !== userId)) {
@@ -664,8 +725,20 @@ const FEED_INCLUDE = {
   },
 } as const;
 
-function serializeFeedItem(item: any, viewerId: string, slim = false) {
-  const rawPayload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+/** Server-only image bookkeeping never leaves the server. */
+function stripImageKeys(p: any): any {
+  if (!p || typeof p !== 'object') return p;
+  const { imageKey, imageKeySig: _s, ...rest } = p;
+  return imageKey ? { ...rest, hasImage: true } : rest;
+}
+
+function serializeFeedItem(item: any, viewerId: string, slim = false, blocked?: ReadonlySet<string>) {
+  let rawPayload: any;
+  try { rawPayload = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload; } catch { rawPayload = {}; }
+  if (rawPayload && typeof rawPayload === 'object') {
+    rawPayload = stripImageKeys(rawPayload);
+    if (rawPayload.originalPayload) rawPayload = { ...rawPayload, originalPayload: stripImageKeys(rawPayload.originalPayload) };
+  }
 
   // Payload shape:
   //   - Default (slim=false): keep imageBase64 inline so deployed clients
@@ -675,11 +748,8 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
   //     the post scrolls into view. Cuts feed payload from ~11MB to ~4MB
   //     on a typical 25-post page with embedded photos.
   let payload = rawPayload;
-  // A migrated post has imageKey instead of imageBase64 — it still has an
-  // image, so the client's lazy-load path must be told about it.
-  if (rawPayload?.imageKey) {
-    payload = { ...rawPayload, hasImage: true };
-  }
+  // A migrated post has imageKey instead of imageBase64 — stripImageKeys
+  // above already replaced it with hasImage so the client lazy-loads it.
   if (slim && rawPayload?.imageBase64) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { imageBase64, ...rest } = rawPayload;
@@ -706,14 +776,16 @@ function serializeFeedItem(item: any, viewerId: string, slim = false) {
 
   // Only whether the viewer saved it leaves the server, not who else did.
   const { saves, ...rest } = item;
+  // Comments from users blocked either way are dropped for this viewer.
+  const comments = (item.comments ?? []).filter((c: any) => !blocked?.has(c?.author?.id ?? c?.authorId));
   return {
     ...rest,
     payload,
     reactionCount: item.reactions?.length ?? 0,
     likedByMe: item.reactions?.some((r: any) => r.userId === viewerId) ?? false,
     savedByMe: saves?.some((s: any) => s.userId === viewerId) ?? false,
-    commentCount: item.comments?.length ?? 0,
-    comments: item.comments ?? [],
+    commentCount: comments.length,
+    comments,
   };
 }
 
@@ -762,21 +834,70 @@ export function extractAuthors(
 }
 
 // POST /api/social/share
-/** Post kinds the client is allowed to create. */
-const ALLOWED_ITEM_TYPES = new Set([
-  'text', 'media', 'workout', 'meal', 'recipe', 'article',
-  'pr', 'streak', 'program', 'form_analysis', 'strength_profile',
-]);
+/** Post kinds the client is allowed to create (one zod schema each). */
+const ALLOWED_ITEM_TYPES = SHARE_ITEM_TYPES;
+
+/**
+ * A repost's content is copied from the post it points at, never taken from
+ * the client: attribution (name/username), item type, caption and payload.
+ * The original image travels by its server-signed key only; inline bytes are
+ * dropped rather than re-copied into another row.
+ */
+async function buildRepostPayload(viewerId: string, originalPostId: string, text?: string) {
+  const original = await prisma.sharedItem.findUnique({
+    where: { id: originalPostId },
+    select: {
+      id: true, sharerId: true, recipientId: true, visibility: true, itemType: true, payload: true, caption: true,
+      sharer: { select: { id: true, name: true, username: true } },
+    },
+  });
+  if (!original || !(await canViewPost(viewerId, original as any))) return null;
+  // Only broadcasts can be reposted; a direct share is a private message.
+  if (original.recipientId !== original.sharerId) return null;
+  let op: any = {};
+  try { op = typeof original.payload === 'string' ? JSON.parse(original.payload) : (original.payload ?? {}); } catch { op = {}; }
+  // Reposting a repost points at the same underlying content.
+  const { imageBase64: _drop, imageKey, imageKeySig, imageUrl: _u, hasImage: _h, ...origRest } = op ?? {};
+  const originalPayload: Record<string, any> = { ...origRest };
+  if (isValidImageKey(imageKey) && verifyImageKeySig(imageKey, imageKeySig)) {
+    originalPayload.imageKey = imageKey;
+    originalPayload.imageKeySig = imageKeySig;
+  } else if (op?.imageBase64 || imageKey) {
+    originalPayload.hasImage = true; // client lazy-loads from originalPostId
+  }
+  return {
+    payload: {
+      originalPostId: original.id,
+      originalSharerId: original.sharerId,
+      originalSharerName: original.sharer?.name ?? null,
+      originalSharerUsername: original.sharer?.username ?? null,
+      originalItemType: original.itemType,
+      originalPayload,
+      originalCaption: original.caption ?? null,
+      ...(text ? { text } : {}),
+    },
+    originalSharerId: original.sharerId,
+  };
+}
 
 router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
-  const { recipientId, itemType, itemId, payload, caption, visibility } = req.body;
-  if (!itemType || !payload) return res.status(400).json({ error: 'itemType and payload required' });
+  const { recipientId, itemType, itemId, payload: rawPayload, caption, visibility } = req.body ?? {};
+  if (!itemType || !rawPayload) return res.status(400).json({ error: 'itemType and payload required' });
   if (typeof itemType !== 'string' || !ALLOWED_ITEM_TYPES.has(itemType)) {
     return res.status(400).json({ error: 'Unsupported post type' });
   }
-  if (typeof payload !== 'object' || Array.isArray(payload)) {
+  if (typeof rawPayload !== 'object' || Array.isArray(rawPayload)) {
     return res.status(400).json({ error: 'payload must be an object' });
   }
+  if (recipientId != null && typeof recipientId !== 'string') return res.status(400).json({ error: 'Invalid recipient' });
+  if (caption != null && typeof caption !== 'string') return res.status(400).json({ error: 'caption must be a string' });
+  if (itemId != null && (typeof itemId !== 'string' || itemId.length > 100)) return res.status(400).json({ error: 'Invalid itemId' });
+
+  // Allow-listed keys per type, bounded values, http(s)-only videoUrl.
+  // Server-owned keys (imageKey/imageUrl/…) are dropped before this runs.
+  const parsed = parseSharePayload(itemType, rawPayload);
+  if (!parsed.ok) return res.status(400).json({ error: parsed.error });
+  let payload: Record<string, any> = parsed.payload;
 
   // Audience: only meaningful for broadcast posts (no recipientId). Direct
   // shares are always private to the recipient, so they stay "friends".
@@ -796,9 +917,20 @@ router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
     return res.status(400).json({ error: `Post is too long (max ${MAX_POST_TEXT_LEN} characters).` });
   }
 
-  // Enforce imageBase64 size limit (~2MB decoded)
-  if (payload.imageBase64 && payload.imageBase64.length > 2_800_000) {
-    return res.status(400).json({ error: 'Image exceeds the 2MB size limit.' });
+  // Repost: attribution + content come from the original, which the reposter
+  // must be able to see. An unviewable or unknown original is a plain 404.
+  let repostOfSharerId: string | null = null;
+  if (itemType === 'repost') {
+    const built = await buildRepostPayload(req.user!.id, payload.originalPostId, payload.text);
+    if (!built) return res.status(404).json({ error: 'Post not found' });
+    payload = built.payload;
+    repostOfSharerId = built.originalSharerId;
+  }
+
+  // Everything except the (separately capped) image must fit in 64 KB — the
+  // payload is served inline to every viewer of the feed.
+  if (payloadBytesWithoutImage(payload) > MAX_SHARE_PAYLOAD_BYTES) {
+    return res.status(413).json({ error: 'Post is too large.' });
   }
 
   // For directed shares, verify relationship; for feed broadcasts (no recipientId) skip check
@@ -815,7 +947,7 @@ router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
   // so this is the highest-reach content a user can create.
   const verdict = await moderatePost(
     [caption, payload.text].filter((s) => typeof s === 'string' && s.trim()).join('\n\n') || null,
-    payload.imageBase64 ?? null,
+    typeof payload.imageBase64 === 'string' ? payload.imageBase64 : null,
     payload.imageMimeType ?? 'image/jpeg',
     itemType === 'media' ? 'post_image' : 'post_caption',
     req.user!.id,
@@ -827,12 +959,14 @@ router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
   // 6 MB of SharedItem payload and the multi-megabyte feed responses.
   // Best-effort by design: if the blob store is disabled or the upload fails,
   // putImageBase64 returns null and the image stays inline exactly as before,
-  // so posting can never break on a storage problem.
+  // so posting can never break on a storage problem. The key is signed so the
+  // image route can tell it was set here and not by a client.
   if (payload.imageBase64) {
     const stored = await putImageBase64(payload.imageBase64);
     if (stored) {
       delete payload.imageBase64;
       payload.imageKey = stored.key;
+      payload.imageKeySig = signImageKey(stored.key);
     }
   }
 
@@ -866,14 +1000,13 @@ router.post('/social/share', socialWriteLimiter, wrap(async (req, res) => {
     });
   }
 
-  // If it's a repost, notify original post owner
-  if (payload?.originalPostId) {
-    const originalPost = await prisma.sharedItem.findUnique({ where: { id: payload.originalPostId }, select: { sharerId: true } });
-    if (originalPost && originalPost.sharerId !== req.user!.id) {
-      const reposter = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { username: true, name: true } });
-      const reposterDisplay = reposter?.username ? `@${reposter.username}` : (reposter?.name ?? 'Someone');
-      sendPushToUser(originalPost.sharerId, 'New repost', `${reposterDisplay} reposted your post`, { type: 'repost', postId: payload.originalPostId }).catch(() => {});
-    }
+  // If it's a repost, notify the original post's owner. The original was
+  // visibility-checked in buildRepostPayload, so this can't be aimed at a post
+  // (or a person) the reposter can't see.
+  if (repostOfSharerId && repostOfSharerId !== req.user!.id) {
+    const reposter = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { username: true, name: true } });
+    const reposterDisplay = reposter?.username ? `@${reposter.username}` : (reposter?.name ?? 'Someone');
+    sendPushToUser(repostOfSharerId, 'New repost', `${reposterDisplay} reposted your post`, { type: 'repost', postId: payload.originalPostId }).catch(() => {});
   }
 }));
 
@@ -890,6 +1023,8 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
     select: { requesterId: true, addresseeId: true },
   });
   const friendIds = friendships.map(f => f.requesterId === userId ? f.addresseeId : f.requesterId);
+  const blocked = await blockedIdsFor(userId);
+  const blockedSet = new Set(blocked);
 
   // Fetch: posts to/from me + friends' broadcast posts (recipientId = sharerId)
   const items = await prisma.sharedItem.findMany({
@@ -897,6 +1032,7 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
       // Posts auto-hidden by the report threshold drop out of every feed,
       // whichever audience clause below would otherwise have matched them.
       visibility: { not: 'hidden' },
+      ...notBlockedSharer(blocked),
       OR: [
         { recipientId: userId },
         { sharerId: userId },
@@ -924,9 +1060,11 @@ router.get('/social/shared-feed', wrap(async (req, res) => {
 
   // Deduplicate by id and limit to 50
   const seen = new Set<string>();
-  const deduped = filtered.filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
+  const deduped = filtered
+    .filter(i => !blockedSet.has(i.sharerId))
+    .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; }).slice(0, 50);
 
-  res.json(deduped.map(i => serializeFeedItem(i, userId)));
+  res.json(deduped.map(i => serializeFeedItem(i, userId, false, blockedSet)));
 }));
 
 // ─── GET /api/social/feed — interleaved friend posts + research/article items ─
@@ -963,8 +1101,8 @@ router.get('/social/feed', wrap(async (req, res) => {
   const before = beforeRaw && !Number.isNaN(beforeRaw.getTime()) ? beforeRaw : null;
   const t0 = Date.now();
 
-  // Phase 1: friendships + (optionally) goal tags — independent, run in parallel
-  const [friendships, tags] = await Promise.all([
+  // Phase 1: friendships + blocks + (optionally) goal tags — independent, run in parallel
+  const [friendships, tags, blocked] = await Promise.all([
     prisma.friendship.findMany({
       where: {
         OR: [{ requesterId: userId }, { addresseeId: userId }],
@@ -973,7 +1111,9 @@ router.get('/social/feed', wrap(async (req, res) => {
       select: { requesterId: true, addresseeId: true },
     }),
     includeResearch ? getUserGoalTags(userId) : Promise.resolve([] as Awaited<ReturnType<typeof getUserGoalTags>>),
+    blockedIdsFor(userId),
   ]);
+  const blockedSet = new Set(blocked);
   const t1 = Date.now();
 
   const friendIds = friendships.map(f =>
@@ -985,6 +1125,7 @@ router.get('/social/feed', wrap(async (req, res) => {
     prisma.sharedItem.findMany({
       where: {
         visibility: { not: 'hidden' },
+        ...notBlockedSharer(blocked),
         ...(before ? { createdAt: { lt: before } } : {}),
         OR: [
           { recipientId: userId },
@@ -1046,9 +1187,10 @@ router.get('/social/feed', wrap(async (req, res) => {
       (friendIdSet.has(i.sharerId) && i.recipientId === i.sharerId) ||
       (i.visibility === 'public' && i.recipientId === i.sharerId)
     )
+    .filter(i => !blockedSet.has(i.sharerId))
     .filter(i => { if (seen.has(i.id)) return false; seen.add(i.id); return true; })
     .slice(0, limit)
-    .map(i => ({ kind: 'post' as const, data: serializeFeedItem(i, userId, slim) }));
+    .map(i => ({ kind: 'post' as const, data: serializeFeedItem(i, userId, slim, blockedSet) }));
 
   const researchItems = feedItems.map(fi => ({ kind: 'research' as const, data: fi }));
 
@@ -1174,13 +1316,15 @@ router.get('/social/feed/new-count', wrap(async (req, res) => {
   const friendIds = friendships.map(f =>
     f.requesterId === userId ? f.addresseeId : f.requesterId
   );
+  const blocked = await blockedIdsFor(userId);
 
   // Same filter shape as /social/feed but as a count query and excluding the
-  // viewer's own posts (they don't need a notification for what they posted).
+  // viewer's own posts (they don't need a notification for what they posted)
+  // and anyone blocked either way.
   const count = await prisma.sharedItem.count({
     where: {
       createdAt: { gt: after },
-      sharerId: { not: userId },
+      sharerId: { notIn: [userId, ...blocked] },
       visibility: { not: 'hidden' },
       OR: [
         { recipientId: userId },
@@ -1253,7 +1397,7 @@ router.get('/social/articles/saved', wrap(async (req, res) => {
 // POST /api/social/articles/:id/forward — share an article to a friend via DM
 // Mirrors POST /social/posts/:id/forward; uses _art:true marker in body so
 // conversation.tsx can render a rich card.
-router.post('/social/articles/:id/forward', wrap(async (req, res) => {
+router.post('/social/articles/:id/forward', socialWriteLimiter, wrap(async (req, res) => {
   const userId = req.user!.id;
   const { recipientId, message } = req.body;
   if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
@@ -1307,7 +1451,7 @@ router.post('/social/articles/:id/forward', wrap(async (req, res) => {
 // POST /api/social/workouts/forward — send a workout (planned or logged) to a
 // friend as a structured DM. The chat client renders the `_workout: true`
 // marker as a workout card. Mirrors the `_art` / `_fwd` patterns.
-router.post('/social/workouts/forward', wrap(async (req, res) => {
+router.post('/social/workouts/forward', socialWriteLimiter, wrap(async (req, res) => {
   const userId = req.user!.id;
   const { recipientId, kind, workout, note } = req.body ?? {};
 
@@ -1468,9 +1612,12 @@ router.get('/social/posts/search', wrap(async (req, res) => {
     select: { requesterId: true, addresseeId: true },
   });
   const friendIds = friendships.map((f) => (f.requesterId === userId ? f.addresseeId : f.requesterId));
+  const blocked = await blockedIdsFor(userId);
+  const blockedSet = new Set(blocked);
   const rows = await prisma.sharedItem.findMany({
     where: {
       visibility: { not: 'hidden' },
+      ...notBlockedSharer(blocked),
       // Broadcasts only (recipient = sharer) — a direct share is a message, not a post.
       OR: [
         { sharerId: userId },
@@ -1483,7 +1630,7 @@ router.get('/social/posts/search', wrap(async (req, res) => {
     take: 400,
   });
   const items = rows
-    .filter((r) => r.recipientId === r.sharerId && postMatches(r, q))
+    .filter((r) => r.recipientId === r.sharerId && !blockedSet.has(r.sharerId) && postMatches(r, q))
     .slice(0, 30)
     .map((r) => ({ id: r.id, title: postTitle(r), author: r.sharer, workout: isWorkoutPost(r), createdAt: r.createdAt }));
   res.json({ items });
@@ -1495,7 +1642,8 @@ router.get('/social/posts/search', wrap(async (req, res) => {
 router.get('/social/posts/:id', wrap(async (req, res) => {
   const row = await prisma.sharedItem.findUnique({ where: { id: req.params.id }, include: FEED_INCLUDE });
   if (!row || !(await canViewPost(req.user!.id, row as any))) return res.status(404).json({ error: 'Post not found' });
-  res.json({ post: serializeFeedItem(row, req.user!.id, true) });
+  const blockedSet = new Set(await blockedIdsFor(req.user!.id));
+  res.json({ post: serializeFeedItem(row, req.user!.id, true, blockedSet) });
 }));
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
@@ -1507,8 +1655,9 @@ router.get('/social/posts/:id/comments', wrap(async (req, res) => {
   const post = await loadViewablePost(req, res);
   if (!post) return;
 
+  const blocked = await blockedIdsFor(req.user!.id);
   const comments = await prisma.postComment.findMany({
-    where: { postId: req.params.id },
+    where: { postId: req.params.id, ...(blocked.length ? { authorId: { notIn: blocked } } : {}) },
     include: { author: { select: { id: true, name: true, username: true, avatarBase64: true } } },
     orderBy: { createdAt: 'asc' },
   });
@@ -1551,15 +1700,19 @@ router.get('/social/posts/:id/image', wrap(async (req, res) => {
   // Visibility gate. Without it this route handed out the image on any post id
   // — and for migrated posts it minted a 7-day signed GCS URL to go with it,
   // so a leak here outlived the request by a week.
-  const post = await loadViewablePost(req, res, { payload: true });
+  const post = await loadViewablePost(req, res, { payload: true, createdAt: true });
   if (!post) return;
 
-  const p = typeof post.payload === 'string' ? JSON.parse(post.payload) : post.payload;
+  let p: any = null;
+  try { p = typeof post.payload === 'string' ? JSON.parse(post.payload) : post.payload; } catch { p = null; }
 
   // Migrated posts carry only a key. Hand back a signed URL so the bytes go
   // straight from GCS to the client and never through this box — proxying them
   // would pay egress twice and put megabytes through a 3.7 GB server.
-  if (p?.imageKey) {
+  // Only a key this server wrote (signed at upload, or a pre-signing legacy
+  // row) is ever signed — a client-supplied key pointing at someone else's
+  // object is ignored (Oct 2026 audit M2b).
+  if (p?.imageKey && isServerSetImageKey(p, post.createdAt)) {
     const url = await objectUrl(p.imageKey);
     if (url) return res.json({ imageUrl: url });
   }
@@ -1582,7 +1735,7 @@ router.delete('/social/posts/:id', wrap(async (req, res) => {
 // ─── Forward (send post to DM) ────────────────────────────────────────────────
 
 // POST /api/social/posts/:id/forward — forward a post as a DM message
-router.post('/social/posts/:id/forward', wrap(async (req, res) => {
+router.post('/social/posts/:id/forward', socialWriteLimiter, wrap(async (req, res) => {
   const userId = req.user!.id;
   const { recipientId, message } = req.body;
   if (!recipientId) return res.status(400).json({ error: 'recipientId required' });
@@ -1610,8 +1763,8 @@ router.post('/social/posts/:id/forward', wrap(async (req, res) => {
   try {
     const p = typeof original.payload === 'string' ? JSON.parse(original.payload) : original.payload;
     if (p?.text)        fwd.txt    = (p.text as string).slice(0, 120);
-    if (p?.imageBase64) fwd.hasImg = true;
-    if (p?.videoUrl)    fwd.vid    = (p.videoUrl as string).slice(0, 100);
+    if (p?.imageBase64 || p?.imageKey) fwd.hasImg = true;
+    if (typeof p?.videoUrl === 'string' && /^https?:\/\//i.test(p.videoUrl)) fwd.vid = p.videoUrl.slice(0, 100);
   } catch {}
   const body = JSON.stringify(fwd).slice(0, 1000);
 
@@ -1767,45 +1920,69 @@ const REPORT_REASONS = new Set([
 ]);
 
 /**
- * Auto-hide threshold. A post reported by this many distinct users is pulled
- * from the feed pending review, rather than staying up for however long it
- * takes a human to look at it. Deliberately low — this is a small community and
- * three independent reports on one post is a strong signal.
+ * Auto-hide thresholds (Oct 2026 audit L6). Three throwaway accounts used to be
+ * enough to hide any public post, with no check the reporters could even see
+ * it. Now only reports from accounts older than REPORTER_MIN_AGE_DAYS count,
+ * and it takes AUTOHIDE_REPORT_COUNT of them — or AUTOHIDE_REPORT_COUNT_FRIEND
+ * when at least one counted reporter is the author's accepted friend (someone
+ * the author chose to let in is a much stronger signal than a stranger).
  */
-const AUTOHIDE_REPORT_COUNT = 3;
+export const AUTOHIDE_REPORT_COUNT = 5;
+export const AUTOHIDE_REPORT_COUNT_FRIEND = 3;
+export const REPORTER_MIN_AGE_DAYS = 7;
+
+export function shouldAutoHide(eligibleReporters: number, anyFriendReporter: boolean): boolean {
+  return eligibleReporters >= (anyFriendReporter ? AUTOHIDE_REPORT_COUNT_FRIEND : AUTOHIDE_REPORT_COUNT);
+}
+
+const REPORT_ACK = { success: true, message: 'Thank you — we\'ll review this within 24 hours.' };
 
 router.post('/social/report', requireAuth, socialWriteLimiter, wrap(async (req, res) => {
   const reporterId = req.user!.id;
-  const { itemId, targetType = 'post', reason, details } = req.body as {
+  const { itemId, targetType = 'post', reason, details } = (req.body ?? {}) as {
     itemId?: string; targetType?: string; reason?: string; details?: string;
   };
-  if (!itemId) return res.status(400).json({ error: 'itemId required' });
+  if (!itemId || typeof itemId !== 'string' || itemId.length > 100) return res.status(400).json({ error: 'itemId required' });
   if (reason && !REPORT_REASONS.has(reason)) {
     return res.status(400).json({ error: 'Unknown report reason' });
   }
   if (typeof details === 'string' && details.length > 1000) {
     return res.status(400).json({ error: 'Details are too long (max 1000 characters).' });
   }
+  if (!['post', 'comment', 'message', 'user'].includes(targetType)) {
+    return res.status(400).json({ error: 'Unknown target type' });
+  }
 
   // Resolve the reported user so an operator can see every report against one
-  // account, not just per-item ones.
+  // account, not just per-item ones. An id the reporter can't see (or that
+  // doesn't exist) gets the same acknowledgement as a real report and writes
+  // nothing — no existence oracle, and no reports against content the reporter
+  // was never shown.
   let reportedUserId: string | null = null;
   if (targetType === 'post') {
-    const item = await prisma.sharedItem.findUnique({ where: { id: itemId }, select: { sharerId: true } });
-    if (!item) return res.status(404).json({ error: 'Post not found' });
+    const item = await prisma.sharedItem.findUnique({ where: { id: itemId }, select: { sharerId: true, recipientId: true, visibility: true } });
+    if (!item || !(await canViewPost(reporterId, item))) return res.json(REPORT_ACK);
     reportedUserId = item.sharerId;
   } else if (targetType === 'comment') {
-    const comment = await prisma.postComment.findUnique({ where: { id: itemId }, select: { authorId: true } });
-    if (!comment) return res.status(404).json({ error: 'Comment not found' });
+    const comment = await prisma.postComment.findUnique({
+      where: { id: itemId },
+      select: { authorId: true, post: { select: { sharerId: true, recipientId: true, visibility: true } } },
+    });
+    if (!comment || !comment.post || !(await canViewPost(reporterId, comment.post as any))) return res.json(REPORT_ACK);
     reportedUserId = comment.authorId;
   } else if (targetType === 'message') {
-    const message = await prisma.message.findUnique({ where: { id: itemId }, select: { senderId: true } });
-    if (!message) return res.status(404).json({ error: 'Message not found' });
+    const message = await prisma.message.findUnique({
+      where: { id: itemId },
+      select: { senderId: true, conversation: { select: { participantAId: true, participantBId: true } } },
+    });
+    const conv = (message as any)?.conversation;
+    if (!message || !conv || (conv.participantAId !== reporterId && conv.participantBId !== reporterId)) return res.json(REPORT_ACK);
     reportedUserId = message.senderId;
-  } else if (targetType === 'user') {
-    reportedUserId = itemId;
   } else {
-    return res.status(400).json({ error: 'Unknown target type' });
+    if (itemId === reporterId) return res.json(REPORT_ACK);
+    const user = await prisma.user.findUnique({ where: { id: itemId }, select: { id: true } });
+    if (!user) return res.json(REPORT_ACK);
+    reportedUserId = user.id;
   }
 
   console.warn(
@@ -1836,20 +2013,52 @@ router.post('/social/report', requireAuth, socialWriteLimiter, wrap(async (req, 
     }
   }
 
-  // Auto-hide once enough distinct users have flagged the same item. Setting
-  // visibility to 'hidden' takes it out of every feed query without destroying
-  // it, so a wrongly-hidden post can be restored on review.
-  try {
-    const reportCount = await (prisma as any).contentReport.count({
-      where: { targetType, targetId: itemId },
-    });
-    if (targetType === 'post' && reportCount >= AUTOHIDE_REPORT_COUNT) {
-      await prisma.sharedItem.update({ where: { id: itemId }, data: { visibility: 'hidden' } });
-      console.warn(`[content-report] auto-hid post ${itemId} after ${reportCount} reports`);
-    }
-  } catch { /* table not migrated yet — the report itself still logged */ }
+  // Auto-hide once enough established, distinct users have flagged the same
+  // post. Setting visibility to 'hidden' takes it out of every feed query
+  // without destroying it, so a wrongly-hidden post can be restored on review.
+  if (targetType === 'post' && reportedUserId) {
+    try {
+      const reports: Array<{ reporterId: string }> = await (prisma as any).contentReport.findMany({
+        where: { targetType, targetId: itemId },
+        select: { reporterId: true },
+      });
+      const reporterIds = [...new Set(reports.map((r) => r.reporterId))].filter((id) => id !== reportedUserId);
+      const minCreated = new Date(Date.now() - REPORTER_MIN_AGE_DAYS * 24 * 60 * 60 * 1000);
+      const eligible = reporterIds.length
+        ? await prisma.user.findMany({ where: { id: { in: reporterIds }, createdAt: { lt: minCreated } }, select: { id: true } })
+        : [];
+      const eligibleIds = eligible.map((u) => u.id);
+      const friendRow = eligibleIds.length
+        ? await prisma.friendship.findFirst({
+            where: {
+              status: 'accepted',
+              OR: [
+                { requesterId: reportedUserId, addresseeId: { in: eligibleIds } },
+                { addresseeId: reportedUserId, requesterId: { in: eligibleIds } },
+              ],
+            },
+            select: { id: true },
+          })
+        : null;
+      if (shouldAutoHide(eligibleIds.length, friendRow != null)) {
+        const hid = await prisma.sharedItem.updateMany({
+          where: { id: itemId, visibility: { not: 'hidden' } },
+          data: { visibility: 'hidden' },
+        });
+        if (hid.count > 0) {
+          console.warn(`[content-report] auto-hid post ${itemId} after ${eligibleIds.length} eligible reports`);
+          sendPushToUser(
+            reportedUserId,
+            'Your post is hidden for review',
+            'Several people reported one of your posts. It is hidden while we review it.',
+            { type: 'post_hidden', postId: itemId },
+          ).catch(() => {});
+        }
+      }
+    } catch { /* table not migrated yet — the report itself still logged */ }
+  }
 
-  res.json({ success: true, message: 'Thank you — we\'ll review this within 24 hours.' });
+  res.json(REPORT_ACK);
 }));
 
 // POST /api/social/users/:userId/block — block a user outright.

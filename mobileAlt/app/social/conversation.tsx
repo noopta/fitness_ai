@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
-  Platform, ActivityIndicator,
+  Platform, ActivityIndicator, Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
+import { openExternal } from '../../src/lib/openExternal';
+import { userSafetyMenu } from '../../src/lib/moderation';
 import { socialApi } from '../../src/lib/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
@@ -266,7 +267,33 @@ export default function ConversationScreen() {
     return parts.join(' · ');
   }
 
+  // The other participant, as far as the thread tells us (needed for Block).
+  const otherId = messages.find((m) => m.senderId && m.senderId !== user?.id)?.senderId ?? null;
+
+  // Report / block (Guideline 1.2): long-press any of their messages, or the
+  // "…" in the top bar.
+  const openSafetyMenu = (msg?: Message) => {
+    if (!otherId) return;
+    userSafetyMenu({
+      userId: otherId,
+      name: otherName,
+      content: msg && !msg._pending ? { id: msg.id, type: 'message' } : undefined,
+      onBlockChange: (b) => { if (b) router.back(); },
+    });
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
+    const body = renderMessageBody(item);
+    if (item.senderId === user?.id || item._pending) return body;
+    return (
+      <Pressable onLongPress={() => openSafetyMenu(item)} delayLongPress={350}
+        accessibilityHint="Long-press to report or block">
+        {body}
+      </Pressable>
+    );
+  };
+
+  const renderMessageBody = (item: Message) => {
     const isMine = item.senderId === user?.id;
     const fwd = parseForwardedPost(item.body);
     const art = parseSharedArticle(item.body);
@@ -304,7 +331,7 @@ export default function ConversationScreen() {
             style={[styles.forwardCard, isMine ? styles.forwardCardMine : styles.forwardCardTheirs]}
             activeOpacity={0.85}
             onPress={() => {
-              if (art.url) Linking.openURL(art.url).catch(() => {});
+              if (art.url) void openExternal(art.url);
             }}
           >
             <Text style={styles.forwardLabel}>↪ {(art.type ?? 'article').toUpperCase()} {art.src ? `· ${art.src}` : ''}</Text>
@@ -354,6 +381,11 @@ export default function ConversationScreen() {
           <Text style={styles.avatarText}>{((otherName || 'U')[0] ?? 'U').toUpperCase()}</Text>
         </View>
         <Text style={styles.screenTitle} numberOfLines={1}>{otherName ?? 'Conversation'}</Text>
+        {otherId ? (
+          <TouchableOpacity onPress={() => openSafetyMenu()} hitSlop={10} accessibilityLabel="Report or block">
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.foreground} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <KeyboardDoneBar />

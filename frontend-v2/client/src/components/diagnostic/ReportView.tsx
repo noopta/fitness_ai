@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { DiagnosticRadar, EfficiencyGauge } from './Charts';
 import { VideoCard } from './ThreadItems';
 import { Eyebrow, OutlineButton, Tag } from './primitives';
+import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 
 const RANK_LABEL: Record<Candidate['rank'], string> = {
   primary: COPY.primary,
@@ -76,6 +77,7 @@ export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) 
           <Eyebrow>{eyebrow}</Eyebrow>
           <h1 className="text-[30px] font-bold leading-[1.15] tracking-[-0.035em] text-zinc-950">{headline}</h1>
           <p className="text-[13px] font-semibold text-zinc-500">{COPY.confidence(verdict.confidence)} · {basis}</p>
+          <MedicalDisclaimer className="text-zinc-500" />
         </div>
 
         {verdict.evidence.length ? (

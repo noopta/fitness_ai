@@ -77,6 +77,33 @@ export function postAuthDestination(
     : '/coach';
 }
 
+/**
+ * Consent timestamps from /auth/me (`consent`). ISO strings, null = not given.
+ * Absent entirely on older backends — callers must treat `null` consent
+ * (the context value) as "unknown", not "missing".
+ */
+export interface AuthConsent {
+  acceptedTermsAt: string | null;
+  healthConsentAt: string | null;
+  marketingConsentAt: string | null;
+}
+
+export interface ConsentChoices {
+  acceptedTerms: boolean;
+  healthConsent: boolean;
+  marketingConsent: boolean;
+}
+
+function normalizeConsent(raw: any): AuthConsent | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const ts = (v: unknown) => (typeof v === 'string' && v ? v : null);
+  return {
+    acceptedTermsAt: ts(raw.acceptedTermsAt),
+    healthConsentAt: ts(raw.healthConsentAt),
+    marketingConsentAt: ts(raw.marketingConsentAt),
+  };
+}
+
 // Returned by register() when EMAIL_VERIFICATION_ENABLED is on server-side:
 // the account exists but is unverified, and the caller must route to the
 // verify-email screen instead of into the app. `codeSent: false` means the
@@ -90,9 +117,15 @@ export interface PendingVerification {
 interface AuthContextType {
   user: AuthUser | null;
   features: AuthFeatures;
+  /** null = the backend did not send consent data (don't gate on it). */
+  consent: AuthConsent | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<PendingVerification | null>;
-  register: (name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string) => Promise<PendingVerification | null>;
+  register: (name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string, consents?: ConsentChoices) => Promise<PendingVerification | null>;
+  /** POST /auth/consent, then refresh so `consent` reflects the server. */
+  updateConsent: (choices: ConsentChoices) => Promise<void>;
+  /** Drop local session state without calling the server (after logout-all / account deletion). */
+  clearSession: () => void;
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendVerification: (email: string) => Promise<{ sent: boolean; reason?: string; cooldownRemainingSec?: number }>;
   logout: () => Promise<void>;
@@ -129,6 +162,7 @@ async function apiFetch(path: string, options?: RequestInit) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [features, setFeatures] = useState<AuthFeatures>(DEFAULT_FEATURES);
+  const [consent, setConsent] = useState<AuthConsent | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function refreshUser() {
@@ -137,10 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const nextFeatures = normalizeFeatures(data.features);
       setUser(data.user);
       setFeatures(nextFeatures);
+      setConsent(normalizeConsent(data.consent ?? data.user?.consent));
       return { user: (data.user ?? null) as AuthUser | null, features: nextFeatures };
     } catch {
       setUser(null);
       setFeatures(DEFAULT_FEATURES);
+      setConsent(null);
       return { user: null, features: DEFAULT_FEATURES };
     }
   }
@@ -164,10 +200,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   }
 
-  async function register(name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string): Promise<PendingVerification | null> {
+  async function register(name: string, email: string, password: string, dateOfBirth?: string, referralCode?: string, consents?: ConsentChoices): Promise<PendingVerification | null> {
     const data = await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password, dateOfBirth, ...(referralCode ? { referralCode } : {}) })
+      body: JSON.stringify({
+        name, email, password, dateOfBirth,
+        ...(referralCode ? { referralCode } : {}),
+        ...(consents
+          ? {
+              acceptedTerms: consents.acceptedTerms === true,
+              healthConsent: consents.healthConsent === true,
+              marketingConsent: consents.marketingConsent === true,
+            }
+          : {}),
+      })
     });
     // Server has email verification on: the account exists but there is no
     // session yet — hand the pending state back so the page can route to
@@ -198,11 +244,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  async function logout() {
-    await apiFetch('/auth/logout', { method: 'POST' });
+  async function updateConsent(choices: ConsentChoices) {
+    await apiFetch('/auth/consent', {
+      method: 'POST',
+      body: JSON.stringify({
+        acceptedTerms: choices.acceptedTerms === true,
+        healthConsent: choices.healthConsent === true,
+        marketingConsent: choices.marketingConsent === true,
+      }),
+    });
+    await refreshUser();
+  }
+
+  function clearSession() {
     sessionStorage.removeItem('liftoff_bearer_token');
     setUser(null);
     setFeatures(DEFAULT_FEATURES);
+    setConsent(null);
+  }
+
+  async function logout() {
+    await apiFetch('/auth/logout', { method: 'POST' });
+    clearSession();
   }
 
   function googleLogin() {
@@ -210,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, features, loading, login, register, verifyEmail, resendVerification, logout, googleLogin, refreshUser }}>
+    <AuthContext.Provider value={{ user, features, consent, loading, login, register, updateConsent, clearSession, verifyEmail, resendVerification, logout, googleLogin, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

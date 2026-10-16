@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
+import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 import { Loader2, Shield, CheckCircle2, Target, Sparkles, ArrowRight } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
@@ -187,6 +188,7 @@ export default function AnalysisPage() {
             </Button>
           </Card>
         </motion.div>
+        <MedicalDisclaimer className="mt-6 text-center" />
       </main>
     </div>
   );

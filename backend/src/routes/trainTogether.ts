@@ -23,6 +23,7 @@ import {
   matchReason,
   prettyMuscles,
   buildSharedSession,
+  resolveAcceptedMemberDays,
   type ParticipantCalendar,
   type ResolvedDay,
 } from '../services/trainTogetherService.js';
@@ -88,14 +89,16 @@ router.get('/train-together/friends', wrap(async (req, res) => {
       scheduleSharing: true, splitLabel: true, savedProgram: true,
     },
   });
+  // A friend with sharing off has not consented to anyone learning about
+  // their training — not even their split or whether they have a program.
   res.json(friends.map((f) => ({
     id: f.id,
     name: f.name,
     username: f.username,
     avatarBase64: f.avatarBase64,
-    splitLabel: f.splitLabel,
+    splitLabel: f.scheduleSharing ? f.splitLabel : null,
     sharing: f.scheduleSharing,
-    hasProgram: !!f.savedProgram,
+    hasProgram: f.scheduleSharing ? !!f.savedProgram : null,
     selectable: f.scheduleSharing && !!f.savedProgram,
   })));
 }));
@@ -222,6 +225,27 @@ router.post('/train-together/pins', wrap(async (req, res) => {
     return res.status(403).json({ error: 'You can only plan with accepted friends' });
   }
 
+  // Same consent rule as the overlap finder: every invitee must have schedule
+  // sharing on and a saved program. Pinning used to skip this, so a friend
+  // with sharing off could be pinned and their training day read back.
+  const inviteeRows = await prisma.user.findMany({
+    where: { id: { in: invitees } },
+    select: { id: true, name: true, username: true, scheduleSharing: true, savedProgram: true },
+  });
+  const okIds = new Set(inviteeRows.filter((u) => u.scheduleSharing && !!u.savedProgram).map((u) => u.id));
+  const notSharing = invitees.filter((id) => !okIds.has(id));
+  if (notSharing.length) {
+    const byId = new Map(inviteeRows.map((u) => [u.id, u]));
+    return res.status(403).json({
+      error: 'Some friends are not sharing a schedule',
+      code: 'sharing_off',
+      blocked: notSharing.map((id) => {
+        const u = byId.get(id);
+        return { id, name: u ? displayName(u) : 'A friend' };
+      }),
+    });
+  }
+
   // Score the day as pinned so the break-watcher has a baseline premise.
   const allIds = [userId, ...invitees];
   const calendars = await Promise.all(allIds.map((id) => loadUserCalendar(id, [date])));
@@ -303,11 +327,12 @@ router.get('/train-together/pins/:id', wrap(async (req, res) => {
     return res.status(403).json({ error: 'Not a member of this plan' });
   }
 
-  const calendars = await Promise.all(pin.members.map((m) => loadUserCalendar(m.userId, [pin.date])));
-  const days = calendars.map((c, i) =>
-    c?.[0] ?? { date: pin.date, rest: true, label: null, focusKey: null, muscles: [] as string[] },
-  );
-  const tier = groupTier(days);
+  // Only members who have accepted expose their day; tier/reason are computed
+  // over those members alone so a pending invitee's day can't leak through them.
+  const resolved = await resolveAcceptedMemberDays(pin.members, pin.date);
+  const days = resolved.map((r) => r.day);
+  const visibleDays = resolved.filter((r) => r.visible).map((r) => r.day);
+  const tier = groupTier(visibleDays);
 
   res.json({
     id: pin.id,
@@ -317,7 +342,7 @@ router.get('/train-together/pins/:id', wrap(async (req, res) => {
     status: pin.status,
     pinnedTier: pin.pinnedTier,
     tier,
-    reason: matchReason(days, tier),
+    reason: matchReason(visibleDays, tier),
     sharedSession: parseJsonObjectColumn<any>(pin.sharedSessionJson),
     sharedFits: parseJsonObjectColumn<any>(pin.sharedFitJson),
     members: pin.members.map((m, i) => ({
@@ -326,7 +351,9 @@ router.get('/train-together/pins/:id', wrap(async (req, res) => {
       sharedResponse: m.sharedResponse,
       sharedRespondedAt: m.sharedRespondedAt,
       user: m.user,
-      session: { rest: days[i].rest, label: days[i].label, muscles: prettyMuscles(days[i].muscles) },
+      session: resolved[i].visible
+        ? { rest: days[i].rest, label: days[i].label, muscles: prettyMuscles(days[i].muscles) }
+        : null,
     })),
     createdAt: pin.createdAt,
   });
@@ -353,12 +380,18 @@ router.post('/train-together/pins/:id/shared-session', wrap(async (req, res) => 
     });
   }
 
-  const calendars = await Promise.all(pin.members.map((m) => loadUserCalendar(m.userId, [pin.date])));
-  const inputs = pin.members.map((m, i) => ({
-    userId: m.userId,
-    name: m.user.name || m.user.username || 'Friend',
-    day: calendars[i]?.[0] ?? { date: pin.date, rest: true, label: null, focusKey: null, muscles: [] as string[] },
-  }));
+  // Built only from members who accepted the pin — a pending invitee's
+  // programmed exercises are not anyone else's to see.
+  const resolved = await resolveAcceptedMemberDays(pin.members, pin.date);
+  const inputs = pin.members
+    .map((m, i) => ({
+      userId: m.userId,
+      name: m.user.name || m.user.username || 'Friend',
+      day: resolved[i].day,
+      visible: resolved[i].visible,
+    }))
+    .filter((x) => x.visible)
+    .map(({ visible: _v, ...x }) => x);
   const built = buildSharedSession(inputs);
   if (!built) return res.status(400).json({ error: 'No programmed exercises to build from that day' });
 

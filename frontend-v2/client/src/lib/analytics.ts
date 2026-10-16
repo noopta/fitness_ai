@@ -1,31 +1,104 @@
 import posthog from 'posthog-js';
+import type { CaptureResult } from 'posthog-js';
+// Session-replay recorder, bundled locally: the CSP is `script-src 'self'`, so
+// PostHog must not lazy-load it from its asset CDN.
+import 'posthog-js/dist/recorder';
+import { scrubOAuthTokenFromUrl } from './oauthReturn';
+
+// Must run before posthog.init: PostHog records the landing URL at init time
+// ($initial_current_url), and an OAuth return carries the bearer token.
+scrubOAuthTokenFromUrl();
+
+// ─── Consent ──────────────────────────────────────────────────────────────────
+// Analytics is OFF until the visitor accepts it in the consent banner.
+// 'granted' | 'denied' lives in localStorage; absent = not yet asked.
+
+export const ANALYTICS_CONSENT_KEY = 'axiom_analytics_consent';
+export type AnalyticsConsent = 'granted' | 'denied';
+
+export function getAnalyticsConsent(): AnalyticsConsent | null {
+  try {
+    const v = localStorage.getItem(ANALYTICS_CONSENT_KEY);
+    return v === 'granted' || v === 'denied' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setAnalyticsConsent(value: AnalyticsConsent) {
+  try {
+    localStorage.setItem(ANALYTICS_CONSENT_KEY, value);
+  } catch {
+    /* storage blocked — choice applies to this page view only */
+  }
+  applyConsent(value);
+}
+
+function applyConsent(value: AnalyticsConsent | null) {
+  try {
+    if (value === 'granted') {
+      if (!posthog.has_opted_in_capturing()) posthog.opt_in_capturing();
+    } else if (!posthog.has_opted_out_capturing()) {
+      posthog.opt_out_capturing();
+    }
+  } catch {
+    /* posthog not initialised (tests) */
+  }
+}
+
+// ─── URL redaction ────────────────────────────────────────────────────────────
+// Defence in depth: strip credential-bearing params from any URL property
+// before an event leaves the browser.
+
+const SECRET_PARAM = /([?#&](?:token|access_token|id_token|code|jwt)=)[^&#]*/gi;
+
+export function redactUrl(value: unknown): unknown {
+  return typeof value === 'string' ? value.replace(SECRET_PARAM, '$1[redacted]') : value;
+}
+
+const URL_PROPS = ['$current_url', '$referrer', '$initial_current_url', '$initial_referrer', '$pathname'];
+
+function redactEvent(event: CaptureResult | null): CaptureResult | null {
+  if (!event) return event;
+  for (const bag of [event.properties, (event as any).$set, (event as any).$set_once]) {
+    if (!bag || typeof bag !== 'object') continue;
+    for (const k of URL_PROPS) if (k in bag) bag[k] = redactUrl(bag[k]);
+  }
+  return event;
+}
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 posthog.init('phc_BWbwuvj6GpMqbzPFUkVYdJSji3BFwjX72qjBjUwiw8oh', {
   api_host: 'https://us.i.posthog.com',
+  // Nothing is captured until the visitor opts in via the consent banner.
+  opt_out_capturing_by_default: true,
   // Auto-capture clicks, page views, form submissions
   autocapture: true,
   // Capture page views on route change (we also do this manually for Wouter)
   capture_pageview: false,
   // Persist identity across sessions
   persistence: 'localStorage',
-  // Don't capture sensitive inputs
   capture_performance: true,
+  // Session replay: mask every input and all rendered text (health data).
+  session_recording: {
+    maskAllInputs: true,
+    maskTextSelector: '*',
+  },
+  // CSP is script-src 'self': never inject scripts from PostHog's CDN.
+  disable_external_dependency_loading: true,
+  before_send: redactEvent,
 });
+
+applyConsent(getAnalyticsConsent());
 
 export { posthog };
 
 // ─── Identity ─────────────────────────────────────────────────────────────────
 
-export function identifyUser(userId: string, props?: {
-  name?: string | null;
-  email?: string | null;
-  tier?: string | null;
-}) {
+/** Identify by opaque user id only — no email, name or username leaves the app. */
+export function identifyUser(userId: string, props?: { tier?: string | null }) {
   posthog.identify(userId, {
-    name: props?.name ?? undefined,
-    email: props?.email ?? undefined,
     tier: props?.tier ?? 'free',
   });
 }

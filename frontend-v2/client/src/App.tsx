@@ -10,6 +10,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
+import { ConsentBanner } from "@/components/ConsentBanner";
+import { ConsentGate } from "@/components/ConsentGate";
 import NotFound from "@/pages/not-found";
 import Signup from "./pages/signup";
 import Onboarding from "./pages/onboarding";
@@ -218,7 +220,7 @@ function AnalyticsProvider() {
 
   useEffect(() => {
     if (user) {
-      identifyUser(user.id, { name: user.name, email: user.email, tier: user.tier });
+      identifyUser(user.id, { tier: user.tier });
     } else {
       resetUser();
     }
@@ -355,6 +357,8 @@ function App() {
             <SonnerToaster position="top-center" richColors />
             <Router />
             <FloatingCoachChat />
+            <ConsentGate />
+            <ConsentBanner />
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

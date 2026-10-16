@@ -7,6 +7,7 @@ import { Send, Loader2, RotateCcw } from 'lucide-react';
 import { authFetch, streamCoachChat } from '@/lib/api';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
 import { WebAnalytics } from '@/lib/analytics';
+import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -133,6 +134,7 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.length === 0 && !sending && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+            <MedicalDisclaimer className="mb-3 text-center" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {STARTER_QUESTIONS.map(q => (
                 <button
@@ -213,6 +215,7 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
         <p className="text-center text-[10px] text-muted-foreground mt-2">
           AI Coach has full context of your {sessionCount} analysis session{sessionCount !== 1 ? 's' : ''}
         </p>
+        {messages.length > 0 && messages.length <= 2 && <MedicalDisclaimer className="text-center mt-1" />}
       </div>
     </div>
   );

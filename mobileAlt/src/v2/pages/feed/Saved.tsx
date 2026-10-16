@@ -17,6 +17,8 @@ import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
 import { socialApi } from '../../../lib/api';
 import { useUnits } from '../../../context/UnitsContext';
+import { useAuth } from '../../../context/AuthContext';
+import { userSafetyMenu } from '../../../lib/moderation';
 import { useShellOptional } from '../../shell/ShellContext';
 import { useSaved, qk } from '../../data';
 import { LinkTabs, RowAction, Avatar, ago, displayName } from './common';
@@ -69,6 +71,7 @@ export function PostPage({ id }: { id: string }) {
   const router = useRouter();
   const qc = useQueryClient();
   const { unit } = useUnits();
+  const { user } = useAuth();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const post = useQuery({ queryKey: ['v2', 'social', 'post', id], queryFn: () => socialApi.getPost(id) as Promise<any>, enabled: !!id });
@@ -95,15 +98,25 @@ export function PostPage({ id }: { id: string }) {
       {p ? <Post post={p} unit={unit === 'kg' ? 'kg' : 'lbs'} onComment={() => {}} onAuthor={(x) => router.push({ pathname: '/(v2)/p/[key]', params: { key: `person:${x.sharer?.id ?? ''}`, name: displayName(x.sharer) } } as any)} /> : null}
       {p ? (
         <View style={{ marginTop: 8 }}>
-          {list.map((c) => (
-            <View key={c.id} style={styles.comment}>
-              <Avatar user={c.author} size={28} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={T.captionStrong}><Text style={{ color: C.ink }}>{displayName(c.author)}</Text> · {ago(c.createdAt)}</Text>
-                <Text style={[T.body, { marginTop: 2 }]}>{c.text}</Text>
-              </View>
-            </View>
-          ))}
+          {list.map((c) => {
+            // Report / block the author (Guideline 1.2) — "···", or long-press.
+            const theirs = !!c.author?.id && c.author.id !== user?.id;
+            const menu = () => userSafetyMenu({ userId: c.author.id, name: displayName(c.author), content: { id: c.id, type: 'comment' } });
+            return (
+              <Pressable key={c.id} style={styles.comment} onLongPress={theirs ? menu : undefined} delayLongPress={350}>
+                <Avatar user={c.author} size={28} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={T.captionStrong}><Text style={{ color: C.ink }}>{displayName(c.author)}</Text> · {ago(c.createdAt)}</Text>
+                  <Text style={[T.body, { marginTop: 2 }]}>{c.text}</Text>
+                </View>
+                {theirs ? (
+                  <Pressable onPress={menu} hitSlop={10} accessibilityRole="button" accessibilityLabel="Report or block">
+                    <Text style={T.caption}>···</Text>
+                  </Pressable>
+                ) : null}
+              </Pressable>
+            );
+          })}
           <View style={styles.composer}>
             <TextInput value={text} onChangeText={setText} placeholder="Add a comment" placeholderTextColor={C.placeholder} style={styles.input} multiline maxLength={1000} accessibilityLabel="Add a comment" />
             <RowAction label="Post" primary busy={busy || !text.trim()} onPress={() => void add()} />

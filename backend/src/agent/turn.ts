@@ -10,6 +10,7 @@ import type { Card, CardDraft } from './cards/types.js';
 import { withWriteGuard, type ExecutedChange } from './ops.js';
 import { saveCard, userTz } from './cards/store.js';
 import { todayIn } from './cards/format.js';
+import { isUntrustedTool, isImmediateWrite, untrustedEnvelope, WRITE_BLOCKED_RESULT } from './untrusted.js';
 
 const prisma = new PrismaClient();
 
@@ -59,6 +60,10 @@ export interface ToolCallOutcome {
   raw: unknown;
   cards: Card[];
   change?: ExecutedChange;
+  /** The result carried third-party / external text (untrusted.ts). */
+  untrusted?: boolean;
+  /** The call was refused by the untrusted-text write downgrade. */
+  blocked?: boolean;
 }
 
 export async function runToolCall(
@@ -66,9 +71,15 @@ export async function runToolCall(
   input: Record<string, unknown>,
   userId: string,
   ctx: ToolCtx,
-  opts: { buildCards: boolean },
+  opts: { buildCards: boolean; blockWrites?: boolean },
 ): Promise<ToolCallOutcome> {
   const kind = tool.kind ?? 'log';
+  // Untrusted text was read earlier in this turn and the user didn't ask for a
+  // write: immediate writes are refused (proposals / drafts still work).
+  if (opts.blockWrites && isImmediateWrite(kind)) {
+    console.warn(`[agent] write blocked after untrusted read user=${userId.slice(0, 8)} tool=${tool.name}`);
+    return { modelResult: WRITE_BLOCKED_RESULT, raw: null, cards: [], change: undefined, blocked: true };
+  }
   const gate = kind === 'read' ? CONSENT_GATED[tool.name] : undefined;
   if (gate && !(await readConsent(userId))[gate]) {
     return { modelResult: consentRefusal(gate), raw: null, cards: [], change: undefined };
@@ -105,7 +116,15 @@ export async function runToolCall(
       ...(cards.length ? { card_shown: cards.map((c) => c.meta?.label ?? c.pattern).join('; '), awaiting_tap: cards.some((c) => ['proposal', 'draft', 'confirm'].includes(c.pattern)) } : {}),
     };
   }
-  return { modelResult, raw, cards, change };
+  const untrusted = isUntrustedTool(tool.name, tool.untrusted);
+  if (untrusted) {
+    // Third-party text goes back inside an envelope; card meta stays outside it.
+    const m: any = modelResult;
+    const meta = m && typeof m === 'object' && !Array.isArray(m) && 'card_shown' in m ? { card_shown: m.card_shown, awaiting_tap: m.awaiting_tap } : {};
+    const inner = m && typeof m === 'object' && !Array.isArray(m) ? Object.fromEntries(Object.entries(m).filter(([k]) => k !== 'card_shown' && k !== 'awaiting_tap')) : m;
+    modelResult = { ...untrustedEnvelope(inner, tool.name), ...meta };
+  }
+  return { modelResult, raw, cards, change, untrusted };
 }
 
 /**

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
+import { affiliateFetch, consumeAffiliateTokenFromUrl, setAffiliateToken } from '@/lib/affiliateToken';
 
 export default function AffiliateSetupPage() {
   const [, navigate] = useLocation();
@@ -16,13 +16,13 @@ export default function AffiliateSetupPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('token');
+    // Reads ?token= and strips it from the address bar (replaceState).
+    const token = consumeAffiliateTokenFromUrl();
     if (!token) { setStatus('error'); setErrorMsg('Missing invite token.'); return; }
 
-    fetch(`${API}/affiliate/setup`, {
+    affiliateFetch('/affiliate/setup', token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ token }),
     })
       .then(async res => {
@@ -33,8 +33,8 @@ export default function AffiliateSetupPage() {
         setOnboardingUrl(d.onboardingUrl);
         // The invite token is the affiliate's credential — keep it so the
         // dashboard page can authenticate without re-opening the invite link.
-        localStorage.setItem('affiliateToken', token);
-        localStorage.setItem('affiliateEmail', d.affiliate.email);
+        // sessionStorage only: it must not outlive the tab.
+        setAffiliateToken(token);
         setStatus('ready');
       })
       .catch(err => { setStatus('error'); setErrorMsg(err.message); });

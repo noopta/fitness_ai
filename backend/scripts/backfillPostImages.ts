@@ -22,7 +22,7 @@
 // `file:./dev.db` and the GCP credentials both resolve to production.
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { putImageBase64, blobStoreEnabled } from '../src/services/blobStore.js';
+import { putImageBase64, blobStoreEnabled, signImageKey } from '../src/services/blobStore.js';
 
 const prisma = new PrismaClient();
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -69,6 +69,7 @@ async function main() {
       if (!DRY_RUN) {
         delete t.imageBase64;
         t.imageKey = stored.key;
+        t.imageKeySig = signImageKey(stored.key);
       }
       changed = true;
       bytesFreed += before;

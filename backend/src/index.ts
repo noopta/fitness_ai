@@ -295,8 +295,13 @@ process.on('unhandledRejection', (reason) => {
   alertUncaughtException('unhandledRejection', reason).catch(() => {});
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Axiom API running on http://localhost:${PORT}`);
+// Bind to loopback in production: nginx (127.0.0.1 upstream) is the only
+// legitimate client, and `trust proxy 1` would otherwise let anyone who reaches
+// the port directly pick their own X-Forwarded-For and dodge every IP limit.
+// HOST overrides (e.g. HOST=0.0.0.0 for a container).
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0');
+app.listen(Number(PORT), HOST, () => {
+  console.log(`🚀 Axiom API running on http://${HOST}:${PORT}`);
   console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
 });
 

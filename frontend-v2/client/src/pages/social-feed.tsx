@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { authFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { WebAnalytics } from '@/lib/analytics';
+import { FeedVideo } from '@/components/FeedVideo';
+import { safeHttpUrl } from '@/lib/safeUrl';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -149,19 +151,6 @@ function isYouTubeUrl(url: string): boolean {
   return /youtube\.com|youtu\.be/.test(url);
 }
 
-function getYouTubeEmbedId(url: string): string | null {
-  const patterns = [
-    /youtube\.com\/watch\?v=([^&]+)/,
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-  ];
-  for (const pat of patterns) {
-    const m = url.match(pat);
-    if (m) return m[1];
-  }
-  return null;
-}
-
 function toImageSrc(raw: string): string {
   if (raw.startsWith('data:')) return raw;
   return `data:image/jpeg;base64,${raw}`;
@@ -186,7 +175,6 @@ function FeedCard({
   useEffect(() => { setItem(initialItem); }, [initialItem.id]);
 
   const badge = itemBadge(item.itemType);
-  const embedId = item.payload?.videoUrl ? getYouTubeEmbedId(item.payload.videoUrl) : null;
 
   // Feed responses strip imageBase64 and set hasImage:true; lazy-load on demand.
   const [lazyImage, setLazyImage] = useState<string | null>(null);
@@ -304,31 +292,8 @@ function FeedCard({
         />
       )}
 
-      {/* Video */}
-      {item.payload?.videoUrl && (
-        embedId ? (
-          <div className="rounded-xl overflow-hidden border aspect-video">
-            <iframe
-              className="w-full h-full"
-              src={`https://www.youtube.com/embed/${embedId}`}
-              title="YouTube video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ) : (
-          <a
-            href={item.payload.videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm text-primary hover:bg-muted/30 transition-colors"
-          >
-            <Video className="h-4 w-4 shrink-0" />
-            <span className="truncate">{item.payload.videoUrl}</span>
-            <ExternalLink className="h-3.5 w-3.5 shrink-0 ml-auto" />
-          </a>
-        )
-      )}
+      {/* Video — http(s) only; anything else renders as plain text */}
+      {item.payload?.videoUrl && <FeedVideo videoUrl={item.payload.videoUrl} />}
 
       {/* Legacy data fields */}
       {item.payload?.data && Object.keys(item.payload.data).length > 0 && (
@@ -851,6 +816,7 @@ export default function SocialFeedPage() {
       payload = { imageBase64 };
     } else {
       if (!videoUrl.trim()) { toast.error('Enter a video URL.'); return; }
+      if (!safeHttpUrl(videoUrl)) { toast.error('Enter a full http(s) link, e.g. https://youtube.com/…'); return; }
       itemType = 'media';
       payload = { videoUrl: videoUrl.trim() };
     }

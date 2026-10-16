@@ -32,6 +32,13 @@ import { apiFetch } from '../lib/api';
 
 const IS_ANDROID = Platform.OS === 'android';
 const IS_IOS = Platform.OS === 'ios';
+/**
+ * In-app card (Stripe) checkout is hidden on BOTH native platforms: Apple
+ * 3.1.1 and Google Play Payments policy forbid steering to an external
+ * payment rail for digital subscriptions. The backend routes and the purchase
+ * hook stay — only the UI entry point is gone. Web keeps it.
+ */
+export const SHOW_CARD_CHECKOUT = Platform.OS === 'web';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -431,12 +438,12 @@ function PaymentSheetContent({
       <View style={styles.promoBanner}>
         <Ionicons name="gift-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
         <Text style={styles.promoText}>
-          <Text style={{ fontWeight: fontWeight.bold }}>1 month free included.</Text> {IS_IOS ? 'Whether you pay with Apple Pay or by card, your first month is free.' : 'Pay by card and your first month is free.'} Cancel anytime from your account settings.
+          <Text style={{ fontWeight: fontWeight.bold }}>1 month free included.</Text> Your first month is free. Cancel anytime from your {IS_ANDROID ? 'Google Play' : IS_IOS ? 'App Store' : 'account'} subscription settings.
         </Text>
       </View>
 
-      {/* iOS: card option leads. */}
-      {IS_IOS && stripeSection}
+      {/* Card checkout: web only (hidden on iOS + Android — store policy). */}
+      {SHOW_CARD_CHECKOUT && stripeSection}
 
       {/* ── Native store IAP — Apple on iOS, Google Play on Android ── */}
       {(iapLoading || product || iapError) && (
@@ -495,8 +502,6 @@ function PaymentSheetContent({
         </View>
       )}
 
-      {/* Android: card option follows Google Play. */}
-      {IS_ANDROID && stripeSection}
 
       {/* Restore Purchases — required by App Store guideline 3.1.1 */}
       <View style={styles.restoreSection}>
@@ -515,8 +520,7 @@ function PaymentSheetContent({
 
       <Text style={styles.legal}>
         Axiom Pro · auto-renews monthly. Cancel anytime.{'\n'}
-        {IS_IOS ? 'Card payments processed securely by Stripe.\n' : ''}
-        {IS_ANDROID ? 'Card payments processed securely by Stripe. Google Play subscriptions are managed in Play Store → Subscriptions.\n' : ''}
+        {IS_ANDROID ? 'Google Play subscriptions are managed in Play Store → Subscriptions.\n' : ''}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/terms').catch(() => {})}>Terms of Use</Text>
         {'  ·  '}
         <Text style={styles.legalLink} onPress={() => Linking.openURL('https://axiomtraining.io/privacy').catch(() => {})}>Privacy Policy</Text>

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { stripe } from '../services/stripeService.js';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import { recordCommission, getOrCreateAffiliateCoupon, renewalCommissionBaseCents } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
 import { safeReturnPath } from '../services/checkoutReturn.js';
@@ -10,6 +11,48 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// ─── Webhook hardening ───────────────────────────────────────────────────────
+
+/** Price ids a completed Checkout may be for: STRIPE_PRO_PRICE_ID plus any in STRIPE_EXTRA_PRICE_IDS (comma-separated, e.g. a Payment Link's price). */
+export function allowedPriceIds(): Set<string> {
+  return new Set(
+    [process.env.STRIPE_PRO_PRICE_ID, ...(process.env.STRIPE_EXTRA_PRICE_IDS || '').split(',')]
+      .map((p) => (p || '').trim())
+      .filter(Boolean),
+  );
+}
+
+/**
+ * Should a completed Checkout Session grant Pro? Paid, or legitimately free
+ * (trial / 100% coupon → 'no_payment_required'), and for our Pro price.
+ * 'unpaid' (delayed methods that haven't cleared) waits for a later event.
+ * Exported for tests.
+ */
+export function checkoutGrantsPro(session: any): { ok: true } | { ok: false; reason: string } {
+  const status = session?.payment_status;
+  if (status !== 'paid' && status !== 'no_payment_required') return { ok: false, reason: `payment_status=${status}` };
+  const allowed = allowedPriceIds();
+  if (allowed.size === 0) return { ok: false, reason: 'no price configured' };
+  const items: any[] = session?.line_items?.data ?? [];
+  if (!items.length) return { ok: false, reason: 'no line items' };
+  const priceIds = items.map((li) => li?.price?.id).filter(Boolean);
+  if (!priceIds.length || !priceIds.every((id) => allowed.has(id))) return { ok: false, reason: `unexpected price ${priceIds.join(',') || 'none'}` };
+  return { ok: true };
+}
+
+// Stripe retries for up to 3 days and may deliver the same event more than
+// once; replaying checkout.session.completed re-granted Pro and re-recorded
+// commission. Remember handled ids (single process; see rateLimiter.ts).
+const EVENT_TTL_MS = 3 * 24 * 60 * 60 * 1000;
+const handledEvents = new Map<string, number>();
+const inFlightEvents = new Set<string>();
+function seenEvent(id: string, now = Date.now()): boolean {
+  for (const [k, exp] of handledEvents) { if (exp < now) handledEvents.delete(k); else break; }
+  return handledEvents.has(id) || inFlightEvents.has(id);
+}
+/** Test hook. */
+export function __resetWebhookDedupeForTests() { handledEvents.clear(); inFlightEvents.clear(); }
 
 // GET /api/payments/referral-code/:code — validate a referral code before
 // checkout so the paywall can show real feedback instead of a silent no-op.
@@ -113,7 +156,7 @@ router.post('/payments/portal', requireAuth, async (req, res) => {
     res.json({ url: portalSession.url });
   } catch (err: any) {
     console.error('Portal session error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to create portal session' });
+    res.status(500).json({ error: 'Failed to create portal session' });
   }
 });
 
@@ -137,17 +180,30 @@ router.post('/payments/webhook', async (req, res) => {
     return res.status(400).json({ error: 'Invalid webhook signature' });
   }
 
+  const eventId: string | undefined = event?.id;
+  if (eventId && seenEvent(eventId)) {
+    console.log(`[stripe] duplicate event ${eventId} (${event.type}) ignored`);
+    return res.json({ received: true, duplicate: true });
+  }
+  if (eventId) inFlightEvents.add(eventId);
+
   try {
     if (event.type === 'checkout.session.completed') {
-      // Re-fetch with expansion so we can read the promo code
+      // Re-fetch with expansion so we can read the promo code and line items
       const session = await stripe.checkout.sessions.retrieve(
         (event.data.object as any).id,
-        { expand: ['total_details.breakdown'] }
-      );
-      const userId = session.client_reference_id;
+        { expand: ['total_details.breakdown', 'line_items'] }
+      ) as any;
+      // Our own sessions carry metadata.userId (set server-side);
+      // client_reference_id can also arrive from a public Payment Link URL.
+      const userId = (session.metadata as any)?.userId || session.client_reference_id;
       const customerId = session.customer as string | null;
+      const grant = checkoutGrantsPro(session);
+      if (userId && !grant.ok) {
+        console.error(`[stripe] checkout ${session.id} for ${userId} NOT granting Pro: ${grant.reason}`);
+      }
 
-      if (userId) {
+      if (userId && grant.ok) {
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -156,6 +212,7 @@ router.post('/payments/webhook', async (req, res) => {
             stripeSubStatus: 'active'
           }
         });
+        invalidateAuthCache(userId);
         console.log(`✓ User ${userId} upgraded to pro`);
         posthog.capture({
           distinctId: userId,
@@ -171,7 +228,7 @@ router.post('/payments/webhook', async (req, res) => {
       // ── Record affiliate commission on initial purchase ───────────────────
       // affiliateId is set in session.metadata when checkout was created via /create-checkout
       const affiliateId = (session.metadata as any)?.affiliateId as string | undefined;
-      if (affiliateId && session.subscription) {
+      if (affiliateId && session.subscription && grant.ok) {
         // Trialing referrals complete checkout with amount_total 0 — no money
         // moved, so no commission yet. Record a 0¢ marker anyway: renewals
         // attribute by looking up prior commission rows for the subscription,
@@ -222,6 +279,7 @@ router.post('/payments/webhook', async (req, res) => {
           where: { id: user.id },
           data: { stripeSubStatus: status, tier: newTier }
         });
+        invalidateAuthCache(user.id);
         console.log(`✓ User ${user.id} subscription updated: ${status}`);
       }
     } else if (event.type === 'customer.subscription.deleted') {
@@ -234,6 +292,7 @@ router.post('/payments/webhook', async (req, res) => {
           where: { id: user.id },
           data: { tier: 'free', stripeSubStatus: 'canceled' }
         });
+        invalidateAuthCache(user.id);
         console.log(`✓ User ${user.id} downgraded to free`);
         posthog.capture({
           distinctId: user.id,
@@ -260,11 +319,17 @@ router.post('/payments/webhook', async (req, res) => {
       }
     }
   } catch (err) {
+    // Not marked handled: Stripe's retry gets another go.
+    if (eventId) inFlightEvents.delete(eventId);
     posthog.captureException(err);
     console.error('Webhook handler error:', err);
     return res.status(500).json({ error: 'Webhook processing failed' });
   }
 
+  if (eventId) {
+    inFlightEvents.delete(eventId);
+    handledEvents.set(eventId, Date.now() + EVENT_TTL_MS);
+  }
   res.json({ received: true });
 });
 
@@ -349,6 +414,7 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
           where: { id: req.user!.id },
           data: { tier: 'pro', stripeSubStatus: 'active', stripeCustomerId: customerId },
         });
+        invalidateAuthCache(req.user!.id);
         return res.json({
           alreadyActivated: true,
           subscriptionId: subscription.id,
@@ -365,7 +431,7 @@ router.post('/payments/create-subscription-intent', requireAuth, async (req, res
     });
   } catch (err: any) {
     console.error('Create subscription intent error:', err);
-    res.status(500).json({ error: err?.message ?? 'Failed to create subscription' });
+    res.status(500).json({ error: 'Failed to create subscription' });
   }
 });
 
@@ -448,7 +514,7 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
     res.json({ url: session.url });
   } catch (err: any) {
     console.error('Create checkout error:', err);
-    res.status(500).json({ error: err?.message ?? 'Failed to create checkout session' });
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
 

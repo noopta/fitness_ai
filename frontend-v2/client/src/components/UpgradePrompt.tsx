@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Zap } from 'lucide-react';
 import { startProCheckout } from '@/lib/checkout';
+import { AUTO_RENEW_DISCLOSURE } from '@/lib/pricing';
 
 interface UpgradePromptProps {
   /** Kept for backward compatibility with existing callsites; no longer needed. */
@@ -27,6 +28,7 @@ export function UpgradePrompt(_props: UpgradePromptProps) {
             Upgrade to Pro
             <Zap className="ml-2 h-4 w-4" />
           </Button>
+          <p className="mt-2 text-[11px] text-amber-700/80 dark:text-amber-300/80">{AUTO_RENEW_DISCLOSURE}</p>
         </div>
       </div>
     </Card>

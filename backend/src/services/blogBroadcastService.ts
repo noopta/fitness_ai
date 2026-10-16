@@ -4,6 +4,12 @@
 // double-click on Publish can't send twice. Recipients: verified email, not
 // unsubscribed. Sends in small parallel batches; per-recipient failures are
 // counted, not fatal.
+//
+// Consent (2026-10): marketing is opt-in. Account holders receive broadcasts
+// only with a recorded User.marketingConsentAt (unsubscribing clears it);
+// BlogSubscriber rows only once they confirmed via the double opt-in link
+// (confirmedAt set). Every message carries RFC 8058 one-click unsubscribe
+// headers and the postal address (emailTemplates.layout).
 import { PrismaClient } from '@prisma/client';
 import { sendEmail } from './mailService.js';
 import { blogPostEmail, SUPPORT_EMAIL } from './emailTemplates.js';
@@ -21,18 +27,27 @@ export interface BroadcastResult {
 
 export interface Recipient { id: string; email: string }
 
+/** RFC 2369 + RFC 8058 one-click headers; the POST lands on routes/email.ts. */
+export function listUnsubscribeHeaders(unsubUrl: string): Record<string, string> {
+  return {
+    'List-Unsubscribe': `<${unsubUrl}>, <mailto:${SUPPORT_EMAIL}?subject=unsubscribe>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+}
+
 /**
- * Everyone a blog post goes to: verified, opted-in accounts plus admin-added
- * BlogSubscriber rows that haven't unsubscribed. Deduped by lowercased email
+ * Everyone a blog post goes to: verified accounts with recorded marketing
+ * consent, plus BlogSubscriber rows that confirmed (double opt-in) and haven't
+ * unsubscribed. Deduped by lowercased email
  * so a subscriber who later signs up is emailed once, via their account.
  */
 export async function recipients(): Promise<Recipient[]> {
   const users = await prisma.user.findMany({
-    where: { email: { not: null }, emailVerified: true, marketingEmailsOptOut: false },
+    where: { email: { not: null }, emailVerified: true, marketingConsentAt: { not: null } },
     select: { id: true, email: true },
   });
   const subs = await prisma.blogSubscriber.findMany({
-    where: { unsubscribedAt: null },
+    where: { unsubscribedAt: null, confirmedAt: { not: null } },
     select: { id: true, email: true },
   });
   const seen = new Set<string>();
@@ -77,7 +92,7 @@ export async function broadcastBlogPost(postId: string): Promise<BroadcastResult
           html: msg.html,
           text: msg.text,
           replyTo: SUPPORT_EMAIL,
-          headers: { 'List-Unsubscribe': `<${unsub}>` },
+          headers: listUnsubscribeHeaders(unsub),
         });
         return r.sent;
       } catch {

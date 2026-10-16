@@ -1,78 +1,41 @@
-// Social proof — the new block #2 (sits between Hero and AI Coach).
-// Card style: Stat-first dark. The outcome number is the visual anchor;
-// the quote is supporting evidence. Spec: handoff §06–07.
+// "How Axiom works" — occupies the slot (between Hero and AI Coach) that used
+// to hold the social-proof block. That block shipped placeholder testimonials,
+// outcome numbers and an App Store rating that were not real user data, which
+// the FTC treats as deceptive endorsements. Until real, consented user stories
+// exist, this renders claim-free feature statements in the same dark-card
+// layout.
 //
-// Three reviews stretch across the row; on mobile they collapse to a stack.
-// All numbers and quotes are placeholders the founder will swap in for real
-// user stories — but the schema (`ReviewData`) is the contract.
+// To bring testimonials back: only real, verifiable customers, with consent,
+// typical-results context, and any material connection disclosed.
 
-export interface ReviewData {
-  /** Display name, e.g. "Mark T." */
-  name: string;
-  /** Audience meta, e.g. "Intermediate · 2 yr training". */
-  meta: string;
-  /** Lift label, e.g. "Bench Press". */
-  lift: string;
-  /** Pre-formatted "<starting> · <context>". Only the chunk before " · " renders. */
-  before: string;
-  /** Pre-formatted ending weight, e.g. "245 lb". */
-  after: string;
-  /** Pre-formatted "<sign+number> / <period>", e.g. "+20 lb / 6 wks". Sign required. */
-  gain: string;
-  /** One-sentence supporting quote, ≤ 90 chars. */
-  short: string;
+export interface FeatureCardData {
+  /** Small uppercase label, e.g. "Diagnose". */
+  eyebrow: string;
+  /** Short headline. */
+  title: string;
+  /** One or two plain-language sentences. No outcome promises. */
+  body: string;
 }
 
-const REVIEWS: ReviewData[] = [
+const CARDS: FeatureCardData[] = [
   {
-    name: "Mark T.",
-    meta: "Intermediate · 2 yr training",
-    lift: "Bench Press",
-    before: "225 lb · 8 mo plateau",
-    after: "245 lb",
-    gain: "+20 lb / 6 wks",
-    short: "First app to tell me what's actually wrong with my bench.",
+    eyebrow: "Diagnose",
+    title: "Find your limiter",
+    body: "Enter your working weights and answer a few questions. Axiom compares your lift ratios to pinpoint the most likely weak link in your bench, squat or deadlift.",
   },
   {
-    name: "Rivka L.",
-    meta: "Advanced · 6 yr training",
-    lift: "Back Squat",
-    before: "315 lb · stalled",
-    after: "345 lb",
-    gain: "+30 lb / 10 wks",
-    short: "My triceps index went from 38 to 71. More motivating than streaks.",
+    eyebrow: "Program",
+    title: "Train the weak point",
+    body: "Get a structured program built around your limiter, your equipment and your schedule — with accessories chosen for the problem you actually have.",
   },
   {
-    name: "Cara M.",
-    meta: "Beginner · lost 22 lb",
-    lift: "Body Composition",
-    before: "163 lb · no plan",
-    after: "141 lb",
-    gain: "−22 lb / 12 wks",
-    short: "Weight loss had stalled for months. The nutrition profile finally showed me why.",
+    eyebrow: "Adapt",
+    title: "Adjust as you log",
+    body: "Log sessions and meals as you go. When your numbers move, Anakin proposes changes and explains why — you confirm before anything is applied.",
   },
 ];
 
-function StarRow({ size = 13, count = 5, color = "#f59e0b" }: { size?: number; count?: number; color?: string }) {
-  return (
-    <div className="inline-flex" style={{ gap: 1 }} aria-hidden="true">
-      {Array.from({ length: count }).map((_, i) => (
-        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={color}>
-          <path d="M12 .587l3.668 7.568L24 9.75l-6 5.852L19.336 24 12 19.897 4.664 24 6 15.602 0 9.75l8.332-1.595z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-/**
- * One dark stat-first card. The 64px gain number is the hero element; the
- * supporting quote and the attribution + star row anchor it.
- */
-function StatFirstDarkCard({ data }: { data: ReviewData }) {
-  const [num] = data.gain.split(" / ");
-  const period = data.gain.split(" / ")[1] || "";
-  const beforeWeight = data.before.split(" · ")[0];
+function FeatureCard({ data }: { data: FeatureCardData }) {
   return (
     <article
       className="flex flex-col h-full"
@@ -81,47 +44,33 @@ function StatFirstDarkCard({ data }: { data: ReviewData }) {
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: 16,
         padding: 24,
-        gap: 18,
+        gap: 14,
         boxShadow: "0 14px 44px -28px rgba(0,0,0,0.4)",
       }}
     >
-      <div>
-        <div
-          style={{
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            color: "rgba(255,255,255,0.55)",
-            textTransform: "uppercase",
-          }}
-        >
-          {data.lift} · over {period}
-        </div>
-        <div
-          style={{
-            fontSize: 64,
-            fontWeight: 700,
-            letterSpacing: "-0.04em",
-            lineHeight: 1,
-            color: "#ffffff",
-            marginTop: 8,
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {num}
-        </div>
-        <div
-          style={{
-            fontSize: 12,
-            color: "rgba(255,255,255,0.55)",
-            marginTop: 6,
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-          }}
-        >
-          {beforeWeight} → {data.after}
-        </div>
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: "0.12em",
+          color: "rgba(255,255,255,0.55)",
+          textTransform: "uppercase",
+        }}
+      >
+        {data.eyebrow}
       </div>
-      <blockquote
+      <div
+        style={{
+          fontSize: 28,
+          fontWeight: 700,
+          letterSpacing: "-0.03em",
+          lineHeight: 1.1,
+          color: "#ffffff",
+        }}
+      >
+        {data.title}
+      </div>
+      <p
         style={{
           fontSize: 13,
           lineHeight: 1.6,
@@ -131,15 +80,8 @@ function StatFirstDarkCard({ data }: { data: ReviewData }) {
           margin: 0,
         }}
       >
-        "{data.short}"
-      </blockquote>
-      <div className="flex items-center justify-between" style={{ marginTop: "auto" }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#ffffff" }}>{data.name}</div>
-          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)" }}>{data.meta}</div>
-        </div>
-        <StarRow size={10} />
-      </div>
+        {data.body}
+      </p>
     </article>
   );
 }
@@ -149,69 +91,48 @@ export function SocialProofSection() {
     <section
       className="border-t bg-white"
       style={{ paddingTop: 96, paddingBottom: 96 }}
-      aria-labelledby="social-proof-heading"
+      aria-labelledby="how-it-works-heading"
     >
       <div className="container-tight">
-        {/* Header row */}
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="max-w-[580px]">
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "#71717a",
-              }}
-            >
-              Real diagnoses, real plateaus
-            </div>
-            <h2
-              id="social-proof-heading"
-              className="font-bold"
-              style={{
-                marginTop: 8,
-                fontSize: 32,
-                letterSpacing: "-0.02em",
-                lineHeight: 1.15,
-                color: "#09090b",
-              }}
-            >
-              Where users were stuck.<br />Where they ended up.
-            </h2>
-            <p
-              className="text-muted-foreground"
-              style={{ marginTop: 12, fontSize: 15, lineHeight: 1.6, maxWidth: 520 }}
-            >
-              Three Pro users, three different limiters, three plateaus broken. Names changed, numbers unedited.
-            </p>
-          </div>
-
+        <div className="max-w-[580px]">
           <div
-            className="inline-flex items-center gap-3"
             style={{
-              padding: "12px 16px",
-              border: "1px solid var(--border, #e4e4e7)",
-              borderRadius: 14,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "#71717a",
             }}
           >
-            <StarRow size={13} />
-            <div style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#09090b" }}>
-                5.0 <span className="font-normal text-muted-foreground">· App Store</span>
-              </div>
-              <div className="text-muted-foreground" style={{ fontSize: 10.5 }}>Early reviews</div>
-            </div>
+            How it works
           </div>
+          <h2
+            id="how-it-works-heading"
+            className="font-bold"
+            style={{
+              marginTop: 8,
+              fontSize: 32,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
+              color: "#09090b",
+            }}
+          >
+            Diagnose. Program.<br />Adapt.
+          </h2>
+          <p
+            className="text-muted-foreground"
+            style={{ marginTop: 12, fontSize: 15, lineHeight: 1.6, maxWidth: 520 }}
+          >
+            Built on established strength-training and nutrition science, applied to your own numbers.
+          </p>
         </div>
 
-        {/* Card grid */}
         <div
           className="grid gap-4 sm:grid-cols-3"
           style={{ marginTop: 40, alignItems: "stretch" }}
         >
-          {REVIEWS.map((r) => (
-            <StatFirstDarkCard key={r.name} data={r} />
+          {CARDS.map((c) => (
+            <FeatureCard key={c.eyebrow} data={c} />
           ))}
         </div>
       </div>

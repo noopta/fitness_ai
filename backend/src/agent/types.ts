@@ -34,6 +34,8 @@ export interface AgentTool {
   fn?: string;
   /** Always loaded; the rest are found through tool search. */
   core?: boolean;
+  /** Result carries text written by someone other than the user (untrusted.ts). */
+  untrusted?: boolean;
   /** Build the card(s) shown under the reply from this call's result. */
   card?: (input: Record<string, unknown>, result: any, ctx: ToolCtx) => import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null | Promise<import('./cards/types.js').CardDraft | import('./cards/types.js').CardDraft[] | null>;
   /** Receipt shown while the tool runs, and the refined one after. */

@@ -1290,6 +1290,11 @@ model BlogSubscriber {
   addedBy        String?
   /// Set when they click unsubscribe; never emailed again unless cleared.
   unsubscribedAt DateTime?
+  /// Double opt-in: set when they click the signed confirm link. Broadcasts go
+  /// only to rows with confirmedAt set. Null = pending (or legacy, never confirmed).
+  confirmedAt    DateTime?
+  /// Last time a confirmation email was sent (throttles re-sends).
+  confirmSentAt  DateTime?
   createdAt      DateTime  @default(now())
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { readOAuthReturn, BEARER_TOKEN_KEY } from "@/lib/oauthReturn";
 import {
   ArrowRight,
   Brain,
@@ -452,11 +453,11 @@ const HERO_COPY = [
   {
     badges: [
       { icon: "Zap", text: "24/7 AI Coach" },
-      { icon: "Brain", text: "10 certifications" },
+      { icon: "Brain", text: "Evidence-based" },
       { icon: "Target", text: "Lift diagnostics" },
     ],
-    title: "Smarter than any trainer.",
-    titleMuted: " Trained on 10 certifications + 7,000 pages of science.",
+    title: "Your always-on strength coach.",
+    titleMuted: " Built on established strength-training and nutrition science.",
     subtitle: "Axiom combines an elite AI coach with precision lift diagnostics. Get personalized programs, nutrition guidance, and biomechanical analysis — 24/7, judgment-free, never cancels. Plus pinpoint exactly what's limiting your bench, squat, or deadlift.",
   },
   {
@@ -467,7 +468,7 @@ const HERO_COPY = [
     ],
     title: "Anakin never sleeps.",
     titleMuted: " And the diagnostics that never guess.",
-    subtitle: "Two products in one: an AI coach trained on every major certification, and lift diagnostics that calculate your exact muscle limiters from your working weights. Programs, nutrition, injury prevention — plus e1RM and strength ratios to break plateaus.",
+    subtitle: "Two products in one: an AI coach built on established strength-training and nutrition science, and lift diagnostics that calculate your exact muscle limiters from your working weights. Programs, nutrition, injury prevention — plus e1RM and strength ratios to break plateaus.",
   },
   {
     badges: [
@@ -497,7 +498,7 @@ const HERO_COPY = [
     ],
     title: "Break through your plateau.",
     titleMuted: " Then break through the next.",
-    subtitle: "Start with lift diagnostics to find what's limiting you. Then level up with an AI coach trained on 10 certifications — programs, nutrition, wellness check-ins, Life Happened auto-reschedule. The smartest coach and the most precise diagnostics, together.",
+    subtitle: "Start with lift diagnostics to find what's limiting you. Then level up with an AI coach built on established strength-training and nutrition science — programs, nutrition, wellness check-ins, Life Happened auto-reschedule. The smartest coach and the most precise diagnostics, together.",
   },
 ] as const;
 
@@ -523,8 +524,9 @@ export default function Signup() {
 
   // Handle ?auth=success from Google OAuth (in case callback lands here instead of /login)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('auth') === 'success') {
+    const { auth, token } = readOAuthReturn(window.location);
+    if (auth === 'success') {
+      if (token) sessionStorage.setItem(BEARER_TOKEN_KEY, token);
       window.history.replaceState({}, '', '/');
       refreshUser();
     }
@@ -651,40 +653,18 @@ export default function Signup() {
               {/* Cert knowledge section */}
               <Card className="card-min rounded-2xl p-6 bg-background" data-testid="card-cert-strip">
                 <div className="mb-5">
-                  <div className="text-sm font-semibold">Trained on every major certification</div>
+                  <div className="text-sm font-semibold">Built on established science</div>
                   <p className="mt-1 text-sm text-muted-foreground max-w-xl">
-                    Built on the combined curriculum of the 10 leading CPT certifications — more comprehensive knowledge than any single human trainer.
+                    Anakin is built on established strength-training and nutrition science — progressive overload, RPE/RIR, strength ratios and energy-balance nutrition — applied to your own training data.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-                    {["10 certifications", "7,000+ pages of training science", "Evidence-based answers only"].map(s => (
+                    {["Established training principles", "Nutrition fundamentals", "Personalised to your logs"].map(s => (
                       <div key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Check className="h-3 w-3 text-foreground flex-shrink-0" strokeWidth={2.5} />
                         {s}
                       </div>
                     ))}
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-                  {([
-                    { abbr: "NASM", name: "National Academy of Sports Medicine" },
-                    { abbr: "ACE", name: "American Council on Exercise" },
-                    { abbr: "ISSA", name: "Intl. Sports Sciences Assoc." },
-                    { abbr: "NSCA", name: "Natl. Strength & Conditioning" },
-                    { abbr: "ACSM", name: "American College of Sports Medicine" },
-                    { abbr: "NCSF", name: "Natl. Council on Strength & Fitness" },
-                    { abbr: "NFPT", name: "Natl. Federation of Professional Trainers" },
-                    { abbr: "NESTA", name: "Natl. Exercise & Sports Trainers Assoc." },
-                    { abbr: "NETA", name: "National Exercise Trainers Assoc." },
-                    { abbr: "IPTA", name: "Intl. Personal Training Academy" },
-                  ] as const).map(({ abbr, name }) => (
-                    <div
-                      key={abbr}
-                      className="flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-background px-3 py-4 text-center"
-                    >
-                      <span className="text-base font-bold tracking-tight">{abbr}</span>
-                      <span className="text-[10px] leading-tight text-muted-foreground">{name}</span>
-                    </div>
-                  ))}
                 </div>
               </Card>
 
@@ -729,8 +709,8 @@ export default function Signup() {
                   </div>
                   <div className="mt-6 space-y-5">
                     {([
-                      ["Cost", "<$12/month — free to try"],
-                      ["Knowledge base", "10 certifications + 7,000+ pages of science"],
+                      ["Cost", "$12.99/month — free to try"],
+                      ["Knowledge base", "Built on established strength-training and nutrition science"],
                       ["Cancellations", "Never cancels. Not once."],
                       ["Life disruptions", "Physiological analysis + auto-reschedule in 2 min"],
                       ["Remembers history", "Perfect recall of every session, goal, and note"],
@@ -834,10 +814,10 @@ export default function Signup() {
               Coming soon
             </div>
             <h2 className="mt-2 text-balance text-2xl font-semibold tracking-tight" data-testid="text-wearables-title">
-              Sync your wearables. Understand your metrics.
+              Wearable sync is coming soon.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground" data-testid="text-wearables-subtitle">
-              Connect your Fitbit, Apple Watch, Samsung Galaxy Watch, or iPhone Health data. We'll analyze your heart rate variability, sleep quality, recovery metrics, and daily activity—then tell you what they mean, if they're optimal, and how to improve them for better strength gains.
+              Not available yet. We're working on connecting Fitbit, Apple Watch, Samsung Galaxy Watch and iPhone Health data so Axiom can analyze your heart rate variability, sleep quality, recovery metrics, and daily activity and explain what they mean for your training.
             </p>
           </div>
 

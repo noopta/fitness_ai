@@ -4,6 +4,8 @@
  * Use iapLog() / iapWarn() / iapError() instead of console in IAP code.
  */
 
+import { log } from './log';
+
 export type LogLevel = 'info' | 'warn' | 'error';
 
 export interface LogEntry {
@@ -33,11 +35,12 @@ export function addLog(level: LogLevel, tag: string, ...args: unknown[]): void {
   if (entries.length >= MAX_ENTRIES) entries.shift();
   entries.push(entry);
 
-  // Mirror to console so Metro still shows them
+  // Mirror to console so Metro still shows them — dev only: release builds
+  // would otherwise write purchase/receipt details to the device log.
   const prefix = `[${tag}]`;
-  if (level === 'error') console.error(prefix, msg);
-  else if (level === 'warn') console.warn(prefix, msg);
-  else console.log(prefix, msg);
+  if (level === 'error') log.error(prefix, msg);
+  else if (level === 'warn') log.warn(prefix, msg);
+  else log.info(prefix, msg);
 
   listeners.forEach(fn => fn());
 }

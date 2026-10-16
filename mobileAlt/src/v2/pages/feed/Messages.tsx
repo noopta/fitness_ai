@@ -27,6 +27,7 @@ import { groupsApi } from '../../../lib/api';
 import { groupsOf } from './lists';
 import { useFriends } from './People';
 import { Avatar, AskLine, RowAction, LinkTabs, ago, displayName } from './common';
+import { userSafetyMenu } from '../../../lib/moderation';
 
 const C = v2.color;
 
@@ -213,13 +214,31 @@ export function ThreadPage({ id, name }: { id: string; name?: string }) {
     return { m, mine, stamp, label };
   }), [msgs, me]);
 
+  // Report / block (Guideline 1.2): "···" in the header, or long-press one of their messages.
+  const other = msgs.find((m) => (m.senderId ?? m.sender?.id) && (m.senderId ?? m.sender?.id) !== me);
+  const otherId: string | null = other ? (other.senderId ?? other.sender?.id) : null;
+  const safety = (m?: any) => {
+    if (!otherId) return;
+    userSafetyMenu({
+      userId: otherId,
+      name: name || displayName(other?.sender),
+      content: m ? { id: m.id, type: 'message' } : undefined,
+      onBlockChange: (b) => { if (b) { void qc.invalidateQueries({ queryKey: qk.conversations }); if (router.canGoBack()) router.back(); } },
+    });
+  };
+
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.white }}>
       <View style={[styles.threadTop, { paddingTop: insets.top + 12 }]}>
         <Pressable onPress={() => { haptics.select(); if (router.canGoBack()) router.back(); else router.replace('/(v2)' as any); }} hitSlop={10} accessibilityRole="button">
           <Text style={[T.body, { color: C.muted }]}>← Messages</Text>
         </Pressable>
-        <Text style={[T.captionStrong, { color: C.ink }]} numberOfLines={1}>{name || 'Conversation'}</Text>
+        <Text style={[T.captionStrong, { color: C.ink, flexShrink: 1 }]} numberOfLines={1}>{name || 'Conversation'}</Text>
+        {otherId ? (
+          <Pressable onPress={() => safety()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Report or block">
+            <Text style={[T.body, { color: C.muted }]}>···</Text>
+          </Pressable>
+        ) : null}
       </View>
       <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: v2.space.gutter, paddingTop: 20, paddingBottom: 20 }}
         onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -227,10 +246,10 @@ export function ThreadPage({ id, name }: { id: string; name?: string }) {
         {rows.map(({ m, mine, stamp, label }, i) => (
           <View key={m.id} style={{ marginTop: i === 0 ? 0 : label ? 22 : 6 }}>
             {stamp ? <Text style={styles.stamp}>{stamp}</Text> : null}
-            <View style={mine ? styles.mine : styles.theirs}>
+            <Pressable style={mine ? styles.mine : styles.theirs} onLongPress={mine ? undefined : () => safety(m)} delayLongPress={350} disabled={mine}>
               {label ? <Text style={mine ? styles.youLabel : styles.theirLabel}>{mine ? 'You' : displayName(m.sender) }</Text> : null}
               <Text style={mine ? styles.mineText : styles.theirText}>{messageText(m.body)}</Text>
-            </View>
+            </Pressable>
           </View>
         ))}
       </ScrollView>

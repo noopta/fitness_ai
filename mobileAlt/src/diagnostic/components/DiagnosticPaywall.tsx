@@ -5,7 +5,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COPY, DX } from '@axiom/diagnostic-core';
-import { useProPurchase } from '../../components/UpgradeSheet';
+import { useProPurchase, SHOW_CARD_CHECKOUT } from '../../components/UpgradeSheet';
 import { Analytics } from '../../lib/analytics';
 
 const C = DX.color;
@@ -97,7 +97,8 @@ function PaywallBody({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
         </TouchableOpacity>
       ) : null}
 
-      <TouchableOpacity
+      {/* Card checkout is web-only (Apple 3.1.1 / Play Payments policy). */}
+      {SHOW_CARD_CHECKOUT ? <TouchableOpacity
         style={[styles.secondary, p.stripeConfirming && { opacity: DX.send.disabledOpacity }]}
         disabled={p.stripeConfirming}
         onPress={() => { setInlineError(null); void (p.stripeOpened ? p.handleStripeConfirm() : p.handleStripeCheckout()); }}
@@ -105,7 +106,7 @@ function PaywallBody({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
       >
         <Ionicons name="card-outline" size={18} color={C.body} />
         <Text style={styles.secondaryText}>{p.stripeOpened ? "I've completed payment" : COPY.payByCard}</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> : null}
 
       {message ? <Text style={styles.message}>{message}</Text> : null}
 

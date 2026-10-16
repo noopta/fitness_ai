@@ -25,7 +25,7 @@ import { postAuthDestination } from '../../src/onboarding/formhook/postAuthRoute
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
-  const { completeAuthCallback, getLatestUser, getFeatures } = useAuth();
+  const { acceptOAuthCallback, getLatestUser, getFeatures } = useAuth();
   const params = useLocalSearchParams<{
     token?: string | string[];
     auth?: string | string[];
@@ -64,8 +64,16 @@ export default function AuthCallbackScreen() {
     }
 
     finalized.current = true;
-    void completeAuthCallback(token, { needsDob }).then(async (ok) => {
-      if (!ok) {
+    // Gated: a token is only taken while a Google sign-in started on this
+    // device is in flight and nobody is signed in (see AuthContext). Anything
+    // else is an unsolicited link — leave quietly and let RootNavigator route.
+    void acceptOAuthCallback(token, { needsDob }).then(async (result) => {
+      if (result === 'ignored') {
+        const u = getLatestUser();
+        router.replace((u ? await postAuthDestination(u, getFeatures()) : '/(auth)/welcome') as any);
+        return;
+      }
+      if (result === 'failed') {
         Alert.alert(
           'Sign In Failed',
           'We received your credentials but could not verify them. Please try signing in again.',
@@ -81,7 +89,7 @@ export default function AuthCallbackScreen() {
       // replace(), not push(), so the back button doesn't return here.
       router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
     });
-  }, [params.token, params.auth, params.needsDob, completeAuthCallback, router, getLatestUser]);
+  }, [params.token, params.auth, params.needsDob, acceptOAuthCallback, router, getLatestUser]);
 
   return (
     <View style={styles.container}>

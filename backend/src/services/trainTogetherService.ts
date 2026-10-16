@@ -534,3 +534,23 @@ export async function runPartnerWorkoutMorningReminders(): Promise<{ sent: numbe
   }
   return { sent };
 }
+
+/**
+ * Pin members' days for `date`, resolved ONLY for members who have accepted
+ * the pin (Oct 2026 audit M1). An invitee who hasn't said yes (or declined)
+ * has not consented to anyone seeing their training day, so their slot is an
+ * opaque placeholder and `visible` is false. The creator is stored as
+ * 'accepted' at creation.
+ */
+export async function resolveAcceptedMemberDays(
+  members: Array<{ userId: string; response: string }>,
+  date: string,
+  load: (userId: string, dates: string[]) => Promise<ResolvedDay[] | null> = loadUserCalendar,
+): Promise<Array<{ visible: boolean; day: ResolvedDay }>> {
+  const blank = (): ResolvedDay => ({ date, rest: true, label: null, focusKey: null, muscles: [] });
+  return Promise.all(members.map(async (m) => {
+    if (m.response !== 'accepted') return { visible: false, day: blank() };
+    const cal = await load(m.userId, [date]);
+    return { visible: true, day: cal?.[0] ?? blank() };
+  }));
+}

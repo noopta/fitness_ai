@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // vi.mock factory must be self-contained — define mocks inside.
 vi.mock('@prisma/client', () => {
-  const user = { update: vi.fn(), updateMany: vi.fn() };
+  const user = { update: vi.fn(), updateMany: vi.fn(), findFirst: vi.fn() };
   const PrismaClient = vi.fn(function (this: any) { this.user = user; });
   return { PrismaClient, __mocks: { user } };
 });
@@ -59,6 +59,43 @@ beforeEach(() => {
   prismaUserMock.updateMany.mockReset();
   prismaUserMock.update.mockResolvedValue({});
   prismaUserMock.updateMany.mockResolvedValue({ count: 1 });
+  prismaUserMock.findFirst.mockReset();
+  prismaUserMock.findFirst.mockResolvedValue(null);
+});
+
+describe('Google IAP purchase binding and product check', () => {
+  const active = (productId: string) => ({
+    data: { subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE', lineItems: [{ productId, expiryTime: new Date(Date.now() + 86400000).toISOString() }] },
+  });
+
+  it('402s when Google reports a product that is not ours, whatever the client claimed', async () => {
+    subsV2Get.mockResolvedValue(active('some_other_app_sub'));
+    const res = await request(buildApp()).post('/api/payments/google-iap/verify').send({ purchaseToken: 'tok', productId: 'axiom_pro_monthly' });
+    expect(res.status).toBe(402);
+    expect(prismaUserMock.update).not.toHaveBeenCalled();
+  });
+
+  it('402s when the response carries no line items to prove the product', async () => {
+    subsV2Get.mockResolvedValue({ data: { subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE' } });
+    const res = await request(buildApp()).post('/api/payments/google-iap/verify').send({ purchaseToken: 'tok', productId: 'axiom_pro_monthly' });
+    expect(res.status).toBe(402);
+  });
+
+  it('409s when the purchase token already belongs to another account', async () => {
+    subsV2Get.mockResolvedValue(active('axiom_pro_monthly'));
+    prismaUserMock.findFirst.mockResolvedValue({ id: 'someone_else' });
+    const res = await request(buildApp()).post('/api/payments/google-iap/verify').send({ purchaseToken: 'tok', productId: 'axiom_pro_monthly' });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('purchase_owned_by_other_user');
+    expect(prismaUserMock.update).not.toHaveBeenCalled();
+  });
+
+  it('re-verifying your own purchase is fine', async () => {
+    subsV2Get.mockResolvedValue(active('axiom_pro_monthly'));
+    prismaUserMock.findFirst.mockResolvedValue({ id: 'user_1' });
+    const res = await request(buildApp()).post('/api/payments/google-iap/verify').send({ purchaseToken: 'tok', productId: 'axiom_pro_monthly' });
+    expect(res.status).toBe(200);
+  });
 });
 
 describe('POST /api/payments/google-iap/verify', () => {
@@ -79,7 +116,7 @@ describe('POST /api/payments/google-iap/verify', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE',
-        lineItems: [{ expiryTime: expiry }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: expiry }],
       },
     });
 
@@ -102,7 +139,7 @@ describe('POST /api/payments/google-iap/verify', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD',
-        lineItems: [{ expiryTime: new Date(Date.now() + 86400000).toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: new Date(Date.now() + 86400000).toISOString() }],
       },
     });
     const res = await request(buildApp())
@@ -115,7 +152,7 @@ describe('POST /api/payments/google-iap/verify', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_CANCELED',
-        lineItems: [{ expiryTime: new Date(Date.now() + 5 * 86400000).toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: new Date(Date.now() + 5 * 86400000).toISOString() }],
       },
     });
     const res = await request(buildApp())
@@ -128,7 +165,7 @@ describe('POST /api/payments/google-iap/verify', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_EXPIRED',
-        lineItems: [{ expiryTime: new Date(Date.now() - 86400000).toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: new Date(Date.now() - 86400000).toISOString() }],
       },
     });
     const res = await request(buildApp())
@@ -142,7 +179,7 @@ describe('POST /api/payments/google-iap/verify', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_CANCELED',
-        lineItems: [{ expiryTime: new Date(Date.now() - 86400000).toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: new Date(Date.now() - 86400000).toISOString() }],
       },
     });
     const res = await request(buildApp())
@@ -180,7 +217,7 @@ describe('POST /api/payments/google-iap/notifications', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_EXPIRED',
-        lineItems: [{ expiryTime: new Date(Date.now() - 1000).toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: new Date(Date.now() - 1000).toISOString() }],
       },
     });
     const res = await request(buildApp())
@@ -204,7 +241,7 @@ describe('POST /api/payments/google-iap/notifications', () => {
     subsV2Get.mockResolvedValue({
       data: {
         subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE',
-        lineItems: [{ expiryTime: expiry.toISOString() }],
+        lineItems: [{ productId: 'axiom_pro_monthly', expiryTime: expiry.toISOString() }],
       },
     });
     const res = await request(buildApp())

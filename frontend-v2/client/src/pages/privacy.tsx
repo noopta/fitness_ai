@@ -1,272 +1,296 @@
+/*
+ * ============================================================================
+ *  DRAFT FOR COUNSEL REVIEW — 16 October 2026
+ *  Rewritten against the code (audit SECURITY_AND_LEGAL_AUDIT_2026-10.md,
+ *  legal-report H1). Values in [SQUARE BRACKETS] are unknown facts the founder
+ *  must fill (see components/legal/LegalPage.tsx LEGAL constants).
+ *  Assumes the parallel 2026-10 remediation ships with it: health-data prompts
+ *  routed only to Anthropic / OpenAI / Google (no PRC-hosted providers),
+ *  consent timestamps recorded, web cookie banner gating PostHog, Twilio
+ *  operational alerts. If any of those does not ship, edit the matching
+ *  paragraph before publishing.
+ * ============================================================================
+ */
 import { Link } from "wouter";
-import { Navbar } from "@/components/Navbar";
-import { BrandLogo } from "@/components/BrandLogo";
+import { LegalPage, LEGAL, Mail, Section, Sub, List } from "@/components/legal/LegalPage";
 
 export default function Privacy() {
   return (
-    <div className="page">
-      <Navbar variant="full" />
-      <main className="container-tight py-12 sm:py-16">
-        <div className="max-w-3xl mx-auto space-y-6 text-sm text-muted-foreground">
-          <h1 className="text-2xl font-bold text-foreground mb-1">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground mt-1">Last updated: September 4, 2026</p>
+    <LegalPage
+      title="Privacy Policy"
+      intro={
+        <p>
+          This policy explains what Axiom collects, why, who we share it with, how long we keep it, and the choices you have.
+          We have tried to write it in plain English. If something is unclear, email <Mail />.
+          If you live in Washington, Nevada or another state with a consumer health data law, also read our{" "}
+          <Link href="/health-data" className="text-primary hover:underline">Consumer Health Data Privacy Policy</Link>.
+        </p>
+      }
+    >
+      <Section title="1. Who we are">
+        <p>
+          Axiom ("Axiom", "we", "us") runs the Axiom website at {LEGAL.site}, the Axiom iOS and Android apps, and related services
+          (together, the "Service"). The controller of your personal data is {LEGAL.entity}, {LEGAL.postalAddress}.
+        </p>
+        <List>
+          <li><strong>Privacy contact:</strong> <Mail /> (general support: <Mail to={LEGAL.supportEmail} />).</li>
+          <li><strong>EU representative (GDPR Art. 27):</strong> {LEGAL.euRepresentative}.</li>
+          <li><strong>UK representative (UK GDPR Art. 27):</strong> {LEGAL.ukRepresentative}.</li>
+        </List>
+        <p className="mt-2">
+          If you joined Axiom through a personal trainer or an institution (a team, gym or school), see Section 9. For data a trainer
+          uploads about their clients, the trainer decides what is collected and Axiom handles it on their behalf.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
-            <p>
-              Axiom ("we," "our," or "us") operates the Axiom platform, including our website at axiomtraining.io, our iOS and Android mobile applications, and all related services (collectively, the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our Service. Please read it carefully. By accessing or using the Service, you acknowledge that you have read, understood, and agree to the practices described in this Privacy Policy.
-            </p>
-          </section>
+      <Section title="2. What we collect">
+        <Sub>2.1 What you give us</Sub>
+        <List>
+          <li><strong>Account:</strong> name, email address, password (stored only as a bcrypt hash), username, profile photo, and your sign-in provider ID if you use Google or Apple sign-in.</li>
+          <li><strong>Date of birth:</strong> required at sign-up or first sign-in. We use it to enforce our minimum age (13), to apply our under-18 protections, and to calculate energy needs.</li>
+          <li><strong>Health and fitness data:</strong> height, weight and body-weight history, sex, training history and goals, available equipment, working weights and workout logs, sleep, stress, mood and energy check-ins, and anything you tell us about <strong>injuries, pain, medical conditions, medications or supplements, hormonal factors</strong> (for example pregnancy or menstrual cycle) and the health screening questions in the coach intake.</li>
+          <li><strong>Body video and stills:</strong> videos you record or upload for form checks and lift diagnostics, and, only if you switch it on for an upload, up to three still frames saved from that video ("reference stills").</li>
+          <li><strong>Food and nutrition:</strong> meals you log, meal photos, nutrition-label photos, order screenshots, barcodes you scan, recipes, and your nutrition targets.</li>
+          <li><strong>Voice notes:</strong> audio you record to log a meal or talk to the coach. We convert it to text.</li>
+          <li><strong>Coach chat:</strong> your conversations with Anakin, our AI coach, and the notes and long-term memory the coach keeps to personalise your coaching.</li>
+          <li><strong>Social content:</strong> posts, comments, reactions, shared workouts and programs, direct messages, group chats, friend connections, and reports you file about other users.</li>
+          <li><strong>Payments:</strong> your subscription status and the IDs our payment providers give us. Card details go directly to Stripe, Apple or Google; we never see or store them.</li>
+          <li><strong>Support and feedback:</strong> what you send us by email, in-app feedback, or the exit survey when you delete your account.</li>
+        </List>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">2. Information We Collect</h2>
-            <p className="font-medium text-foreground">2.1 Information You Provide Directly</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Account information:</strong> Name, email address, hashed password, and profile photo when you register or sign in with Google or Apple. We require a date of birth at registration or first sign-in to verify that you meet our minimum age requirement of 13 years old. Date of birth is stored and used solely for age verification.</li>
-              <li><strong>Profile and identity:</strong> Username, profile picture you upload, and any optional bio or display information.</li>
-              <li><strong>Fitness and health data:</strong> Height, weight, body composition goals, training age, available equipment, physical constraints or injuries, working weights, exercise logs, workout history, and other health-related information you choose to provide. This includes body weight log entries you record over time.</li>
-              <li><strong>AI Coach interactions:</strong> Onboarding interview responses, chat messages with the AI coach, nutrition logs, wellness check-ins, program preferences, and strength diagnostic answers.</li>
-              <li><strong>Lift diagnostic data:</strong> Selected lifts, sets, reps, weights, video form descriptions, diagnostic conversation transcripts, and generated analysis plans.</li>
-              <li><strong>Form-check videos:</strong> If you use the Form Analysis feature, you upload a short video (up to 60 seconds) of yourself performing a lift. The video is transmitted to Google's Vertex AI for analysis and is <strong>permanently deleted from our systems as soon as the analysis completes</strong> — typically within one minute. We never retain your video.</li>
-              <li><strong>Reference stills (optional):</strong> Within the Form Analysis feature you may separately choose to save "reference stills." When you switch this on for an upload, we extract up to three individual frames from that video — the specific moments the analysis is commenting on — draw a marker around the relevant area, and store those images with your analysis so you can see what the feedback refers to. This setting is <strong>off unless you turn it on</strong>, is confirmed for each upload, and is unavailable to users under 18. The stills are stored with that analysis record and are deleted when you delete the analysis or your account. Declining does not limit the written analysis in any way.</li>
-              <li><strong>Workout logs:</strong> Exercise entries including exercise name, sets, reps, weight used, and any session notes you record through the app's workout logging features.</li>
-              <li><strong>Nutrition and food logs:</strong> Meal entries including name, meal type, calorie count, macronutrient breakdown, and any notes. Images you submit for AI-powered meal analysis and calorie/macro estimation are processed in real time and are not permanently stored after analysis unless you explicitly save the result to your log.</li>
-              <li><strong>Social content:</strong> Text posts, shared workouts, shared programs, forwarded posts, reactions, comments, and media you post or share with friends on the platform.</li>
-              <li><strong>Direct messages:</strong> Messages you send to other users via the in-app messaging feature, including any posts forwarded through direct messages.</li>
-              <li><strong>Payment information:</strong> Billing is processed entirely by Stripe. We do not collect or store full payment card details. We store your Stripe customer ID, subscription tier, and subscription status.</li>
-            </ul>
+        <Sub>2.2 What we collect automatically</Sub>
+        <List>
+          <li><strong>Device and log data:</strong> IP address, device type, operating system, app version, browser, time stamps, and the requests your app makes to our servers.</li>
+          <li><strong>Product analytics:</strong> which screens you open and which features you use, linked to your account ID (see PostHog in Section 4).</li>
+          <li><strong>Error reports:</strong> crash and error details from the app and our servers (see Sentry in Section 4).</li>
+          <li><strong>Push token:</strong> if you allow notifications, a token that lets us send them to your device.</li>
+          <li><strong>Cookies and local storage:</strong> see Section 12.</li>
+        </List>
 
-            <p className="font-medium text-foreground mt-4">2.2 Information Collected Automatically</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Usage and analytics data:</strong> Screens visited, features used, buttons tapped, session duration, and interaction patterns. We use PostHog (posthog.com) as our first-party analytics provider. Analytics events are linked to your user ID to enable personalized product improvements. PostHog operates on servers in the United States. Analytics data is not used for third-party advertising.</li>
-              <li><strong>Device and technical data:</strong> IP address, device type, operating system version, app version, browser type, and unique device identifiers.</li>
-              <li><strong>Push notification tokens:</strong> If you grant permission, we collect your Expo push notification token to send you training reminders, coaching updates, motivational nudges, and social notifications (friend requests, messages, likes, comments). You can withdraw this permission at any time in your device settings or in the app's notification settings.</li>
-              <li><strong>Cookies and local storage:</strong> We use cookies, secure storage, and similar technologies for authentication session management, preference storage, and security purposes.</li>
-              <li><strong>Log data:</strong> Server logs recording requests, timestamps, error events, and performance metrics.</li>
-            </ul>
-          </section>
+        <Sub>2.3 What we get from others</Sub>
+        <List>
+          <li><strong>Google or Apple sign-in:</strong> your name and email (or Apple's private relay address).</li>
+          <li><strong>App stores and Stripe:</strong> confirmation that you paid, renewed, cancelled or were refunded.</li>
+          <li><strong>Your trainer or institution:</strong> if a trainer imports a client list, or a coach invites you to an institution, they may give us your name, contact details, goals and notes about you (Section 9).</li>
+          <li><strong>Other users:</strong> content that mentions or is sent to you, and reports about content.</li>
+          <li><strong>Affiliates:</strong> the referral code in the link you used to sign up (Section 10).</li>
+        </List>
+        <p className="mt-2">
+          We do <strong>not</strong> collect your precise location, contacts, or data from Apple Health, Google Health Connect or wearables.
+          We do not perform facial recognition or create biometric identifiers from your video; videos are analysed for movement quality only.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">3. How We Use Your Information</h2>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Provide, operate, personalize, and improve the Service, including AI-powered lift diagnostics, coaching, nutrition analysis, and program generation.</li>
-              <li>Process your subscription, manage billing via Stripe, and maintain your account.</li>
-              <li>Verify your age at account creation to enforce our minimum age requirement of 13 years old.</li>
-              <li>Generate personalized training programs, nutrition recommendations, and coaching responses using AI models.</li>
-              <li>Generate daily AI-powered insights ("Anakin's Latest Insights") displayed on your home screen, derived from your workout history, estimated strength metrics, and nutrition logs. These insights are refreshed once per day and cached on our servers.</li>
-              <li>Compute automated strength metrics including estimated one-rep maximums (using the Epley formula), strength-to-bodyweight ratios, movement pattern balance scores, and a composite Strength Index displayed on your Strength Profile screen. These scores are derived deterministically from your logged workout data and are informational only.</li>
-              <li>Enable social features including friend connections, feed posts, reactions, comments, post forwarding, and direct messaging.</li>
-              <li>Send push notifications relevant to your activity, including: training reminders, program schedule alerts, streak milestones, personal record detections, weekly summaries, social activity (friend requests, messages, likes, comments), and motivational nudges based on logged behaviors such as nutrition choices. You can opt out of non-essential notifications in your device settings.</li>
-              <li>Send behavioral coaching nudges: if our system detects a high-calorie junk food item in a meal you log via the AI analysis feature, you may receive a motivational push notification. This analysis occurs only when you use the "Describe" or "Scan" meal entry modes (not manual entry) and is designed as an optional accountability feature. No more than one such nudge is sent per 6-hour window per user.</li>
-              <li>Analyze aggregate, anonymized usage patterns to improve our algorithms, features, and user experience.</li>
-              <li>Detect and prevent fraud, abuse, unauthorized access, and security incidents.</li>
-              <li>Comply with applicable legal obligations and enforce our Terms of Service.</li>
-              <li>Respond to your support requests and communications.</li>
-            </ul>
-            <p className="mt-2">
-              We do not use your personal health or fitness data for advertising purposes and do not sell your personal information to third parties.
-            </p>
-          </section>
+      <Section title="3. Why we use it, and our legal bases">
+        <p>Under EU/UK law we must tell you the legal basis for each use. Elsewhere, the same uses apply.</p>
+        <List>
+          <li><strong>To provide the Service you signed up for</strong> (contract, GDPR Art. 6(1)(b)): your account, programs, workout and meal logging, form checks, coach chat, social features, subscriptions, and account emails such as verification codes and receipts.</li>
+          <li><strong>Health data</strong> (explicit consent, GDPR Art. 9(2)(a)): we process injuries, conditions, medications, body measurements, body video and other health information only because you agreed to it when you set up your coach, and you can withdraw that consent (Section 7). If you withdraw it, features that depend on it (personalised programs, form checks, nutrition plans) stop working for you.</li>
+          <li><strong>Optional features you switch on</strong> (consent, Art. 6(1)(a)): reference stills, push notifications, marketing email, and on the web, analytics cookies and session replay.</li>
+          <li><strong>Security, fraud and abuse prevention, and keeping the Service working</strong> (legitimate interests, Art. 6(1)(f)): rate limiting, moderation of public and shared content, error monitoring, operational alerts, and keeping records of content flagged as abusive.</li>
+          <li><strong>Improving Axiom</strong> (legitimate interests): aggregate product analytics. We do not use your health data to train AI models, and our AI providers do not use it to train theirs (Section 5).</li>
+          <li><strong>Legal obligations</strong> (Art. 6(1)(c)): tax and accounting records, responding to lawful requests, and reporting child sexual abuse material as US law requires.</li>
+        </List>
+        <p className="mt-2">
+          We do not sell your personal data. We do not use it for targeted advertising, and we do not share it with advertisers or data brokers.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">4. Third-Party Service Providers</h2>
-            <p>We share data with the following third-party processors to operate the Service. Each is contractually required to protect your data and use it only for the services they provide to us:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-2">
-              <li><strong>OpenAI (openai.com):</strong> Powers the AI coach chat, lift diagnostic analysis, training program generation, daily home insights, nutrition meal parsing, and coaching insight features. Your messages, fitness data, and meal descriptions are sent to OpenAI's API to generate responses. OpenAI's privacy policy governs their data handling.</li>
-              <li><strong>Google – Vertex AI (cloud.google.com/vertex-ai):</strong> Powers the AI photo meal analysis and the Form Analysis video feature. Food photos and form-check videos you submit are processed by Google's Gemini models running on Google Cloud's Vertex AI platform. Under Google Cloud's terms, customer data submitted to Vertex AI is not used to train Google's models. Media is deleted from Google Cloud storage immediately after processing. Reference stills, when you enable them, are produced on our own servers and are never sent to any third party.</li>
-              <li><strong>Google – Authentication (accounts.google.com):</strong> If you sign in with Google, we receive your name and email address from Google OAuth. We do not receive your Google password. New accounts created via Google OAuth are prompted to provide a date of birth before accessing the app.</li>
-              <li><strong>Apple – Sign In (apple.com):</strong> If you sign in with Apple, we receive your name and email address (or Apple's private relay address) via Apple's Sign In service. We do not receive your Apple password. New accounts created via Apple Sign In are prompted to provide a date of birth before accessing the app.</li>
-              <li><strong>Google – YouTube (youtube.com):</strong> Exercise demonstration videos are embedded from YouTube. YouTube may collect data per their own privacy policy when you view these videos.</li>
-              <li><strong>Stripe (stripe.com):</strong> Processes all subscription payments. We share your email and billing intent with Stripe. Your full card details are handled exclusively by Stripe and never pass through our servers.</li>
-              <li><strong>PostHog (posthog.com):</strong> Our first-party product analytics platform. We send anonymized screen view events, feature interaction events, and session data to PostHog linked to your user ID to understand how the product is used. PostHog does not use this data for advertising and does not sell it to third parties. Data is stored on PostHog's US servers. You may request deletion of your analytics data as part of a broader account deletion request.</li>
-              <li><strong>Twilio (twilio.com):</strong> Used for internal administrative SMS notifications. Twilio may process the phone numbers used for these notifications.</li>
-              <li><strong>Expo / EAS (expo.dev):</strong> Our mobile app is built and distributed using Expo's infrastructure. Expo handles over-the-air app updates and push notification delivery. Your push notification token is shared with Expo's push notification service to deliver notifications to your device.</li>
-              <li><strong>Hosting and infrastructure:</strong> Our servers and database are hosted on cloud infrastructure. Data is stored and processed in the United States.</li>
-            </ul>
-          </section>
+      <Section title="4. Who we share it with">
+        <p>
+          We use the service providers ("processors") below. Each handles data only to provide its service to us, under a contract
+          that limits what it can do with it. Unless stated otherwise, they process data in the United States.
+        </p>
+        <List>
+          <li><strong>Anthropic (Claude):</strong> runs Anthropic's Claude models behind Anakin, the AI coach, and helps personal trainers map spreadsheet columns when importing client lists. Receives your coach messages and the profile, training, nutrition, check-in and health details the coach needs to answer you.</li>
+          <li><strong>OpenAI:</strong> voice-note transcription; automated moderation of messages, comments, posts and profile photos; text embeddings used to find relevant coaching material; and a legacy chat path and backup model for some features. Receives the text, audio or image being processed.</li>
+          <li><strong>Google Cloud (Vertex AI / Gemini, Cloud Storage):</strong> analyses form-check and lift-diagnostic videos, meal, label and order photos, and looks up foods you search or scan; video is held briefly in Google Cloud Storage while it is analysed.</li>
+          <li><strong>OpenRouter:</strong> routes some requests that contain no health data (for example, feed summaries and recipe text) to AI models. Prompts that contain health information are not sent through OpenRouter.</li>
+          <li><strong>Stripe:</strong> web subscription billing, and payouts to affiliates (Stripe Connect). Receives your email, name and account ID.</li>
+          <li><strong>Apple (App Store) and Google (Google Play):</strong> in-app subscription billing; we receive transaction IDs and status. Also Sign in with Apple and Google sign-in.</li>
+          <li><strong>SendGrid (Twilio):</strong> sends our emails. Receives your email address and the email content.</li>
+          <li><strong>Twilio (SMS):</strong> sends operational alerts to the Axiom team, for example when a new account is created or a server error happens. These alerts can include the account holder's name and email address; they go only to Axiom staff.</li>
+          <li><strong>PostHog:</strong> product analytics, linked to your account ID. On the web, analytics cookies and session replay run only after you accept them in the cookie banner, and session replay masks what you type. Session replay is off in the mobile apps.</li>
+          <li><strong>Sentry:</strong> crash and error reports from the apps and our servers, which may include device details and the part of a request that failed.</li>
+          <li><strong>Expo:</strong> delivers push notifications and app updates. Receives your push token and the notification text.</li>
+          <li><strong>Amazon Web Services and Cloudflare:</strong> host our servers, database and website, and protect them from attacks. United States.</li>
+          <li><strong>Open Food Facts and USDA FoodData Central:</strong> we look up barcodes and food names in these public databases. We send only the barcode or food name, never anything about you. Food data from Open Food Facts is available under the Open Database License.</li>
+          <li><strong>YouTube:</strong> exercise demonstration videos are embedded from YouTube, which may collect data under Google's privacy policy when you play them.</li>
+        </List>
+        <p className="mt-2">We also share data:</p>
+        <List>
+          <li>with the people you choose to share with: friends, group members, your trainer or institution coach (Sections 8 and 9);</li>
+          <li>when the law requires it, or to protect someone's safety, including reports to the National Center for Missing &amp; Exploited Children;</li>
+          <li>with a buyer or successor if Axiom is sold or merged, who must keep honouring this policy.</li>
+        </List>
+        <p className="mt-2">
+          If you message Axiom's Instagram account, Meta passes that message and your Instagram user ID to us.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">5. Social Features and User-Generated Content</h2>
-            <p>
-              When you use social features — including posting to the feed, sharing workouts or programs, or messaging other users — the content you share becomes visible to the intended recipients (friends, or your social feed audience depending on your settings). We are not responsible for how other users may use or share content you post. Exercise discretion when sharing personal health information publicly.
-            </p>
-            <p className="mt-2">
-              Direct messages are stored on our servers to enable the messaging feature. We do not routinely review private messages but may access them in connection with a safety investigation, legal obligation, or violation of our Terms.
-            </p>
-          </section>
+      <Section title="5. AI and automated processing">
+        <p>
+          Axiom's coaching, program generation, form feedback and meal estimates are produced by AI models from Anthropic, OpenAI and Google,
+          combined with our own deterministic calculations (for example estimated one-rep max, strength scores and calorie targets).
+        </p>
+        <List>
+          <li><strong>No training on your data.</strong> We use these providers' business APIs, under which your inputs are not used to train their models. We do not use your health data, videos, photos or chats to train models of our own.</li>
+          <li><strong>Minimised prompts.</strong> We send each provider what the feature needs, not your whole account, and never your password or payment details.</li>
+          <li><strong>AI can be wrong.</strong> Output is coaching information, not medical advice (see our <Link href="/terms" className="text-primary hover:underline">Terms</Link>). Changes to your program are proposed and wait for your approval.</li>
+          <li><strong>No significant automated decisions.</strong> We do not make decisions with legal or similarly significant effects about you by automated means alone.</li>
+        </List>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">6. Data Retention</h2>
-            <p>We retain your data for as long as your account is active or as needed to provide the Service:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Account data:</strong> Retained while your account is active and for up to 90 days after deletion to allow recovery, then permanently deleted.</li>
-              <li><strong>Workout and diagnostic history:</strong> Retained while your account is active. Deleted when your account is deleted.</li>
-              <li><strong>AI coach conversation threads:</strong> Retained for up to 90 days of inactivity, after which older thread data may be pruned.</li>
-              <li><strong>Food photos:</strong> Processed in real time; not permanently stored after analysis unless you save the result to your log.</li>
-              <li><strong>Form-check videos:</strong> Deleted immediately after the analysis completes, typically within one minute. Never retained.</li>
-              <li><strong>Reference stills:</strong> Only created if you switch them on for a given upload. Stored as part of that analysis record and deleted when you delete the analysis (available in the app on each analysis) or your account. They are not used for any purpose other than displaying your own feedback to you, are never shown to other users, and are never used for advertising or model training.</li>
-              <li><strong>Billing records:</strong> Retained for up to 7 years as required by financial and tax regulations.</li>
-              <li><strong>Server logs:</strong> Retained for up to 90 days for security and debugging purposes.</li>
-            </ul>
-          </section>
+      <Section title="6. How long we keep it">
+        <List>
+          <li><strong>Your account and everything in it</strong> (profile, logs, programs, coach conversations and memory, meals, check-ins, posts, messages): kept while your account exists. Coach conversations are not automatically pruned; they are deleted when you delete your account.</li>
+          <li><strong>When you delete your account:</strong> deletion is immediate and permanent. We do not keep a recovery copy, and you cannot undo it. Copies in our encrypted database backups are overwritten within <strong>7 days</strong>.</li>
+          <li><strong>Form-check and diagnostic videos:</strong> deleted as soon as analysis finishes; a storage rule deletes any leftover copy within <strong>1 day</strong>. We never keep the video.</li>
+          <li><strong>Reference stills:</strong> kept with the analysis until you delete that analysis or your account.</li>
+          <li><strong>Meal photos:</strong> used to estimate the meal; we keep the photo only if you save it to your log or a post.</li>
+          <li><strong>Voice notes:</strong> the audio is used for transcription and not kept; the text is kept like any other message.</li>
+          <li><strong>Moderation records:</strong> if our moderation system flags content as abusive, we keep a short excerpt, the category and the date, even after the account is deleted, so that people cannot erase a record of abuse by re-registering. They are kept for up to [MODERATION RECORD RETENTION — suggest 2 years].</li>
+          <li><strong>Billing records:</strong> kept as long as tax law requires (up to 7 years). These are held mainly by Stripe, Apple and Google.</li>
+          <li><strong>Server logs:</strong> kept for up to 90 days.</li>
+          <li><strong>Blog subscriber list:</strong> until you unsubscribe; we keep your address on a do-not-email list after that so the unsubscribe sticks.</li>
+        </List>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">7. Security</h2>
-            <p>
-              We implement industry-standard security measures including TLS encryption in transit, hashed passwords (bcrypt), JWT authentication, access-controlled infrastructure, and regular security reviews. No method of data transmission over the internet is 100% secure. We cannot guarantee absolute security of your data and encourage you to use a strong, unique password and protect your account credentials.
-            </p>
-          </section>
+      <Section title="7. Your rights and choices">
+        <List>
+          <li><strong>Access and export:</strong> download a copy of your data from Settings in the app or on the web. It comes as a machine-readable file, which also covers your right to data portability.</li>
+          <li><strong>Correction:</strong> edit your profile, logs and coach notes in the app, or ask the coach to update them.</li>
+          <li><strong>Deletion:</strong> delete your account in the app (Settings → Delete Account) or on the web (Settings → Delete account), or see <Link href="/delete-account" className="text-primary hover:underline">{LEGAL.site}/delete-account</Link>. You can also delete individual logs, meals, analyses, posts and messages.</li>
+          <li><strong>Withdraw consent:</strong> turn off reference stills, notifications or marketing email in Settings; unsubscribe from any marketing email; change cookie choices with the "Cookie settings" link on our website; or withdraw consent to health-data processing by deleting that data or your account. Withdrawing consent does not affect what we did before.</li>
+          <li><strong>Object or restrict:</strong> object to processing based on legitimate interests (for example analytics) by emailing <Mail />.</li>
+          <li><strong>Complain:</strong> you can complain to your local data protection authority (in the UK, the ICO at ico.org.uk). We would appreciate the chance to fix it first.</li>
+        </List>
+        <p className="mt-2">
+          Anything you cannot do in the app, email <Mail />. We answer within 30 days (45 days where US state law allows), and may ask you to confirm
+          the request from the email on your account so nobody can get your data by pretending to be you. You can use an authorised agent where the law allows.
+          We will not treat you differently for using your rights.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">8. Your Privacy Rights and Choices</h2>
-            <p>Depending on your location, you may have the following rights regarding your personal information:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Access:</strong> Request a copy of the personal data we hold about you.</li>
-              <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data.</li>
-              <li><strong>Deletion:</strong> Request deletion of your account and all associated personal data. To submit a deletion request, email <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> with the subject "Data Deletion Request." We will process your request within 30 days. Note that we may retain certain data as required by law (e.g., billing records).</li>
-              <li><strong>Portability:</strong> Request an export of your data in a machine-readable format.</li>
-              <li><strong>Opt-out of marketing:</strong> Unsubscribe from non-transactional emails via the link in any email, or by contacting us.</li>
-              <li><strong>Push notifications:</strong> Disable push notifications at any time in your device settings.</li>
-              <li><strong>Restrict processing:</strong> Object to or request restriction of certain processing activities.</li>
-            </ul>
+      <Section title="8. Social features, groups and Train Together">
+        <List>
+          <li><strong>Profile:</strong> your name, username and profile photo can be found by other Axiom users through search.</li>
+          <li><strong>Posts:</strong> visible to your friends, or to everyone on Axiom if you choose a public post. Comments and reactions are visible to people who can see the post.</li>
+          <li><strong>Direct messages and group chats:</strong> visible to the people in the conversation. Messages are scanned automatically for abuse (Section 4); we do not routinely read them, but may when investigating a report, for safety, or when the law requires.</li>
+          <li><strong>Groups and Train Together:</strong> members of a group you join see your name, username and photo, your group messages, which days you logged a workout, and, for Train Together, the planned focus of your sessions (for example "legs" on Tuesday) so the group can find shared training days. They do not see your weights, body data, nutrition, health information or coach chats.</li>
+          <li><strong>Shared workout cards</strong> show what you choose to put on them.</li>
+        </List>
+        <p className="mt-2">Think before sharing health information in posts or messages; other people may copy what you share.</p>
+      </Section>
 
-            <p className="font-medium text-foreground mt-4">California Residents (CCPA/CPRA)</p>
-            <p className="mt-1">
-              California residents have additional rights under the California Consumer Privacy Act, including the right to know what personal information is collected, the right to delete, the right to opt out of sale (we do not sell personal information), and the right to non-discrimination for exercising these rights. To make a verifiable consumer request, contact us at the email below.
-            </p>
+      <Section title="9. Personal trainers and institutions">
+        <Sub>If you train with a personal trainer on Axiom</Sub>
+        <List>
+          <li>When you link your account to a trainer, the trainer can see your training, program, workout logs, body-weight trend, nutrition logs, check-in answers and messages between you, so they can coach you. You can unlink at any time.</li>
+          <li>Trainers can use Axiom's AI to help draft messages, check-ins and programs for you. The trainer reviews what is sent.</li>
+          <li>A trainer may have imported information about you from their own records (for example a client spreadsheet with your name, contact details, goals, injuries or notes) before you joined, or without you joining. For that information the trainer is the controller and Axiom processes it for them under our <Link href="/trainer-terms" className="text-primary hover:underline">Trainer Terms</Link>. Ask your trainer first; you can also email <Mail /> and we will pass the request on and help delete it.</li>
+        </List>
+        <Sub>If you join an institution (a team, gym or school)</Sub>
+        <List>
+          <li>The institution's coaches can see your name, email, age, training, body weight, nutrition logs and wellness check-ins (mood, stress, sleep), to coach you. Ask to leave the institution at any time and the sharing stops.</li>
+        </List>
+      </Section>
 
-            <p className="font-medium text-foreground mt-4">Canadian Residents (PIPEDA)</p>
-            <p className="mt-1">
-              Canadian residents may have rights under the Personal Information Protection and Electronic Documents Act (PIPEDA), including the right to access and correct personal information we hold. Contact our privacy office at the address below to exercise these rights.
-            </p>
+      <Section title="10. Affiliates and referrals">
+        <p>
+          If you sign up through an affiliate's referral link, we record the referral code with your account and your subscription so we can give
+          you the referral discount or trial and pay the affiliate a commission. The affiliate sees commission amounts, not your name, email or any
+          of your training or health data. Affiliates are paid through Stripe Connect, which collects the information needed for payouts and tax.
+          See the <Link href="/affiliate-terms" className="text-primary hover:underline">Affiliate Terms</Link>.
+        </p>
+      </Section>
 
-            <p className="font-medium text-foreground mt-4">European Economic Area and United Kingdom (GDPR / UK GDPR)</p>
-            <p className="mt-1">
-              If you are located in the EEA or the UK, the following applies to you in addition to the rights listed above.
-            </p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Controller:</strong> Axiom is the data controller for the personal data described in this policy. Contact us at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a> for any request under this section.</li>
-              <li><strong>Lawful bases.</strong> We process your account and usage data to <em>perform our contract</em> with you (Art. 6(1)(b)); we process data for security, fraud prevention and product improvement on the basis of our <em>legitimate interests</em> (Art. 6(1)(f)); and we rely on your <em>consent</em> (Art. 6(1)(a)) for push notifications and for optional features you switch on.</li>
-              <li><strong>Health data.</strong> Fitness, body, nutrition and form-check data are special category data under Art. 9. We process them only on the basis of your <strong>explicit consent</strong>, which you give by choosing to provide them and which you may withdraw at any time by deleting the data or your account. Withdrawal does not affect processing already carried out.</li>
-              <li><strong>Reference stills.</strong> Because these are retained images of your body, they are processed only where you give a separate, explicit opt-in for that upload. You may withhold it, change it at any time, and delete any stored still by deleting the analysis — none of which limits your access to the rest of the Service.</li>
-              <li><strong>International transfers.</strong> Our servers and processors are in the United States. Where we transfer personal data out of the EEA or UK we rely on the European Commission's Standard Contractual Clauses (and the UK Addendum), together with supplementary technical measures including encryption in transit. A copy of the relevant transfer mechanism is available on request.</li>
-              <li><strong>Retention.</strong> See Section 6. We keep personal data no longer than necessary for the purposes described, and you can shorten that at any time by deleting individual records or your account.</li>
-              <li><strong>Automated decision-making.</strong> We do not make decisions producing legal or similarly significant effects about you by solely automated means. AI-generated training and nutrition output is advisory and you remain free to disregard it.</li>
-              <li><strong>Complaints.</strong> You have the right to lodge a complaint with your local supervisory authority, or with the UK Information Commissioner's Office (ico.org.uk), if you believe we have handled your data unlawfully. We would ask that you raise it with us first so we can try to resolve it.</li>
-            </ul>
+      <Section title="11. Emails">
+        <List>
+          <li><strong>Account emails</strong> (verification codes, password resets, receipts, security notices, your welcome email) are part of the Service.</li>
+          <li><strong>Marketing email</strong> (blog posts, product news, offers) is sent only if you opted in. Every one has an unsubscribe link that works in one click.</li>
+          <li><strong>Blog subscribers</strong> who are not Axiom users are added only after confirming by email.</li>
+          <li>The <strong>weekly wins email</strong> is a summary of your own week; turn it off with the link in the email or in your notification settings.</li>
+        </List>
+      </Section>
 
-            <p className="font-medium text-foreground mt-4">Washington, Nevada and Connecticut — Consumer Health Data</p>
-            <p className="mt-1">
-              Washington's My Health My Data Act, Nevada SB 370 and comparable state laws give residents specific rights over "consumer health data." Much of what Axiom processes — your workouts, body weight, nutrition, injuries, form-check videos and any reference stills — falls within that definition, and we treat it as consumer health data for all users, not only those in these states.
-            </p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>What we collect and why:</strong> the categories in Section 2, for the purposes in Section 3. We collect consumer health data only to provide the Service to you.</li>
-              <li><strong>Consent to collect.</strong> Health data is collected only from what you choose to enter or upload. Optional processing that goes beyond providing a feature you requested — notably saving reference stills from a form-check video — requires a separate opt-in that is off by default.</li>
-              <li><strong>We do not sell it.</strong> We do not sell consumer health data, and we do not share it with third parties for their own purposes. Our processors (Section 4) act only on our instructions.</li>
-              <li><strong>Right to withdraw and delete.</strong> You may withdraw consent, and you may require us to delete your consumer health data, by deleting the individual records, deleting your account in the app, or emailing <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>. We will process deletion requests within 30 days and will pass them on to our processors.</li>
-              <li><strong>Right to access.</strong> You may request a list of the third parties with whom we have shared your consumer health data, and a copy of the data itself, at the same address.</li>
-              <li><strong>No geofencing.</strong> We do not operate geofences around healthcare facilities or use location to infer health status.</li>
-            </ul>
+      <Section title="12. Cookies, local storage and analytics">
+        <List>
+          <li><strong>Strictly necessary:</strong> a sign-in cookie (and secure storage on your phone) that keeps you logged in, and storage that remembers your settings and cookie choice. These cannot be turned off.</li>
+          <li><strong>Analytics (website, optional):</strong> PostHog cookies and local storage, and session replay with typed text masked. Off until you accept them in the cookie banner; change your choice any time with "Cookie settings".</li>
+          <li><strong>Referral:</strong> if you arrive through a referral link, we store the code in your browser until you sign up.</li>
+          <li>We do not use advertising cookies or third-party ad trackers.</li>
+        </List>
+      </Section>
 
-            <p className="font-medium text-foreground mt-4">Biometric Data</p>
-            <p className="mt-1">
-              We want to be explicit about what we do not do, because form-check video could otherwise raise the question. Axiom does <strong>not</strong> perform facial recognition, does not extract face, hand or body geometry as an identifier, does not attempt to identify or match individuals across videos or photos, and does not create, store or use biometric identifiers or biometric information as those terms are defined under the Illinois Biometric Information Privacy Act, the Texas Capture or Use of Biometric Identifier Act, or comparable laws. Form-check videos are analyzed for movement quality and then deleted.
-            </p>
-          </section>
+      <Section title="13. Children and teens">
+        <List>
+          <li><strong>Under 13:</strong> Axiom is not for children under 13. If the date of birth given at sign-up shows someone is under 13, we refuse the account and delete what was collected. If you believe a child under 13 is using Axiom, email <Mail /> and we will delete the account.</li>
+          <li><strong>13 to 17:</strong> teens may use Axiom with a parent or guardian's permission. In the EU and UK, if you are under the age of digital consent in your country (13 to 16), a parent or guardian must agree for you. For users under 18, reference stills are turned off on our servers and cannot be switched on. If we cannot tell your age, we treat you as under 18 for this purpose.</li>
+        </List>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">9. Children's Privacy and Age Requirements</h2>
-            <p>
-              The Service is intended for users who are at least 13 years of age. We do not knowingly collect personal information from children under 13. To enforce this requirement, we collect your date of birth during account registration — including when you sign in for the first time via Google or Apple OAuth — and deny access to any user who does not meet the 13-year minimum age threshold.
-            </p>
-            <p className="mt-2">
-              Users between the ages of 13 and 17 ("minors") may use the Service with the awareness and, where required by law, the consent of a parent or legal guardian. By allowing a minor to use the Service, the parent or guardian agrees to these terms and this Privacy Policy on the minor's behalf. We encourage parents and guardians to monitor their minor children's use of the app, including their fitness data submissions, social interactions, and AI coaching conversations.
-            </p>
-            <p className="mt-2">
-              This Service is designed for general fitness tracking and strength training guidance. Health and fitness data collected from minor users is used solely to provide and personalize the Service and is not shared with third parties for marketing or advertising purposes.
-            </p>
-            <p className="mt-2">
-              <strong>Additional protection for users under 18.</strong> The optional "reference stills" feature described in Section 2.1 is disabled for accounts under 18 years old and cannot be enabled by them. Minors receive the full written form analysis; we do not retain still images of them. This restriction is enforced on our servers using the date of birth collected at registration, not by the app alone, and an account whose age we cannot determine is treated as under 18 for this purpose.
-            </p>
-            <p className="mt-2">
-              If you are a parent or guardian and believe your child under 13 has created an account or provided us with personal information without your consent, please contact us immediately at <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>. We will delete such information promptly upon verification.
-            </p>
-            <p className="mt-2 font-medium text-foreground">COPPA (Children's Online Privacy Protection Act)</p>
-            <p className="mt-1">
-              We comply with the Children's Online Privacy Protection Act. We do not knowingly collect, use, or disclose personal information from children under 13. Our age verification process at registration is designed to prevent under-13 users from accessing the Service. If we discover that a user is under 13, we will immediately suspend the account and delete all associated personal data.
-            </p>
-          </section>
+      <Section title="14. International transfers">
+        <p>
+          Axiom and its processors are based in the United States, so if you use Axiom from elsewhere your data is transferred to the US.
+          For transfers from the EEA, UK and Switzerland we rely on the EU-US Data Privacy Framework (and its UK and Swiss extensions) where the
+          provider is certified, and otherwise on the European Commission's Standard Contractual Clauses (with the UK Addendum), plus encryption in
+          transit. Email <Mail /> for a copy of the relevant safeguards.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">10. International Data Transfers</h2>
-            <p>
-              Our servers are located in the United States. If you access the Service from outside the United States, your information will be transferred to and processed in the U.S., where data protection laws may differ from those in your jurisdiction. Where the law of your jurisdiction requires a specific safeguard for that transfer — including for users in the EEA and UK — we rely on the Standard Contractual Clauses and the measures described under "European Economic Area and United Kingdom" in Section 8, not on your consent alone. We also require our service providers to comply with applicable data protection frameworks.
-            </p>
-          </section>
+      <Section title="15. Security">
+        <p>
+          We use encryption in transit (TLS), hashed passwords, access controls on our servers and database, automated abuse detection, and regular
+          security reviews. No system is perfectly secure. If a breach affects your data, we will tell you and the authorities as the law requires.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">11. AI and Automated Processing</h2>
-            <p>
-              The Service uses AI models from OpenAI, and Google Gemini models running on Google Cloud's Vertex AI, to process your fitness data, food photos, form-check videos, meal descriptions, and coaching conversations. These AI systems generate recommendations automatically. We do not make solely automated decisions that produce significant legal or similarly significant effects on you without human oversight. AI-generated outputs are informational only — see our Terms of Service for full disclaimers.
-            </p>
-            <p className="mt-2 font-medium text-foreground">Strength Metrics and Automated Scoring</p>
-            <p className="mt-1">
-              The Strength Profile feature computes automated scores from your workout logs, including estimated one-rep maximums (using the Epley formula: weight × (1 + reps ÷ 30)), strength-to-bodyweight ratios compared against standard benchmarks, a composite Strength Index (0–100), a Strength Tier classification (Beginner through Elite), and a radar chart showing relative training volume across movement categories. These calculations are deterministic — no AI model is involved — and are updated each time new workout data is processed.
-            </p>
-            <p className="mt-2 font-medium text-foreground">Daily AI Insights</p>
-            <p className="mt-1">
-              When you have logged sufficient workout data (a minimum of 3 sessions with weighted exercises), your home screen may display "Anakin's Latest Insights" — up to five personalized observations generated by OpenAI's GPT-4 model based on your strength metrics, movement balance scores, recent training trends, and nutrition log averages. These insights are generated once per day and cached. The data sent to OpenAI for this purpose includes anonymized lift names, estimated 1RM values, training session counts, monthly trend percentages, and averaged macro totals — not raw conversation history.
-            </p>
-            <p className="mt-2 font-medium text-foreground">Form Analysis (Video)</p>
-            <p className="mt-1">
-              When you upload a lift video, it is analyzed by a Gemini model on Vertex AI, which returns a written critique — a form score, strengths, faults with coaching cues, drills and any safety flags. Where the model can identify the specific moment a fault occurs, it also returns a timestamp and a region of the frame. If, and only if, you have switched on reference stills for that upload, our own servers use those coordinates to cut up to three frames out of your video and mark the relevant area, and we store those images with your analysis. The video itself is deleted either way. This output is informational coaching feedback, not a medical or physiotherapeutic assessment, and it can be wrong — see our Terms of Service.
-            </p>
+      <Section title="16. US state privacy rights">
+        <Sub>California (CCPA/CPRA)</Sub>
+        <p className="mt-1">In the last 12 months we collected these categories of personal information, for the purposes in Section 3, from the sources in Section 2, and disclosed them to the service providers in Section 4:</p>
+        <List>
+          <li>Identifiers (name, email, username, account and device IDs, IP address)</li>
+          <li>Customer records and commercial information (subscription status and history)</li>
+          <li>Characteristics of protected classifications (age, sex)</li>
+          <li>Internet or network activity (app and website usage)</li>
+          <li>Audio and visual information (voice notes, body video, reference stills, photos)</li>
+          <li>Sensitive personal information: account login, and health information (injuries, conditions, medications, body measurements)</li>
+          <li>Inferences (training level, suggested targets)</li>
+        </List>
+        <p className="mt-2">
+          We do <strong>not sell</strong> personal information and do <strong>not share</strong> it for cross-context behavioural advertising, and have not
+          done so in the last 12 months. We do not knowingly sell or share data of anyone under 16. We use sensitive personal information only to provide
+          the Service you asked for, as allowed by Cal. Code Regs. tit. 11 § 7027(m), so the "limit the use of my sensitive personal information" right does
+          not require a separate link. You have the rights to know, delete, correct, and not be discriminated against; use them as described in Section 7.
+        </p>
+        <p className="mt-2">
+          <strong>Medical information (CMIA):</strong> to the extent the California Confidentiality of Medical Information Act applies to health information
+          you give us, we keep it confidential and do not disclose it except to provide the Service, with your authorisation, or as the law permits.
+        </p>
+        <Sub>Washington, Nevada and other states</Sub>
+        <p className="mt-1">
+          Our <Link href="/health-data" className="text-primary hover:underline">Consumer Health Data Privacy Policy</Link> explains your rights under
+          Washington's My Health My Data Act, Nevada SB 370 and similar laws. Residents of other states with privacy laws (for example Colorado, Connecticut,
+          Virginia, Texas, Oregon) have similar rights to access, correct, delete and port data, to opt out of sale, targeted ads and profiling (we do none of these),
+          and to appeal our decision on a request: reply to our decision email with "Appeal" in the subject, and if you still disagree you can contact your state Attorney General.
+        </p>
+        <Sub>Canada</Sub>
+        <p className="mt-1">You can access and correct your personal information and withdraw consent under PIPEDA and provincial laws, as described in Section 7.</p>
+      </Section>
 
-            <p className="mt-2 font-medium text-foreground">Food Behavior Analysis</p>
-            <p className="mt-1">
-              When you log a meal using the AI-assisted "Describe" or "Scan" modes, the name and calorie content of the analyzed meal are evaluated against a set of criteria to determine whether the meal qualifies as a high-calorie junk food item. If it does, the system may send a motivational push notification. This analysis is entirely automated, uses no AI model, and applies a calorie threshold to avoid triggering on small or incidental treats. A maximum of one such notification is sent per 6-hour window. You can disable push notifications entirely in your device settings.
-            </p>
-            <p className="mt-2">
-              Anonymized, aggregated usage patterns (not personally identifiable data) may be used to improve our own product features and algorithms. We do not share personally identifiable AI interaction data with third parties for their model training without your explicit consent. Your form-check videos, reference stills and food photos are never used to train any model, ours or a third party's.
-            </p>
-          </section>
+      <Section title="17. Changes to this policy">
+        <p>
+          We will post any changes here and update the date at the top. If a change is material, for example a new kind of data or a new way of
+          sharing health data, we will tell you in the app or by email before it takes effect and, where the law requires, ask for your consent again.
+        </p>
+      </Section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">12. Changes to This Policy</h2>
-            <p>
-              We may update this Privacy Policy from time to time to reflect changes in our practices, technology, legal requirements, or other factors. We will notify you of material changes by posting the updated policy on this page, updating the "Last updated" date, and, where appropriate, sending an in-app notification or email. Your continued use of the Service after the effective date of any changes constitutes your acceptance of the revised policy. If you do not agree, you must stop using the Service and may request deletion of your account.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-2">13. Contact Us</h2>
-            <p>
-              For questions, concerns, or requests regarding this Privacy Policy or our data practices, contact us at:
-            </p>
-            <p className="mt-2">
-              <strong>Email:</strong>{" "}
-              <a href="mailto:inquiries@axiomtraining.io" className="text-primary hover:underline">inquiries@axiomtraining.io</a>
-            </p>
-            <p className="mt-1">
-              We aim to respond to all legitimate privacy inquiries within 30 days.
-            </p>
-          </section>
-        </div>
-
-        <footer className="border-t py-10 mt-12">
-          <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <BrandLogo height={24} className="h-6 w-auto" />
-              <span>Axiom — AI-Powered Strength Training</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link href="/" className="hover:text-foreground">Home</Link>
-              <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
-              <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
-            </div>
-          </div>
-        </footer>
-      </main>
-    </div>
+      <Section title="18. Contact us">
+        <p>
+          Email <Mail /> or write to {LEGAL.entity}, {LEGAL.postalAddress}. EU representative: {LEGAL.euRepresentative}. UK representative: {LEGAL.ukRepresentative}.
+        </p>
+      </Section>
+    </LegalPage>
   );
 }

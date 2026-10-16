@@ -15,6 +15,7 @@ import { join as pathJoin, dirname } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
+import { clampDailyCalories, floorProfileFor } from '../services/nutritionSafety.js';
 
 // A corrupt savedProgram must surface as something the agent can say out loud,
 // not a raw SyntaxError. Everything here already throws domain errors for the
@@ -48,7 +49,18 @@ export interface MacroChange {
  * the (possibly new) calories vs. stored TDEE, and syncs dailyCalorieTarget so
  * the Nutrition tab reflects it.
  */
-export async function applyMacroChange(userId: string, change: MacroChange) {
+export async function applyMacroChange(userId: string, change: MacroChange): Promise<{ macros: any; expectedOutcomes: any; floorNote?: string }> {
+  // Hard calorie floor (nutritionSafety.ts): a target below it is raised to it
+  // and the note travels back to the card / reply. Applies to every caller —
+  // chat proposals, the Fuel targets editor and undo restores alike.
+  let floorNote: string | undefined;
+  if (change.calories != null) {
+    if (typeof change.calories !== 'number' || !Number.isFinite(change.calories) || change.calories > 12000) {
+      throw new Error(`Invalid calories: ${change.calories}`);
+    }
+    const c = clampDailyCalories(change.calories, await floorProfileFor(prisma, userId));
+    if (c.clamped) { change = { ...change, calories: c.calories }; floorNote = c.note ?? undefined; }
+  }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
   const program = user?.savedProgram ? requireProgram(user.savedProgram, 'adjusted') : null;
   const macros = program?.nutritionPlan?.macros;
@@ -59,7 +71,7 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
     const { setOwnTargets } = await import('../services/nutritionTargets.js');
     const own = await setOwnTargets(userId, change);
     invalidateProgramCaches(userId);
-    return { macros: own, expectedOutcomes: null };
+    return { macros: own, expectedOutcomes: null, ...(floorNote ? { floorNote } : {}) };
   }
 
   // Apply only provided fields; guard against nonsense values.
@@ -91,7 +103,7 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
   // The user chose these: a newly generated program keeps them instead of its own numbers.
   try { const { rememberUserTargets } = await import('../services/nutritionTargets.js'); await rememberUserTargets(userId, Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === 'number')) as Record<string, number>); } catch { /* the plan change stands */ }
   invalidateProgramCaches(userId);
-  return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null };
+  return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null, ...(floorNote ? { floorNote } : {}) };
 }
 
 /**
@@ -499,8 +511,13 @@ export async function applyProgramUpdate(userId: string, proposed: any, opts: { 
 
   const updatedProgram = validateProgram(proposed, current?.goal ?? null, !!opts.allowGoalChange);
 
-  // Sync calorie target if the updated program carries nutrition macros.
-  const programCalories = updatedProgram?.nutritionPlan?.macros?.calories ?? null;
+  // Sync calorie target if the updated program carries nutrition macros —
+  // never below the calorie floor (nutritionSafety.ts).
+  let programCalories = updatedProgram?.nutritionPlan?.macros?.calories ?? null;
+  if (typeof programCalories === 'number') {
+    const c = clampDailyCalories(programCalories, await floorProfileFor(prisma, userId));
+    if (c.clamped) { programCalories = c.calories; updatedProgram.nutritionPlan.macros.calories = c.calories; }
+  }
 
   await prisma.user.update({
     where: { id: userId },

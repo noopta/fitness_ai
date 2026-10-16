@@ -33,6 +33,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { authApi, apiFetch } from '../../../lib/api';
 import { setPreferClassic } from '../../crashGuard';
 import { haptics } from '../../haptics';
+import { contactSupport, SUPPORT_EMAIL } from '../../../lib/openExternal';
 
 const FOOD_REGIONS = [
   { value: 'global', label: 'Global', sub: 'USDA database, US portion sizes' },
@@ -146,6 +147,7 @@ export function AccountPage() {
         { text: 'Privacy policy', onPress: () => void WebBrowser.openBrowserAsync('https://axiomtraining.io/privacy') },
         { text: 'Cancel', style: 'cancel' },
       ])} />
+      <Row name="Contact / Report a concern" sub={SUPPORT_EMAIL} value="→" onPress={() => contactSupport()} />
       <Row name="Version" value={versionLabel()} muted last />
 
       <View style={{ marginTop: 26 }}>

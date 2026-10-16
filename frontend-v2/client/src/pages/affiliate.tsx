@@ -6,10 +6,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
-  DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock,
+  affiliateFetch, consumeAffiliateTokenFromUrl, clearAffiliateToken,
+} from '@/lib/affiliateToken';
+import {
+  LogOut, DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock,
 } from 'lucide-react';
-
-const API = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 interface Commission {
   id: string;
@@ -50,9 +51,6 @@ function cad(cents: number) {
   return `CA$${(cents / 100).toFixed(2)}`;
 }
 
-function apiFetch(path: string, opts?: RequestInit) {
-  return fetch(`${API}${path}`, { credentials: 'include', ...opts });
-}
 
 export default function AffiliatePage() {
   const [location] = useLocation();
@@ -68,14 +66,12 @@ export default function AffiliatePage() {
   // Handle ?onboarding=complete callback from Stripe Connect + auto-load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get('token')?.trim() ?? '';
-    const savedToken = localStorage.getItem('affiliateToken') ?? '';
-    const t = urlToken || savedToken;
-    if (urlToken) localStorage.setItem('affiliateToken', urlToken);
+    // Reads ?token= then strips it from the address bar (replaceState).
+    const t = consumeAffiliateTokenFromUrl();
     setToken(t);
 
     if (params.get('onboarding') === 'complete' && t) {
-      apiFetch('/affiliate/onboarding-complete', {
+      affiliateFetch('/affiliate/onboarding-complete', t, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: t }),
@@ -92,9 +88,9 @@ export default function AffiliatePage() {
   async function loadDashboard(t: string) {
     setLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/me?token=${encodeURIComponent(t)}`);
+      const res = await affiliateFetch('/affiliate/me', t);
       if (res.status === 401 || res.status === 404) {
-        localStorage.removeItem('affiliateToken');
+        clearAffiliateToken();
         setToken('');
         toast.error('This affiliate link is no longer valid — contact hello@axiomtraining.io.');
         return;
@@ -112,7 +108,7 @@ export default function AffiliatePage() {
     if (!dashboard) return;
     setOnboardingLoading(true);
     try {
-      const res = await apiFetch('/affiliate/onboard', {
+      const res = await affiliateFetch('/affiliate/onboard', token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -131,7 +127,7 @@ export default function AffiliatePage() {
     if (!dashboard) return;
     setDashboardLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/dashboard-url?token=${encodeURIComponent(token)}`);
+      const res = await affiliateFetch('/affiliate/dashboard-url', token);
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       window.open(d.url, '_blank');
@@ -140,6 +136,13 @@ export default function AffiliatePage() {
     } finally {
       setDashboardLoading(false);
     }
+  }
+
+  function handleSignOut() {
+    clearAffiliateToken();
+    setToken('');
+    setDashboard(null);
+    toast.success('Signed out of the affiliate portal.');
   }
 
   function copyReferralLink() {
@@ -190,12 +193,18 @@ export default function AffiliatePage() {
               {' '}You earn <strong>{Math.round(dashboard.commissionRate * 100)}%</strong> commission on every subscription your referrals pay.
             </p>
           </div>
-          {dashboard.onboarded && (
-            <Button variant="outline" size="sm" onClick={handleStripeDashboard} disabled={dashboardLoading}>
-              {dashboardLoading ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <ExternalLink size={14} className="mr-1.5" />}
-              Stripe Dashboard
+          <div className="flex items-center gap-2">
+            {dashboard.onboarded && (
+              <Button variant="outline" size="sm" onClick={handleStripeDashboard} disabled={dashboardLoading}>
+                {dashboardLoading ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <ExternalLink size={14} className="mr-1.5" />}
+                Stripe Dashboard
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut size={14} className="mr-1.5" />
+              Sign out
             </Button>
-          )}
+          </div>
         </motion.div>
 
         {/* Stripe Connect Banner */}
