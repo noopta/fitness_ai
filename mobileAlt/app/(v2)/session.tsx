@@ -110,6 +110,7 @@ function SessionScreenInner() {
         return { name, sets: Math.max(1, Number(e.sets) || 3), reps, load: e.bodyweight ? null : load, rest: Number(e.restSeconds) || rules.restForReps(reps), cue: e.notes || e.cue || e.intensity || null };
       }));
       setPlan(out);
+      dispatch({ type: 'load_plan', plan: out });
     })();
   }, [session, plan, fromKg, rules, draftChecked]);
 

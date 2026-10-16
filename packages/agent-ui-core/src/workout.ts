@@ -93,7 +93,9 @@ export type WorkoutAction =
   | { type: 'resume'; now: number }
   | { type: 'finish'; now: number }
   /** Put a saved draft back, paused — the clock resumes on the next 'resume'. */
-  | { type: 'restore'; state: WorkoutState; now: number };
+  | { type: 'restore'; state: WorkoutState; now: number }
+  /** The plan arrived (it's built async): take its loads. Ignored once a set is logged. */
+  | { type: 'load_plan'; plan: PlanExercise[] };
 
 const fmtLoad = (load: number | null, reps: number | string, name: string) =>
   load ? `${name} · ${load} × ${reps}` : `${name} · ${reps} reps`;
@@ -163,6 +165,11 @@ export function workoutReducer(s: WorkoutState, a: WorkoutAction): WorkoutState 
       return { ...s, step: 'done', end: s.end ?? a.now };
     case 'restore':
       return { ...a.state, pausedAt: a.state.pausedAt ?? a.now };
+    // The screen starts from an empty plan while loads are looked up; without
+    // this, loads stayed [] and every set was saved with no weight (Oct 2026:
+    // 12 of 12 guided sessions logged as bodyweight).
+    case 'load_plan':
+      return s.log.length ? s : { ...s, loads: a.plan.map((p) => p.load) };
     default:
       return s;
   }

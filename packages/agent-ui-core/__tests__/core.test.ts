@@ -139,6 +139,17 @@ describe('workout machine', () => {
     expect(s.lastReceipt?.verb).toBe('Logged');
     expect(s.ex).toBe(1);
   });
+  it('the screen starts empty and loads the plan later — sets keep their weights', () => {
+    // Same order as app/(v2)/session.tsx: state first, plan (with looked-up loads) after.
+    let s = workoutReducer(initialWorkout([]), { type: 'load_plan', plan });
+    s = workoutReducer(s, { type: 'begin', now: 0 });
+    s = workoutReducer(s, { type: 'rate', rating: 'easy', now: 1000, plan, rules });
+    const body = toWorkoutLogBody(s, plan, 'Pull', '2026-10-16', 60_000);
+    expect(body.exercises[0]).toMatchObject({ name: 'Deadlift', weight: 285 });
+    expect(body.exercises[0].setEntries[0].weight).toBe(285);
+    // Once a set is logged, a late plan doesn't overwrite what's been done.
+    expect(workoutReducer(s, { type: 'load_plan', plan: plan.map((p) => ({ ...p, load: 1 })) }).loads[0]).toBe(285);
+  });
   it('miss on a non-last set drops the load by two steps with a revert', () => {
     let s = workoutReducer(initialWorkout(plan), { type: 'begin', now: 0 });
     s = workoutReducer(s, { type: 'rate', rating: 'miss', now: 1000, plan, rules });
