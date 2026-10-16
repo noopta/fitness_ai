@@ -13,6 +13,7 @@ import type { CardDraft } from './cards/types.js';
 import { postInitiatedTurn } from './initiated.js';
 import { parseBlob, mergeBlobKeys } from './profile/coachProfile.js';
 import { dayLabel } from './cards/format.js';
+import { buildWeekReport, loadWeekInput, localDate, type Win } from '../services/weeklyWins.js';
 
 const prisma = new PrismaClient();
 
@@ -62,9 +63,30 @@ export function weightlessNotice(sessions: ReturnType<typeof weightlessSessions>
   };
 }
 
+/**
+ * Progress worth celebrating, from the same engine as the Sunday email. Strength
+ * bests are left out: they're celebrated the moment the workout is logged.
+ * Pure: the wins not yet celebrated → one message with the numbers and a Share.
+ */
+export function winsNotice(wins: Win[], celebrated: Set<string>): Notice | null {
+  const fresh = wins.filter((w) => w.kind !== 'strength' && !celebrated.has(w.key)).slice(0, 3);
+  if (!fresh.length) return null;
+  const lead = fresh[0];
+  return {
+    key: `wins:${fresh.map((w) => w.key).join('|')}`,
+    text: fresh.length === 1 ? `Worth celebrating: ${lead.title.charAt(0).toLowerCase()}${lead.title.slice(1)}. ${lead.detail}` : `A few things worth celebrating — ${fresh.map((w) => w.title.charAt(0).toLowerCase() + w.title.slice(1)).join('; ')}.`,
+    cards: [{
+      fn: 'NTC-02', pattern: 'glance', rule: 'show', meta: { label: 'Progress' },
+      hero: { value: lead.share.value, unit: lead.share.line },
+      rows: fresh.map((w) => ({ key: w.title, sub: w.detail, mark: 'add' as const })),
+      actions: [{ id: 'share', label: 'Share', kind: 'secondary', client: { action: 'share', args: { text: `${lead.title} — ${lead.detail} (via Axiom)` } } }],
+    } as CardDraft],
+  };
+}
+
 /** Run the detectors and post each new notice once. Returns how many were posted. */
 export async function postPendingNotices(userId: string): Promise<number> {
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } }).catch(() => null);
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, timezone: true } }).catch(() => null);
   if (!u) return 0;
   const done = new Set<string>(Array.isArray(parseBlob(u.coachProfile).noticesPosted) ? parseBlob(u.coachProfile).noticesPosted : []);
   const logs = await prisma.workoutLog.findMany({
@@ -76,6 +98,20 @@ export async function postPendingNotices(userId: string): Promise<number> {
   for (const n of notices) {
     if (await postInitiatedTurn(userId, { text: n.text, cards: n.cards })) { done.add(n.key); posted++; }
   }
-  if (posted) await mergeBlobKeys(userId, { noticesPosted: [...done] });
+  // Progress to celebrate: at most one message a day, each win once.
+  const blob = parseBlob(u.coachProfile);
+  const celebrated = new Set<string>(Array.isArray(blob.winsCelebrated) ? blob.winsCelebrated : []);
+  const today = localDate(u.timezone);
+  let winsPatch: Record<string, unknown> = {};
+  if (blob.winsPostedOn !== today) {
+    const input = await loadWeekInput(userId, today).catch(() => null);
+    const wn = input ? winsNotice(buildWeekReport(input).wins, celebrated) : null;
+    if (wn && await postInitiatedTurn(userId, { text: wn.text, cards: wn.cards })) {
+      wn.key.slice(5).split('|').forEach((k) => celebrated.add(k));
+      winsPatch = { winsCelebrated: [...celebrated].slice(-200), winsPostedOn: today };
+      posted++;
+    }
+  }
+  if (posted) await mergeBlobKeys(userId, { noticesPosted: [...done], ...winsPatch });
   return posted;
 }

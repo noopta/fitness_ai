@@ -117,6 +117,13 @@ describe('inferGoalDirection', () => {
     expect(inferGoalDirection('lean bulk')).toBe('gain');
     expect(inferGoalDirection('add mass')).toBe('gain');
   });
+  it('reads recomposition as fat loss — "gain strength" or "build muscle" isn’t a bulk', () => {
+    expect(inferGoalDirection('Just to drop fat, build some muscle definition and gain strength')).toBe('lose');
+    expect(inferGoalDirection('lose fat and gain muscle')).toBe('lose');
+    expect(inferGoalDirection('gain strength')).toBe('maintain');
+    expect(inferGoalDirection('gain weight')).toBe('gain');
+    expect(inferGoalDirection('Short-term: Gain strength around the arms + torso and increase weight')).toBe('gain');
+  });
   it('falls back to maintain when ambiguous or empty', () => {
     expect(inferGoalDirection(null)).toBe('maintain');
     expect(inferGoalDirection('')).toBe('maintain');

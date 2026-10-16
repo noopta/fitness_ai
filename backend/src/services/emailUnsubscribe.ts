@@ -22,8 +22,9 @@ export function verifyUnsubscribeToken(userId: string, token: string): boolean {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-export function unsubscribeUrl(userId: string): string {
-  return `${API_PUBLIC_URL}/email/unsubscribe?u=${encodeURIComponent(userId)}&t=${encodeURIComponent(unsubscribeToken(userId))}`;
+/** `category` turns off just that email (e.g. 'weekly'); without it, all updates. */
+export function unsubscribeUrl(userId: string, category?: 'weekly'): string {
+  return `${API_PUBLIC_URL}/email/unsubscribe?u=${encodeURIComponent(userId)}&t=${encodeURIComponent(unsubscribeToken(userId))}${category ? `&c=${category}` : ''}`;
 }
 
 export { FRONTEND_URL };

@@ -76,7 +76,7 @@ const growth = await (async () => {
     return null;
   }
 })();
-import { runNightlyNotifications, runWeeklySummary, runStreakAtRiskCheck } from './services/notificationService.js';
+import { runNightlyNotifications, runStreakAtRiskCheck } from './services/notificationService.js';
 import { runReengagementCheck } from './services/reengagementService.js';
 import { runDailyFeedFetch } from './services/feedService.js';
 import { runAnakinGroupSweep } from './services/groupAccountability.js';
@@ -432,7 +432,9 @@ scheduleAt(14, null, () => {
     })
     .catch(err => console.error('[scheduler] affiliate payout error:', err));
 });
-scheduleAt(20, 0,    () => runWeeklySummary().catch(err => console.error('[scheduler] weekly error:', err)));
+// Weekly wins: Sunday 6 pm in each user's time zone (chat recap, push, email).
+// Replaced runWeeklySummary (Sunday 20:00 server time, legacy protein table).
+scheduleHourly(() => { import('./services/weeklyWinsJob.js').then((m) => m.runWeeklyWinsHour()).catch((err) => console.error('[scheduler] weekly wins error:', err)); });
 // Freestyle log-trend sweep — Mondays 10:00 server time (UTC). Plateaus,
 // systemic fatigue, volume balance, phase confirm. Per-user flag-gated inside
 // (no-op while LOG_ADAPTATION / PHASE_INFERENCE are off); never pushes.

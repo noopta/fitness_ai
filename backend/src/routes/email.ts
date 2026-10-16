@@ -35,6 +35,15 @@ router.get('/email/unsubscribe', async (req, res) => {
     return res.status(400).type('html').send(page('This link isn’t valid', 'The unsubscribe link looks incomplete. Reply to the email instead and we’ll take care of it.'));
   }
   try {
+    // Just the weekly wins email: flip that one switch, leave everything else on.
+    if (req.query.c === 'weekly') {
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { notificationPrefsJson: true } });
+      if (!u) return res.status(404).type('html').send(page('Account not found', 'We couldn’t find that account, so there’s nothing to unsubscribe.'));
+      let prefs: Record<string, unknown> = {};
+      try { prefs = JSON.parse(u.notificationPrefsJson ?? '{}') ?? {}; } catch { prefs = {}; }
+      await prisma.user.update({ where: { id: userId }, data: { notificationPrefsJson: JSON.stringify({ ...prefs, weeklyEmail: false }) } });
+      return res.type('html').send(page('Weekly email off', 'You won’t get the Sunday weekly wins email anymore. Turn it back on any time in You › Notifications, or ask Anakin.'));
+    }
     const r = await optOut(userId);
     if (r === 0) return res.status(404).type('html').send(page('Account not found', 'We couldn’t find that account, so there’s nothing to unsubscribe.'));
     res.type('html').send(page('You’re unsubscribed', 'You won’t get Axiom blog posts or updates by email anymore. Account emails like verification codes still arrive.'));

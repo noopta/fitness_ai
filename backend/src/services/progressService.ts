@@ -211,11 +211,17 @@ export type GoalDirection = 'lose' | 'gain' | 'maintain';
 /** Mirror nutritionEngine's goal-keyword logic so reinforcement aligns with plan. */
 export function inferGoalDirection(coachGoal: string | null | undefined): GoalDirection {
   const g = (coachGoal ?? '').toLowerCase();
-  const isFatLoss = ['loss', 'cut', 'lean', 'lose', 'deficit', 'shred', 'slim', 'drop']
+  const isFatLoss = ['loss', 'cut', 'lean', 'lose', 'deficit', 'shred', 'slim', 'drop', 'fat']
     .some(k => g.includes(k));
-  const isMassGain = ['gain', 'bulk', 'mass', 'surplus'].some(k => g.includes(k));
-  if (isFatLoss && !isMassGain) return 'lose';
-  if (isMassGain) return 'gain';
+  // "Gain strength" / "gain muscle" alongside losing fat is a recomposition, which
+  // the scale reads as losing — only bulking language means gaining weight.
+  // ("Just to drop fat, build some muscle definition and gain strength" was read
+  // as a weight-gain goal, so a 3.5 lb loss never counted as progress.)
+  const isBulk = /\b(bulk|bulking|surplus|mass gain|gain (weight|mass|size)|put on (weight|size|mass)|weight gain|increase (my |body ?)?weight)\b/.test(g);
+  const isGainWord = /\bgain\b(?! strength)/.test(g) || g.includes('mass');
+  if (isBulk) return 'gain';
+  if (isFatLoss) return 'lose';
+  if (isGainWord) return 'gain';
   return 'maintain';
 }
 

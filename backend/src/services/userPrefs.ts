@@ -26,7 +26,9 @@ export interface NotificationPrefs {
 }
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   workoutReminders: true, weeklySummary: true, milestones: true, social: true,
-  groupCheckins: true, partnerSessions: true, programUpdates: true, weeklyEmail: false, reminderHour: 20,
+  groupCheckins: true, partnerSessions: true, programUpdates: true,
+  // On by default since 16 Oct 2026 (weekly wins); one-click off in every email.
+  weeklyEmail: true, reminderHour: 20,
 };
 
 export interface UserPrefs { saveFormStills: boolean; adaptationEnabled: boolean; shareTheme: 'light' | 'dark' }

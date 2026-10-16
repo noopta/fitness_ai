@@ -1,3 +1,4 @@
+import type { WeekReport } from './weeklyWins.js';
 // HTML templates for outbound product mail: the one-time welcome and the
 // blog/update broadcast. Plain inline-styled HTML (no framework) so it renders
 // the same in Gmail, Apple Mail and Outlook.
@@ -260,5 +261,53 @@ export function weeklySummaryEmail(w: WeeklySummaryInput): { subject: string; ht
   });
   const text = [`${subject}`, '', ...rows.map(([k, v]) => `${k}: ${v}`), '', 'Anakin has the full review waiting in chat.', SITE_URL, '',
     'Turn this email off in You › Notifications, or tell Anakin.'].join('\n');
+  return { subject, html, text };
+}
+
+// ─── Weekly wins (Sunday evening, local time; on by default, one-click off) ──
+
+
+const r1 = (x: number) => Math.round(x * 10) / 10;
+
+export function weeklyWinsEmail(rep: WeekReport, opts: { name: string | null | undefined; unsubscribeUrl: string; toKgDisplay: (kg: number) => number }): { subject: string; html: string; text: string } {
+  const first = (opts.name || '').trim().split(/\s+/)[0] || '';
+  const top = rep.wins[0];
+  const subject = top ? `${first ? `${first}, ` : ''}${top.title.charAt(0).toLowerCase()}${top.title.slice(1)}` : `${first ? `${first}, your` : 'Your'} week in numbers`;
+  const n = rep.nutrition;
+  const rows: Array<[string, string]> = [];
+  if (rep.training.sessions) rows.push(['Workouts', `${rep.training.sessions} · ${rep.training.sets} sets`]);
+  if (rep.body.avgKg != null) rows.push(['Weight (7-day average)', `${r1(opts.toKgDisplay(rep.body.avgKg))} ${rep.unit}${rep.body.changeKg != null ? ` (${rep.body.changeKg < 0 ? '−' : '+'}${r1(Math.abs(opts.toKgDisplay(rep.body.changeKg)))})` : ''}`]);
+  if (n.loggedDays) rows.push(['Days logged', `${n.loggedDays} of 7`]);
+  if (n.avgKcal != null) rows.push(['Calories / day', `${n.avgKcal}${n.kcalTarget ? ` of ${n.kcalTarget}` : ''}`]);
+  if (n.avgProtein != null) rows.push(['Protein / day', `${n.avgProtein} g${n.proteinTarget ? ` of ${n.proteinTarget} g` : ''}`]);
+  const table = rows.map(([k, v]) => `<tr><td style="padding:9px 0;color:#52525b;">${escapeHtml(k)}</td><td style="padding:9px 0;text-align:right;font-weight:700;">${escapeHtml(v)}</td></tr>`).join('');
+  const winsHtml = rep.wins.length
+    ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#A51C30;font-weight:700;">What went well</p>` +
+      rep.wins.slice(0, 5).map((w) => `<p style="margin:0 0 10px;"><strong>${escapeHtml(w.title)}.</strong> <span style="color:#52525b;">${escapeHtml(w.detail)}</span></p>`).join('')
+    : '';
+  const analysisHtml = rep.analysis.length ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#71717a;font-weight:700;">How the week went</p><p style="margin:0;">${rep.analysis.map(escapeHtml).join(' ')}</p>` : '';
+  const focusHtml = rep.focus.length
+    ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#71717a;font-weight:700;">Focus for next week</p>` + rep.focus.map((f) => `<p style="margin:0 0 8px;">→ ${escapeHtml(f)}</p>`).join('')
+    : '';
+  const body = `
+<p style="margin:0 0 14px;font-size:22px;font-weight:700;letter-spacing:-0.01em;">${first ? `${escapeHtml(first)}, here's your week` : "Here's your week"}</p>
+${rows.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 6px;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7;">${table}</table>` : ''}
+${winsHtml}${analysisHtml}${focusHtml}
+<p style="margin:26px 0 8px;"><a href="${SITE_URL}" style="display:inline-block;background:#09090b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;">Open Axiom</a></p>
+<p style="margin:8px 0 0;color:#71717a;font-size:13px;">Reply to Anakin in the app to change anything for next week.</p>`;
+  const html = layout({
+    preheader: top ? `${top.title}. ${top.detail}` : rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
+    body,
+    unsubscribeUrl: opts.unsubscribeUrl,
+    footerNote: 'Your weekly wins from Axiom, every Sunday evening.',
+  });
+  const text = [
+    subject, '',
+    ...rows.map(([k, v]) => `${k}: ${v}`), '',
+    ...(rep.wins.length ? ['WHAT WENT WELL', ...rep.wins.slice(0, 5).map((w) => `- ${w.title}. ${w.detail}`), ''] : []),
+    ...(rep.analysis.length ? ['HOW THE WEEK WENT', rep.analysis.join(' '), ''] : []),
+    ...(rep.focus.length ? ['FOCUS FOR NEXT WEEK', ...rep.focus.map((f) => `- ${f}`), ''] : []),
+    SITE_URL, '', `Stop these emails: ${opts.unsubscribeUrl}`,
+  ].join('\n');
   return { subject, html, text };
 }
