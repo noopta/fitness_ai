@@ -81,7 +81,7 @@ export function inputFrom(f: Form, mode: Mode, source?: Contraindication): Contr
   };
 }
 
-function PatternPicker({ legend, help, patterns, value, onChange, name }: {
+export function PatternPicker({ legend, help, patterns, value, onChange, name }: {
   legend: string; help?: string; patterns: string[]; value: string[]; onChange: (v: string[]) => void; name: string;
 }) {
   return (

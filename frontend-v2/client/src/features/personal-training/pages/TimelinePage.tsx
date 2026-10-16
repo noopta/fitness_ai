@@ -25,6 +25,8 @@ import { PhotosTab } from '../components/PhotosTab';
 import { Avatar, Eyebrow, FilterChip, Pill, SkeletonBlock, StatusPill } from '../components/primitives';
 import { Shell } from '../components/Shell';
 import { PCOPY } from '../copyPlatform';
+import { PRG } from '../copyPrograms';
+import { BillingTab, IntakeTab, NutritionTab, TrainerProgramsSection } from '../components/DossierBusinessTabs';
 import { useCheckInActions, useClient, useTimeline } from '../hooks';
 
 const KIND_ICON: Record<TimelineKind, LucideIcon> = {
@@ -38,9 +40,12 @@ const KIND_ICON: Record<TimelineKind, LucideIcon> = {
   billing: CreditCard,
 };
 
-type DossierTab = 'overview' | 'timeline' | 'health' | 'goals' | 'program' | 'photos' | 'notes';
-const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'health', 'goals', 'program', 'photos', 'notes'];
-const TAB_LABEL: Record<DossierTab, string> = { ...COPY.dossier.tabs, health: PCOPY.health.tab, goals: PCOPY.goals.tab, photos: PCOPY.photos.tab };
+type DossierTab = 'overview' | 'timeline' | 'health' | 'goals' | 'program' | 'intake' | 'nutrition' | 'photos' | 'billing' | 'notes';
+const DOSSIER_TABS: DossierTab[] = ['overview', 'timeline', 'health', 'goals', 'program', 'intake', 'nutrition', 'photos', 'billing', 'notes'];
+const TAB_LABEL: Record<DossierTab, string> = {
+  ...COPY.dossier.tabs, health: PCOPY.health.tab, goals: PCOPY.goals.tab, photos: PCOPY.photos.tab,
+  intake: PRG.intake.tab, nutrition: PRG.nutrition.tab, billing: PRG.billing.tab,
+};
 const isTab = (v: string | undefined): v is DossierTab => !!v && (DOSSIER_TABS as string[]).includes(v);
 
 function HeaderActions({ client }: { client: Client }) {
@@ -241,7 +246,18 @@ function Dossier({ me, clientId, tab }: { me: MeResponse; clientId: string; tab:
           <div id="dossier-panel" role="tabpanel" aria-labelledby={`dossier-tab-${tab}`}>
             {tab === 'overview' && <OverviewTab clientId={clientId} />}
             {tab === 'timeline' && <Feed clientId={clientId} />}
-            {tab === 'program' && <ProgramTab clientId={clientId} />}
+            {tab === 'program' && (
+              <div className="space-y-10">
+                <TrainerProgramsSection clientId={clientId} canProgram={client.data.client.status !== 'notJoined' && client.data.client.state !== 'archived'} />
+                <section aria-labelledby="pt-app-program" className="space-y-3">
+                  <h2 id="pt-app-program" className="text-[15px] font-semibold tracking-[-0.01em]">{PRG.dossierPrograms.appTitle}</h2>
+                  <ProgramTab clientId={clientId} />
+                </section>
+              </div>
+            )}
+            {tab === 'intake' && <IntakeTab clientId={clientId} />}
+            {tab === 'nutrition' && <NutritionTab clientId={clientId} />}
+            {tab === 'billing' && <BillingTab clientId={clientId} />}
             {tab === 'notes' && <NotesTab clientId={clientId} />}
             {tab === 'health' && <HealthTab clientId={clientId} />}
             {tab === 'goals' && <GoalsTab clientId={clientId} />}

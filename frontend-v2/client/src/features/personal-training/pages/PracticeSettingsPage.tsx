@@ -8,13 +8,16 @@ import { COPY, type MeResponse, type PracticeProfile } from '@axiom/personal-tra
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { ChipInput, errorText, selectClass } from '../components/ChipInput';
+import { ChipInput, CopyField, errorText, selectClass } from '../components/ChipInput';
 import { Gate } from '../components/Gate';
 import { Eyebrow, Notice, PageTitle, SegmentedControl, SkeletonBlock } from '../components/primitives';
 import { SettingsNav } from '../components/SettingsNav';
 import { Shell } from '../components/Shell';
+import { downloadFile, ptApi } from '../api';
 import { PCOPY } from '../copyPlatform';
+import { PRG } from '../copyPrograms';
 import { downscaleImage, isHex } from '../platform';
 import { isStorageOff, usePracticeProfile, useSavePracticeProfile, useUploadLogo } from '../platformHooks';
 
@@ -96,15 +99,19 @@ function Logo({ url }: { url: string | null }) {
 
 interface Form {
   name: string; bio: string; specialties: string[]; styleTags: string[]; languages: string[];
-  format: Format | null; timezone: string; brandColor: string; accentColor: string;
+  format: Format | null; timezone: string; brandColor: string; accentColor: string; publicPage: boolean;
 }
 
-const formOf = (p: PracticeProfile, name: string): Form => ({
-  name, bio: p.bio, specialties: p.specialties, styleTags: p.styleTags, languages: p.languages,
+const formOf = (p: PracticeProfile, fallbackName: string): Form => ({
+  name: p.name || fallbackName, bio: p.bio, specialties: p.specialties, styleTags: p.styleTags, languages: p.languages,
   format: p.format, timezone: p.timezone ?? '', brandColor: p.brandColor ?? '', accentColor: p.accentColor ?? '',
+  publicPage: !!p.publicPage,
 });
 
-function Settings({ profile, practiceName }: { profile: PracticeProfile; practiceName: string }) {
+/** Where the practice's public page lives. */
+export const publicPageUrl = (slug: string, origin: string = window.location.origin) => `${origin}/p/${slug}`;
+
+function Settings({ profile, practiceName, slug }: { profile: PracticeProfile; practiceName: string; slug: string }) {
   const [form, setForm] = useState<Form>(() => formOf(profile, practiceName));
   const save = useSavePracticeProfile();
   const zones = useMemo(() => timeZones(profile.timezone), [profile.timezone]);
@@ -126,12 +133,13 @@ function Settings({ profile, practiceName }: { profile: PracticeProfile; practic
         e.preventDefault();
         if (!valid) return;
         save.mutate({
-          ...(form.name.trim() !== practiceName ? { name: form.name.trim() } : {}),
+          ...(form.name.trim() !== (profile.name || practiceName) ? { name: form.name.trim() } : {}),
           bio: form.bio,
           specialties: form.specialties,
           styleTags: form.styleTags,
           languages: form.languages,
           format: form.format,
+          publicPage: form.publicPage,
           timezone: form.timezone || null,
           brandColor: form.brandColor || null,
           accentColor: form.accentColor || null,
@@ -162,6 +170,23 @@ function Settings({ profile, practiceName }: { profile: PracticeProfile; practic
             {zones.map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
           </select>
         </div>
+      </section>
+
+      <section aria-labelledby="pt-public-page" className="space-y-3">
+        <Eyebrow>{T.publicPage}</Eyebrow>
+        <div className="flex items-start justify-between gap-4 rounded-2xl border border-border p-4">
+          <div className="min-w-0">
+            <Label id="pt-public-page" htmlFor="pt-public-toggle" className="text-[13px] font-semibold">{T.publicPageLabel}</Label>
+            <p className="mt-0.5 text-xs leading-relaxed text-axiom-zinc-600">{T.publicPageHelp(publicPageUrl(slug))}</p>
+          </div>
+          <Switch id="pt-public-toggle" checked={form.publicPage} onCheckedChange={(v) => set('publicPage', v)} />
+        </div>
+        {form.publicPage && slug && (
+          <div className="space-y-1.5">
+            <CopyField value={publicPageUrl(slug)} label={T.publicPageUrl} copyLabel={COPY.invite.copy} copiedLabel={COPY.invite.copied} />
+            {!profile.publicPage && <p className="text-xs text-axiom-zinc-500">{T.publicPageAfterSave}</p>}
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -195,6 +220,45 @@ function Settings({ profile, practiceName }: { profile: PracticeProfile; practic
   );
 }
 
+const EXPORTS = [
+  { key: 'json', label: PRG.export.json, file: 'axiom-export.json' },
+  { key: 'clients', label: PRG.export.clients, file: 'axiom-clients.csv' },
+  { key: 'workouts', label: PRG.export.workouts, file: 'axiom-workouts.csv' },
+  { key: 'measurements', label: PRG.export.measurements, file: 'axiom-measurements.csv' },
+  { key: 'contraindications', label: PRG.export.contraindications, file: 'axiom-contraindications.csv' },
+] as const;
+
+/** Downloads need the trainer's auth, so each is fetched and saved as a file rather than linked. */
+function ExportSection() {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  async function get(key: (typeof EXPORTS)[number]['key'], file: string) {
+    setBusy(key);
+    setFailed(null);
+    try {
+      await downloadFile(ptApi.exportPaths[key], file);
+    } catch {
+      setFailed(key);
+    } finally {
+      setBusy(null);
+    }
+  }
+  return (
+    <section aria-labelledby="pt-export-title" className="mt-12 space-y-3 border-t border-border pt-8">
+      <h2 id="pt-export-title" className="text-[15px] font-semibold tracking-[-0.01em]">{PRG.export.title}</h2>
+      <p className="text-sm text-axiom-zinc-600">{PRG.export.body}</p>
+      <div className="flex flex-wrap gap-2">
+        {EXPORTS.map((x) => (
+          <Button key={x.key} type="button" variant="secondary" className="h-10 rounded-xl" disabled={busy !== null} onClick={() => void get(x.key, x.file)}>
+            <span aria-live="polite">{busy === x.key ? PRG.export.preparing : x.label}</span>
+          </Button>
+        ))}
+      </div>
+      {failed && <p role="alert" className="text-sm text-axiom-destructive-ink">{PRG.export.failed}</p>}
+    </section>
+  );
+}
+
 function Page({ me }: { me: MeResponse }) {
   const profile = usePracticeProfile();
   return (
@@ -203,7 +267,8 @@ function Page({ me }: { me: MeResponse }) {
       <SettingsNav active="practice" />
       {profile.isPending ? <div aria-busy="true" className="space-y-3"><SkeletonBlock className="h-10 w-72" /><SkeletonBlock className="h-64 w-full" /></div>
         : profile.isError ? <Notice alert action={<Button variant="secondary" className="h-10 rounded-xl" onClick={() => profile.refetch()}>{COPY.roster.retry}</Button>}>{T.loadFailed}</Notice>
-        : <Settings profile={profile.data.profile} practiceName={me.practice?.name ?? ''} />}
+        : <Settings profile={profile.data.profile} practiceName={me.practice?.name ?? ''} slug={me.practice?.slug ?? ''} />}
+      <ExportSection />
     </Shell>
   );
 }

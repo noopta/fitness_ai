@@ -13,16 +13,44 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009
  */
 const withCaps = (path: string) => `${path}${path.includes('?') ? '&' : '?'}caps=not-joined`;
 
+/** A typed error that keeps the parsed body, so a 409 can carry the rules engine's `check`. */
+export type ApiErrorWithBody = PersonalTrainingApiError & { body?: Record<string, unknown> | null };
+
 const fetcher: Fetcher = async (path, init) => {
   const res = await authFetch(`${API_BASE}${withCaps(path)}`, init);
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new PersonalTrainingApiError(body?.error ?? res.statusText, res.status, body?.code ?? null);
+    const err: ApiErrorWithBody = new PersonalTrainingApiError(body?.error ?? res.statusText, res.status, body?.code ?? null);
+    err.body = body;
+    throw err;
   }
   return res.json();
 };
 
 export const ptApi = createApi(fetcher);
+
+/**
+ * Download an authenticated file (the data export). A plain link cannot carry
+ * the Bearer fallback, so this fetches the bytes and saves them as a blob,
+ * named by the server's Content-Disposition when it gives one.
+ */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const res = await authFetch(`${API_BASE}${path}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new PersonalTrainingApiError(body?.error ?? res.statusText, res.status, body?.code ?? null);
+  }
+  const blob = await res.blob();
+  const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 /**
  * Read a streamed endpoint. EventSource cannot carry the Bearer fallback, so

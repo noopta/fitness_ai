@@ -8,10 +8,10 @@ import { COPY, shortDate, type ClientGoal, type Measurement, type MeasurementKin
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { LIFT_GOAL_METRICS, PCOPY } from '../copyPlatform';
 import { MEASUREMENT_KINDS, goalUnit, inferUnitPreference, localDate, unitOptions, type UnitPreference } from '../platform';
+import { useMe } from '../hooks';
 import { useGoalActions, useGoals, useMeasurementActions, useMeasurements } from '../platformHooks';
 import { errorText, selectClass } from './ChipInput';
 import { Eyebrow, Notice, Pill, SkeletonBlock } from './primitives';
@@ -19,24 +19,14 @@ import { Eyebrow, Notice, Pill, SkeletonBlock } from './primitives';
 const G = PCOPY.goals;
 const M = PCOPY.measurements;
 
-/** The signed-in trainer's preference, or null outside the auth provider (tests, embeds). */
-function useAccountUnit(): UnitPreference | null {
-  try {
-    const pref = useAuth().user?.unitPreference;
-    return pref === 'metric' ? 'metric' : pref === 'imperial' ? 'imperial' : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * The unit numbers are in: what the server already used for this client's
- * records first (it converted with the account's preference), then the
- * account, then lb/in as the app's default.
+ * The unit numbers are in: the trainer's own from /me, else what the server
+ * already used for this client's records, else lb/in as the app's default.
  */
 export function useTrainerUnit(measurements: Measurement[] | undefined, goals: ClientGoal[] | undefined): UnitPreference {
-  const account = useAccountUnit();
-  return inferUnitPreference(measurements, goals) ?? account ?? 'imperial';
+  const unit = useMe().data?.trainer.unit;
+  if (unit) return unit === 'kg' ? 'metric' : 'imperial';
+  return inferUnitPreference(measurements, goals) ?? 'imperial';
 }
 
 const fmt = (v: number | null, unit: string) => (v == null ? '—' : `${Number.isInteger(v) ? v : v.toFixed(1)}${unit ? ` ${unit}` : ''}`);
