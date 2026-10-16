@@ -30,11 +30,11 @@ describe('wins', () => {
   const r = buildWeekReport(base);
   it('celebrates weight moving toward the goal, by 7-day average and since day one', () => {
     expect(r.wins.find((w) => w.key.startsWith('weight-week'))?.title).toBe('Down 2 lbs this week');
-    expect(r.wins.find((w) => w.key.startsWith('weight-total'))?.title).toBe('Down 3 lbs since you started');
+    expect(r.wins.find((w) => w.key.startsWith('weight-total'))?.title).toBe('Down 3.5 lbs since you started');
   });
   it('celebrates a lift beating every earlier session', () => {
     const s = r.wins.find((w) => w.kind === 'strength')!;
-    expect(s.title).toBe('Bench Press: new best');
+    expect(s.title).toBe('New best on Bench Press');
     expect(s.detail).toMatch(/Estimated max 206 → 219 lbs \(\+6%\)/);
   });
   it('celebrates consistency in logging, calories, protein and micronutrients', () => {
@@ -49,8 +49,8 @@ describe('wins', () => {
   });
   it('points next week at what is missing', () => {
     const quiet = buildWeekReport({ ...base, weights: [{ date: '2026-10-11', kg: 97.2 }], meals: base.meals.map((m) => ({ ...m, proteinG: 70 })) });
-    expect(quiet.focus[0]).toMatch(/Weigh in 3 mornings .* 7 days ago/);
-    expect(quiet.focus[1]).toMatch(/Protein: get to 190 g on 5 days \(you averaged 140 g\)/);
+    expect(quiet.focus[0]).toMatch(/Weigh in 3 mornings .* it's been 7 days/);
+    expect(quiet.focus[1]).toMatch(/Protein: aim for 190 g on 5 days — you averaged 140 g, so you're on your way\. It’s what protects your muscle/);
   });
 });
 
@@ -58,10 +58,21 @@ describe('the Sunday email', () => {
   it('leads with the best win, shows the numbers, focus and a weekly-only unsubscribe', () => {
     const msg = weeklyWinsEmail(buildWeekReport(base), { name: 'Tarek Assaf', unsubscribeUrl: 'https://api.example/email/unsubscribe?u=1&t=x&c=weekly', toKgDisplay: (kg) => kg * 2.20462 });
     expect(msg.subject).toBe('Tarek, down 2 lbs this week');
-    expect(msg.html).toContain('What went well');
-    expect(msg.html).toContain('Focus for next week');
+    expect(msg.html).toContain('Your wins this week');
+    expect(msg.text).toMatch(/look at you go! You're down 2 lbs this week .* new best on Bench Press\. Be proud of this one\./);
+    expect(msg.text).toContain('WHAT YOUR FOOD DID FOR YOU');
+    expect(msg.text).toMatch(/Zinc \(Repair & immunity\) — 12 mg a day \(109% of your target\)/);
+    expect(msg.html).toContain('not medical advice');
+    expect(msg.html).toContain('Your next level-ups');
     expect(msg.html).toContain('c=weekly');
-    expect(msg.text).toMatch(/Calories \/ day: 1850 of 1900/);
+    expect(msg.text).toMatch(/Calories a day: 1850 of 1900/);
+  });
+  it('suggests the top-ups that matter most for the goal, with what they do', () => {
+    const low = buildWeekReport({ ...base, microTargets: [...base.microTargets, { key: 'magnesiumMg', label: 'Magnesium', unit: 'mg' as const, target: 420, direction: 'meet' as const, rationale: [] }, { key: 'vitaminEMg', label: 'Vitamin E', unit: 'mg' as const, target: 15, direction: 'meet' as const, rationale: [] }],
+      meals: base.meals.map((m) => ({ ...m, nutrientsJson: JSON.stringify({ ...JSON.parse(m.nutrientsJson), magnesiumMg: 70, vitaminEMg: 0.5 }) })) });
+    const msg = weeklyWinsEmail(low, { name: 'Tarek', unsubscribeUrl: 'u', toKgDisplay: (kg) => kg * 2.2 });
+    // Magnesium (sleep) outranks the even-lower vitamin E for a fat-loss goal.
+    expect(msg.text).toMatch(/EASY TOP-UPS FOR NEXT WEEK\nMagnesium \(Sleep & recovery, about 33% of target\) — Magnesium helps muscles relax after training and supports deeper, more restful sleep\. Try pumpkin seeds/);
   });
   it('goes out at 6 pm on Sunday in the user’s own zone', () => {
     expect(isSendHour('America/Regina', new Date('2026-10-19T00:30:00Z'))).toBe(true); // Sun 18:30 in Regina

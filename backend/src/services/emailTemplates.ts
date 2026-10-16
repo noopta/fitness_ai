@@ -1,4 +1,5 @@
 import type { WeekReport } from './weeklyWins.js';
+import { microHighlights } from './microInsights.js';
 // HTML templates for outbound product mail: the one-time welcome and the
 // blog/update broadcast. Plain inline-styled HTML (no framework) so it renders
 // the same in Gmail, Apple Mail and Outlook.
@@ -265,49 +266,79 @@ export function weeklySummaryEmail(w: WeeklySummaryInput): { subject: string; ht
 }
 
 // ─── Weekly wins (Sunday evening, local time; on by default, one-click off) ──
-
+// A celebration first: a warm opening from their real wins, the wins with the
+// numbers, what their food did for them (micronutrients → body, goals, sleep,
+// focus), easy top-ups, the week in plain words, and next week's level-ups.
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
+const lc = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+
+/** Two or three warm sentences built from the week's real wins. Pure; exported for tests. */
+export function warmOpening(rep: WeekReport, first: string): string {
+  const who = first ? `${first}, ` : '';
+  const w = rep.wins;
+  const weight = w.find((x) => x.kind === 'weight');
+  const lead = weight
+    ? `${who}look at you go! You're ${lc(weight.title)} — that's what showing up, day after day, looks like.`
+    : rep.training.sessions >= 3
+      ? `${who}what a week! ${rep.training.sessions} workouts and ${rep.training.sets} sets — that's real momentum.`
+      : w[0] ? `${who}nice work this week — ${lc(w[0].title)}.` : `${who}here's your week.`;
+  // The wins the lead sentence didn't already say.
+  const said = (x: (typeof w)[number]) => (weight ? x === weight : rep.training.sessions >= 3 ? x.kind === 'training' : x === w[0]);
+  const extras = w.filter((x) => !said(x)).slice(0, 2).map((x) => lc(x.title));
+  const more = extras.length ? ` On top of that: ${extras.join(', and ')}.` : '';
+  return `${lead}${more}${w.length ? ' Be proud of this one.' : ''}`;
+}
+
+const eyebrow = (t: string, crimson = false) => `<p style="margin:26px 0 10px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:${crimson ? '#A51C30' : '#71717a'};font-weight:700;">${escapeHtml(t)}</p>`;
 
 export function weeklyWinsEmail(rep: WeekReport, opts: { name: string | null | undefined; unsubscribeUrl: string; toKgDisplay: (kg: number) => number }): { subject: string; html: string; text: string } {
   const first = (opts.name || '').trim().split(/\s+/)[0] || '';
   const top = rep.wins[0];
-  const subject = top ? `${first ? `${first}, ` : ''}${top.title.charAt(0).toLowerCase()}${top.title.slice(1)}` : `${first ? `${first}, your` : 'Your'} week in numbers`;
+  const subject = top ? `${first ? `${first}, ` : ''}${lc(top.title)}` : `${first ? `${first}, your` : 'Your'} week in numbers`;
   const n = rep.nutrition;
+  const { stars, topUps } = microHighlights(n.micros ?? [], rep.goal);
+  const opening = warmOpening(rep, first);
+
   const rows: Array<[string, string]> = [];
   if (rep.training.sessions) rows.push(['Workouts', `${rep.training.sessions} · ${rep.training.sets} sets`]);
   if (rep.body.avgKg != null) rows.push(['Weight (7-day average)', `${r1(opts.toKgDisplay(rep.body.avgKg))} ${rep.unit}${rep.body.changeKg != null ? ` (${rep.body.changeKg < 0 ? '−' : '+'}${r1(Math.abs(opts.toKgDisplay(rep.body.changeKg)))})` : ''}`]);
-  if (n.loggedDays) rows.push(['Days logged', `${n.loggedDays} of 7`]);
-  if (n.avgKcal != null) rows.push(['Calories / day', `${n.avgKcal}${n.kcalTarget ? ` of ${n.kcalTarget}` : ''}`]);
-  if (n.avgProtein != null) rows.push(['Protein / day', `${n.avgProtein} g${n.proteinTarget ? ` of ${n.proteinTarget} g` : ''}`]);
+  else if (rep.body.sinceStartKg != null) rows.push(['Since your first weigh-in', `${rep.body.sinceStartKg < 0 ? '−' : '+'}${r1(Math.abs(opts.toKgDisplay(rep.body.sinceStartKg)))} ${rep.unit}`]);
+  if (n.loggedDays) rows.push(['Days of food logged', `${n.loggedDays} of 7`]);
+  if (n.avgKcal != null) rows.push(['Calories a day', `${n.avgKcal}${n.kcalTarget ? ` of ${n.kcalTarget}` : ''}`]);
+  if (n.avgProtein != null) rows.push(['Protein a day', `${n.avgProtein} g${n.proteinTarget ? ` of ${n.proteinTarget} g` : ''}`]);
   const table = rows.map(([k, v]) => `<tr><td style="padding:9px 0;color:#52525b;">${escapeHtml(k)}</td><td style="padding:9px 0;text-align:right;font-weight:700;">${escapeHtml(v)}</td></tr>`).join('');
-  const winsHtml = rep.wins.length
-    ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#A51C30;font-weight:700;">What went well</p>` +
-      rep.wins.slice(0, 5).map((w) => `<p style="margin:0 0 10px;"><strong>${escapeHtml(w.title)}.</strong> <span style="color:#52525b;">${escapeHtml(w.detail)}</span></p>`).join('')
+
+  const winsHtml = rep.wins.length ? eyebrow('Your wins this week', true) + rep.wins.slice(0, 5).map((w) => `<p style="margin:0 0 10px;"><span style="color:#A51C30;font-weight:700;">✓</span> <strong>${escapeHtml(w.title)}.</strong> <span style="color:#52525b;">${escapeHtml(w.detail)}</span></p>`).join('') : '';
+  const foodHtml = stars.length
+    ? eyebrow('What your food did for you') + `<p style="margin:0 0 12px;color:#52525b;">From what you logged this week, you gave your body a lot to work with:</p>` +
+      stars.map((m) => `<p style="margin:0 0 12px;"><strong>${escapeHtml(m.label)}</strong> <span style="color:#71717a;">· ${escapeHtml(m.area)} · ${escapeHtml(m.amount)}</span><br/>${escapeHtml(m.line)}</p>`).join('')
     : '';
-  const analysisHtml = rep.analysis.length ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#71717a;font-weight:700;">How the week went</p><p style="margin:0;">${rep.analysis.map(escapeHtml).join(' ')}</p>` : '';
-  const focusHtml = rep.focus.length
-    ? `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#71717a;font-weight:700;">Focus for next week</p>` + rep.focus.map((f) => `<p style="margin:0 0 8px;">→ ${escapeHtml(f)}</p>`).join('')
+  const topUpHtml = topUps.length
+    ? eyebrow('Easy top-ups for next week') + topUps.map((t) => `<p style="margin:0 0 12px;"><strong>${escapeHtml(t.label)}</strong> <span style="color:#71717a;">· ${escapeHtml(t.area)} · about ${t.pct}% of your target</span><br/>${escapeHtml(t.line)} A little more goes a long way — try ${escapeHtml(t.foods)}.</p>`).join('')
     : '';
+  const analysisHtml = rep.analysis.length ? eyebrow('How the week went') + `<p style="margin:0;">${rep.analysis.map(escapeHtml).join(' ')}</p>` : '';
+  const focusHtml = rep.focus.length ? eyebrow('Your next level-ups') + rep.focus.map((f) => `<p style="margin:0 0 8px;">→ ${escapeHtml(f)}</p>`).join('') : '';
+
   const body = `
-<p style="margin:0 0 14px;font-size:22px;font-weight:700;letter-spacing:-0.01em;">${first ? `${escapeHtml(first)}, here's your week` : "Here's your week"}</p>
+<p style="margin:0 0 12px;font-size:24px;font-weight:700;letter-spacing:-0.01em;">${top ? escapeHtml(top.title) : "Here's your week"}</p>
+<p style="margin:0 0 18px;font-size:16px;line-height:1.55;">${escapeHtml(opening)}</p>
 ${rows.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 6px;border-top:1px solid #e4e4e7;border-bottom:1px solid #e4e4e7;">${table}</table>` : ''}
-${winsHtml}${analysisHtml}${focusHtml}
-<p style="margin:26px 0 8px;"><a href="${SITE_URL}" style="display:inline-block;background:#09090b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;">Open Axiom</a></p>
-<p style="margin:8px 0 0;color:#71717a;font-size:13px;">Reply to Anakin in the app to change anything for next week.</p>`;
-  const html = layout({
-    preheader: top ? `${top.title}. ${top.detail}` : rows.map(([k, v]) => `${k}: ${v}`).join(' · '),
-    body,
-    unsubscribeUrl: opts.unsubscribeUrl,
-    footerNote: 'Your weekly wins from Axiom, every Sunday evening.',
-  });
+${winsHtml}${foodHtml}${topUpHtml}${analysisHtml}${focusHtml}
+<p style="margin:26px 0 6px;font-size:16px;">Keep going${first ? `, ${escapeHtml(first)}` : ''} — I'm in your corner.</p>
+<p style="margin:0 0 18px;color:#52525b;">— Anakin</p>
+<p style="margin:0 0 8px;"><a href="${SITE_URL}" style="display:inline-block;background:#09090b;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;">Open Axiom</a></p>
+<p style="margin:8px 0 0;color:#71717a;font-size:13px;">Want to change anything for next week? Just tell me in the app.</p>`;
+  const html = layout({ preheader: opening, body, unsubscribeUrl: opts.unsubscribeUrl, footerNote: 'Your weekly wins from Axiom, every Sunday evening. Nutrient notes are general information, not medical advice.' });
   const text = [
-    subject, '',
+    subject, '', opening, '',
     ...rows.map(([k, v]) => `${k}: ${v}`), '',
-    ...(rep.wins.length ? ['WHAT WENT WELL', ...rep.wins.slice(0, 5).map((w) => `- ${w.title}. ${w.detail}`), ''] : []),
+    ...(rep.wins.length ? ['YOUR WINS THIS WEEK', ...rep.wins.slice(0, 5).map((w) => `✓ ${w.title}. ${w.detail}`), ''] : []),
+    ...(stars.length ? ['WHAT YOUR FOOD DID FOR YOU', ...stars.map((m) => `${m.label} (${m.area}) — ${m.amount}. ${m.line}`), ''] : []),
+    ...(topUps.length ? ['EASY TOP-UPS FOR NEXT WEEK', ...topUps.map((t) => `${t.label} (${t.area}, about ${t.pct}% of target) — ${t.line} Try ${t.foods}.`), ''] : []),
     ...(rep.analysis.length ? ['HOW THE WEEK WENT', rep.analysis.join(' '), ''] : []),
-    ...(rep.focus.length ? ['FOCUS FOR NEXT WEEK', ...rep.focus.map((f) => `- ${f}`), ''] : []),
-    SITE_URL, '', `Stop these emails: ${opts.unsubscribeUrl}`,
+    ...(rep.focus.length ? ['YOUR NEXT LEVEL-UPS', ...rep.focus.map((f) => `→ ${f}`), ''] : []),
+    `Keep going${first ? `, ${first}` : ''} — I'm in your corner.`, '— Anakin', '', SITE_URL, '', `Stop these emails: ${opts.unsubscribeUrl}`,
   ].join('\n');
   return { subject, html, text };
 }

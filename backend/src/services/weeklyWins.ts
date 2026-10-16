@@ -58,6 +58,8 @@ export interface WeekReport {
     loggedDays: number; avgKcal: number | null; kcalTarget: number | null; daysOnCalories: number;
     avgProtein: number | null; proteinTarget: number | null; proteinTargetIsSet: boolean; daysProteinHit: number;
     microsMet: string[];
+    /** Each 'meet' nutrient: daily average over logged days vs its target. */
+    micros: Array<{ key: string; label: string; unit: string; avg: number; target: number; pct: number }>;
   };
   wins: Win[];
   focus: string[];
@@ -123,7 +125,14 @@ export function buildWeekReport(w: WeekInput): WeekReport {
   const microsMet = logged.length >= 3
     ? w.microTargets.filter((t) => t.direction === 'meet').filter((t) => logged.filter((d) => (d.micros[t.key] ?? 0) >= t.target).length >= Math.max(3, Math.ceil(logged.length * 0.7))).map((t) => t.label)
     : [];
+  const micros = logged.length >= 2
+    ? w.microTargets.filter((t) => t.direction === 'meet' && t.target > 0).map((t) => {
+      const avg = mean(logged.map((d) => d.micros[t.key] ?? 0))!;
+      return { key: t.key, label: t.label, unit: t.unit, avg: Math.round(avg * 10) / 10, target: t.target, pct: Math.round((avg / t.target) * 100) };
+    }).filter((m) => m.avg > 0)
+    : [];
   const nutrition = {
+    micros,
     loggedDays: logged.length, avgKcal: logged.length ? r0(mean(logged.map((d) => d.kcal))!) : null, kcalTarget, daysOnCalories,
     avgProtein: logged.length ? r0(mean(logged.map((d) => d.p))!) : null, proteinTarget, proteinTargetIsSet: w.targets?.proteinG != null, daysProteinHit, microsMet,
   };
@@ -141,11 +150,12 @@ export function buildWeekReport(w: WeekInput): WeekReport {
     const steps = unit === 'kg' ? [1.5, 2.5, 4, 5, 7.5, 10, 12.5, 15, 20, 25] : [3, 5, 8, 10, 15, 20, 25, 30, 40, 50];
     const moved = Math.abs(show(sinceStartKg, 1));
     const reached = [...steps].reverse().find((x) => moved >= x) ?? 0;
-    if (reached) wins.push({ key: `weight-total:${reached}`, kind: 'weight', title: `${w.goal === 'lose' ? 'Down' : 'Up'} ${reached} ${unit} since you started`, detail: `${show(w.firstWeight!.kg)} → ${show(latest!.kg)} ${unit} since ${fmtDay(w.firstWeight!.date)}.`, share: { eyebrow: 'Since day one', value: `${w.goal === 'lose' ? '−' : '+'}${reached} ${unit}`, line: w.goal === 'lose' ? 'and counting' : 'of new size' } });
+    const actual = Math.floor(moved * 2) / 2; // to the half: 3.5, not the milestone's 3
+    if (reached) wins.push({ key: `weight-total:${reached}`, kind: 'weight', title: `${w.goal === 'lose' ? 'Down' : 'Up'} ${actual} ${unit} since you started`, detail: `${show(w.firstWeight!.kg)} → ${show(latest!.kg)} ${unit} since ${fmtDay(w.firstWeight!.date)}.`, share: { eyebrow: 'Since day one', value: `${w.goal === 'lose' ? '−' : '+'}${actual} ${unit}`, line: w.goal === 'lose' ? 'and counting' : 'of new size' } });
   }
   for (const g of gains.slice(0, 3)) {
     const to = r0(displayWeight(g.to / 2.20462, w.unit, 0)); const from = r0(displayWeight(g.from / 2.20462, w.unit, 0));
-    wins.push({ key: `e1rm:${g.lift.toLowerCase()}:${to}`, kind: 'strength', title: `${g.lift}: new best`, detail: `Estimated max ${from} → ${to} ${unit} (+${r0(((g.to - g.from) / g.from) * 100)}%).`, share: { eyebrow: g.lift, value: `${to} ${unit}`, line: 'new estimated max' } });
+    wins.push({ key: `e1rm:${g.lift.toLowerCase()}:${to}`, kind: 'strength', title: `New best on ${g.lift}`, detail: `Estimated max ${from} → ${to} ${unit} (+${r0(((g.to - g.from) / g.from) * 100)}%).`, share: { eyebrow: g.lift, value: `${to} ${unit}`, line: 'new estimated max' } });
   }
   if (nutrition.loggedDays >= 6) wins.push({ key: `logged:${wk}`, kind: 'nutrition', title: `Logged food ${nutrition.loggedDays} of 7 days`, detail: 'That consistency is what makes every other number here trustworthy.', share: { eyebrow: 'This week', value: `${nutrition.loggedDays}/7`, line: 'days logged' } });
   if (kcalTarget && daysOnCalories >= 5) wins.push({ key: `calories:${wk}`, kind: 'nutrition', title: `On your calorie target ${daysOnCalories} of 7 days`, detail: `Averaged ${nutrition.avgKcal} kcal against ${kcalTarget}.`, share: { eyebrow: 'This week', value: `${daysOnCalories}/7`, line: 'days on target' } });
@@ -155,8 +165,8 @@ export function buildWeekReport(w: WeekInput): WeekReport {
 
   // ── Focus for next week (at most two, most useful first) ──
   const focus: string[] = [];
-  if (daysSinceWeighIn == null || daysSinceWeighIn >= 5) focus.push(daysSinceWeighIn == null ? 'Weigh in 3 mornings this week, before breakfast, so we can see your trend.' : `Weigh in 3 mornings this week — your last weigh-in was ${daysSinceWeighIn} days ago, so we can't see the trend.`);
-  if (proteinTarget && nutrition.loggedDays >= 3 && daysProteinHit < 4) focus.push(`Protein: get to ${proteinTarget} g on 5 days (you averaged ${nutrition.avgProtein} g${nutrition.proteinTargetIsSet ? '' : ' — that target is our suggestion for your goal; Anakin can set it'}).`);
+  if (daysSinceWeighIn == null || daysSinceWeighIn >= 5) focus.push(daysSinceWeighIn == null ? 'Weigh in 3 mornings this week, before breakfast — a few numbers will show how well this is working.' : `Weigh in 3 mornings this week, before breakfast — it's been ${daysSinceWeighIn} days, and a few fresh numbers will show how well this is working.`);
+  if (proteinTarget && nutrition.loggedDays >= 3 && daysProteinHit < 4) focus.push(`Protein: aim for ${proteinTarget} g on 5 days — you averaged ${nutrition.avgProtein} g, so you're ${nutrition.avgProtein != null && nutrition.avgProtein >= proteinTarget * 0.8 ? 'most of the way there' : 'on your way'}. ${w.goal === 'lose' ? 'It’s what protects your muscle while the fat comes off.' : 'It’s what builds and repairs muscle after training.'}${nutrition.proteinTargetIsSet ? '' : ' (Our suggested target for your goal — Anakin can set it.)'}`);
   if (nutrition.loggedDays < 4) focus.push('Log food on at least 5 days — even rough logs make the numbers useful.');
   if (week.length <= 1) focus.push('Get 3 workouts in — consistency first, intensity second.');
   if (kcalTarget && w.goal === 'lose' && nutrition.avgKcal != null && nutrition.avgKcal > kcalTarget * 1.1) focus.push(`Calories averaged ${nutrition.avgKcal} against ${kcalTarget}: plan your highest-calorie meal ahead on 3 days.`);
@@ -169,7 +179,7 @@ export function buildWeekReport(w: WeekInput): WeekReport {
     const pace = w.goal !== 'lose' ? '' : pctWk > 1 ? ' That’s faster than the usual 0.5–1% a week — some is water, and it will slow.' : pctWk >= 0.25 ? ' A sustainable pace for losing fat while keeping muscle.' : '';
     analysis.push(Math.abs(changeKg) < 0.2 ? `Weight held steady this week (7-day average ${show(avgKg)} ${unit}); day-to-day water swings hide a lot, so the two-week trend matters more.` : `Your 7-day average moved ${changeKg < 0 ? 'down' : 'up'} ${show(Math.abs(changeKg))} ${unit}, to ${show(avgKg)} ${unit}.${pace}`);
   } else if (sinceStartKg != null) {
-    analysis.push(`You're ${show(Math.abs(sinceStartKg))} ${unit} ${sinceStartKg < 0 ? 'down' : 'up'} since your first weigh-in, but there weren't enough weigh-ins this week to read the weekly trend.`);
+    analysis.push(`You're ${show(Math.abs(sinceStartKg))} ${unit} ${sinceStartKg < 0 ? 'down' : 'up'} since your first weigh-in — a couple of weigh-ins next week will show the weekly trend too.`);
   }
   if (nutrition.loggedDays) analysis.push(`You ate about ${nutrition.avgKcal} kcal a day${kcalTarget ? ` against your ${kcalTarget} target` : ''}${nutrition.avgProtein != null ? `, with ${nutrition.avgProtein} g protein` : ''} across ${plural(nutrition.loggedDays, 'logged day')}.`);
   if (week.length) analysis.push(`You trained ${plural(week.length, 'time')}${gains.length ? `, and ${gains.length === 1 ? 'one lift hit' : `${gains.length} lifts hit`} a new best` : ''}.`);
