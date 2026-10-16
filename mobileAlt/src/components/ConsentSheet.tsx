@@ -90,8 +90,8 @@ export function ConsentSheet() {
 
           <Check on={health} onPress={() => setHealth((v) => !v)} label="I consent to Axiom processing my health and fitness data">
             <Text style={styles.checkText}>
-              I consent to Axiom processing my health and fitness data, including injuries and body video, to coach me.{' '}
-              <Text style={styles.link} onPress={link('/health-data')}>How we use it</Text>
+              I consent to Axiom processing my health and fitness data, including injuries and body video, to coach me. See our{' '}
+              <Text style={styles.link} onPress={link('/health-data')}>Consumer Health Data Privacy Policy</Text>.
             </Text>
           </Check>
 

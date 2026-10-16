@@ -392,6 +392,10 @@ export function AdaptationCard({
             </View>
           );
         })() : null}
+        {/* Calorie-floor note from the server (the target was held at the safety floor). */}
+        {isCalorie && ((payload as any).floorNote || (proposal as any).floorNote) ? (
+          <Text style={[styles.targetSummary, { marginTop: 4 }]}>{String((payload as any).floorNote || (proposal as any).floorNote)}</Text>
+        ) : null}
 
         {isProgram ? (() => {
           const p = payload as Extract<AdaptationPayload, { kind: 'program_from_logs' }>;

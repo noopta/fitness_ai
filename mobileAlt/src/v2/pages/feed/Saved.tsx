@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import { Pressable } from '../../primitives/Pressable';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../../lib/openExternal';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PushedPage } from '../../shell/Page';
 import { v2, T } from '../../theme';
@@ -40,7 +40,7 @@ export function SavedPage() {
       shell?.ask(`program.fitWorkout(${it.id}) — fit “${it.title}” into my program.`);
       router.replace('/(v2)' as any);
     } else if (it.kind === 'article') {
-      if (it.url) void WebBrowser.openBrowserAsync(String(it.url));
+      if (it.url) void openExternal(String(it.url));
     } else {
       router.push({ pathname: '/(v2)/p/[key]', params: { key: `post:${it.id}` } } as any);
     }

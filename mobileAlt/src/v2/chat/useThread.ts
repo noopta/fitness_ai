@@ -141,7 +141,8 @@ export function useThread() {
   }, [resume]);
 
   // The last send that failed: shown under the thread with Try again (and Go Pro for the daily limit).
-  const [failure, setFailure] = useState<{ text: string; limit: boolean } | null>(null);
+  // `pro`: the server's Pro gate refused the turn (403 pro_required) — Home opens the paywall.
+  const [failure, setFailure] = useState<{ text: string; limit: boolean; pro?: boolean } | null>(null);
 
   const send = useCallback(async (text: string) => {
     const m = text.trim();
@@ -176,6 +177,18 @@ export function useThread() {
         void resume();
         return true;
       }
+      // Coach chat is Pro-only server-side: free accounts get 403 pro_required.
+      if (err?.status === 403 && err?.code === 'pro_required') {
+        dispatch({ type: 'fail', agentId, error: 'Chat with Anakin is part of Pro.' });
+        setFailure({ text: m, limit: true, pro: true });
+        return true;
+      }
+      // The quota check couldn't run (503 limit_unavailable): the turn never ran — safe to retry.
+      if (err?.status === 503 && err?.code === 'limit_unavailable') {
+        dispatch({ type: 'fail', agentId, error: 'Anakin is busy right now. Try again in a moment.' });
+        setFailure({ text: m, limit: false });
+        return true;
+      }
       if (typeof err?.status === 'number') {
         const limit = err.status === 429;
         dispatch({ type: 'fail', agentId, error: limit ? 'That\'s today\'s limit for Anakin. Pro has no daily limit.' : (err.message || 'Anakin couldn\'t take that. Try again.') });
@@ -200,7 +213,12 @@ export function useThread() {
       } catch (err2: any) {
         // The reply may still have been saved server-side.
         const ok = await recover(agentId, m, ac.signal);
-        if (!ok) { dispatch({ type: 'fail', agentId, error: err2?.message ?? err?.message ?? 'Anakin didn\'t answer. Try again.' }); setFailure({ text: m, limit: err2?.status === 429 }); }
+        if (!ok) {
+          const pro = err2?.status === 403 && err2?.code === 'pro_required';
+          const busy = err2?.status === 503 && err2?.code === 'limit_unavailable';
+          dispatch({ type: 'fail', agentId, error: pro ? 'Chat with Anakin is part of Pro.' : busy ? 'Anakin is busy right now. Try again in a moment.' : (err2?.message ?? err?.message ?? 'Anakin didn\'t answer. Try again.') });
+          setFailure({ text: m, limit: pro || err2?.status === 429, pro });
+        }
         else gotDone = true;
       }
     }

@@ -7,7 +7,8 @@
 // Posts are separated by a #e4e4e7 hairline; 18 pt vertical padding.
 
 import React, { memo, useState } from 'react';
-import { View, Text, StyleSheet, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { openExternal } from '../../../lib/openExternal';
 import { useQuery } from '@tanstack/react-query';
 import { Pressable } from '../../primitives/Pressable';
 import { v2, T } from '../../theme';
@@ -173,7 +174,7 @@ export const ResearchItem = memo(function ResearchItem({ item, saved, onSave, on
       <Text style={styles.headline}>{item.title}</Text>
       {item.summary ? <Text style={[T.bodyMuted, { marginTop: 8 }]} numberOfLines={3}>{item.summary}</Text> : null}
       <View style={styles.actions}>
-        <Pressable onPress={() => { if (item.url) void Linking.openURL(String(item.url)); }} hitSlop={8} accessibilityRole="link"><Text style={styles.action}>Read</Text></Pressable>
+        <Pressable onPress={() => { if (item.url) void openExternal(String(item.url)); }} hitSlop={8} accessibilityRole="link"><Text style={styles.action}>Read</Text></Pressable>
         {onSave ? <Pressable onPress={() => onSave(item)} hitSlop={8}><Text style={[styles.action, saved && { color: C.ink }]}>{saved ? 'Saved' : 'Save'}</Text></Pressable> : null}
         {onSend ? <Pressable onPress={() => onSend(item)} hitSlop={8}><Text style={styles.action}>Send</Text></Pressable> : null}
       </View>

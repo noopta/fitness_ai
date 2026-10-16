@@ -25,7 +25,7 @@ import { ExercisePage } from './exercise';
 import { FullProgramPage, ProgramDayPage, ProgramReviewPage } from './program';
 import { GuidedFreestylePage, SuggestionsPage } from './freestyle';
 import { StrengthProfilePage, LiftTrendPage, PatternsPage } from './strength';
-import { manageSubscription } from '../../billing';
+import { manageSubscription, isStripeSubscriber, STORE_MANAGE_TEXT } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
@@ -403,16 +403,23 @@ function BillingPage() {
   const router = useRouter();
   const pro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const [busy, setBusy] = React.useState(false);
-  // Stripe subscribers get the portal; App Store / Google Play subscribers go straight to their store page.
+  // Only Stripe (web) subscribers get a link (the portal); App Store / Google
+  // Play subscribers get plain text — store policy, no external billing links.
+  const [stripe, setStripe] = React.useState(false);
+  React.useEffect(() => {
+    let live = true;
+    if (pro) void isStripeSubscriber().then((v) => { if (live) setStripe(v); });
+    return () => { live = false; };
+  }, [pro]);
   const portal = async () => {
     setBusy(true);
     try { await manageSubscription(); } finally { setBusy(false); }
   };
   return (
     <PushedPage back="You" title={pro ? 'Pro' : 'Free'} lead={pro ? 'Anakin, unlimited.' : 'Diagnosis is free. Pro is the coach that runs the plan with you.'}
-      cta={pro ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : { label: 'See Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) }}>
+      cta={pro ? (stripe ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : null) : { label: 'See Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) }}>
       <Row name="Plan" value={pro ? 'Pro' : 'Free'} />
-      <Row name="Payment" sub="Managed by the store" last />
+      <Row name="Payment" sub={!pro ? 'No subscription' : stripe ? 'Billed by card' : STORE_MANAGE_TEXT} last />
     </PushedPage>
   );
 }

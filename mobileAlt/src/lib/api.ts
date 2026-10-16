@@ -136,6 +136,8 @@ export async function apiFetch(
       // Machine-readable fields (e.g. /auth/set-dob → reason: 'underage').
       (error as any).body = parsed;
       if (typeof parsed?.reason === 'string') (error as any).reason = parsed.reason;
+      // e.g. coach agent → 403 code 'pro_required', 503 code 'limit_unavailable'.
+      if (typeof parsed?.code === 'string') (error as any).code = parsed.code;
       throw error;
     }
 

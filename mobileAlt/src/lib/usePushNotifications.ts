@@ -5,6 +5,7 @@ import * as Device from 'expo-device';
 import { router } from 'expo-router';
 import { authApi } from './api';
 import { emitPinsChanged } from './ttEvents';
+import { log } from './log';
 
 // Configure how notifications appear when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -82,7 +83,7 @@ export function usePushNotifications(isAuthenticated: boolean) {
     registerForPushNotifications().then(token => {
       if (token) {
         authApi.registerPushToken(token).catch(err =>
-          console.warn('[push] Failed to register token:', err)
+          log.warn('[push] Failed to register token:', err)
         );
       }
     });
@@ -91,7 +92,7 @@ export function usePushNotifications(isAuthenticated: boolean) {
     // Together pushes signal server-side pin-state changes (partner accepted,
     // schedule changed) — broadcast so mounted surfaces refetch live.
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      console.log('[push] Notification received:', notification.request.content.title);
+      log.debug('[push] Notification received:', notification.request.content.title);
       const data = notification.request.content.data as Record<string, unknown> | undefined;
       const type = String(data?.type ?? '');
       if (type.startsWith('partner_workout') || type.startsWith('train_together')) {
@@ -127,7 +128,7 @@ async function registerForPushNotifications(): Promise<string | null> {
   // Push notifications are not supported on web or simulators
   if (Platform.OS === 'web') return null;
   if (!Device.isDevice) {
-    console.log('[push] Push notifications only work on physical devices');
+    log.debug('[push] Push notifications only work on physical devices');
     return null;
   }
 
@@ -140,7 +141,7 @@ async function registerForPushNotifications(): Promise<string | null> {
   }
 
   if (finalStatus !== 'granted') {
-    console.log('[push] Push notification permission denied');
+    log.debug('[push] Push notification permission denied');
     return null;
   }
 
@@ -156,10 +157,10 @@ async function registerForPushNotifications(): Promise<string | null> {
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync();
-    console.log('[push] Expo push token registered');
+    log.debug('[push] Expo push token registered');
     return tokenData.data;
   } catch (err) {
-    console.warn('[push] Failed to get push token:', err);
+    log.warn('[push] Failed to get push token:', err);
     return null;
   }
 }
