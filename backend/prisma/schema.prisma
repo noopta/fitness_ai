@@ -1881,3 +1881,62 @@ model PtNutritionTarget {
 
   @@unique([practiceId, clientId])
 }
+
+// ─── Personal training: programming (handoff phase 2) ────────────────────────
+
+// A practice's own exercise. The built-in library lives in code
+// (exerciseLibrary.ts); these add to it or override how one is tagged.
+model PtExercise {
+  id            String    @id @default(uuid())
+  practiceId    String
+  name          String
+  // Movement patterns the rules engine reads; empty = inferred from the name.
+  patternsJson  String    @default("[]")
+  equipmentJson String    @default("[]")
+  primaryMuscle String?
+  // A link to a demo hosted elsewhere (YouTube, Vimeo, the trainer's storage).
+  videoUrl      String?
+  cues          String?
+  createdById   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  archivedAt    DateTime?
+
+  @@index([practiceId])
+}
+
+// A program the trainer builds (or Axiom drafts for them) on the builder
+// canvas. clientId null = a template. Only a published program reaches a
+// client, and publishing is refused while the rules engine finds a conflict.
+model PtProgram {
+  id               String    @id @default(uuid())
+  practiceId       String
+  clientId         String?
+  name             String
+  description      String?
+  // draft | published | archived
+  status           String    @default("draft")
+  isTemplate       Boolean   @default(false)
+  // ProgramDoc: weeks → days → blocks → items.
+  docJson          String
+  // manual | ai | template | copy
+  source           String    @default("manual")
+  // What the trainer asked Axiom for, and its per-decision notes, when source = ai.
+  aiRequestJson    String?
+  annotationsJson  String    @default("[]")
+  // `${exercise}|${contraindicationId}` warnings the trainer accepted.
+  acknowledgedJson String    @default("[]")
+  // YYYY-MM-DD the client starts week 1.
+  startDate        String?
+  version          Int       @default(1)
+  createdById      String
+  publishedAt      DateTime?
+  publishedById    String?
+  // When an app client chose to run it in the app (its saved program).
+  appliedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  @@index([practiceId, clientId, status])
+  @@index([practiceId, isTemplate])
+}

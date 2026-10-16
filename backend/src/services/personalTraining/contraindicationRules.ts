@@ -224,7 +224,13 @@ const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
  * `${exercise}|${contraindicationId}` keys the trainer accepted; acknowledging
  * only ever clears a warning, never a block.
  */
-export function validateExercises(contras: RuleInput[], exercises: string[], acknowledged: Set<string> = new Set()): ValidationResult {
+export function validateExercises(
+  contras: RuleInput[],
+  exercises: string[],
+  acknowledged: Set<string> = new Set(),
+  /** Patterns a practice tagged on its own exercises (lower-cased name). They add to what the name implies, never remove. */
+  tagged: Map<string, Pattern[]> = new Map(),
+): ValidationResult {
   const active = contras.filter((c) => c.active !== false && c.clearance !== 'cleared');
   const rules = active.map((c) => ({ c, ...patternsFor(c) }));
   const violations: Violation[] = [];
@@ -234,7 +240,7 @@ export function validateExercises(contras: RuleInput[], exercises: string[], ack
     const exercise = raw.trim();
     if (!exercise || seen.has(exercise.toLowerCase())) continue;
     seen.add(exercise.toLowerCase());
-    const patterns = exercisePatterns(exercise);
+    const patterns = [...new Set([...exercisePatterns(exercise), ...(tagged.get(exercise.toLowerCase()) ?? [])])];
     if (patterns.length === 0) { unclassified.push(exercise); continue; }
     for (const { c, block, warn } of rules) {
       const blocked = patterns.find((p) => block.has(p));

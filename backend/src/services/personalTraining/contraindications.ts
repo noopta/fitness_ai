@@ -171,8 +171,9 @@ export async function practiceContraindicationsForUser(userId: string): Promise<
 }
 
 export async function validateForClient(practiceId: string, clientId: string, exercises: string[], acknowledged?: Set<string>): Promise<ValidationResult> {
-  const contras = await contraindicationsFor(practiceId, clientId);
-  return validateExercises(contras.map(toRuleInput), exercises, acknowledged);
+  const { practicePatternOverrides } = await import('./exerciseLibrary.js');
+  const [contras, tagged] = await Promise.all([contraindicationsFor(practiceId, clientId), practicePatternOverrides(practiceId)]);
+  return validateExercises(contras.map(toRuleInput), exercises, acknowledged, tagged);
 }
 
 export async function validateProgramForClient(practiceId: string, clientId: string, program: unknown, acknowledged?: Set<string>) {

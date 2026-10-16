@@ -370,3 +370,130 @@ describe('export', () => {
     expect(toCsv([['=SUM(A1)', 'a,b', 'say "hi"']])).toBe(`'=SUM(A1),"a,b","say ""hi"""\r\n`);
   });
 });
+
+describe('program builder and the rules engine', () => {
+  const doc = (items: { name: string; load?: any }[], weeks = 1) => ({
+    weeks: Array.from({ length: weeks }, (_, w) => ({ label: `Week ${w + 1}`, days: [{ name: 'Lower', weekday: 1, blocks: [{ kind: 'single', items: items.map((i) => ({ ...i, sets: 3, reps: '5' })) }] }] })),
+  });
+
+  it('saves a draft with a conflict, shows it, and refuses to publish it', async () => {
+    const c = await request(app).post(`${api}/programs`).set('Authorization', as.trainer).send({ clientId: id.maya, name: 'Block A' });
+    expect(c.status).toBe(201);
+    const pid = c.body.program.id;
+    const u = await request(app).put(`${api}/programs/${pid}`).set('Authorization', as.trainer).send({ doc: doc([{ name: 'Back Squat', load: { type: 'percent1rm', value: 75 } }, { name: 'Romanian Deadlift' }, { name: 'Bench Press' }]) });
+    expect(u.status).toBe(200);
+    expect(u.body.program.check.publishable).toBe(false);
+    expect(u.body.program.check.guardrails.violations.map((v: any) => [v.exercise, v.level])).toEqual([['Back Squat', 'block'], ['Romanian Deadlift', 'warn']]);
+    const p = await request(app).post(`${api}/programs/${pid}/publish`).set('Authorization', as.trainer);
+    expect(p.status).toBe(409);
+    expect(p.body.check.publishable).toBe(false);
+
+    // Acknowledging can clear the warning but never the refusal.
+    const ack = await request(app).post(`${api}/programs/${pid}/acknowledge`).set('Authorization', as.trainer)
+      .send({ keys: u.body.program.check.guardrails.violations.map((v: any) => `${v.exercise}|${v.contraindicationId}`) });
+    expect(ack.body.program.check.guardrails.violations.map((v: any) => v.exercise)).toEqual(['Back Squat']);
+    expect((await request(app).post(`${api}/programs/${pid}/publish`).set('Authorization', as.trainer)).status).toBe(409);
+
+    // Swap the squat for upper work: now it publishes, the client is told, and it is audited as the trainer's decision.
+    await request(app).put(`${api}/programs/${pid}`).set('Authorization', as.trainer).send({ doc: doc([{ name: 'Romanian Deadlift' }, { name: 'Bench Press' }]) });
+    const ok = await request(app).post(`${api}/programs/${pid}/publish`).set('Authorization', as.trainer);
+    expect(ok.status).toBe(200);
+    expect(ok.body.program.status).toBe('published');
+    const a = await prisma.ptAuditLog.findFirst({ where: { action: 'program_published', itemId: pid } });
+    expect(JSON.parse(a.metaJson)).toMatchObject({ suggestedBy: 'trainer', approvedBy: id.trainer });
+    expect(await prisma.ptDraft.findFirst({ where: { kind: 'program', sourceId: pid, status: 'sending' } })).toBeTruthy();
+
+    // A live edit that the engine refuses is not saved.
+    const bad = await request(app).put(`${api}/programs/${pid}`).set('Authorization', as.trainer).send({ doc: doc([{ name: 'Box Jump' }]) });
+    expect(bad.status).toBe(409);
+    expect((await request(app).get(`${api}/programs/${pid}`).set('Authorization', as.trainer)).body.program.doc.weeks[0].days[0].blocks[0].items.map((i: any) => i.name)).toEqual(['Romanian Deadlift', 'Bench Press']);
+  });
+
+  it('flags progression jumps and structural problems', async () => {
+    const { structuralIssues, normaliseDoc } = await import('../services/personalTraining/programs.js');
+    const d = normaliseDoc({ weeks: [
+      { days: [{ name: 'A', blocks: [{ kind: 'single', items: [{ name: 'Bench Press', sets: 3, reps: '5', load: { type: 'percent1rm', value: 70 } }] }] }] },
+      { days: [{ name: 'A', blocks: [{ kind: 'amrap', items: [{ name: 'Bench Press', sets: 3, reps: '5', load: { type: 'percent1rm', value: 85 } }, { name: 'Row', sets: 3, reps: '8', load: { type: 'rpe', value: 11 } }] }] }] },
+    ] });
+    const texts = structuralIssues(d).map((i) => `${i.level}:${i.text}`);
+    expect(texts).toContain('warn:Week 2: bench press jumps 15 points of 1RM in a week');
+    expect(texts).toContain('block:Row: RPE must be between 1 and 10');
+    expect(texts.some((t) => t.includes('AMRAP block has no time cap'))).toBe(true);
+    expect(structuralIssues(normaliseDoc({ weeks: [{ days: [] }] }))[0]).toMatchObject({ level: 'block', text: 'Add at least one exercise' });
+  });
+
+  it('templates copy to clients as drafts with fresh ids', async () => {
+    const t = await request(app).post(`${api}/programs`).set('Authorization', as.trainer).send({ isTemplate: true, name: 'Upper base', doc: doc([{ name: 'Bench Press' }]) });
+    expect(t.body.program).toMatchObject({ isTemplate: true, clientId: null });
+    expect(t.body.program.check.publishable).toBe(false);
+    const cp = await request(app).post(`${api}/programs/${t.body.program.id}/copy`).set('Authorization', as.trainer).send({ clientIds: [id.maya] });
+    expect(cp.body.programs[0]).toMatchObject({ clientId: id.maya, source: 'template', status: 'draft', name: 'Upper base' });
+    expect(cp.body.programs[0].doc.weeks[0].id).not.toBe(t.body.program.doc.weeks[0].id);
+    const list = await request(app).get(`${api}/programs?templates=1`).set('Authorization', as.trainer);
+    expect(list.body.programs.map((p: any) => p.name)).toContain('Upper base');
+    expect((await request(app).post(`${api}/programs/${t.body.program.id}/publish`).set('Authorization', as.trainer)).status).toBe(409);
+  });
+
+  it('AI drafts are rewritten once, then stripped, and refusals from the brief are stated', async () => {
+    const { generateProgram } = await import('../services/personalTraining/programAi.js');
+    const calls: string[] = [];
+    const draftFn = async (_s: string, user: string) => {
+      calls.push(user);
+      return JSON.stringify({ name: 'Return to strength', rationale: 'Upper focus while the knee recovers.', weeks: [{ label: 'Week 1', days: [{ name: 'Day 1', why: 'Full body.', blocks: [{ kind: 'single', items: [
+        { name: 'Box Jump', sets: 3, reps: '5', why: 'Power' }, { name: 'Bench Press', sets: 3, reps: '8', load: { type: 'rpe', value: 7 }, why: 'Main press' },
+      ] }] }] }] });
+    };
+    const p = await generateProgram(id.practice, id.trainer, id.maya, { brief: 'Power block with box jumps and pressing', weeks: 1, daysPerWeek: 1 }, draftFn);
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toContain('TRAINER CONTRAINDICATIONS');
+    expect(calls[1]).toContain('YOUR LAST DRAFT BROKE THE HARD RULES with: Box Jump');
+    expect(p.status).toBe('draft');
+    expect(p.source).toBe('ai');
+    expect(p.doc.weeks[0].days[0].blocks[0].items.map((i) => i.name)).toEqual(['Bench Press']);
+    expect(p.annotations.some((a) => a.kind === 'removed' && a.text.includes('Box Jump'))).toBe(true);
+    expect(p.annotations.some((a) => a.kind === 'guardrail' && a.text.startsWith('Not programmed: plyometric'))).toBe(true);
+    expect(p.annotations.some((a) => a.kind === 'rationale' && a.text === 'Main press')).toBe(true);
+    expect(p.check.guardrails!.violations).toEqual([]);
+    expect(await prisma.ptAuditLog.findFirst({ where: { action: 'program_suggested', itemId: p.id } })).toBeTruthy();
+  });
+
+  it('generation fails cleanly when the model is unavailable', async () => {
+    const { generateProgram } = await import('../services/personalTraining/programAi.js');
+    await expect(generateProgram(id.practice, id.trainer, id.maya, { brief: 'Strength block please', weeks: 4, daysPerWeek: 3 }, async () => null)).rejects.toMatchObject({ status: 503 });
+    await expect(generateProgram(id.practice, id.trainer, id.maya, { brief: 'x', weeks: 4, daysPerWeek: 3 }, async () => null)).rejects.toMatchObject({ status: 400 });
+  });
+
+  it('the client sees the published program in the portal and can run it in the app', async () => {
+    const link = await request(app).post(`${api}/clients/${id.maya}/link`).set('Authorization', as.trainer);
+    const auth = `PtLink ${tokenOf(link.body.link.url)}`;
+    const r = await request(app).get(`${portal}/program`).set('Authorization', auth);
+    expect(r.body.trainerProgram).toMatchObject({ name: 'Block A', canApplyInApp: true, skip: [] });
+    const apply = await request(app).post(`${portal}/program/apply`).set('Authorization', auth);
+    expect(apply.status).toBe(200);
+    const u = await prisma.user.findUnique({ where: { id: id.maya }, select: { savedProgram: true } });
+    const saved = JSON.parse(u.savedProgram);
+    expect(saved).toMatchObject({ source: 'personal_trainer', durationWeeks: 1 });
+    expect(saved.phases[0].trainingDays[0]).toMatchObject({ day: 'Monday — Lower', focus: 'Lower' });
+    expect(saved.phases[0].trainingDays[0].exercises.map((e: any) => e.exercise)).toEqual(['Romanian Deadlift', 'Bench Press']);
+  });
+
+  it('the exercise library carries patterns; a practice tag adds to them and never removes', async () => {
+    const lib = await request(app).get(`${api}/exercises?q=squat`).set('Authorization', as.trainer);
+    expect(lib.body.exercises.find((e: any) => e.name === 'Barbell Back Squat').patterns).toContain('squat');
+    const mine = await request(app).post(`${api}/exercises`).set('Authorization', as.trainer).send({ name: 'Mystery Sled Thing', patterns: ['plyometric'], videoUrl: 'https://youtu.be/x' });
+    expect(mine.status).toBe(201);
+    const check = await request(app).post(`${api}/clients/${id.maya}/guardrails/check`).set('Authorization', as.trainer).send({ exercises: ['Mystery Sled Thing'] });
+    expect(check.body.report.violations[0]).toMatchObject({ exercise: 'Mystery Sled Thing', level: 'block' });
+    expect((await request(app).post(`${api}/exercises`).set('Authorization', as.trainer).send({ name: 'X', videoUrl: 'http://bad' })).status).toBe(400);
+  });
+});
+
+describe('app program converter', () => {
+  it('merges identical consecutive weeks into one phase and splits on change', async () => {
+    const { toAppProgram, normaliseDoc } = await import('../services/personalTraining/programs.js');
+    const wk = (v: number) => ({ days: [{ name: 'A', blocks: [{ kind: 'superset', rounds: 3, items: [{ name: 'Bench Press', sets: 3, reps: '5', load: { type: 'percent1rm', value: v } }, { name: 'Row', sets: 3, reps: '10' }] }] }] });
+    const app = toAppProgram(normaliseDoc({ weeks: [wk(70), wk(70), wk(75)] }), 'Block', 'Strength');
+    expect(app.phases.map((p: any) => [p.weeksLabel, p.durationWeeks])).toEqual([['Weeks 1-2', 2], ['Week 3', 1]]);
+    expect(app.phases[0].trainingDays[0].exercises[0]).toMatchObject({ exercise: 'Bench Press', intensity: '70% 1RM', notes: 'Superset A1 · 3 rounds' });
+  });
+});

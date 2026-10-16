@@ -25,19 +25,25 @@ import { IntakeError, getIntake, resetIntake } from '../services/personalTrainin
 import { InboxError, draftReply, listThreads, openThread } from '../services/personalTraining/inbox.js';
 import { NutritionError, nutritionSummary, setTargets } from '../services/personalTraining/nutrition.js';
 import { exportCsv, practiceExport, type CsvTable } from '../services/personalTraining/exportData.js';
+import { EQUIPMENT, LibraryError, archiveExercise, createExercise, libraryFor, searchLibrary, updateExercise } from '../services/personalTraining/exerciseLibrary.js';
+import {
+  ProgramError, acknowledge, archiveProgram, copyProgram, createProgram, listPrograms, loadOwned, publishProgram, toProgram, updateProgram,
+} from '../services/personalTraining/programs.js';
+import { generateProgram } from '../services/personalTraining/programAi.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 const trainer: RequestHandler[] = [requireAuth, requirePersonalTraining, requireTrainer];
 
 type Handler = (req: Request, res: Response) => Promise<unknown>;
-const KNOWN = [ContraindicationError, LinkError, PracticeError, RecordError, IntakeError, InboxError, NutritionError];
+const KNOWN = [ContraindicationError, LinkError, PracticeError, RecordError, IntakeError, InboxError, NutritionError, LibraryError, ProgramError];
 
 export const handle = (name: string, fn: Handler): RequestHandler => async (req, res) => {
   try {
     await fn(req, res);
   } catch (err: any) {
     if (KNOWN.some((E) => err instanceof E)) {
-      if (!res.headersSent) res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) });
+      if (!res.headersSent) res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}), ...(err.check ? { check: err.check } : {}) });
       return;
     }
     console.error(`[personal-training] ${name}`, err);
@@ -247,6 +253,70 @@ router.get('/inbox/:clientId', ...trainer, handle('GET inbox thread', async (req
 // A drafted reply to the client's latest message. Sent only through POST /drafts/:id/send.
 router.post('/inbox/:clientId/draft', ...trainer, socialWriteLimiter, handle('POST inbox draft', async (req, res) => {
   res.status(201).json({ draft: await draftReply(req.practice!.id, req.user!.id, req.params.clientId) });
+}));
+
+// ─── Exercise library ────────────────────────────────────────────────────────
+
+router.get('/exercises', ...trainer, handle('GET exercises', async (req, res) => {
+  const all = await libraryFor(req.practice!.id);
+  const q = { text: typeof req.query.q === 'string' ? req.query.q : undefined, pattern: typeof req.query.pattern === 'string' ? req.query.pattern : undefined, equipment: typeof req.query.equipment === 'string' ? req.query.equipment : undefined };
+  res.json({ exercises: searchLibrary(all, q).slice(0, 400), equipment: EQUIPMENT });
+}));
+
+router.post('/exercises', ...trainer, socialWriteLimiter, handle('POST exercise', async (req, res) => {
+  res.status(201).json({ exercise: await createExercise(req.practice!.id, req.user!.id, req.body ?? {}) });
+}));
+
+router.patch('/exercises/:eid', ...trainer, socialWriteLimiter, handle('PATCH exercise', async (req, res) => {
+  res.json({ exercise: await updateExercise(req.practice!.id, req.user!.id, req.params.eid, req.body ?? {}) });
+}));
+
+router.delete('/exercises/:eid', ...trainer, handle('DELETE exercise', async (req, res) => {
+  await archiveExercise(req.practice!.id, req.user!.id, req.params.eid);
+  res.json({ ok: true });
+}));
+
+// ─── Programs ────────────────────────────────────────────────────────────────
+
+router.get('/programs', ...trainer, handle('GET programs', async (req, res) => {
+  const clientId = typeof req.query.clientId === 'string' ? req.query.clientId : undefined;
+  res.json({ programs: await listPrograms(req.practice!.id, { clientId, templates: req.query.templates === '1' }) });
+}));
+
+router.post('/programs', ...trainer, socialWriteLimiter, handle('POST program', async (req, res) => {
+  res.status(201).json({ program: await createProgram(req.practice!.id, req.user!.id, req.body ?? {}) });
+}));
+
+// The model drafts; the rules engine checks; the result is a draft on the canvas.
+router.post('/programs/generate', ...trainer, aiLimiter, handle('POST program generate', async (req, res) => {
+  const clientId = typeof req.body?.clientId === 'string' ? req.body.clientId : '';
+  if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+  res.status(201).json({ program: await generateProgram(req.practice!.id, req.user!.id, clientId, req.body) });
+}));
+
+router.get('/programs/:pid', ...trainer, handle('GET program', async (req, res) => {
+  res.json({ program: await toProgram(await loadOwned(req.practice!.id, req.params.pid)) });
+}));
+
+router.put('/programs/:pid', ...trainer, socialWriteLimiter, handle('PUT program', async (req, res) => {
+  res.json({ program: await updateProgram(req.practice!.id, req.user!.id, req.params.pid, req.body ?? {}) });
+}));
+
+router.post('/programs/:pid/acknowledge', ...trainer, socialWriteLimiter, handle('POST acknowledge', async (req, res) => {
+  res.json({ program: await acknowledge(req.practice!.id, req.user!.id, req.params.pid, req.body?.keys) });
+}));
+
+router.post('/programs/:pid/publish', ...trainer, socialWriteLimiter, handle('POST publish', async (req, res) => {
+  res.json({ program: await publishProgram(req.practice!.id, req.user!.id, req.params.pid) });
+}));
+
+router.post('/programs/:pid/copy', ...trainer, socialWriteLimiter, handle('POST copy', async (req, res) => {
+  res.status(201).json({ programs: await copyProgram(req.practice!.id, req.user!.id, req.params.pid, req.body ?? {}) });
+}));
+
+router.delete('/programs/:pid', ...trainer, handle('DELETE program', async (req, res) => {
+  await archiveProgram(req.practice!.id, req.user!.id, req.params.pid);
+  res.json({ ok: true });
 }));
 
 // ─── Export ──────────────────────────────────────────────────────────────────

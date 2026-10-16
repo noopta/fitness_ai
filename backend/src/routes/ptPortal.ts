@@ -10,6 +10,7 @@
 
 import { Router, type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 import { rateLimit } from '../middleware/rateLimiter.js';
+import { blobStoreEnabled } from '../services/blobStore.js';
 import { moderateText } from '../services/moderationService.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import { transcribeAudio } from '../services/llmService.js';
@@ -20,7 +21,8 @@ import { buildProgramView } from '../services/personalTraining/dossier.js';
 import { resolveToken, type LinkSession } from '../services/personalTraining/links.js';
 import { brandingFor } from '../services/personalTraining/practice.js';
 import { RecordError, addMeasurement, addPhoto, deletePhoto, listGoals, listMeasurements, listPhotos } from '../services/personalTraining/records.js';
-import type { PortalHome, PortalMessage } from '../services/personalTraining/types.js';
+import type { PortalHome, PortalMessage, PortalProgram } from '../services/personalTraining/types.js';
+import { publishedFor, toAppProgram, toProgram } from '../services/personalTraining/programs.js';
 import { IntakeError, answerIntake, getIntake, startIntake } from '../services/personalTraining/intake.js';
 import { NutritionError, logMealFromPortal, nutritionSummary } from '../services/personalTraining/nutrition.js';
 
@@ -115,6 +117,7 @@ router.get('/home', handle('GET home', async (_req, res, s) => {
     unreadMessages: unread,
     hasProgram: !!user?.savedProgram,
     intake: intake ? { status: intake.status as 'in_progress' | 'complete', completeness: intake.completeness } : null,
+    photosEnabled: blobStoreEnabled(),
     reports: reports.map((r) => ({ id: r.id, month: r.month, title: `Your ${r.month} report`, sentAt: (r.sentAt ?? new Date()).toISOString() })),
   };
   res.json(body);
@@ -123,6 +126,9 @@ router.get('/home', handle('GET home', async (_req, res, s) => {
 // ─── Check-ins ───────────────────────────────────────────────────────────────
 
 router.get('/check-ins/:id', handle('GET check-in', async (req, res, s) => {
+  // A client of two practices: this link opens only this practice's check-ins.
+  const row = await prisma.ptCheckIn.findUnique({ where: { id: req.params.id }, select: { practiceId: true } });
+  if (!row || row.practiceId !== s.practiceId) throw new CheckInError('Check-in not found', 404);
   res.json(await getRequest(req.params.id, s.clientId));
 }));
 
@@ -206,8 +212,37 @@ router.post('/messages', writeLimiter, handle('POST message', async (req, res, s
 // ─── Program and reports ─────────────────────────────────────────────────────
 
 router.get('/program', handle('GET program', async (_req, res, s) => {
-  const user = await prisma.user.findUnique({ where: { id: s.clientId }, select: { savedProgram: true, programStartDate: true, coachGoal: true } });
-  res.json({ program: user ? buildProgramView(user, [], await clientPref(s.clientId), new Date()) : null });
+  const [user, published, profile] = await Promise.all([
+    prisma.user.findUnique({ where: { id: s.clientId }, select: { savedProgram: true, programStartDate: true, coachGoal: true } }),
+    publishedFor(s.practiceId, s.clientId),
+    prisma.ptClientProfile.findUnique({ where: { practiceId_clientId: { practiceId: s.practiceId, clientId: s.clientId } }, select: { channel: true } }),
+  ]);
+  let trainerProgram: PortalProgram | null = null;
+  if (published) {
+    const p = await toProgram(published);
+    // Anything a contraindication refuses since it was published is marked for the client to skip.
+    const refused = new Set(p.check.guardrails?.violations.filter((v) => v.level === 'block').map((v) => v.exercise.toLowerCase()) ?? []);
+    trainerProgram = {
+      id: p.id, name: p.name, description: p.description, startDate: p.startDate, version: p.version, doc: p.doc,
+      skip: [...refused], canApplyInApp: profile?.channel !== 'webLink', appliedAt: p.appliedAt ?? null,
+    };
+  }
+  res.json({ trainerProgram, program: user ? buildProgramView(user, [], await clientPref(s.clientId), new Date()) : null });
+}));
+
+// An app client chooses to run their trainer's program in the Axiom app. Checked again first.
+router.post('/program/apply', writeLimiter, handle('POST program apply', async (_req, res, s) => {
+  const profile = await prisma.ptClientProfile.findUnique({ where: { practiceId_clientId: { practiceId: s.practiceId, clientId: s.clientId } }, select: { channel: true } });
+  if (profile?.channel === 'webLink') return res.status(409).json({ error: 'Your program lives on this page' });
+  const published = await publishedFor(s.practiceId, s.clientId);
+  if (!published) return res.status(404).json({ error: 'No program to apply' });
+  const p = await toProgram(published);
+  if (!p.check.publishable) return res.status(409).json({ error: 'Your trainer needs to update this program first' });
+  const { saveProgramForUser } = await import('./coach.js');
+  await saveProgramForUser(s.clientId, toAppProgram(p.doc, p.name, p.description));
+  await prisma.ptProgram.update({ where: { id: p.id }, data: { appliedAt: new Date() } });
+  await prisma.ptAuditLog.create({ data: { practiceId: s.practiceId, trainerId: published.publishedById ?? published.createdById, clientId: s.clientId, action: 'program_applied_by_client', itemType: 'program', itemId: p.id } });
+  res.json({ ok: true });
 }));
 
 router.get('/reports/:id', handle('GET report', async (req, res, s) => {

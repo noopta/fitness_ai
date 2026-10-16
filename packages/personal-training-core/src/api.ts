@@ -6,7 +6,8 @@ import type {
   AnakinFilter, AnakinMessage, AnakinScope, AnakinThreadSummary, BriefingItem, BriefingResponse, CheckInInbox, CheckInRequest,
   CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, ImportPreview, ImportSummary, ImportUpload, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
   NotificationSettingsPatch, Practice, ProgressResponse, Report, ResolveAction, RosterResponse, ScheduledQuestion, TimelineKind,
-  SheetMapping, TimelinePage,
+  SheetMapping, TimelinePage, ClientGoal, ClientLinkInfo, Contraindication, CreateLinkClientResponse, GuardrailReport, Measurement,
+  MeasurementKind, PracticeProfile, ProgressPhoto, TagCount, ClientState,
 } from './types';
 
 export const API_PREFIX = '/personal-training';
@@ -48,7 +49,54 @@ export const queryKeys = {
   imports: ['personal-training', 'imports'] as const,
   notifications: ['personal-training', 'notifications'] as const,
   notificationSettings: ['personal-training', 'notification-settings'] as const,
+  practiceProfile: ['personal-training', 'practice', 'profile'] as const,
+  tags: ['personal-training', 'tags'] as const,
+  link: (id: string) => ['personal-training', 'clients', id, 'link'] as const,
+  contraindications: (id: string) => ['personal-training', 'clients', id, 'contraindications'] as const,
+  contraindicationMeta: ['personal-training', 'contraindications', 'meta'] as const,
+  goals: (id: string) => ['personal-training', 'clients', id, 'goals'] as const,
+  measurements: (id: string) => ['personal-training', 'clients', id, 'measurements'] as const,
+  photos: (id: string) => ['personal-training', 'clients', id, 'photos'] as const,
 };
+
+/** One body part the editor offers, with the movement patterns it refuses by default. */
+export interface BodyPartMeta { key: string; label: string; primary: string[]; secondary: string[] }
+
+export interface ClientPatch {
+  name?: string;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  tags?: string[];
+  state?: ClientState;
+  pausedUntil?: string | null;
+  stateReason?: string | null;
+}
+
+export interface ContraindicationInput {
+  bodyPart?: string;
+  side?: 'left' | 'right' | 'both' | null;
+  condition?: string;
+  severity?: 'mild' | 'moderate' | 'severe';
+  source?: Contraindication['source'];
+  onsetDate?: string | null;
+  clearance?: 'not_cleared' | 'modified' | 'cleared';
+  extraBlocks?: string[];
+  allow?: string[];
+  notes?: string | null;
+  /** Confirm one read from the client's own words (its `inferred:` id). */
+  fromInferred?: string;
+}
+
+export interface GoalInput {
+  metric?: string;
+  label?: string;
+  baseline?: number | null;
+  target?: number | null;
+  unit?: string;
+  direction?: 'up' | 'down' | 'hold';
+  deadline?: string | null;
+  status?: 'active' | 'achieved' | 'dropped';
+}
 
 /** Streamed endpoints: the platform opens these itself and feeds chunks to createEventParser. */
 export const BRIEFING_STREAM_PATH = `${API_PREFIX}/briefing/today/stream`;
@@ -174,6 +222,52 @@ export function createApi(fetcher: Fetcher) {
     notificationSettings: () => fetcher(`${API_PREFIX}/notification-settings`) as Promise<NotificationSettings>,
     saveNotificationSettings: (patch: NotificationSettingsPatch) =>
       fetcher(`${API_PREFIX}/notification-settings`, { method: 'PUT', body: JSON.stringify(patch) }) as Promise<NotificationSettings>,
+
+    // ── Coach platform: practice, link clients, dossier records ──
+    practiceProfile: () => fetcher(`${API_PREFIX}/practice/profile`) as Promise<{ profile: PracticeProfile }>,
+    savePracticeProfile: (patch: Partial<Omit<PracticeProfile, 'logoUrl'>> & { name?: string }) =>
+      fetcher(`${API_PREFIX}/practice/profile`, { method: 'PUT', body: JSON.stringify(patch) }) as Promise<{ profile: PracticeProfile }>,
+    uploadLogo: (imageBase64: string) =>
+      fetcher(`${API_PREFIX}/practice/logo`, { method: 'POST', body: JSON.stringify({ imageBase64 }) }) as Promise<{ profile: PracticeProfile }>,
+    tags: () => fetcher(`${API_PREFIX}/tags`) as Promise<{ tags: TagCount[] }>,
+    /** Add a client who will use a web link instead of the app. */
+    createLinkClient: (input: { name: string; email?: string; phone?: string; tags?: string[] }) =>
+      fetcher(`${API_PREFIX}/clients`, { method: 'POST', body: JSON.stringify(input) }) as Promise<CreateLinkClientResponse>,
+    patchClient: (id: string, patch: ClientPatch) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) }) as Promise<{ client: Client }>,
+    link: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/link`) as Promise<{ link: ClientLinkInfo | null }>,
+    /** A fresh link; any earlier one stops working. For a "Not joined" client this makes them a link client. */
+    issueLink: (id: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/link`, { method: 'POST' }) as Promise<{ link: ClientLinkInfo; client?: Client }>,
+    revokeLink: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/link`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+
+    contraindicationMeta: () => fetcher(`${API_PREFIX}/contraindications/meta`) as Promise<{ bodyParts: BodyPartMeta[]; patterns: string[] }>,
+    contraindications: (id: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/contraindications`) as Promise<{ contraindications: Contraindication[] }>,
+    addContraindication: (id: string, input: ContraindicationInput) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/contraindications`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ contraindication: Contraindication }>,
+    updateContraindication: (id: string, cid: string, input: ContraindicationInput) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/contraindications/${encodeURIComponent(cid)}`, { method: 'PATCH', body: JSON.stringify(input) }) as Promise<{ contraindication: Contraindication }>,
+    archiveContraindication: (id: string, cid: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/contraindications/${encodeURIComponent(cid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    checkGuardrails: (id: string, exercises: string[]) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/guardrails/check`, { method: 'POST', body: JSON.stringify({ exercises }) }) as Promise<{ report: GuardrailReport }>,
+
+    goals: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/goals`) as Promise<{ goals: ClientGoal[] }>,
+    addGoal: (id: string, input: GoalInput) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/goals`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ goal: ClientGoal }>,
+    updateGoal: (id: string, gid: string, input: GoalInput) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/goals/${encodeURIComponent(gid)}`, { method: 'PATCH', body: JSON.stringify(input) }) as Promise<{ goal: ClientGoal }>,
+    measurements: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/measurements`) as Promise<{ measurements: Measurement[] }>,
+    addMeasurement: (id: string, input: { kind: MeasurementKind; value: number; unit: string; date?: string; label?: string }) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/measurements`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ measurements: Measurement[] }>,
+    deleteMeasurement: (id: string, mid: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/measurements/${encodeURIComponent(mid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    photos: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/photos`) as Promise<{ photos: ProgressPhoto[] }>,
+    addPhoto: (id: string, input: { imageBase64: string; pose?: ProgressPhoto['pose']; date?: string; note?: string }) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/photos`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ photos: ProgressPhoto[] }>,
+    deletePhoto: (id: string, pid: string) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/photos/${encodeURIComponent(pid)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
   };
 }
 

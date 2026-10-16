@@ -179,7 +179,6 @@ const LARGE_BODY_PATHS = [
   // A no-install client's progress photos and voice check-ins.
   '/api/pt-portal/photos',
   '/api/pt-portal/transcribe',
-  '/api/pt-portal/intake/voice',
 ];
 // Paths with an id in the middle (a trainer uploading a client's progress photo).
 const LARGE_BODY_PATTERNS = [/^\/api\/personal-training\/clients\/[^/]+\/photos$/];

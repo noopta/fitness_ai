@@ -719,6 +719,8 @@ export interface PortalHome {
   unreadMessages: number;
   hasProgram: boolean;
   intake: { status: 'not_started' | 'in_progress' | 'complete'; completeness: number } | null;
+  /** False when the server has no photo storage: the portal says so before anyone picks a photo. */
+  photosEnabled: boolean;
   reports: { id: string; month: string; title: string; sentAt: string }[];
 }
 
@@ -810,4 +812,147 @@ export interface InboxConversation {
   client: ClientRef & { status: ClientStatus; channel: Channel };
   context: InboxContext;
   messages: { id: string; body: string; at: string; fromClient: boolean }[];
+}
+
+// ─── Exercise library and program builder (phase 2) ─────────────────────────
+
+export interface LibraryExercise {
+  /** A PtExercise id, or `builtin:<key>` for Axiom's own. */
+  id: string;
+  name: string;
+  builtIn: boolean;
+  /** What the rules engine reads. */
+  patterns: string[];
+  equipment: string[];
+  primaryMuscle: string | null;
+  videoUrl: string | null;
+  cues: string | null;
+}
+
+export type LoadType = 'percent1rm' | 'rpe' | 'rir' | 'kg' | 'lb' | 'bodyweight' | 'none';
+export type BlockKind = 'single' | 'superset' | 'circuit' | 'amrap' | 'emom';
+
+export interface ProgramItem {
+  id: string;
+  exerciseId?: string;
+  name: string;
+  sets: number;
+  /** "5", "8-10", "AMRAP", "30s". */
+  reps: string;
+  load?: { type: LoadType; value?: number };
+  restSec?: number;
+  tempo?: string;
+  notes?: string;
+}
+
+export interface ProgramBlock {
+  id: string;
+  kind: BlockKind;
+  /** Circuits and supersets: rounds through the items. */
+  rounds?: number;
+  /** AMRAP / EMOM: minutes. */
+  timeCapMin?: number;
+  items: ProgramItem[];
+}
+
+export interface ProgramDayDoc {
+  id: string;
+  name: string;
+  /** 0 = Sunday … 6 = Saturday; null when unscheduled. */
+  weekday?: number | null;
+  notes?: string;
+  blocks: ProgramBlock[];
+}
+
+export interface ProgramWeekDoc {
+  id: string;
+  label?: string;
+  days: ProgramDayDoc[];
+}
+
+export interface ProgramDoc {
+  weeks: ProgramWeekDoc[];
+}
+
+/** Why Axiom made a decision on the canvas, or what a guardrail did. */
+export interface ProgramAnnotation {
+  /** An item, day or week id, or 'program'. */
+  target: string;
+  kind: 'rationale' | 'guardrail' | 'removed';
+  text: string;
+}
+
+export interface ProgramIssue {
+  level: 'block' | 'warn';
+  /** An item, day or week id, or 'program'. */
+  where: string;
+  text: string;
+}
+
+export interface ProgramCheck {
+  guardrails: GuardrailReport | null;
+  issues: ProgramIssue[];
+  /** No refusals, no unaccepted warnings, and a client to publish to. */
+  publishable: boolean;
+}
+
+export interface ProgramAiRequest {
+  brief: string;
+  weeks: number;
+  daysPerWeek: number;
+  sessionMinutes?: number;
+  equipment?: string[];
+  focus?: string;
+  experience?: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export interface TrainerProgram {
+  id: string;
+  clientId: string | null;
+  name: string;
+  description: string;
+  status: 'draft' | 'published' | 'archived';
+  isTemplate: boolean;
+  doc: ProgramDoc;
+  source: 'manual' | 'ai' | 'template' | 'copy';
+  annotations: ProgramAnnotation[];
+  /** `${exercise lower-cased}|${contraindicationId}` warnings the trainer accepted. */
+  acknowledged: string[];
+  startDate: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  appliedAt?: string;
+  aiRequest?: ProgramAiRequest;
+  check: ProgramCheck;
+}
+
+export interface ProgramSummary {
+  id: string;
+  clientId: string | null;
+  clientName?: string;
+  name: string;
+  status: TrainerProgram['status'];
+  isTemplate: boolean;
+  weeks: number;
+  daysPerWeek: number;
+  source: TrainerProgram['source'];
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+/** A published trainer program as the client sees it in the portal. */
+export interface PortalProgram {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string | null;
+  version: number;
+  doc: ProgramDoc;
+  /** Lower-cased exercise names a contraindication now refuses: shown as "skip until your trainer updates this". */
+  skip: string[];
+  /** App clients can run it in the Axiom app; link clients follow it here. */
+  canApplyInApp: boolean;
+  appliedAt: string | null;
 }
