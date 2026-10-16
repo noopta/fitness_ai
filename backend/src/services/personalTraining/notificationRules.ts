@@ -24,6 +24,7 @@ export const EVENT_TYPES: EventTypeDef[] = [
   { type: 'checkInSubmitted', label: 'Check-in submitted', group: 'Client activity', defaultTier: 'briefing' },
   { type: 'bodyweightLogged', label: 'Bodyweight logged', group: 'Client activity', defaultTier: 'timeline' },
   { type: 'pr', label: 'New PR', group: 'Client activity', defaultTier: 'briefing' },
+  { type: 'paymentFailed', label: 'Payment failed', group: 'Client activity', defaultTier: 'immediate' },
   { type: 'plateau', label: 'Plateau', group: 'Insights', defaultTier: 'briefing' },
   { type: 'recoveryTrend', label: 'Recovery trend', group: 'Insights', defaultTier: 'briefing' },
   { type: 'anakinSuggestion', label: 'Axiom suggestion waiting', group: 'Insights', defaultTier: 'briefing' },

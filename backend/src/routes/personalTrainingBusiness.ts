@@ -14,6 +14,8 @@ import {
 import { prisma } from '../services/personalTraining/db.js';
 import { issueLink, currentLink } from '../services/personalTraining/links.js';
 import { loadClients } from '../services/personalTraining/roster.js';
+import { atRisk, draftOutreach } from '../services/personalTraining/retention.js';
+import { TeamError, acceptCoachInvite, assignClient, inviteCoach, removeCoach, team, teamAnalytics } from '../services/personalTraining/team.js';
 import { ScheduleError, book, cancel, getAvailability, listBookings, markSession, openSlots, setAvailability } from '../services/personalTraining/scheduling.js';
 
 const router = Router();
@@ -24,7 +26,7 @@ const handle = (name: string, fn: Handler): RequestHandler => async (req, res) =
   try {
     await fn(req, res);
   } catch (err: any) {
-    if (err instanceof BillingError || err instanceof ScheduleError) return void (res.headersSent || res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) }));
+    if (err instanceof BillingError || err instanceof ScheduleError || err instanceof TeamError) return void (res.headersSent || res.status(err.status).json({ error: err.message, ...(err.code ? { code: err.code } : {}) }));
     console.error(`[personal-training] ${name}`, err);
     if (!res.headersSent) res.status(500).json({ error: 'Internal server error' });
   }
@@ -133,6 +135,47 @@ router.patch('/schedule/bookings/:bid', ...trainer, handle('PATCH booking', asyn
 
 router.get('/schedule/slots', ...trainer, handle('GET slots', async (req, res) => {
   res.json({ slots: await openSlots(req.practice!.id, { days: Number(req.query.days) || 14 }) });
+}));
+
+// ─── Retention ───────────────────────────────────────────────────────────────
+
+router.get('/retention', ...trainer, handle('GET retention', async (req, res) => {
+  res.json({ clients: await atRisk(req.practice!.id, req.user!.id) });
+}));
+
+router.post('/retention/:clientId/draft', ...trainer, socialWriteLimiter, handle('POST retention draft', async (req, res) => {
+  const c = await clientOf(req, req.params.clientId);
+  res.status(201).json({ draft: await draftOutreach(req.practice!.id, req.user!.id, c.id) });
+}));
+
+// ─── Team (multi-coach practices) ────────────────────────────────────────────
+
+router.get('/team', ...trainer, handle('GET team', async (req, res) => {
+  res.json({ members: await team(req.practice!.id) });
+}));
+
+router.post('/team/invite', ...trainer, socialWriteLimiter, handle('POST team invite', async (req, res) => {
+  res.status(201).json(await inviteCoach(req.practice!.id, req.user!.id, req.body?.email));
+}));
+
+// The co-trainer accepting: signed in, but not yet a coach of this practice.
+router.post('/team/invites/:token/accept', requireAuth, socialWriteLimiter, handle('POST team accept', async (req, res) => {
+  res.json(await acceptCoachInvite(req.params.token, req.user!));
+}));
+
+router.delete('/team/:userId', ...trainer, handle('DELETE team member', async (req, res) => {
+  await removeCoach(req.practice!.id, req.user!.id, req.params.userId);
+  res.json({ ok: true });
+}));
+
+router.get('/team/analytics', ...trainer, handle('GET team analytics', async (req, res) => {
+  res.json(await teamAnalytics(req.practice!.id, req.user!.id));
+}));
+
+router.put('/clients/:id/assignment', ...trainer, handle('PUT assignment', async (req, res) => {
+  const c = await clientOf(req, req.params.id);
+  await assignClient(req.practice!.id, req.user!.id, c.id, req.body?.trainerId ?? null);
+  res.json({ ok: true });
 }));
 
 export default router;

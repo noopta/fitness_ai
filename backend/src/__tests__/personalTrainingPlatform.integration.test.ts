@@ -566,7 +566,7 @@ describe('billing on the trainer\'s Stripe account (0% platform fee)', () => {
     await handleConnectEvent(failed);
     const reminders = await prisma.message.findMany({ where: { body: { contains: 'https://pay.stripe.test/in_2' } } });
     expect(reminders).toHaveLength(1);
-    expect(await prisma.ptNotification.count({ where: { eventType: 'payment_failed' } })).toBe(1);
+    expect(await prisma.ptNotification.count({ where: { eventType: 'paymentFailed' } })).toBe(1);
     await handleConnectEvent({ id: 'e5', type: 'customer.subscription.updated', account: 'acct_1', data: { object: { id: 'sub_1', status: 'past_due' } } });
 
     const rev = await request(app).get(`${api}/billing/revenue`).set('Authorization', as.trainer);
@@ -643,5 +643,57 @@ describe('scheduling', () => {
     expect(await sendReminders()).toBe(1);
     expect(await sendReminders()).toBe(0);
     expect(await prisma.ptAuditLog.count({ where: { action: 'booking_reminder' } })).toBe(1);
+  });
+});
+
+describe('retention (care language, rules only)', () => {
+  it('scores signals into a risk with reasons and a gentle intervention', async () => {
+    const { scoreRisk } = await import('../services/personalTraining/retention.js');
+    const quiet = scoreRisk({ daysSinceSession: 2, daysSinceJoined: 60, engagementNow: 7, engagementBefore: 7, missedCheckIns: 0, daysSinceClientMessage: 3, paymentFailing: false, planEndingSoon: false });
+    expect(quiet.risk).toBe(0);
+    const drifting = scoreRisk({ daysSinceSession: 15, daysSinceJoined: 60, engagementNow: 2, engagementBefore: 7, missedCheckIns: 2, daysSinceClientMessage: 30, paymentFailing: false, planEndingSoon: false });
+    expect(drifting.risk).toBeGreaterThanOrEqual(50);
+    expect(drifting.reasons).toContain("Hasn't logged a session in 15 days");
+    expect(drifting.intervention.kind).toBe('call');
+    for (const r of drifting.reasons) expect(r).not.toMatch(/track|monitor|flag|score/i);
+    expect(scoreRisk({ daysSinceSession: 1, daysSinceJoined: 60, engagementNow: 7, engagementBefore: 7, missedCheckIns: 0, daysSinceClientMessage: null, paymentFailing: true, planEndingSoon: false }).intervention.kind).toBe('billing');
+  });
+
+  it('lists at-risk clients and drafts outreach without sending it', async () => {
+    const r = await request(app).get(`${api}/retention`).set('Authorization', as.trainer);
+    expect(r.status).toBe(200);
+    expect(r.body.clients.length).toBeGreaterThan(0);
+    const top = r.body.clients[0];
+    expect(top.reasons.length).toBeGreaterThan(0);
+    const before = await prisma.message.count();
+    const d = await request(app).post(`${api}/retention/${top.clientId}/draft`).set('Authorization', as.trainer);
+    expect(d.status).toBe(201);
+    expect(d.body.draft.status).toBe('pending');
+    expect(await prisma.message.count()).toBe(before);
+  });
+});
+
+describe('multi-coach team', () => {
+  it('the owner invites a co-trainer bound to their email; they join, get clients assigned, and the owner sees analytics', async () => {
+    const inv = await request(app).post(`${api}/team/invite`).set('Authorization', as.trainer).send({ email: 'other@example.com' });
+    expect(inv.status).toBe(201);
+    const token = inv.body.link.split('/').pop();
+    // Someone else holding the link cannot claim it.
+    expect((await request(app).post(`${api}/team/invites/${token}/accept`).set('Authorization', as.maya)).status).toBe(403);
+    const ok = await request(app).post(`${api}/team/invites/${token}/accept`).set('Authorization', as.other);
+    expect(ok.status).toBe(200);
+    const t = await request(app).get(`${api}/team?practice=pt-kofi`).set('Authorization', as.trainer);
+    expect(t.body.members.map((m: any) => [m.name, m.role])).toEqual([['Kofi Mensah', 'owner'], ['Other Trainer', 'coach']]);
+    expect((await request(app).post(`${api}/team/invite?practice=pt-kofi`).set('Authorization', as.other).send({ email: 'x@y.z' })).status).toBe(403);
+
+    expect((await request(app).put(`${api}/clients/${id.maya}/assignment`).set('Authorization', as.trainer).send({ trainerId: id.other })).status).toBe(200);
+    const mine = await request(app).get(`${api}/clients?mine=1&practice=pt-kofi`).set('Authorization', as.other);
+    expect(mine.body.clients.map((c: any) => c.id)).toEqual([id.maya]);
+    const a = await request(app).get(`${api}/team/analytics`).set('Authorization', as.trainer);
+    expect(a.body.trainers.find((x: any) => x.userId === id.other).clients).toBe(1);
+    expect((await request(app).get(`${api}/team/analytics?practice=pt-kofi`).set('Authorization', as.other)).status).toBe(403);
+    expect((await request(app).delete(`${api}/team/${id.other}`).set('Authorization', as.trainer)).status).toBe(200);
+    const p = await prisma.ptClientProfile.findUnique({ where: { practiceId_clientId: { practiceId: id.practice, clientId: id.maya } } });
+    expect(p.assignedTrainerId).toBeNull();
   });
 });

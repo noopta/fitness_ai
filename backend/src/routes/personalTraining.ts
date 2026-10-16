@@ -168,6 +168,8 @@ router.get('/clients', ...trainer, async (req, res) => {
     // Counts describe the searched roster before the status chip narrows it,
     // so every chip keeps showing how many it would reveal.
     const counts = countStatuses(clients);
+    // Multi-coach practices: "mine" is the clients assigned to this trainer.
+    if (req.query.mine === '1') clients = clients.filter((c) => c.assignedTrainerId === req.user!.id);
     const status = STATUSES.find((s) => s === req.query.status);
     if (status) clients = clients.filter((c) => c.status === status);
 

@@ -72,6 +72,8 @@ export interface Client {
   state?: ClientState;
   /** When a pause ends by itself. */
   pausedUntil?: string | null;
+  /** Multi-coach practices: who this client is assigned to; null = the whole practice. */
+  assignedTrainerId?: string | null;
   contactEmail?: string | null;
   contactPhone?: string | null;
 }
@@ -1068,4 +1070,41 @@ export interface BookingView {
   usedCredit: boolean;
   location: string | null;
   notes: string | null;
+}
+
+// ─── Retention and multi-coach teams ────────────────────────────────────────
+
+export interface RetentionRow {
+  clientId: string;
+  client: ClientRef;
+  /** 0–100, rules over data. */
+  risk: number;
+  level: 'low' | 'medium' | 'high';
+  /** Written as what the trainer could help with, never as a verdict on the client. */
+  reasons: string[];
+  intervention: { kind: 'check_in' | 'lighten' | 'call' | 'billing'; text: string };
+  engagement8w: number[];
+}
+
+export interface TeamMember {
+  userId: string;
+  name: string;
+  email: string | null;
+  role: 'owner' | 'coach';
+  assignedClients: number;
+  joinedAt: string;
+}
+
+export interface TeamAnalytics {
+  trainers: {
+    userId: string;
+    name: string;
+    role: 'owner' | 'coach';
+    clients: number;
+    needsSupport: number;
+    highRisk: number;
+    avgEngagement: number | null;
+    sessionsNext7d: number;
+    mrrCents: number;
+  }[];
 }

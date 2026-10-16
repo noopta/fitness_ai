@@ -15,9 +15,10 @@ export interface ProfileView {
   stateReason: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  assignedTrainerId: string | null;
 }
 
-const DEFAULT_VIEW: ProfileView = { channel: 'app', tags: [], state: 'active', pausedUntil: null, stateReason: null, contactEmail: null, contactPhone: null };
+const DEFAULT_VIEW: ProfileView = { channel: 'app', tags: [], state: 'active', pausedUntil: null, stateReason: null, contactEmail: null, contactPhone: null, assignedTrainerId: null };
 
 const parseTags = (raw: string) => {
   try {
@@ -42,6 +43,7 @@ export function viewOf(row: Row | null | undefined, now: Date = new Date()): Pro
     stateReason: expired ? null : row.stateReason,
     contactEmail: row.contactEmail,
     contactPhone: row.contactPhone,
+    assignedTrainerId: row.assignedTrainerId ?? null,
   };
 }
 

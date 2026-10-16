@@ -10,6 +10,7 @@ import type {
   MeasurementKind, PracticeProfile, ProgressPhoto, TagCount, ClientState,
   IntakeState, NutritionSummary, InboxThread, InboxConversation, LibraryExercise, ProgramSummary, TrainerProgram, ProgramDoc, ProgramAiRequest,
   BillingStatus, OfferView, ClientPlanView, PaymentView, RevenueSummary, AvailabilityWindow, BookingView, Slot,
+  RetentionRow, TeamMember, TeamAnalytics,
 } from './types';
 
 export const API_PREFIX = '/personal-training';
@@ -72,6 +73,9 @@ export const queryKeys = {
   clientBilling: (id: string) => ['personal-training', 'clients', id, 'billing'] as const,
   availability: ['personal-training', 'schedule', 'availability'] as const,
   bookings: (range: string) => ['personal-training', 'schedule', 'bookings', range] as const,
+  retention: ['personal-training', 'retention'] as const,
+  team: ['personal-training', 'team'] as const,
+  teamAnalytics: ['personal-training', 'team', 'analytics'] as const,
 };
 
 /** One body part the editor offers, with the movement patterns it refuses by default. */
@@ -351,6 +355,17 @@ export function createApi(fetcher: Fetcher) {
     updateBooking: (bid: string, status: 'cancelled' | 'completed' | 'no_show') =>
       fetcher(`${API_PREFIX}/schedule/bookings/${encodeURIComponent(bid)}`, { method: 'PATCH', body: JSON.stringify({ status }) }) as Promise<{ booking: BookingView }>,
     slots: (days = 14) => fetcher(`${API_PREFIX}/schedule/slots?days=${days}`) as Promise<{ slots: Slot[] }>,
+
+    // ── Retention and team ──
+    retention: () => fetcher(`${API_PREFIX}/retention`) as Promise<{ clients: RetentionRow[] }>,
+    draftOutreach: (clientId: string) => fetcher(`${API_PREFIX}/retention/${encodeURIComponent(clientId)}/draft`, { method: 'POST' }) as Promise<{ draft: Draft }>,
+    team: () => fetcher(`${API_PREFIX}/team`) as Promise<{ members: TeamMember[] }>,
+    inviteCoach: (email: string) => fetcher(`${API_PREFIX}/team/invite`, { method: 'POST', body: JSON.stringify({ email }) }) as Promise<{ link: string; email: string; expiresAt: string }>,
+    acceptCoachInvite: (token: string) => fetcher(`${API_PREFIX}/team/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) as Promise<{ practice: Practice }>,
+    removeCoach: (userId: string) => fetcher(`${API_PREFIX}/team/${encodeURIComponent(userId)}`, { method: 'DELETE' }) as Promise<{ ok: true }>,
+    teamAnalytics: () => fetcher(`${API_PREFIX}/team/analytics`) as Promise<TeamAnalytics>,
+    assignClient: (clientId: string, trainerId: string | null) =>
+      fetcher(`${API_PREFIX}/clients/${encodeURIComponent(clientId)}/assignment`, { method: 'PUT', body: JSON.stringify({ trainerId }) }) as Promise<{ ok: true }>,
   };
 }
 

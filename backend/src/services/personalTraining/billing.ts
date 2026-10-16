@@ -296,7 +296,7 @@ async function onPaymentFailed(practiceId: string, nudge: boolean, clientId: str
   await prisma.ptNotification.upsert({
     where: { trainerId_sourceKey: { trainerId: coach, sourceKey: `payment_failed:${paymentId}` } },
     update: {},
-    create: { practiceId, trainerId: coach, clientId, eventType: 'payment_failed', tier: 'immediate', title: `${user?.name ?? 'A client'}'s payment failed`, body: 'Stripe will retry it. You can see it under Billing.', sourceKey: `payment_failed:${paymentId}`, at: now },
+    create: { practiceId, trainerId: coach, clientId, eventType: 'paymentFailed', tier: 'immediate', title: `${user?.name ?? 'A client'}'s payment failed`, body: 'Stripe will retry it. You can see it under Billing.', sourceKey: `payment_failed:${paymentId}`, at: now },
   }).catch(() => {});
   if (!nudge || !payUrl) return;
   const claimed = await prisma.ptPayment.updateMany({ where: { id: paymentId, nudgedAt: null }, data: { nudgedAt: now } });

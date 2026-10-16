@@ -153,7 +153,7 @@ export async function loadClients(
 
 /** What the practice keeps about a client, laid over what was derived from their logs. */
 export function applyProfile(c: Client, p: ProfileView | undefined): Client {
-  if (!p) return { ...c, tags: [], state: 'active' };
+  if (!p) return { ...c, tags: [], state: 'active', assignedTrainerId: null };
   const paused = p.state === 'paused';
   return {
     ...c,
@@ -163,6 +163,7 @@ export function applyProfile(c: Client, p: ProfileView | undefined): Client {
     contactEmail: p.contactEmail,
     contactPhone: p.contactPhone,
     pausedUntil: p.pausedUntil ? p.pausedUntil.toISOString() : null,
+    assignedTrainerId: p.assignedTrainerId,
     ...(paused && c.status !== 'notJoined'
       ? { status: 'paused' as const, statusReason: [p.stateReason || 'Paused by you', p.pausedUntil ? `until ${p.pausedUntil.toISOString().slice(0, 10)}` : ''].filter(Boolean).join(' · ') }
       : {}),

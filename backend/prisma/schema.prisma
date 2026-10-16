@@ -1704,6 +1704,8 @@ model PtClientProfile {
   tagsJson       String    @default("[]")
   // active | paused | archived
   state          String    @default("active")
+  // Multi-coach practices: the trainer this client is assigned to (null = the whole practice).
+  assignedTrainerId String?
   pausedUntil    DateTime?
   stateReason    String?
   stateChangedAt DateTime?
