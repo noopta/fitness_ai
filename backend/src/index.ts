@@ -136,10 +136,10 @@ app.use(cors({
     // Allow requests with no origin (curl, mobile apps, Postman)
     if (!origin) return callback(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    // Allow any Replit dev preview / deploy URL (.replit.app is the newer
-    // production-deploy domain Replit uses; .replit.dev is dev previews; .repl.co
-    // is the legacy domain).
-    if (origin.endsWith('.replit.dev') || origin.endsWith('.repl.co') || origin.endsWith('.replit.app')) return callback(null, true);
+    // No suffix wildcards here. `*.replit.app` is a host anyone can register;
+    // with credentials:true + a SameSite=None cookie that would let any Replit
+    // page read and act on a logged-in user's account. Specific preview or
+    // deploy origins go in EXTRA_ALLOWED_ORIGINS.
     // Tag the error with status:403 + a CORS marker so the global error
     // middleware returns a clean 403 (instead of the default 500) and skips
     // the stack trace + Sentry/PostHog noise — these get triggered constantly

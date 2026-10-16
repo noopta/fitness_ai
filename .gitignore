@@ -57,3 +57,18 @@ mobileAlt/play-service-account.json
 
 # Agent rebuild proposals kept across restarts (agent/applyTools.ts)
 .runtime/
+
+# ── Security (Oct 2026 audit) ─────────────────────────────────────────────
+# Prod secrets and data must never be addable by accident. Covers the
+# backend/.env.bak-* copies, SQLite snapshots/WAL files, and dist backups.
+backend/.env*
+!backend/.env.example
+**/.env.bak*
+**/*.env.bak*
+backend/prisma/*.db*
+backend/*.db*
+backend/dev.db.*
+backend/dist.bak*/
+*.sqlite
+*.sqlite3
+db-backups/

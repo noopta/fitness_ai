@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { requestReset, resetPassword } from '../services/passwordResetService.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
@@ -281,16 +282,18 @@ router.post('/auth/verify-email', authLimiter, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ error: 'No signup found for this email.' });
 
-    // Idempotent: a user who is already verified shouldn't fail here just
-    // because the code row was consumed.
-    if (user.emailVerified) {
-      const token = issueToken(user);
-      res.cookie('liftoff_jwt', token, COOKIE_OPTS);
-      scheduleWelcomeEmail(user.id);
-      return res.json({ user: { id: user.id, name: user.name, email: user.email, tier: user.tier }, token, alreadyVerified: true });
-    }
-
+    // The code is ALWAYS checked. An earlier "idempotent" branch issued a
+    // session for any already-verified email without looking at the code,
+    // which made this route a passwordless login for ~every account. A user
+    // whose code is still valid (double-tap, retry after a flaky network)
+    // still succeeds below; one whose code was consumed is sent to sign in.
     const result = await verifyEmailCode(email, code);
+    if (!result.ok && user.emailVerified) {
+      return res.status(409).json({
+        error: 'This email is already verified — sign in with your password.',
+        reason: 'already_verified',
+      });
+    }
     if (!result.ok) {
       const status = result.reason === 'mismatch' ? 400 : 400;
       const message =
@@ -461,8 +464,11 @@ const ALLOWED_REDIRECT_HOSTS = new Set([
   'www.axiomtraining.io',
   'liftoffmvp.io',
   'www.liftoffmvp.io',
-  'localhost',
-  '127.0.0.1',
+  ...(IS_PROD ? [] : ['localhost', '127.0.0.1']),
+  // Specific preview/deploy hosts (e.g. a Replit deploy) go in env, one per
+  // entry. Suffix wildcards are deliberately NOT supported: `*.replit.app` is
+  // a host anyone can register, which turns the allowlist into a token sink.
+  ...(process.env.EXTRA_ALLOWED_REDIRECT_HOSTS || '').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean),
 ]);
 
 /**
@@ -490,12 +496,50 @@ export function isAllowedRedirectTarget(target: string | null | undefined): bool
     return false;
   }
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && !IS_PROD)) return false;
-  if (ALLOWED_REDIRECT_HOSTS.has(url.hostname)) return true;
-  // Replit preview/deploy domains, matched on the label boundary so
-  // "notreplit.app" can't pass.
-  if (/\.(replit\.dev|repl\.co|replit\.app)$/.test(url.hostname)) return true;
+  if (ALLOWED_REDIRECT_HOSTS.has(url.hostname.toLowerCase())) return true;
 
   return false;
+}
+
+// ─── OAuth state ─────────────────────────────────────────────────────────────
+//
+// `state` carries the mobile redirect across the Google round-trip. It is
+// HMAC-signed so the browser can't rewrite the redirect, stamped so it can't be
+// replayed days later, and bound to a nonce cookie so a callback URL lifted from
+// one browser can't complete a login in another (login-CSRF). The cookie check
+// is enforced when OAUTH_STATE_STRICT=1; until then a missing cookie is logged
+// and allowed, so in-app browsers that drop cookies don't lock users out
+// before we've seen it in the logs.
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const OAUTH_STATE_COOKIE = 'liftoff_oauth_nonce';
+const OAUTH_STATE_STRICT = process.env.OAUTH_STATE_STRICT === '1';
+
+function signState(payload: string): string {
+  return crypto.createHmac('sha256', process.env.JWT_SECRET!).update(payload).digest('base64url');
+}
+
+export function encodeOAuthState(mobileRedirect: string | null, nonce: string): string {
+  const payload = Buffer.from(JSON.stringify({ r: mobileRedirect, n: nonce, t: Date.now() })).toString('base64url');
+  return `${payload}.${signState(payload)}`;
+}
+
+export function decodeOAuthState(raw: string | undefined, cookieNonce: string | undefined): { mobileRedirect: string | null; ok: boolean; reason?: string } {
+  if (!raw) return { mobileRedirect: null, ok: true };
+  const [payload, sig] = String(raw).split('.');
+  if (!payload || !sig) return { mobileRedirect: null, ok: false, reason: 'malformed' };
+  const expected = signState(payload);
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+    return { mobileRedirect: null, ok: false, reason: 'bad_signature' };
+  }
+  let decoded: { r?: string | null; n?: string; t?: number };
+  try { decoded = JSON.parse(Buffer.from(payload, 'base64url').toString()); } catch { return { mobileRedirect: null, ok: false, reason: 'malformed' }; }
+  if (typeof decoded.t !== 'number' || Date.now() - decoded.t > OAUTH_STATE_TTL_MS) return { mobileRedirect: null, ok: false, reason: 'expired' };
+  const mobileRedirect = safeRedirectTarget(decoded.r);
+  if (!cookieNonce || cookieNonce !== decoded.n) {
+    if (OAUTH_STATE_STRICT) return { mobileRedirect, ok: false, reason: 'nonce_mismatch' };
+    console.warn(`[auth] oauth state nonce ${cookieNonce ? 'mismatch' : 'cookie missing'} (non-strict, allowed)`);
+  }
+  return { mobileRedirect, ok: true };
 }
 
 /**
@@ -577,10 +621,9 @@ router.get('/auth/google', (req, res) => {
   // Validated here as well as on the callback so a bad target fails before the
   // user is ever sent to Google, rather than after they've approved consent.
   const mobileRedirect = safeRedirectTarget(req.query.redirect_uri as string | undefined);
-  const state = mobileRedirect
-    ? encodeURIComponent(Buffer.from(JSON.stringify({ mobileRedirect })).toString('base64'))
-    : '';
-  const stateParam = state ? `&state=${state}` : '';
+  const nonce = crypto.randomBytes(16).toString('base64url');
+  res.cookie(OAUTH_STATE_COOKIE, nonce, { httpOnly: true, secure: IS_PROD, sameSite: 'lax', maxAge: OAUTH_STATE_TTL_MS, path: '/api/auth' });
+  const stateParam = `&state=${encodeURIComponent(encodeOAuthState(mobileRedirect, nonce))}`;
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${callbackUrl}&response_type=code&scope=${scope}&access_type=offline${stateParam}`;
   res.redirect(url);
 });
@@ -588,21 +631,18 @@ router.get('/auth/google', (req, res) => {
 // GET /api/auth/google/callback — handle OAuth code exchange
 router.get('/auth/google/callback', async (req, res) => {
   // Parse mobile redirect_uri from state early so errors can redirect back to the app
-  let mobileRedirect: string | null = null;
-  try {
-    const rawState = req.query.state as string | undefined;
-    if (rawState) {
-      const decoded = JSON.parse(Buffer.from(decodeURIComponent(rawState), 'base64').toString());
-      // Re-validate on the way back out. `state` is attacker-reachable (it round
-      // trips through the browser), so trusting it here would reintroduce the
-      // open redirect even with the check on /auth/google.
-      mobileRedirect = safeRedirectTarget(decoded.mobileRedirect);
-    }
-  } catch { /* ignore malformed state */ }
+  const stateResult = decodeOAuthState(req.query.state as string | undefined, req.cookies?.[OAUTH_STATE_COOKIE]);
+  res.clearCookie(OAUTH_STATE_COOKIE, { path: '/api/auth' });
+  const mobileRedirect = stateResult.mobileRedirect;
 
   const errorRedirect = mobileRedirect
     ? `${mobileRedirect}?auth=error`
     : `${process.env.FRONTEND_URL}/login?auth=error`;
+
+  if (!stateResult.ok) {
+    console.warn(`[auth] rejected oauth callback: state ${stateResult.reason}`);
+    return redirectToApp(res, errorRedirect);
+  }
 
   const code = req.query.code as string;
   if (!code) {
@@ -632,11 +672,13 @@ router.get('/auth/google/callback', async (req, res) => {
     const [, payload] = tokens.id_token.split('.');
     const profile = JSON.parse(Buffer.from(payload, 'base64url').toString());
 
-    const { sub: googleId, email, name } = profile;
+    const { sub: googleId, email, name, email_verified: emailVerifiedClaim } = profile;
 
-    // Upsert user
+    // Upsert user. Matching an existing row by email is only safe when Google
+    // vouches for the address; otherwise an attacker-controlled Google account
+    // with an unverified email could be attached to someone else's account.
     let existingUser = await prisma.user.findUnique({ where: { googleId } });
-    if (!existingUser && email) {
+    if (!existingUser && email && emailVerifiedClaim === true) {
       existingUser = await prisma.user.findUnique({ where: { email } });
     }
     const isNewUser = !existingUser;
@@ -650,6 +692,11 @@ router.get('/auth/google/callback', async (req, res) => {
         // Google has verified this email — mark it so the OTP gate never
         // fires for an OAuth user who happens to have an unverified row.
         ...(existingUser.emailVerified ? {} : { emailVerified: true, emailVerifiedAt: new Date() }),
+        // A row that was registered with a password but never verified may
+        // have been created by someone else squatting this email. The real
+        // owner is signing in now via Google, so drop the unproven password
+        // instead of silently sharing the account with whoever set it.
+        ...(!existingUser.emailVerified && existingUser.hashedPassword ? { hashedPassword: null } : {}),
       };
       // Silently upgrade whitelisted emails
       const resolvedEmail = email || existingUser.email;
@@ -722,7 +769,12 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
   try {
     // Verify the Apple identity token against Apple's public keys
     const applePayload = await appleSignin.verifyIdToken(identityToken, {
-      audience: ['io.axiomtraining.app', 'com.clubscentra.app', 'host.exp.Exponent'],
+      // host.exp.Exponent is the audience Apple stamps on tokens minted inside
+      // Expo Go — for EVERY project, not just ours — so accepting it in prod
+      // would let any Expo Go app's Sign-in-with-Apple tokens log into Axiom.
+      audience: IS_PROD
+        ? ['io.axiomtraining.app', 'com.clubscentra.app']
+        : ['io.axiomtraining.app', 'com.clubscentra.app', 'host.exp.Exponent'],
       ignoreExpiration: false,
     }) as any;
 
@@ -735,9 +787,11 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
         ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
         : null;
 
-    // Upsert: find by appleId first, then by email
+    // Upsert: find by appleId first, then by email — but only when Apple
+    // vouches for the address (the claim arrives as true or the string "true").
+    const appleEmailVerified = applePayload.email_verified === true || applePayload.email_verified === 'true';
     let existingUser = await prisma.user.findUnique({ where: { appleId } });
-    if (!existingUser && email) {
+    if (!existingUser && email && appleEmailVerified) {
       existingUser = await prisma.user.findUnique({ where: { email } });
     }
     const isNewUser = !existingUser;
@@ -753,6 +807,8 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
           ...(email && !existingUser.email ? { email } : {}),
           // Apple has verified this email — bypass the OTP gate.
           ...(existingUser.emailVerified ? {} : { emailVerified: true, emailVerifiedAt: new Date() }),
+          // See the Google path: never inherit a password nobody proved.
+          ...(!existingUser.emailVerified && existingUser.hashedPassword ? { hashedPassword: null } : {}),
           ...(existingUser.tier === 'free' && tierForEmail(resolvedEmail) === 'pro' ? { tier: 'pro' } : {}),
         },
       });
