@@ -12,6 +12,7 @@ import { postInitiatedTurn } from './initiated.js';
 import { toolCtx } from './turn.js';
 
 export const ADAPT_FNS = ['ADP-01', 'ADP-05'];
+const BURIED_AFTER_MS = 48 * 3600_000;
 const forProposal = (id: string) => (pending: any) => pending?.actions?.apply?.args?.id === id;
 
 /** The chat opener for the suggestions being raised. Pure. */
@@ -24,14 +25,19 @@ export function surfaceText(ps: Pick<ProposalRow, 'kind' | 'title' | 'proposal'>
 }
 
 /** Post a card for each pending suggestion chat hasn't shown yet (at most 2). Returns how many. */
-export async function surfacePendingAdaptations(userId: string): Promise<number> {
+export async function surfacePendingAdaptations(userId: string, opts: { force?: boolean } = {}): Promise<number> {
   const pending = await listPending(userId).catch(() => [] as ProposalRow[]);
   const fresh: ProposalRow[] = [];
+  // A card more than two days back has scrolled out of sight (Tarek's sat
+  // untouched for 9 days): raise it again at the bottom and retire the old one.
+  const recent = new Date(Date.now() - BURIED_AFTER_MS);
   for (const p of pending) {
     if (fresh.length >= 2) break;
-    if (!(await hasLiveCard(userId, ADAPT_FNS, forProposal(p.id)))) fresh.push(p);
+    // force: right after a notice, so the suggestion sits under it rather than further up.
+    if (opts.force || !(await hasLiveCard(userId, ADAPT_FNS, forProposal(p.id), recent))) fresh.push(p);
   }
   if (!fresh.length) return 0;
+  for (const p of fresh) await settleLiveCards(userId, ADAPT_FNS, forProposal(p.id), { status: 'replaced', line: 'Moved to your latest message' });
   const ctx = await toolCtx(userId);
   const ok = await postInitiatedTurn(userId, { text: surfaceText(fresh), cards: fresh.map((p) => adaptationCard(p, ctx)) });
   return ok ? fresh.length : 0;

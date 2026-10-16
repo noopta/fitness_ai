@@ -180,8 +180,8 @@ export async function settleLiveCards(userId: string, fns: string[], match: (pen
 }
 
 /** Is there a live card of these kinds whose pending actions match? */
-export async function hasLiveCard(userId: string, fns: string[], match: (pending: PendingActions) => boolean): Promise<boolean> {
-  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: fns }, status: 'live' }, orderBy: { createdAt: 'desc' }, take: 40, select: { pendingJson: true } });
+export async function hasLiveCard(userId: string, fns: string[], match: (pending: PendingActions) => boolean, newerThan?: Date): Promise<boolean> {
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: fns }, status: 'live', ...(newerThan ? { createdAt: { gte: newerThan } } : {}) }, orderBy: { createdAt: 'desc' }, take: 40, select: { pendingJson: true } });
   return rows.some((r) => { try { return match(r.pendingJson ? JSON.parse(r.pendingJson) : {}); } catch { return false; } });
 }
 

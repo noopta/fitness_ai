@@ -95,11 +95,14 @@ router.post('/coach/agent/cards/run', requireAuth, access, async (req, res) => {
   }
 });
 
-// Opening chat raises pending progression suggestions that chat hasn't shown yet.
+// Opening chat raises what we detected (notices.ts) and pending progression
+// suggestions that chat hasn't shown in the last two days.
 router.post('/coach/agent/adaptation/surface', requireAuth, access, async (req, res) => {
   try {
-    const { surfacePendingAdaptations } = await import('../agent/adaptationSurface.js');
-    res.json({ posted: await surfacePendingAdaptations(req.user!.id) });
+    // Things we detected first (each once), then pending suggestions.
+    const [{ surfacePendingAdaptations }, { postPendingNotices }] = await Promise.all([import('../agent/adaptationSurface.js'), import('../agent/notices.js')]);
+    const notices = await postPendingNotices(req.user!.id).catch(() => 0);
+    res.json({ posted: notices + await surfacePendingAdaptations(req.user!.id, { force: notices > 0 }) });
   } catch (e) { fail(res, e, 'raise suggestions'); }
 });
 
