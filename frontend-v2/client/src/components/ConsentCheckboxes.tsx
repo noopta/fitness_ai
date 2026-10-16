@@ -46,7 +46,7 @@ export function ConsentCheckboxes({
         <span>
           I consent to Axiom processing my health and fitness data (e.g. body weight, injuries,
           training and nutrition logs) to provide coaching, as described in the{' '}
-          <Link href="/health-data" className={link}>Health Data Notice</Link>. <span aria-hidden>*</span>
+          <Link href="/health-data" className={link}>Consumer Health Data Privacy Policy</Link>. <span aria-hidden>*</span>
         </span>
       </label>
       <label htmlFor={`${idPrefix}-marketing`} className="flex items-start gap-2 cursor-pointer">

@@ -4,7 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { streamCoachChat } from '@/lib/api';
+import { streamCoachChat, CoachChatError, coachChatErrorMessage, type CoachReference } from '@/lib/api';
+import { CoachSources, CoachUpgradeCta } from '@/components/CoachSources';
+import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
 
 // Pages where the widget should be hidden: the auth flow, and the
@@ -15,6 +17,8 @@ const HIDDEN_PATHS = ['/login', '/register', '/personal-training'];
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  references?: CoachReference[];
+  disclaimer?: string;
 }
 
 const QUICK_PROMPTS = [
@@ -29,6 +33,8 @@ export function FloatingCoachChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  // Backend refused the turn with 403 pro_required (tier changed server-side).
+  const [proRequired, setProRequired] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { user, loading: authLoading } = useAuth();
@@ -74,11 +80,25 @@ export function FloatingCoachChat() {
             return updated;
           });
         },
+        onReferences: (references, disclaimer) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.role === 'assistant') updated[updated.length - 1] = { ...last, references, disclaimer };
+            return updated;
+          });
+        },
       });
+      setProRequired(false);
     } catch (err: any) {
+      if (err instanceof CoachChatError && err.proRequired) setProRequired(true);
+      const known = err instanceof CoachChatError && (err.proRequired || err.limitUnavailable);
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = { role: 'assistant', content: 'Something went wrong. Please try again.' };
+        updated[updated.length - 1] = {
+          role: 'assistant',
+          content: known ? coachChatErrorMessage(err) : 'Something went wrong. Please try again.',
+        };
         return updated;
       });
     } finally {
@@ -187,9 +207,12 @@ export function FloatingCoachChat() {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
                   {messages.length === 0 && !sending && (
-                    <p className="text-center text-xs text-muted-foreground mt-4">
-                      Anakin is ready. Ask anything.
-                    </p>
+                    <div className="mt-4 space-y-2">
+                      <p className="text-center text-xs text-muted-foreground">
+                        Anakin is ready. Ask anything.
+                      </p>
+                      <MedicalDisclaimer className="text-center" />
+                    </div>
                   )}
 
                   <AnimatePresence initial={false}>
@@ -212,7 +235,10 @@ export function FloatingCoachChat() {
                                   <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
                                 </div>
                               ) : (
-                                <CoachMarkdown content={msg.content} compact />
+                                <>
+                                  <CoachMarkdown content={msg.content} compact />
+                                  <CoachSources references={msg.references} disclaimer={msg.disclaimer} compact />
+                                </>
                               )
                             ) : (
                               <p className="text-xs leading-relaxed">{msg.content}</p>
@@ -222,6 +248,8 @@ export function FloatingCoachChat() {
                       );
                     })}
                   </AnimatePresence>
+
+                  {proRequired && <CoachUpgradeCta compact onNavigate={() => setOpen(false)} />}
 
                   <div ref={bottomRef} />
                 </div>

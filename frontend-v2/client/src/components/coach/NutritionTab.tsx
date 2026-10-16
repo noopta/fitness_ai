@@ -114,6 +114,8 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
   const [outcomeView, setOutcomeView] = useState<'week' | 'month'>('week');
   const [calorieAdjust, setCalorieAdjust] = useState(0);
   const [adjustSaving, setAdjustSaving] = useState(false);
+  // Server `note` on a saved adjustment (e.g. the calorie floor was applied).
+  const [adjustNote, setAdjustNote] = useState<string | null>(null);
   const totalMacroG = plan.macros.proteinG + plan.macros.carbsG + plan.macros.fatG;
 
   const adjustedCalories = plan.macros.calories + calorieAdjust;
@@ -155,6 +157,9 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
         body: JSON.stringify({ calorieAdjustment: calorieAdjust }),
       });
       if (!res.ok) throw new Error('Failed');
+      const data: any = await res.json().catch(() => ({}));
+      const note = typeof data?.note === 'string' && data.note.trim() ? data.note.trim() : null;
+      setAdjustNote(note);
       toast.success('Adjustment saved');
     } catch {
       toast.error('Failed to save adjustment');
@@ -373,6 +378,11 @@ function NutritionPlanCard({ plan, savedProgramDurationWeeks, programStartDate, 
               </Button>
             )}
           </div>
+          {adjustNote && (
+            <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-300" data-testid="nutrition-adjustment-note">
+              {adjustNote}
+            </p>
+          )}
           <p className="text-[10px] text-muted-foreground text-center">Adjust in 50 kcal steps</p>
         </div>
       </div>

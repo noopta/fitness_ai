@@ -16,6 +16,7 @@ import { SEO } from "@/components/SEO";
 import { HeroV2 } from "@/components/landing/HeroV2";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { MemberProofSection } from "@/components/landing/MemberProofSection";
+import { SiteFooter } from "@/components/landing/SiteFooter";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1559,6 +1560,7 @@ export default function FeaturesPage() {
       <FeatureGrid />
       <ComparisonSection />
       <CTASection />
+      <SiteFooter />
     </div>
   );
 }

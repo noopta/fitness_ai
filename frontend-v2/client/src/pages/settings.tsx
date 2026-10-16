@@ -450,7 +450,7 @@ export default function SettingsPage() {
             )}
             <p className="text-xs text-muted-foreground">
               Read our <Link href="/privacy" className="underline">Privacy Policy</Link>,{' '}
-              <Link href="/health-data" className="underline">Health Data Notice</Link> and{' '}
+              <Link href="/health-data" className="underline">Consumer Health Data Privacy Policy</Link> and{' '}
               <Link href="/terms" className="underline">Terms</Link>.
             </p>
           </Card>

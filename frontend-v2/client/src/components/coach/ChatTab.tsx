@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Send, Loader2, RotateCcw } from 'lucide-react';
-import { authFetch, streamCoachChat } from '@/lib/api';
+import { authFetch, streamCoachChat, CoachChatError, coachChatErrorMessage, type CoachReference } from '@/lib/api';
+import { CoachSources, CoachUpgradeCta } from '@/components/CoachSources';
 import { CoachMarkdown } from '@/components/CoachMarkdown';
 import { WebAnalytics } from '@/lib/analytics';
 import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
@@ -14,6 +15,8 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  references?: CoachReference[];
+  disclaimer?: string;
 }
 
 const TOPIC_PILLS = [
@@ -46,6 +49,8 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [resetting, setResetting] = useState(false);
+  // Backend refused the turn with 403 pro_required → show the upgrade CTA.
+  const [proRequired, setProRequired] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -80,9 +85,20 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
             return updated;
           });
         },
+        onReferences: (references, disclaimer) => {
+          setMessages(prev => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.role === 'assistant') updated[updated.length - 1] = { ...last, references, disclaimer };
+            return updated;
+          });
+        },
       });
+      setProRequired(false);
     } catch (err: any) {
-      toast.error(err.message || 'Failed to get response');
+      if (err instanceof CoachChatError && err.proRequired) setProRequired(true);
+      // 503 limit_unavailable → "try again in a moment"; 403 → upgrade copy.
+      toast.error(coachChatErrorMessage(err));
       setMessages(prev => prev.slice(0, -2)); // remove both user + empty assistant
       setInput(trimmed);
     } finally {
@@ -170,7 +186,10 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
                         <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
                       </div>
                     ) : (
-                      <CoachMarkdown content={msg.content} />
+                      <>
+                        <CoachMarkdown content={msg.content} />
+                        <CoachSources references={msg.references} disclaimer={msg.disclaimer} />
+                      </>
                     )
                   ) : (
                     <p className="text-sm leading-relaxed">{msg.content}</p>
@@ -180,6 +199,12 @@ export function ChatTab({ initialMessages = [], sessionCount }: Props) {
             );
           })}
         </AnimatePresence>
+
+        {proRequired && (
+          <div className="max-w-md mx-auto">
+            <CoachUpgradeCta />
+          </div>
+        )}
 
         <div ref={bottomRef} />
       </div>

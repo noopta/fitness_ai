@@ -24,6 +24,7 @@ import snapshotAiSummary from "@assets/snapshot_ai_summary_1771264391948.png";
 import snapshotAnalysis from "@assets/snapshot_analysis_1771264391949.png";
 import snapshotAccessories from "@assets/snapshot_accesories_1771264391948.png";
 import { SEO } from "@/components/SEO";
+import { SiteFooter } from "@/components/landing/SiteFooter";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -1484,7 +1485,7 @@ function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-muted-foreground text-lg mb-8 sm:mb-10 leading-relaxed"
           >
-            Axiom tracks your training and nutrition as a system, building deep profiles our AI uses to proactively spot weakpoints, adapt your program, and push you toward your genetic potential. Backed by NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science.
+            Axiom tracks your training and nutrition as a system, building deep profiles our AI uses to proactively spot weakpoints, adapt your program, and push you toward your genetic potential. Built on established strength-training and nutrition science.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -1538,6 +1539,7 @@ export default function FeaturesV2Page() {
       <FeatureGrid />
       <ComparisonSection />
       <CTASection />
+      <SiteFooter />
     </div>
   );
 }
