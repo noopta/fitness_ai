@@ -1154,6 +1154,9 @@ export default function Signup() {
               <Link href="/privacy" className="text-sm hover:text-foreground" data-testid="link-footer-privacy">
                 Privacy
               </Link>
+              <Link href="/health-data" className="text-sm hover:text-foreground" data-testid="link-footer-health-data">
+                Consumer Health Data Privacy Policy
+              </Link>
               <Link href="/terms" className="text-sm hover:text-foreground" data-testid="link-footer-terms">
                 Terms
               </Link>

@@ -1,8 +1,9 @@
 // Email compliance contracts (2026-10 audit, H2/H8):
 // - RFC 8058 one-click unsubscribe POST accepts the same signed token as the
 //   footer link, clears the marketing opt-in, and handles the weekly category.
-// - Signing key: no literal fallback; production refuses to start without
-//   EMAIL_UNSUB_SECRET; legacy JWT_SECRET-signed links still verify.
+// - Signing key: no literal fallback; EMAIL_UNSUB_SECRET, else derived from
+//   JWT_SECRET; production refuses to start only when both are unset; legacy
+//   JWT_SECRET-signed links still verify.
 // - Waitlist: name/phone are escaped and capped; no promo enrolment without
 //   explicit marketingConsent; unsubscribe line + postal address present.
 // - Welcome: transactional only unless User.marketingConsentAt is set.
@@ -128,16 +129,21 @@ describe('one-click unsubscribe (RFC 8058 POST)', () => {
 });
 
 describe('signing key', () => {
-  it('throws in production without EMAIL_UNSUB_SECRET', () => {
-    expect(() => unsub.resolveUnsubSecret({ NODE_ENV: 'production', JWT_SECRET: 'x' } as any)).toThrow(/EMAIL_UNSUB_SECRET/);
-    expect(unsub.resolveUnsubSecret({ NODE_ENV: 'production', EMAIL_UNSUB_SECRET: 'k' } as any)).toBe('k');
+  it('throws in production only when both EMAIL_UNSUB_SECRET and JWT_SECRET are unset', () => {
+    expect(() => unsub.resolveUnsubSecret({ NODE_ENV: 'production' } as any)).toThrow(/EMAIL_UNSUB_SECRET or JWT_SECRET/);
+    expect(unsub.resolveUnsubSecret({ NODE_ENV: 'production', EMAIL_UNSUB_SECRET: 'k', JWT_SECRET: 'x' } as any)).toBe('k');
+    // Production with only JWT_SECRET keeps working (derived key) instead of crashing at startup.
+    expect(unsub.resolveUnsubSecret({ NODE_ENV: 'production', JWT_SECRET: 'abc' } as any))
+      .toBe(crypto.createHash('sha256').update('abcunsub').digest('hex'));
   });
-  it('outside production derives a key from JWT_SECRET, never the secret itself or a literal', () => {
+  it('derives a key from JWT_SECRET, never the secret itself or a literal; dev without secrets gets a random key', () => {
     const k = unsub.resolveUnsubSecret({ NODE_ENV: 'development', JWT_SECRET: 'abc' } as any);
     expect(k).toBe(crypto.createHash('sha256').update('abcunsub').digest('hex'));
     expect(k).not.toBe('abc');
     expect(k).not.toBe('dev-unsub-secret');
-    expect(() => unsub.resolveUnsubSecret({ NODE_ENV: 'development' } as any)).toThrow();
+    const eph = unsub.resolveUnsubSecret({ NODE_ENV: 'development' } as any);
+    expect(eph).toMatch(/^[0-9a-f]{64}$/);
+    expect(unsub.resolveUnsubSecret({ NODE_ENV: 'test' } as any)).toBe(eph); // stable within a process
   });
   it('confirm and unsubscribe tokens are not interchangeable', () => {
     expect(unsub.verifyConfirmToken('s1', unsub.unsubscribeToken('s1'))).toBe(false);
@@ -269,5 +275,35 @@ describe('BlogSubscriber double opt-in', () => {
     store.subs[0].confirmSentAt = new Date(Date.now() - 8 * 86_400_000);
     await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['p@x.com'] });
     expect(mail.sendEmail).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('postal address + opt-in on every marketing send', () => {
+  it('every template carries the shared POSTAL_ADDRESS constant in html and text', async () => {
+    const t = await import('../services/emailTemplates.js');
+    const u = 'https://api.example/email/unsubscribe?u=u1&t=x';
+    const msgs = [
+      t.welcomeEmail('Sam', { marketing: true, unsubscribeUrl: u }),
+      t.welcomeEmail('Sam'),
+      t.subscriberConfirmationEmail('https://api.example/email/confirm?s=1&t=x'),
+      t.waitlistConfirmationEmail({ name: 'Ana', marketing: false }),
+      t.waitlistConfirmationEmail({ name: 'Ana', marketing: true }),
+      t.blogPostEmail({ slug: 's', title: 'T', excerpt: 'e', content: 'Hello', category: 'Update' } as any, u),
+    ];
+    for (const m of msgs) {
+      expect(m.html).toContain(t.escapeHtml(t.POSTAL_ADDRESS));
+      expect(m.text).toContain(t.POSTAL_ADDRESS);
+    }
+  });
+
+  it('blog broadcast skips accounts without a marketingConsentAt record', async () => {
+    store.users = [
+      user({ id: 'yes', email: 'yes@x.com' }),
+      user({ id: 'no', email: 'no@x.com', marketingConsentAt: null, marketingEmailsOptOut: false }),
+    ];
+    store.posts = [{ id: 'p1', slug: 'launch', title: 'Launch', excerpt: 'x', content: 'Hello', category: 'Update', published: true, emailedAt: null, emailedCount: 0 }];
+    const r = await broadcastBlogPost('p1');
+    expect(r.recipients).toBe(1);
+    expect(sent().map((m) => m.to)).toEqual(['yes@x.com']);
   });
 });

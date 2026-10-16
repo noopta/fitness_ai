@@ -1,11 +1,13 @@
 /*
  * ============================================================================
- *  DRAFT FOR COUNSEL REVIEW — 16 October 2026
+ *  <!-- Draft for counsel review --> 16 October 2026
  *  Rewritten against the code (audit SECURITY_AND_LEGAL_AUDIT_2026-10.md,
  *  legal-report H1). Values in [SQUARE BRACKETS] are unknown facts the founder
  *  must fill (see components/legal/LegalPage.tsx LEGAL constants).
  *  Assumes the parallel 2026-10 remediation ships with it: health-data prompts
- *  routed only to Anthropic / OpenAI / Google (no PRC-hosted providers),
+ *  sent to OpenAI directly (chatClient sensitive routing), the coach agent on
+ *  Anthropic, other prompts via OpenRouter pinned to US hosts
+ *  (fireworks/together/deepinfra/baseten) with data_collection 'deny',
  *  consent timestamps recorded, web cookie banner gating PostHog, Twilio
  *  operational alerts. If any of those does not ship, edit the matching
  *  paragraph before publishing.
@@ -102,14 +104,14 @@ export default function Privacy() {
           that limits what it can do with it. Unless stated otherwise, they process data in the United States.
         </p>
         <List>
-          <li><strong>Anthropic (Claude):</strong> runs Anthropic's Claude models behind Anakin, the AI coach, and helps personal trainers map spreadsheet columns when importing client lists. Receives your coach messages and the profile, training, nutrition, check-in and health details the coach needs to answer you.</li>
-          <li><strong>OpenAI:</strong> voice-note transcription; automated moderation of messages, comments, posts and profile photos; text embeddings used to find relevant coaching material; and a legacy chat path and backup model for some features. Receives the text, audio or image being processed.</li>
+          <li><strong>Anthropic (Claude):</strong> runs Anthropic's Claude models behind Anakin, the AI coach (in the app and in the personal-training tools), and helps personal trainers map spreadsheet columns when importing client lists. Receives your coach messages and the profile, training, nutrition, check-in and health details the coach needs to answer you.</li>
+          <li><strong>OpenAI:</strong> every other AI request that contains health information goes to OpenAI directly: program generation, nutrition plans, reading your workout and coach notes, the older chat screen, and message, check-in and program drafts for personal trainers. OpenAI also provides voice-note transcription (Whisper), automated moderation of messages, comments, posts and profile photos, and the text embeddings used to find relevant coaching material. Receives the text, audio or image being processed.</li>
           <li><strong>Google Cloud (Vertex AI / Gemini, Cloud Storage):</strong> analyses form-check and lift-diagnostic videos, meal, label and order photos, and looks up foods you search or scan; video is held briefly in Google Cloud Storage while it is analysed.</li>
-          <li><strong>OpenRouter:</strong> routes some requests that contain no health data (for example, feed summaries and recipe text) to AI models. Prompts that contain health information are not sent through OpenRouter.</li>
+          <li><strong>OpenRouter:</strong> routes AI requests that contain no health information (for example feed summaries, recipe text and meal descriptions you type) to open-weight models. Our main model is pinned to US-hosted providers (Fireworks, Together AI, DeepInfra and Baseten), and every request is restricted to providers that do not store prompts or train on them. Prompts that contain health information are never sent through OpenRouter.</li>
           <li><strong>Stripe:</strong> web subscription billing, and payouts to affiliates (Stripe Connect). Receives your email, name and account ID.</li>
           <li><strong>Apple (App Store) and Google (Google Play):</strong> in-app subscription billing; we receive transaction IDs and status. Also Sign in with Apple and Google sign-in.</li>
           <li><strong>SendGrid (Twilio):</strong> sends our emails. Receives your email address and the email content.</li>
-          <li><strong>Twilio (SMS):</strong> sends operational alerts to the Axiom team, for example when a new account is created or a server error happens. These alerts can include the account holder's name and email address; they go only to Axiom staff.</li>
+          <li><strong>Twilio (SMS):</strong> sends operational alerts to Axiom's founder, for example when an account is created or someone signs in, or a server error happens. Sign-up and sign-in alerts include the account holder's name and email address; they go only to Axiom staff and are not used for marketing. We do not send you marketing text messages.</li>
           <li><strong>PostHog:</strong> product analytics, linked to your account ID. On the web, analytics cookies and session replay run only after you accept them in the cookie banner, and session replay masks what you type. Session replay is off in the mobile apps.</li>
           <li><strong>Sentry:</strong> crash and error reports from the apps and our servers, which may include device details and the part of a request that failed.</li>
           <li><strong>Expo:</strong> delivers push notifications and app updates. Receives your push token and the notification text.</li>
@@ -130,8 +132,8 @@ export default function Privacy() {
 
       <Section title="5. AI and automated processing">
         <p>
-          Axiom's coaching, program generation, form feedback and meal estimates are produced by AI models from Anthropic, OpenAI and Google,
-          combined with our own deterministic calculations (for example estimated one-rep max, strength scores and calorie targets).
+          Axiom's coaching, program generation, form feedback and meal estimates are produced by AI models from Anthropic, OpenAI and Google
+          (and, for requests without health information, open-weight models reached through OpenRouter), combined with our own deterministic calculations (for example estimated one-rep max, strength scores and calorie targets).
         </p>
         <List>
           <li><strong>No training on your data.</strong> We use these providers' business APIs, under which your inputs are not used to train their models. We do not use your health data, videos, photos or chats to train models of our own.</li>
@@ -144,14 +146,14 @@ export default function Privacy() {
       <Section title="6. How long we keep it">
         <List>
           <li><strong>Your account and everything in it</strong> (profile, logs, programs, coach conversations and memory, meals, check-ins, posts, messages): kept while your account exists. Coach conversations are not automatically pruned; they are deleted when you delete your account.</li>
-          <li><strong>When you delete your account:</strong> deletion is immediate and permanent. We do not keep a recovery copy, and you cannot undo it. Copies in our encrypted database backups are overwritten within <strong>7 days</strong>.</li>
-          <li><strong>Form-check and diagnostic videos:</strong> deleted as soon as analysis finishes; a storage rule deletes any leftover copy within <strong>1 day</strong>. We never keep the video.</li>
+          <li><strong>When you delete your account:</strong> deletion is immediate and permanent. We do not keep a recovery copy, and you cannot undo it. At the same time we cancel any web (Stripe) subscription, delete your analytics profile at PostHog, and remove your address from our blog subscriber list. Nightly database backups are kept for <strong>7 days</strong>, so a copy of your data can remain in a backup for up to 7 days; where we keep an encrypted off-site copy of those backups, it is kept for up to <strong>30 days</strong>. Backups are used only to recover from a failure, and if one is ever restored we delete your account again.</li>
+          <li><strong>Form-check and diagnostic videos:</strong> deleted as soon as analysis finishes; a storage rule in Google Cloud Storage deletes any leftover copy within <strong>1 day</strong>. We do not keep the video. The one exception: if our automated safety screening flags a video as possible child sexual abuse material, it is withheld from deletion so a person can review it and, if confirmed, preserved and reported as US law requires.</li>
           <li><strong>Reference stills:</strong> kept with the analysis until you delete that analysis or your account.</li>
-          <li><strong>Meal photos:</strong> used to estimate the meal; we keep the photo only if you save it to your log or a post.</li>
+          <li><strong>Meal, label and order photos:</strong> used to estimate the meal. We keep the estimate in your log, not the photo, unless you put the photo in a post or message.</li>
           <li><strong>Voice notes:</strong> the audio is used for transcription and not kept; the text is kept like any other message.</li>
           <li><strong>Moderation records:</strong> if our moderation system flags content as abusive, we keep a short excerpt, the category and the date, even after the account is deleted, so that people cannot erase a record of abuse by re-registering. They are kept for up to [MODERATION RECORD RETENTION — suggest 2 years].</li>
           <li><strong>Billing records:</strong> kept as long as tax law requires (up to 7 years). These are held mainly by Stripe, Apple and Google.</li>
-          <li><strong>Server logs:</strong> kept for up to 90 days.</li>
+          <li><strong>Server logs:</strong> web-server access logs are kept for 14 days; application logs are overwritten on a rolling basis once they reach a fixed size limit. Error reports in Sentry and analytics events in PostHog are kept for the retention period of our plan with those providers.</li>
           <li><strong>Blog subscriber list:</strong> until you unsubscribe; we keep your address on a do-not-email list after that so the unsubscribe sticks.</li>
         </List>
       </Section>

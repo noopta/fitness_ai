@@ -4,11 +4,14 @@
 // unsubscribe token can't be replayed as a confirmation token. Unsubscribe
 // tokens carry no expiry: a link in an old email has to keep working.
 //
-// Key: EMAIL_UNSUB_SECRET. In production it is REQUIRED; the module throws at
-// import (i.e. at server startup) when it is missing, rather than silently
-// signing with a guessable literal. Outside production it falls back to a key
-// derived from JWT_SECRET (sha256(JWT_SECRET + 'unsub')), never the JWT secret
-// itself and never a hard-coded string.
+// Key resolution (no literal fallback anywhere):
+//   1. EMAIL_UNSUB_SECRET when set (recommended: a dedicated random secret).
+//   2. Otherwise a key derived from JWT_SECRET (sha256(JWT_SECRET + 'unsub')),
+//      never the JWT secret itself.
+//   3. Neither set: in production the module throws at import (i.e. server
+//      startup) instead of signing with something guessable; outside
+//      production a random per-process key is used (links stop verifying on
+//      restart, which is fine for dev/test).
 //
 // Legacy links: before 2026-10 the key was the raw JWT_SECRET. Verification
 // still accepts that key so unsubscribe links in already-sent emails keep
@@ -20,18 +23,17 @@ const API_PUBLIC_URL = process.env.API_PUBLIC_URL || 'https://api.airthreads.ai:
 
 export class EmailUnsubConfigError extends Error {}
 
-/** Resolve the signing key; throws in production without EMAIL_UNSUB_SECRET. Exported for tests. */
+/** Random per-process key for dev/test when no secret is configured. Never used in production. */
+const EPHEMERAL_KEY = crypto.randomBytes(32).toString('hex');
+
+/** Resolve the signing key; throws in production when neither secret is set. Exported for tests. */
 export function resolveUnsubSecret(env: NodeJS.ProcessEnv = process.env): string {
   if (env.EMAIL_UNSUB_SECRET) return env.EMAIL_UNSUB_SECRET;
+  if (env.JWT_SECRET) return crypto.createHash('sha256').update(`${env.JWT_SECRET}unsub`).digest('hex');
   if (env.NODE_ENV === 'production') {
-    throw new EmailUnsubConfigError('EMAIL_UNSUB_SECRET must be set in production (signs email unsubscribe/confirm links)');
+    throw new EmailUnsubConfigError('EMAIL_UNSUB_SECRET or JWT_SECRET must be set in production (signs email unsubscribe/confirm links)');
   }
-  if (!env.JWT_SECRET) {
-    // Unit tests that never set secrets still need deterministic links.
-    if (env.NODE_ENV === 'test') return 'test-only-email-link-key';
-    throw new EmailUnsubConfigError('EMAIL_UNSUB_SECRET or JWT_SECRET must be set to sign email links');
-  }
-  return crypto.createHash('sha256').update(`${env.JWT_SECRET}unsub`).digest('hex');
+  return EPHEMERAL_KEY;
 }
 
 // Fail fast at startup in production.

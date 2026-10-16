@@ -1,14 +1,15 @@
 /*
  * ============================================================================
- *  DRAFT FOR COUNSEL REVIEW — 16 October 2026
+ *  <!-- Draft for counsel review --> 16 October 2026
  *  Consumer Health Data Privacy Policy: Washington My Health My Data Act
  *  (RCW 19.373, esp. .020 policy contents, .030 consent, .040 rights, .050
  *  processors, .070 no sale without authorisation, .080 geofencing) and Nevada
  *  SB 370 (NRS 603A.400–.550). RCW 19.373.020(1)(b) requires a prominent link
  *  to this page on the homepage: see the footer in pages/features.tsx.
  *  Applies to ALL users (we treat health data the same everywhere).
- *  Assumes the 2026-10 LLM rerouting shipped (no PRC-hosted providers); if not,
- *  Section 4 is inaccurate.
+ *  Assumes the 2026-10 LLM rerouting shipped (health-data prompts to OpenAI
+ *  directly, coach agent on Anthropic, OpenRouter only for non-health prompts
+ *  on US hosts with data_collection 'deny'); if not, Section 4 is inaccurate.
  * ============================================================================
  */
 import { Link } from "wouter";
@@ -72,10 +73,11 @@ export default function HealthDataPolicy() {
         </p>
         <List>
           <li><strong>Anthropic</strong>: AI coach (your coach messages and the health details the coach needs).</li>
-          <li><strong>OpenAI</strong>: voice-note transcription, safety moderation of messages and images, search over coaching material, and backup AI processing.</li>
+          <li><strong>OpenAI</strong>: program generation, nutrition plans, reading workout and coach notes, the older chat screen, and drafts for personal trainers; also voice-note transcription, safety moderation of messages and images, and search over coaching material.</li>
           <li><strong>Google Cloud (Vertex AI / Gemini, Cloud Storage)</strong>: analysis of body videos and meal photos; temporary video storage.</li>
           <li><strong>Amazon Web Services and Cloudflare</strong>: hosting of our servers and database.</li>
           <li><strong>Sentry</strong>: error reports, which can occasionally include part of a request containing health data.</li>
+          <li><strong>PostHog</strong>: product analytics events linked to your account ID, such as that you logged a workout or meal or which lift you chose (not the contents of your logs or chats).</li>
           <li><strong>Expo</strong>: push notification delivery (notification text, which may mention your training).</li>
           <li><strong>Your trainer, institution coach, friends or group members</strong>, only to the extent you link with them or share content with them (Privacy Policy Sections 8 and 9).</li>
         </List>
@@ -133,7 +135,7 @@ export default function HealthDataPolicy() {
       <Section title="9. How long we keep it, and security">
         <p>
           We keep consumer health data while your account exists and delete it when you delete it or your account. Body videos are deleted after analysis
-          (and in all cases within 1 day). Backup copies are overwritten within 7 days. Full details are in Privacy Policy Section 6. Access to consumer
+          (and in all cases within 1 day). Nightly backups are kept for 7 days (an encrypted off-site copy, where we keep one, for up to 30 days) and are used only to recover from failures. Full details are in Privacy Policy Section 6. Access to consumer
           health data is limited to the staff and processors who need it to provide the Service, and it is encrypted in transit.
         </p>
       </Section>

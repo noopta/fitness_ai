@@ -31,6 +31,10 @@ import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
 import Terms from "./pages/terms";
+import HealthDataPolicy from "./pages/health-data";
+import TrainerTerms from "./pages/trainer-terms";
+import AffiliateTerms from "./pages/affiliate-terms";
+import Accessibility from "./pages/accessibility";
 import DeleteAccount from "./pages/delete-account";
 import CoachPage from "./pages/coach";
 import SettingsPage from "./pages/settings";
@@ -245,6 +249,11 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      {/* Legal pages (2026-10 audit) */}
+      <Route path="/health-data" component={HealthDataPolicy} />
+      <Route path="/trainer-terms" component={TrainerTerms} />
+      <Route path="/affiliate-terms" component={AffiliateTerms} />
+      <Route path="/accessibility" component={Accessibility} />
       <Route path="/delete-account" component={DeleteAccount} />
       <Route path="/mvp" component={ProtectedDiagnosticEntry} />
       <Route path="/onboarding" component={ProtectedDiagnosticEntry} />

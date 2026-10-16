@@ -18,8 +18,8 @@ export const LEGAL = {
   postalAddress: "[POSTAL ADDRESS]",
   euRepresentative: "[EU REPRESENTATIVE]",
   ukRepresentative: "[UK REPRESENTATIVE]",
-  /** [DPO/PRIVACY CONTACT EMAIL — suggest privacy@axiomtraining.io]. Create the mailbox before publishing. */
-  privacyEmail: "privacy@axiomtraining.io",
+  /** Replace with the real address once the mailbox exists (suggested: privacy@axiomtraining.io). */
+  privacyEmail: "[PRIVACY CONTACT EMAIL — suggest privacy@axiomtraining.io]",
   supportEmail: "inquiries@axiomtraining.io",
   site: "axiomtraining.io",
   /** Web Pro price charged by Stripe (mobile shows the same Stripe price). Keep in sync with pricing. */
@@ -27,6 +27,8 @@ export const LEGAL = {
 } as const;
 
 export function Mail({ to = LEGAL.privacyEmail }: { to?: string }) {
+  // Unfilled placeholder: render it visibly, but not as a broken mailto link.
+  if (to.startsWith("[")) return <span className="font-medium text-foreground">{to}</span>;
   return <a href={`mailto:${to}`} className="text-primary hover:underline">{to}</a>;
 }
 

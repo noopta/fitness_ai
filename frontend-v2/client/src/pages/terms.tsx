@@ -1,6 +1,6 @@
 /*
  * ============================================================================
- *  DRAFT FOR COUNSEL REVIEW — 16 October 2026  (terms version "2026-10")
+ *  <!-- Draft for counsel review --> 16 October 2026  (terms version "2026-10")
  *  Updated per audit legal-report H1/C4/H3/M1: age 13+ with guardian
  *  permission, store-managed in-app subscriptions vs Stripe on the web,
  *  in-app/web deletion, minors carved out of arbitration and liability caps,
@@ -164,8 +164,8 @@ export default function Terms() {
           revocable licence to use the Service under these Terms. Do not copy, modify or distribute it without our written permission.
         </p>
         <p className="mt-2">
-          Axiom is not affiliated with or endorsed by the Huberman Lab podcast or any certification body mentioned in the Service (such as NASM, ACE,
-          ISSA, NSCA or NFPT). Names of podcasts, books, organisations and brands are used only to identify sources or products and belong to their owners.
+          Axiom is not affiliated with or endorsed by the Huberman Lab podcast or any certification body. This includes any certification body
+          mentioned in the Service (such as NASM, ACE, ISSA, NSCA or NFPT). Names of podcasts, books, organisations and brands are used only to identify sources or products and belong to their owners.
         </p>
       </Section>
 
