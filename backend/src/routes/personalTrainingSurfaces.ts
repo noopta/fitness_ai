@@ -24,7 +24,7 @@ import { prisma } from '../services/personalTraining/db.js';
 import { DossierError, addNote, buildOverview, buildProgramView, deleteNote, listNotes, updateNote } from '../services/personalTraining/dossier.js';
 import { DraftError, createDraft, deliverDueDrafts, redraft, requestSend, undoSend } from '../services/personalTraining/drafts.js';
 import {
-  ImportError, confirmImport, createImport, getImport, inviteProspect, isProspectId, listImports, prospectDbId, undoImport, updateMappings,
+  ImportError, confirmImport, createImport, deleteProspect, getImport, inviteProspect, isProspectId, listImports, prospectDbId, undoImport, updateMappings,
 } from '../services/personalTraining/imports.js';
 import { isLiftKey } from '../services/personalTraining/lifts.js';
 import {
@@ -317,6 +317,13 @@ router.post('/imports/:id/confirm', ...trainer, socialWriteLimiter, handle('POST
 
 router.post('/imports/:id/undo', ...trainer, socialWriteLimiter, handle('POST import undo', async (req, res) => {
   await undoImport(req.params.id, req.practice!.id, req.user!.id);
+  res.json({ ok: true });
+}));
+
+// DELETE /personal-training/prospects/:id — remove a "Not joined" client and their imported history
+router.delete('/prospects/:id', ...trainer, handle('DELETE prospect', async (req, res) => {
+  const id = isProspectId(req.params.id) ? prospectDbId(req.params.id) : req.params.id;
+  await deleteProspect(id, req.practice!.id, req.user!.id);
   res.json({ ok: true });
 }));
 

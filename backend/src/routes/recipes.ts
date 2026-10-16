@@ -12,6 +12,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { logActivity } from '../services/activityService.js';
 import { parseRecipeIngredients } from '../services/llmService.js';
@@ -23,6 +24,10 @@ import {
   parseJsonObject,
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
+  isValidIsoDate,
+  ISO_DATE_MESSAGE,
+  boundNutrientMap,
+  MAX_ENTRY_KCAL,
 } from '../services/nutritionShared.js';
 
 const router = Router();
@@ -45,7 +50,9 @@ const recipeSchema = z.object({
   servings: z.number().min(0.5).max(100),
   items: z.array(recipeItemSchema).min(1).max(40),
   // Optional whole-recipe micros (from LLM parse); stored per-serving.
-  nutrients: z.record(z.string(), z.unknown()).optional(),
+  // Bounded to MAX_NUTRIENT_KEYS numeric entries (Oct 2026 audit).
+  nutrients: z.record(z.string(), z.unknown()).optional()
+    .transform((m) => (m == null ? m : boundNutrientMap(m) ?? undefined)),
 });
 
 type RecipeItem = z.infer<typeof recipeItemSchema>;
@@ -178,7 +185,7 @@ router.delete('/nutrition/recipes/:id', requireAuth, async (req, res) => {
 });
 
 const logRecipeSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: z.string().refine(isValidIsoDate, ISO_DATE_MESSAGE),
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).default('meal'),
   servings: z.number().min(0.1).max(20).default(1),
 });
@@ -191,6 +198,13 @@ router.post('/nutrition/recipes/:id/log', requireAuth, async (req, res) => {
     const userId = req.user!.id;
     const recipe = await prisma.recipe.findFirst({ where: { id: req.params.id, userId } });
     if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+
+    // The final entry, after servings multiplication, is what lands in the
+    // day's totals — per-field caps on the recipe don't bound the product.
+    const totalKcal = round1(recipe.calories * data.servings);
+    if (!Number.isFinite(totalKcal) || totalKcal > MAX_ENTRY_KCAL) {
+      return res.status(400).json({ error: `That comes to more than ${MAX_ENTRY_KCAL} kcal in one entry. Check the servings.` });
+    }
 
     const items = parseJsonObject<RecipeItem[]>(recipe.itemsJson) ?? [];
     const micros = parseJsonObject<Record<string, number>>(recipe.nutrientsJson);
@@ -218,7 +232,7 @@ router.post('/nutrition/recipes/:id/log', requireAuth, async (req, res) => {
           date: data.date,
           name: recipe.name,
           mealType: data.mealType,
-          calories: round1(recipe.calories * data.servings),
+          calories: totalKcal,
           proteinG: scaledProtein,
           carbsG: scaledCarbs,
           fatG: scaledFat,
@@ -257,7 +271,7 @@ const parseRecipeSchema = z.object({
 // ingredient list with per-ingredient macros. The client shows the result in
 // the builder for review/edits before POST /nutrition/recipes saves it.
 // Shares the free-tier daily AI quota with /parse-meal and /analyze-photo.
-router.post('/nutrition/recipes/parse', requireAuth, async (req, res) => {
+router.post('/nutrition/recipes/parse', requireAuth, aiLimiter, async (req, res) => {
   try {
     const data = parseRecipeSchema.parse(req.body);
     const userId = req.user!.id;

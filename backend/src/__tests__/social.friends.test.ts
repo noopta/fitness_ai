@@ -102,14 +102,32 @@ describe('POST /api/social/friends/request', () => {
     expect(res.status).toBe(404);
   });
 
-  it('403s when a block exists between the two users', async () => {
+  // Oct 2026 audit: a 403 here was a "you have been blocked" oracle. When the
+  // TARGET blocked the caller, the response is indistinguishable from a fresh
+  // request (201 pending) but nothing is written and nobody is notified.
+  it('returns a generic 201 (no oracle) when the target has blocked the caller', async () => {
     mockUserLookups();
     friendshipMock.findFirst.mockResolvedValue({
       status: 'blocked', requesterId: 'target', addresseeId: 'me',
     });
     const res = await request(app)
       .post('/api/social/friends/request').send({ targetUserId: 'target' });
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ status: 'pending' });
+    expect(friendshipMock.create).not.toHaveBeenCalled();
+    expect(sendPushToUser).not.toHaveBeenCalled();
+  });
+
+  // The caller's own block is no secret to the caller, so they get a clear 403.
+  it('403s when the caller is the one who blocked the target', async () => {
+    mockUserLookups();
+    friendshipMock.findFirst.mockResolvedValue({
+      status: 'blocked', requesterId: 'me', addresseeId: 'target',
+    });
+    const res = await request(app)
+      .post('/api/social/friends/request').send({ targetUserId: 'target' });
     expect(res.status).toBe(403);
+    expect(friendshipMock.create).not.toHaveBeenCalled();
   });
 
   it('is idempotent — re-sending an outstanding request is a 200, not a 409', async () => {

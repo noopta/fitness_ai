@@ -199,7 +199,7 @@ describe('POST /api/form-analysis/video', () => {
     };
     let resolveAnalysis!: (a: typeof fakeAnalysis) => void;
     const gate = new Promise<typeof fakeAnalysis>((res) => { resolveAnalysis = res; });
-    mockAnalyzeWorkoutVideo.mockImplementation(() => gate);
+    mockAnalyzeFormVideoFull.mockImplementation(() => gate);
     prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-1', createdAt: new Date('2026-06-03T12:00:00Z') });
 
     const res = await request(app)
@@ -236,11 +236,19 @@ describe('POST /api/form-analysis/video', () => {
     expect(JSON.parse(updateData.analysisJson).summary).toMatch(/squat/i);
 
     // Gemini service was called with the right args.
-    expect(mockAnalyzeWorkoutVideo).toHaveBeenCalledTimes(1);
-    const [bufArg, mimeArg, hintArg] = mockAnalyzeWorkoutVideo.mock.calls[0];
+    // The main path uploads once, then screens and runs the full pass off
+    // the same object (Oct 2026 audit H4 — screening used to be skipped here).
+    expect(mockUploadFormVideo).toHaveBeenCalledTimes(1);
+    const [bufArg, upMime] = mockUploadFormVideo.mock.calls[0];
     expect(bufArg).toBeInstanceOf(Buffer);
+    expect(upMime).toBe('video/mp4');
+    expect(mockScreenFormVideo).toHaveBeenCalledWith('gs://bucket/obj.mp4', 'video/mp4');
+    expect(mockAnalyzeFormVideoFull).toHaveBeenCalledTimes(1);
+    const [uriArg, mimeArg, hintArg] = mockAnalyzeFormVideoFull.mock.calls[0];
+    expect(uriArg).toBe('gs://bucket/obj.mp4');
     expect(mimeArg).toBe('video/mp4');
     expect(hintArg).toBe('back squat');
+    expect(mockCleanup).toHaveBeenCalled();
 
     // Completion pushed a notification deep-linking to this analysis, so the
     // user gets pulled back in if they left the app.
@@ -266,12 +274,13 @@ describe('POST /api/form-analysis/video', () => {
     expect(res.body.error).toMatch(/free tier/i);
     expect(res.body.upgradeUrl).toContain('client_reference_id=u-1');
     // Gemini was NOT called — quota gated before the API spend.
-    expect(mockAnalyzeWorkoutVideo).not.toHaveBeenCalled();
+    expect(mockUploadFormVideo).not.toHaveBeenCalled();
+    expect(mockAnalyzeFormVideoFull).not.toHaveBeenCalled();
   });
 
   it('refunds the daily credit + marks row failed when Gemini errors asynchronously', async () => {
     prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
-    mockAnalyzeWorkoutVideo.mockRejectedValue(new Error('Vertex AI timeout'));
+    mockAnalyzeFormVideoFull.mockRejectedValue(new Error('Vertex AI timeout'));
     prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-3', createdAt: new Date() });
 
     const res = await request(app)
@@ -299,7 +308,10 @@ describe('POST /api/form-analysis/video', () => {
     expect(prismaFormAnalysis.update).toHaveBeenCalled();
     const updateData = prismaFormAnalysis.update.mock.calls[0][0].data;
     expect(updateData.status).toBe('failed');
-    expect(updateData.errorMessage).toMatch(/Vertex AI timeout/);
+    // Provider error text is logged, never persisted (it can carry bucket /
+    // project / model ids) — the row gets fixed user-facing copy.
+    expect(updateData.errorMessage).not.toMatch(/Vertex AI timeout/);
+    expect(updateData.errorMessage).toMatch(/analysis failed/i);
 
     // Failure also notifies the user (so they're not stuck on a spinner they
     // navigated away from), deep-linking back to retry.
@@ -312,7 +324,7 @@ describe('POST /api/form-analysis/video', () => {
 
   it('pro tier is unmetered (no quota upsert)', async () => {
     prismaUser.findUnique.mockResolvedValue({ ...USER, tier: 'pro' });
-    mockAnalyzeWorkoutVideo.mockResolvedValue({
+    mockAnalyzeFormVideoFull.mockResolvedValue({
       exercise: 'Deadlift', formScore: 9, repCount: 1,
       strengths: [], weaknesses: [], recommendedDrills: [], programmingNotes: [],
       safetyFlags: [], summary: 'Solid pull.',
@@ -341,7 +353,7 @@ describe('POST /api/form-analysis/video', () => {
       strengths: ['Tight arch'], weaknesses: [], recommendedDrills: [],
       programmingNotes: [], safetyFlags: [], summary: 'Clean press.',
     };
-    mockAnalyzeWorkoutVideo.mockResolvedValue(analysis);
+    mockAnalyzeFormVideoFull.mockResolvedValue(analysis);
     prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-sync', createdAt: new Date('2026-06-04T12:00:00Z') });
 
     const res = await request(app)
@@ -473,7 +485,7 @@ describe('reference stills', () => {
     prismaFeatureUsage.upsert.mockResolvedValue({ count: 1 });
     prismaUser.findUnique.mockResolvedValue(user);
     prismaFormAnalysis.create.mockResolvedValue({ id: 'fa-x', createdAt: new Date() });
-    mockAnalyzeWorkoutVideo.mockResolvedValue(ANALYSIS);
+    mockAnalyzeFormVideoFull.mockResolvedValue(ANALYSIS);
 
     const settled = new Promise<any>((resolve) => {
       prismaFormAnalysis.update.mockImplementation(async (args: any) => {
@@ -655,7 +667,9 @@ describe('POST /api/form-analysis/onboarding', () => {
 
     const write = prismaFormAnalysis.update.mock.calls[0][0];
     expect(write.data.status).toBe('failed');
-    expect(write.data.errorMessage).toContain('unreadable clip');
+    // Fixed copy, never the provider's error text.
+    expect(write.data.errorMessage).not.toContain('unreadable clip');
+    expect(write.data.errorMessage).toMatch(/analysis failed/i);
     expect(mockAnalyzeFormVideoFull).not.toHaveBeenCalled();
     expect(mockCleanup).toHaveBeenCalled();
   });

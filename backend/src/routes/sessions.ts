@@ -219,9 +219,9 @@ router.get('/sessions/history', requireAuth, async (req, res) => {
 router.delete('/sessions/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const session = await prisma.session.findUnique({ where: { id } });
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    if (session.userId !== req.user!.id) return res.status(403).json({ error: 'Forbidden' });
+    // 404 for a foreign id too — a 403 confirmed the session exists.
+    const session = await loadOwnedSession(req, res);
+    if (!session) return;
     await prisma.session.delete({ where: { id } });
     res.json({ ok: true });
   } catch (err) {
@@ -707,7 +707,8 @@ router.post('/sessions/:id/chat', requireAuth, checkAnalysisRateLimit, async (re
 
   } catch (err: any) {
     console.error('Chat error:', err);
-    return res.status(500).json({ error: err.message || 'Chat failed' });
+    // Provider error text (model/project ids, quota details) stays in the log.
+    return res.status(500).json({ error: 'Chat failed' });
   }
 });
 
@@ -749,14 +750,8 @@ router.get('/sessions/:id/public', async (req, res) => {
 router.post('/sessions/:id/share', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const session = await prisma.session.findUnique({ where: { id } });
-
-    if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-    if (session.userId !== req.user!.id) {
-      return res.status(403).json({ error: 'Not authorized' });
-    }
+    const session = await loadOwnedSession(req, res);
+    if (!session) return;
 
     await prisma.session.update({ where: { id }, data: { isPublic: true } });
 

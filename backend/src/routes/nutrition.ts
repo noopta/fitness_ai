@@ -14,6 +14,9 @@ import {
   parseJsonObject,
   consumeMealLoggingQuota,
   updateNutritionStreakInBackground,
+  isValidIsoDate,
+  ISO_DATE_MESSAGE,
+  clampDays,
 } from '../services/nutritionShared.js';
 import { finishLookups, analyzeMealPhoto, analyzeMealPhotoItems, MEAL_PHOTO_V2_MODEL, suggestMeals, transcribeAudio, parseNutritionLabel } from '../services/llmService.js';
 import { mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
@@ -36,6 +39,7 @@ import { runNutritionRules } from '../engine/nutritionRulesEngine.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { bounded, implausibilityWarning } from '../validation/physiologicalBounds.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
+import { clampDailyCalories, floorProfileFor, sanitizeMealMacros } from '../services/nutritionSafety.js';
 import { chatComplete } from '../services/chatClient.js';
 import { enrichMealDetailHybrid, normalizeMicronutrients } from '../services/nutritionEnrichmentService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
@@ -57,8 +61,19 @@ import { userFoodHints, userPastMeals } from '../services/food/userFoodHints.js'
 const router = Router();
 const prisma = new PrismaClient();
 
+/**
+ * Model-estimated meal numbers are clamped to [0, 5000] per field and the
+ * calories reconciled with 4/4/9 macros before they reach the client (Oct
+ * 2026 audit). Exported for tests.
+ */
+export function safeMealMacros<T extends Record<string, any>>(d: T): T {
+  if (!d || typeof d !== 'object' || (d as any).noFoodDetected) return d;
+  const { adjusted, ...m } = sanitizeMealMacros(d as any);
+  return (adjusted ? { ...m, macrosAdjusted: true } : m) as unknown as T;
+}
+
 const logSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: z.string().refine(isValidIsoDate, ISO_DATE_MESSAGE),
   proteinG: z.number().min(0).max(1000),
   carbsG: z.number().min(0).max(2000),
   fatG: z.number().min(0).max(1000),
@@ -128,7 +143,8 @@ router.post('/nutrition/log', requireAuth, async (req, res) => {
   } catch (err: any) {
     posthog.captureException(err, req.user?.id);
     console.error('Nutrition log error:', err);
-    res.status(400).json({ error: err.message || 'Failed to save log' });
+    // Never echo raw error text (Zod JSON / Prisma internals) to the client.
+    res.status(400).json({ error: err?.name === 'ZodError' ? 'Some fields were invalid' : 'Failed to save log' });
   }
 });
 
@@ -164,7 +180,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
     // Never surface raw Zod JSON to the sheet — it renders in the UI.
     const friendly = err?.name === 'ZodError'
       ? 'Some meal fields were invalid — try adjusting the values and logging again.'
-      : err.message || 'Failed to save meal';
+      : 'Failed to save meal';
     if (err?.name === 'ZodError') {
       trackValidationFailure('/nutrition/meals', err.issues?.[0]?.message ?? 'unknown');
     }
@@ -176,7 +192,7 @@ router.post('/nutrition/meals', requireAuth, async (req, res) => {
 router.get('/nutrition/meals', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const date = await queryDateOrToday(req, req.query.date);
+    const date = await queryDateOrToday(req, isValidIsoDate(req.query.date) ? req.query.date : undefined);
     const entries = await prisma.mealEntry.findMany({
       where: { userId, date },
       orderBy: { createdAt: 'asc' },
@@ -271,7 +287,7 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
     });
   } catch (err: any) {
     console.error('[nutrition/barcode] lookup failed:', err?.message ?? err);
-    return res.status(502).json({ error: 'Lookup failed', message: err?.message });
+    return res.status(502).json({ error: 'Lookup failed' });
   }
 });
 // GET /api/nutrition/barcode/:code/web — the barcode missed OpenFoodFacts and
@@ -361,6 +377,17 @@ router.post('/nutrition/barcode/:code/web/confirm', requireAuth, async (req, res
   }
 });
 
+/** Exported for tests. True when `userId` may replace this community row's numbers. */
+export function canOverwriteBarcode(
+  existing: { verified?: boolean | null; contributedByUserId?: string | null; source?: string | null } | null,
+  userId: string,
+): boolean {
+  if (!existing) return true;
+  if (existing.verified === true) return false;
+  if (existing.source === 'web_search') return true;
+  return !!existing.contributedByUserId && existing.contributedByUserId === userId;
+}
+
 function num(v: unknown): number | null {
   const n = typeof v === 'string' ? parseFloat(v) : (typeof v === 'number' ? v : NaN);
   return Number.isFinite(n) ? n : null;
@@ -370,7 +397,7 @@ function num(v: unknown): number | null {
 // The user photographs the nutrition panel, we read it, and the result is
 // cached globally so the next person to scan that product gets it instantly.
 // This is the only way to build coverage for products OpenFoodFacts lacks.
-router.post('/nutrition/barcode/:code/label', requireAuth, async (req, res) => {
+router.post('/nutrition/barcode/:code/label', requireAuth, aiLimiter, async (req, res) => {
   const code = String(req.params.code ?? '').trim();
   if (!/^[0-9]{6,14}$/.test(code)) {
     return res.status(400).json({ error: 'Invalid barcode format' });
@@ -397,7 +424,9 @@ router.post('/nutrition/barcode/:code/label', requireAuth, async (req, res) => {
     if (!ok) return;
 
     const parsed = await parseNutritionLabel(imageBase64, mimeType, normalizeFoodRegion(user.foodRegion));
-    if (!parsed || parsed.caloriesPer100g <= 0) {
+    // Nothing edible exceeds ~900 kcal/100 g (pure fat); a higher read is a
+    // misread panel and must not be cached for everyone who scans this code.
+    if (!parsed || !(parsed.caloriesPer100g > 0) || parsed.caloriesPer100g > 950) {
       return res.status(422).json({ error: "Could not read that label — try a straighter, closer photo of the nutrition panel." });
     }
 
@@ -408,9 +437,13 @@ router.post('/nutrition/barcode/:code/label', requireAuth, async (req, res) => {
     );
 
     const existing = await prisma.productBarcode.findUnique({ where: { code } });
-    // A verified row is authoritative and never overwritten by a fresh scan;
-    // we only bump the counter so popularity is still visible.
-    const freeze = existing?.verified === true;
+    // This row is served to EVERY user who scans the code, so who may rewrite
+    // it matters (Oct 2026 audit): a verified row is authoritative and never
+    // overwritten; an unverified label row may only be replaced by the user
+    // who contributed it; an unconfirmed web-search guess may be replaced by
+    // anyone's real label read. Otherwise we only bump the counter so
+    // popularity is still visible.
+    const freeze = canOverwriteBarcode(existing, userId) === false;
     const row = await prisma.productBarcode.upsert({
       where: { code },
       create: {
@@ -563,13 +596,24 @@ router.put('/nutrition/targets', requireAuth, async (req, res) => {
     // 130 kg athlete bulking legitimately eats 5,000+, so this can't be a gate.
     const warning = implausibilityWarning('dailyCalories', dailyCalorieTarget, 'Calorie target');
 
+    // Hard floor (1200 F / 1500 M-or-unknown, or 0.8 × BMR): a lower request
+    // lands on the floor and the user is told why (Oct 2026 audit HIGH-1).
+    const floored = dailyCalorieTarget == null
+      ? null
+      : clampDailyCalories(dailyCalorieTarget, await floorProfileFor(prisma, userId));
+
     await prisma.user.update({
       where: { id: userId },
-      data: { dailyCalorieTarget: dailyCalorieTarget ?? null },
+      data: { dailyCalorieTarget: floored ? floored.calories : null },
     });
     // Bust the nutrition profile cache so next fetch uses the new target
     cacheMarkStale(nutritionProfileCacheKey(userId));
-    res.json({ success: true, ...(warning ? { warnings: [warning] } : {}) });
+    const warnings = [warning, floored?.note].filter(Boolean);
+    res.json({
+      success: true,
+      ...(floored ? { dailyCalorieTarget: floored.calories } : {}),
+      ...(warnings.length ? { warnings } : {}),
+    });
   } catch (err: any) {
     if (err?.name === 'ZodError') {
       return res.status(400).json({ error: err.errors?.[0]?.message ?? 'Invalid calorie target' });
@@ -592,6 +636,7 @@ router.put('/nutrition/meals/:id', requireAuth, async (req, res) => {
     if (!r) return res.status(404).json({ error: 'Entry not found' });
     res.json(r.entry);
   } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Some meal fields were invalid' });
     console.error('Meal update error:', err);
     res.status(500).json({ error: 'Failed to update meal' });
   }
@@ -633,7 +678,7 @@ router.post('/nutrition/transcribe', requireAuth, aiLimiter, async (req, res) =>
     res.json({ text });
   } catch (err: any) {
     console.error(`[transcribe] FAILED user=${userId}:`, err?.message ?? err);
-    res.status(500).json({ error: err?.message ?? 'Failed to transcribe' });
+    res.status(500).json({ error: 'Failed to transcribe' });
   }
 });
 
@@ -701,10 +746,10 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     const { brandedItems: _items, ...shown } = detail;
     if (defer && detail.brandedItems?.length && TEXT_LOOKUP_ENABLED()) {
       const job = startLookupJob(req.user!.id, detail, (items, c) => resolveAll(items, { userId: req.user!.id, tz, surface: 'describe', explicit, onEvent: c.onEvent }), finishLookups);
-      return res.json({ ...shown, source: 'text', enrichment: meta, lookup: { id: job.id, done: false, steps: job.steps } });
+      return res.json({ ...safeMealMacros(shown), source: 'text', enrichment: meta, lookup: { id: job.id, done: false, steps: job.steps } });
     }
     res.json({
-      ...shown,
+      ...safeMealMacros(shown),
       source: 'text',
       enrichment: meta,
     });
@@ -722,7 +767,7 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
 router.get('/nutrition/food-lookup/:id', requireAuth, (req, res) => {
   const job = getLookupJob(String(req.params.id), req.user!.id);
   if (!job) return res.status(404).json({ error: 'That lookup has expired — log the estimate or describe it again.' });
-  const result = job.result ? (({ brandedItems: _b, ...rest }) => rest)(job.result) : null;
+  const result = job.result ? safeMealMacros((({ brandedItems: _b, ...rest }) => rest)(job.result)) : null;
   res.json({ id: job.id, done: job.done, steps: job.steps, result });
 });
 
@@ -730,7 +775,8 @@ router.get('/nutrition/food-lookup/:id', requireAuth, (req, res) => {
 router.get('/nutrition/history', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const days = Math.min(parseInt(req.query.days as string || '30', 10), 90);
+    // 1..90 (garbage → 30); parseInt alone let NaN through to the date math.
+    const days = Math.min(clampDays(req.query.days, 30), 90);
     const since = new Date();
     since.setDate(since.getDate() - days);
     const sinceStr = since.toISOString().split('T')[0];
@@ -900,7 +946,7 @@ router.post('/nutrition/analyze-photo', requireAuth, aiLimiter, async (req, res)
         resolveBranded: (items, uid) => photoBrandedLookup(items, uid, tz),
       },
     );
-    res.json(result);
+    res.json(safeMealMacros(result as any));
     // Fire an encouraging indulgent-meal push if applicable (non-blocking,
     // after response sent). Not on add-photo calls — that's the same meal.
     if (!existingItems.length && !result.noFoodDetected && isJunkFood(result.name, result.tags ?? [], result.calories)) {
@@ -1566,7 +1612,12 @@ function refreshProfileInBackground(userId: string): void {
 // client timeout to break it. Now a stale entry is served immediately and
 // refreshed behind the response; only a user with no cached profile at all
 // (genuinely first ever view) waits for a live build.
-router.get('/nutrition/profile', requireAuth, async (req, res) => {
+// A forced refresh is a fresh ~12k-token LLM build, so it's rate limited like
+// every other AI route (Oct 2026 audit); cached reads are not.
+const profileRefreshLimiter = (req: any, res: any, next: any) =>
+  req.query?.refresh === '1' ? aiLimiter(req, res, next) : next();
+
+router.get('/nutrition/profile', requireAuth, profileRefreshLimiter, async (req, res) => {
   try {
     const userId = req.user!.id;
     const forceRefresh = req.query.refresh === '1';

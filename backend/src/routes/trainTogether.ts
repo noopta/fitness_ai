@@ -96,9 +96,9 @@ router.get('/train-together/friends', wrap(async (req, res) => {
     name: f.name,
     username: f.username,
     avatarBase64: f.avatarBase64,
-    splitLabel: f.scheduleSharing ? f.splitLabel : null,
     sharing: f.scheduleSharing,
-    hasProgram: f.scheduleSharing ? !!f.savedProgram : null,
+    // Omitted entirely (not just nulled) when sharing is off.
+    ...(f.scheduleSharing ? { splitLabel: f.splitLabel, hasProgram: !!f.savedProgram } : {}),
     selectable: f.scheduleSharing && !!f.savedProgram,
   })));
 }));

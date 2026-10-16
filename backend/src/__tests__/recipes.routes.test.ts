@@ -15,7 +15,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret_key_at_least_32_
 const mocks = vi.hoisted(() => ({
   recipe: { findMany: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
   mealEntry: { create: vi.fn() },
-  user: { findUnique: vi.fn(), update: vi.fn() },
+  user: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
   $transaction: vi.fn(),
 }));
 vi.mock('@prisma/client', () => {
@@ -81,6 +81,7 @@ beforeEach(() => {
   // requireAuth fires a background lastActiveAt update on every authed
   // request — give update a resolved default so its .catch() has a promise.
   mocks.user.update.mockReset().mockResolvedValue({});
+  mocks.user.updateMany.mockReset().mockResolvedValue({ count: 0 });
   mocks.$transaction.mockReset();
   mockParseRecipe.mockReset();
 });
@@ -253,6 +254,29 @@ describe('POST /api/nutrition/recipes/:id/log', () => {
       .send({ date: '2026-07-15', servings: 50 });
     expect(badServings.status).toBe(400);
   });
+
+  it('rejects a calendar-impossible date (Oct 2026 audit: regex alone accepted it)', async () => {
+    const app = await buildApp();
+    mocks.recipe.findFirst.mockResolvedValue(DB_RECIPE);
+    const res = await request(app)
+      .post('/api/nutrition/recipes/r-1/log')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: '2026-02-31' });
+    expect(res.status).toBe(400);
+    expect(mocks.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('caps the FINAL entry at 20000 kcal after servings multiplication', async () => {
+    const app = await buildApp();
+    // A per-serving value the recipe caps allow, × 20 servings → 40000 kcal.
+    mocks.recipe.findFirst.mockResolvedValue({ ...DB_RECIPE, calories: 2000 });
+    const res = await request(app)
+      .post('/api/nutrition/recipes/r-1/log')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: '2026-07-15', servings: 20 });
+    expect(res.status).toBe(400);
+    expect(mocks.$transaction).not.toHaveBeenCalled();
+  });
 });
 
 describe('POST /api/nutrition/recipes/parse', () => {
@@ -264,11 +288,9 @@ describe('POST /api/nutrition/recipes/parse', () => {
 
   it('parses via LLM and consumes the shared free-tier quota', async () => {
     const app = await buildApp();
-    // tier lookup, then quota count lookup
-    mocks.user.findUnique
-      .mockResolvedValueOnce({ tier: 'free' })
-      .mockResolvedValueOnce({ dailyPhotoScanCount: 0, dailyPhotoScanDate: null });
-    mocks.user.update.mockResolvedValue({});
+    // tier lookup, then the atomic new-day reset claims the first slot
+    mocks.user.findUnique.mockResolvedValueOnce({ tier: 'free' });
+    mocks.user.updateMany.mockResolvedValueOnce({ count: 1 });
     mockParseRecipe.mockResolvedValue(PARSED);
 
     const res = await request(app)
@@ -279,8 +301,8 @@ describe('POST /api/nutrition/recipes/parse', () => {
     expect(res.status).toBe(200);
     expect(res.body.items).toHaveLength(3);
     expect(res.body.nutrients).toEqual(PARSED.nutrients);
-    // quota consumed (requireAuth also updates lastActiveAt, so filter)
-    const quotaWrites = mocks.user.update.mock.calls.filter(
+    // quota consumed atomically (conditional updateMany, Oct 2026 audit)
+    const quotaWrites = mocks.user.updateMany.mock.calls.filter(
       (c: any[]) => c[0]?.data?.dailyPhotoScanCount !== undefined,
     );
     expect(quotaWrites).toHaveLength(1);
@@ -289,10 +311,12 @@ describe('POST /api/nutrition/recipes/parse', () => {
 
   it('429s a free user who exhausted the shared AI quota', async () => {
     const app = await buildApp();
-    const today = new Date().toISOString().slice(0, 10);
+    // Neither conditional update matches (same day, count at the cap); the
+    // user exists, so it's a 429.
     mocks.user.findUnique
       .mockResolvedValueOnce({ tier: 'free' })
-      .mockResolvedValueOnce({ dailyPhotoScanCount: 7, dailyPhotoScanDate: today });
+      .mockResolvedValueOnce({ id: 'u-1' });
+    mocks.user.updateMany.mockResolvedValue({ count: 0 });
 
     const res = await request(app)
       .post('/api/nutrition/recipes/parse')
@@ -314,6 +338,7 @@ describe('POST /api/nutrition/recipes/parse', () => {
       .send({ description: 'chili recipe with beans and beef' });
 
     expect(res.status).toBe(200);
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
     const quotaWrites = mocks.user.update.mock.calls.filter(
       (c: any[]) => c[0]?.data?.dailyPhotoScanCount !== undefined,
     );

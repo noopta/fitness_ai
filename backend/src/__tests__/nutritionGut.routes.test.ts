@@ -42,10 +42,16 @@ vi.mock('../services/nutritionEnrichmentService.js', () => ({
 }));
 
 const mockQuota = vi.fn();
-vi.mock('../services/nutritionShared.js', () => ({
-  consumeMealLoggingQuota: (...a: unknown[]) => mockQuota(...a),
-  nutritionProfileCacheKey: (id: string) => `nutrition_profile:${id}`,
-}));
+vi.mock('../services/nutritionShared.js', async () => {
+  // Real pure helpers (date check, nutrient-map bound, entry cap); only the
+  // quota is faked.
+  const actual = await vi.importActual<any>('../services/nutritionShared.js');
+  return {
+    ...actual,
+    consumeMealLoggingQuota: (...a: unknown[]) => mockQuota(...a),
+    nutritionProfileCacheKey: (id: string) => `nutrition_profile:${id}`,
+  };
+});
 
 // Dynamic import so the vi.mock factories' captured consts are initialized
 // before the router module (and its transitive imports) load.
@@ -276,6 +282,24 @@ describe('POST /nutrition/order-log', () => {
 
   it('rejects an empty item list', async () => {
     const res = await auth(request(app).post('/api/nutrition/order-log')).send({ items: [] });
+    expect(res.status).toBe(400);
+  });
+
+  // Oct 2026 audit: per-field caps didn't bound calories × portion × quantity.
+  it('rejects an entry whose FINAL calories exceed 20000', async () => {
+    const res = await auth(request(app).post('/api/nutrition/order-log')).send({
+      date: '2026-07-21',
+      items: [{ name: 'Party tray', portionFactor: 3, quantity: 10, calories: 5000, proteinG: 1, carbsG: 1, fatG: 1 }],
+    });
+    expect(res.status).toBe(400);
+    expect(prismaMealEntry.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a calendar-impossible date', async () => {
+    const res = await auth(request(app).post('/api/nutrition/order-log')).send({
+      date: '2026-02-30',
+      items: [{ name: 'Bowl', calories: 500, proteinG: 30, carbsG: 50, fatG: 10 }],
+    });
     expect(res.status).toBe(400);
   });
 });

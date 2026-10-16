@@ -8,7 +8,8 @@
 import { PrismaClient } from '@prisma/client';
 import { chatComplete } from './chatClient.js';
 import { buildRAGContext } from './ragService.js';
-import { buildPodcastContext, type PodcastReference } from './podcast/podcastRagService.js';
+import { buildPodcastContext, PODCAST_DISCLAIMER, type PodcastReference } from './podcast/podcastRagService.js';
+import { floorNutritionPlan } from './llmService.js';
 import { parseJsonObjectColumn } from './jsonColumn.js';
 import {
   computeMicroTargets,
@@ -53,6 +54,8 @@ export interface PlanSource {
   title: string;
   detail?: string | null;
   url?: string | null;
+  /** Podcast sources carry the non-affiliation notice wherever they are shown. */
+  disclaimer?: string;
 }
 
 export interface GeneratedNutritionPlan {
@@ -243,6 +246,7 @@ export async function generateNutritionPlan(userId: string): Promise<{
       title: r.episodeTitle,
       detail: [r.speaker ?? r.guestName, r.chapterTitle].filter(Boolean).join(' · ') || null,
       url: r.youtubeUrl,
+      disclaimer: PODCAST_DISCLAIMER,
     });
   });
   if (libraryContext) {
@@ -284,26 +288,40 @@ Write JSON only:
 
 Rules: food-first always — supplements only where their diet plausibly can't cover the gap. Conservative doses only. Never diagnose. Second person, clipped, no exclamation marks.`;
 
+  // The prompt carries the user's assessment (digestion, medical flags,
+  // supplements), so it never goes to the OpenRouter tier.
   const response = await chatComplete({
     modelOverride: PLAN_MODEL,
     messages: [{ role: 'user', content: prompt }],
     response_format: { type: 'json_object' },
     max_completion_tokens: 3000,
-  });
+  }, { sensitive: true, label: 'nutrition-plan' });
 
   let raw: any = {};
   try { raw = JSON.parse(response.choices[0].message.content || '{}'); } catch { /* coerce handles */ }
-  const plan = coercePlan(raw, targets, hasMedicalFlags);
+  // Calorie floor on anything the model wrote that carries a calorie figure
+  // (a no-op for a micro-only plan; the rail exists so no path can bypass it).
+  const plan = floorNutritionPlan(coercePlan(raw, targets, hasMedicalFlags) as GeneratedNutritionPlan & { macros?: any; rationale?: string }, {
+    gender: coachProfile?.gender ?? null,
+    weightKg: user.weightKg ?? null,
+  });
 
-  const saved = await prisma.nutritionPlan.create({
-    data: {
-      userId,
-      planJson: JSON.stringify(plan),
-      microTargetsJson: JSON.stringify(targets),
-      sourcesJson: JSON.stringify(sources),
-    },
+  // Regenerating rewrites the user's current plan in place rather than
+  // appending a row per tap (Oct 2026 audit: unbounded growth per user).
+  const data = {
+    planJson: JSON.stringify(plan),
+    microTargetsJson: JSON.stringify(targets),
+    sourcesJson: JSON.stringify(sources),
+    generatedAt: new Date(),
+  };
+  const current = await prisma.nutritionPlan.findFirst({
+    where: { userId },
+    orderBy: { generatedAt: 'desc' },
     select: { id: true },
   });
+  const saved = current
+    ? await prisma.nutritionPlan.update({ where: { id: current.id }, data, select: { id: true } })
+    : await prisma.nutritionPlan.create({ data: { userId, ...data }, select: { id: true } });
 
   return { plan, targets, sources, planId: saved.id };
 }

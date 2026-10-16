@@ -262,9 +262,14 @@ router.post('/social/friends/request', socialWriteLimiter, wrap(async (req, res)
 
   if (existing) {
     if (existing.status === 'blocked') {
-      // Same response as a freshly-created request: a distinct error here told
-      // the sender they had been blocked (Oct 2026 audit). Nothing is written
-      // and nobody is notified.
+      // The blocker is the row's requester (see /social/friends/block). If the
+      // caller is the one who blocked, telling them so leaks nothing.
+      if (existing.requesterId === userId) {
+        return res.status(403).json({ error: 'Unblock this user before sending a request' });
+      }
+      // Blocked BY the target: same response as a freshly-created request — a
+      // distinct error here told the sender they had been blocked (Oct 2026
+      // audit). Nothing is written and nobody is notified.
       return res.status(201).json({ status: 'pending' });
     }
     if (existing.status === 'accepted') {

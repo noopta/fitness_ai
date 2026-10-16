@@ -245,6 +245,8 @@ describe('check-ins', () => {
     await deliverDueDrafts(new Date(Date.now() + 6_000));
     const sent = (await trainerMessages()).slice(before);
     expect(sent).toHaveLength(1);
+    // A batch send delivers the fixed template, never unread model text (Oct 2026 audit).
+    expect(sent[0].body).toBe("Thanks for checking in, Jordan. Everything looks on track this week, so keep doing what you're doing. Reply here if anything changes.");
     const maya = await prisma.ptCheckIn.findUnique({ where: { id: mayaCheckIn } });
     const jordan = await prisma.ptCheckIn.findUnique({ where: { id: jordanCheckIn } });
     expect(maya.reviewedAt).toBeNull();
@@ -528,6 +530,10 @@ describe('spreadsheet import', () => {
     // Nothing was written into anyone's own account.
     expect(await prisma.workoutLog.count({ where: { userId: id.jordan, date: '2025-12-01' } })).toBe(0);
     expect(await prisma.ptAuditLog.count({ where: { action: 'import_confirmed' } })).toBe(1);
+    // Oct 2026 audit: the raw upload is purged to header rows once imported.
+    const stored = await prisma.ptImport.findUnique({ where: { id: importId } });
+    expect(stored.sheetsJson).not.toContain('priya@example.com');
+    expect(JSON.parse(stored.sheetsJson).map((g: any) => g.rows.length)).toEqual([1, 1, 1]);
   });
 
   it('gives an app published before the import a status it can draw', async () => {
@@ -600,6 +606,18 @@ describe('spreadsheet import', () => {
     expect((await request(app).get(`${api}/clients/${encodeURIComponent(priya)}/timeline`).set('Authorization', as.trainer)).status).toBe(404);
   });
 
+  it('deletes a not-joined client, practice-scoped (Oct 2026 audit)', async () => {
+    const leo = (await request(app).get(`${api}/clients?status=notJoined`).set('Authorization', as.trainer)).body.clients.find((c: any) => c.name === 'Leo Martins').id;
+    expect((await request(app).delete(`${api}/prospects/${encodeURIComponent(leo)}`).set('Authorization', as.other)).status).toBe(404);
+    expect((await request(app).delete(`${api}/prospects/does-not-exist`).set('Authorization', as.trainer)).status).toBe(404);
+    const r = await request(app).delete(`${api}/prospects/${encodeURIComponent(leo)}`).set('Authorization', as.trainer);
+    expect(r.status).toBe(200);
+    expect(await prisma.ptProspect.findUnique({ where: { id: leo.slice('prospect:'.length) } })).toBeNull();
+    // Someone who has joined is a real client, not deletable as a prospect.
+    const joined = await prisma.ptProspect.findFirst({ where: { userId: { not: null } } });
+    expect((await request(app).delete(`${api}/prospects/${joined.id}`).set('Authorization', as.trainer)).status).toBe(409);
+  });
+
   it('undoes an import as a batch', async () => {
     expect((await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.other)).status).toBe(404);
     const r = await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.trainer);
@@ -611,6 +629,18 @@ describe('spreadsheet import', () => {
     expect((await request(app).post(`${api}/imports/${importId}/undo`).set('Authorization', as.trainer)).status).toBe(409);
     const list = await request(app).get(`${api}/imports`).set('Authorization', as.trainer);
     expect(list.body.imports).toEqual([expect.objectContaining({ id: importId, status: 'undone', fileName: 'clients.xlsx' })]);
+  });
+
+  it('purges never-joined prospects older than 90 days', async () => {
+    const { purgeStaleProspects } = await import('../services/personalTraining/imports.js');
+    const old = await prisma.ptProspect.create({ data: { practiceId: id.practice, importId, nameKey: 'old person', name: 'Old Person', createdAt: ago(120) } });
+    const fresh = await prisma.ptProspect.create({ data: { practiceId: id.practice, importId, nameKey: 'new person', name: 'New Person', createdAt: ago(10) } });
+    await prisma.ptImportedWeight.create({ data: { practiceId: id.practice, prospectId: old.id, importId, date: '2026-01-01', at: ago(120), weightKg: 80 } });
+    expect(await purgeStaleProspects(90)).toBe(1);
+    expect(await prisma.ptProspect.findUnique({ where: { id: old.id } })).toBeNull();
+    expect(await prisma.ptImportedWeight.count({ where: { prospectId: old.id } })).toBe(0);
+    expect(await prisma.ptProspect.findUnique({ where: { id: fresh.id } })).not.toBeNull();
+    await prisma.ptProspect.delete({ where: { id: fresh.id } });
   });
 });
 

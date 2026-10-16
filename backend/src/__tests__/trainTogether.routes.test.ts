@@ -118,7 +118,22 @@ describe('GET /train-together/friends', () => {
     const app = await buildApp();
     const res = await request(app).get('/api/train-together/friends').set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body[0]).toMatchObject({ id: FRIEND, sharing: false, hasProgram: true, selectable: false });
+    // Oct 2026 audit: a friend with sharing off hasn't consented to anyone
+    // learning their split or whether they even have a program, so neither
+    // field is sent.
+    expect(res.body[0]).toMatchObject({ id: FRIEND, sharing: false, selectable: false });
+    expect(res.body[0]).not.toHaveProperty('splitLabel');
+    expect(res.body[0]).not.toHaveProperty('hasProgram');
+  });
+
+  it('exposes split and program status for a sharing friend', async () => {
+    wireFriendship();
+    mocks.user.findMany.mockResolvedValue([
+      { id: FRIEND, name: 'Alex', username: 'alex', avatarBase64: null, scheduleSharing: true, savedProgram: PPL, splitLabel: 'PPL' },
+    ]);
+    const app = await buildApp();
+    const res = await request(app).get('/api/train-together/friends').set('Authorization', `Bearer ${token}`);
+    expect(res.body[0]).toMatchObject({ id: FRIEND, sharing: true, splitLabel: 'PPL', hasProgram: true, selectable: true });
   });
 });
 
@@ -194,6 +209,56 @@ describe('pins', () => {
     expect(mockSendPushToUsers).toHaveBeenCalledWith(
       [FRIEND], 'Train together?', expect.stringContaining('Me'), expect.anything(),
     );
+  });
+
+  it('403s sharing_off when an invitee has schedule sharing off (Oct 2026 audit)', async () => {
+    wireFriendship();
+    wireUsers({ friendSharing: false });
+    const app = await buildApp();
+    const date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const res = await request(app)
+      .post('/api/train-together/pins')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date, memberIds: [FRIEND] });
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('sharing_off');
+    expect(mocks.partnerWorkout.create).not.toHaveBeenCalled();
+  });
+
+  it('403s sharing_off when an invitee has no saved program', async () => {
+    wireFriendship();
+    wireUsers({ friendProgram: null });
+    const app = await buildApp();
+    const date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const res = await request(app)
+      .post('/api/train-together/pins')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date, memberIds: [FRIEND] });
+    expect(res.status).toBe(403);
+    expect(mocks.partnerWorkout.create).not.toHaveBeenCalled();
+  });
+
+  it('GET /pins/:id hides a pending member\'s session', async () => {
+    wireUsers();
+    const date = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    mocks.partnerWorkout.findUnique.mockResolvedValue({
+      id: 'pin1', date, status: 'pending', creatorId: ME, note: null, pinnedTier: 'exact',
+      sharedSessionJson: null, sharedFitJson: null, createdAt: new Date(),
+      members: [
+        { id: 'm1', userId: ME, response: 'accepted', user: { id: ME, name: 'Me' } },
+        { id: 'm2', userId: FRIEND, response: 'pending', user: { id: FRIEND, name: 'Alex' } },
+      ],
+    });
+    const app = await buildApp();
+    const res = await request(app).get('/api/train-together/pins/pin1').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    const me = res.body.members.find((m: any) => m.userId === ME);
+    const friend = res.body.members.find((m: any) => m.userId === FRIEND);
+    expect(me.session).not.toBeNull();
+    expect(friend.session).toBeNull();
+    // The friend's calendar was never even loaded.
+    const loaded = mocks.user.findUnique.mock.calls.filter((c: any[]) => c[0]?.select?.programStartDate).map((c: any[]) => c[0].where.id);
+    expect(loaded).not.toContain(FRIEND);
   });
 
   it('rejects pinning with a non-friend', async () => {

@@ -16,6 +16,11 @@ import type {
   LiftKey, NotificationFeed, NotificationOverride, NotificationSettings, NotificationSettingsPatch, Tier,
 } from './types.js';
 
+/** Minimal HTML escaping for strings interpolated into notification emails. Exported for tests. */
+export function escapeHtml(v: unknown): string {
+  return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+}
+
 const DAY_MS = 86_400_000;
 
 export class SettingsError extends Error {}
@@ -160,6 +165,10 @@ export function applyPatch(current: StoredSettings, patch: NotificationSettingsP
   if (patch.overrides) {
     if (!Array.isArray(patch.overrides) || patch.overrides.length > 100) throw new SettingsError('Too many overrides');
     next.overrides = patch.overrides.map((o) => {
+      // A null / non-object entry used to throw a TypeError (500); it's a bad request.
+      if (!o || typeof o !== 'object' || typeof (o as any).clientId !== 'string' || typeof (o as any).eventType !== 'string') {
+        throw new SettingsError('Each override needs a client and an event type');
+      }
       if (!clientIds.has(o.clientId)) throw new SettingsError('An override names someone who is not your client');
       const def = o.eventType === '*' ? undefined : eventDef(o.eventType);
       if (o.eventType !== '*' && !def) throw new SettingsError(`Unknown event type "${o.eventType}"`);
@@ -265,7 +274,8 @@ export async function sweepNotifications(practiceId: string, trainerId: string, 
         sendPushToUser(trainerId, e.title, e.body || 'Open your trainer dashboard', { type: 'personal_training', clientId: e.clientId, eventType: e.eventType }).catch(() => {});
       }
       if (settings.channels.email && trainer?.email && isMailConfigured()) {
-        sendEmail({ to: trainer.email, subject: e.title, text: `${e.title}\n\n${e.body}`, html: `<p><strong>${e.title}</strong></p><p>${e.body}</p>` }).catch(() => {});
+        // Titles/bodies carry client-supplied strings (names, check-in answers): escaped for HTML.
+        sendEmail({ to: trainer.email, subject: e.title, text: `${e.title}\n\n${e.body}`, html: `<p><strong>${escapeHtml(e.title)}</strong></p><p>${escapeHtml(e.body)}</p>` }).catch(() => {});
       }
       await prisma.ptNotification.update({ where: { id: row.id }, data: { pushedAt: now } });
     } catch {

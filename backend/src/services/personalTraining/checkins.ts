@@ -387,6 +387,18 @@ export async function syncReviewedWithDraft(draftId: string, sent: boolean) {
 }
 
 /**
+ * The fixed reply a batch "Send all routine replies" delivers. Deterministic
+ * on purpose (Oct 2026 audit): a batch send is one tap over many clients the
+ * trainer has not read individually, so it must never deliver model-written
+ * text nobody looked at. A trainer who wants the tailored draft sends it from
+ * that check-in, where they can read and edit it first.
+ */
+export function routineReplyTemplate(name: string | null | undefined): string {
+  const first = typeof name === 'string' ? name.trim().split(/\s+/)[0]?.slice(0, 40) : '';
+  return `Thanks for checking in${first ? `, ${first}` : ''}. Everything looks on track this week, so keep doing what you're doing. Reply here if anything changes.`;
+}
+
+/**
  * "Send all routine replies": only check-ins the server classified routine
  * are eligible. Flagged ones are never batch-sent, whatever the client asks.
  */
@@ -394,10 +406,14 @@ export async function sendRoutineReplies(practiceId: string, trainerId: string):
   const rows = await prisma.ptCheckIn.findMany({
     where: { practiceId, status: 'submitted', classification: 'routine', reviewedAt: null, draftId: { not: null } },
   });
+  const users = rows.length
+    ? await prisma.user.findMany({ where: { id: { in: [...new Set(rows.map((r) => r.clientId))] } }, select: { id: true, name: true } })
+    : [];
+  const names = new Map(users.map((u) => [u.id, u.name]));
   let sent = 0;
   for (const r of rows) {
     try {
-      await requestSend({ draftId: r.draftId!, practiceId, trainerId });
+      await requestSend({ draftId: r.draftId!, practiceId, trainerId, editedText: routineReplyTemplate(names.get(r.clientId)) });
       await syncReviewedWithDraft(r.draftId!, true);
       sent += 1;
     } catch (err) {
