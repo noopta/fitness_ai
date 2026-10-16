@@ -103,10 +103,13 @@ describe('weeks and bookings', () => {
     const by = bookingsByDay([b('late', 18), b('early', 7)]);
     expect(by.get('2026-10-14')?.map((x) => x.id)).toEqual(['early', 'late']);
   });
-  it('says the credit comes back with 24 hours or more of notice', () => {
+  it('says the credit comes back with enough notice (24 hours unless the booking says)', () => {
     const now = new Date('2026-10-14T10:00:00Z');
     expect(creditComesBack({ usedCredit: true, startsAt: '2026-10-15T10:00:00Z' }, now)).toBe(true);
     expect(creditComesBack({ usedCredit: true, startsAt: '2026-10-15T09:59:00Z' }, now)).toBe(false);
     expect(creditComesBack({ usedCredit: false, startsAt: '2026-10-20T10:00:00Z' }, now)).toBe(false);
+    // The server's own rule wins when the booking carries it.
+    expect(creditComesBack({ usedCredit: true, startsAt: '2026-10-15T10:00:00Z', cancelNoticeHours: 48 }, now)).toBe(false);
+    expect(creditComesBack({ usedCredit: true, startsAt: '2026-10-14T16:00:00Z', cancelNoticeHours: 6 }, now)).toBe(true);
   });
 });

@@ -1101,6 +1101,8 @@ export interface TeamMember {
 }
 
 export interface TeamAnalytics {
+  /** The billing currency MRR is in. */
+  currency: string;
   trainers: {
     userId: string;
     name: string;

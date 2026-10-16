@@ -3,10 +3,16 @@
 // Axiom session cookie, so it works for someone with no account and cannot
 // leak a signed-in trainer's session into a client's page.
 
-import { createPortalApi, createPortalApiExtra, PersonalTrainingApiError, type Fetcher, type PortalApi } from '@axiom/personal-training-core';
+import {
+  createPortalApi, createPortalApiExtra, estimateMealPath, PersonalTrainingApiError,
+  type Fetcher, type MealEstimate, type PortalApi,
+} from '@axiom/personal-training-core';
 
-/** Everything the portal calls: the base routes plus intake, meals and the trainer's program. */
-export type FullPortalApi = PortalApi & ReturnType<typeof createPortalApiExtra>;
+/** A meal photo read into editable numbers. Nothing is logged by this call. */
+type EstimateApi = { estimateMeal: (imageBase64: string, mimeType?: string) => Promise<{ estimate: MealEstimate }> };
+
+/** Everything the portal calls: the base routes plus intake, meals, the program, paying and booking. */
+export type FullPortalApi = PortalApi & ReturnType<typeof createPortalApiExtra> & EstimateApi;
 
 export const API_BASE: string = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -58,5 +64,10 @@ export function makePortalFetcher(
 
 export function createPortalClient(token: string, opts?: Parameters<typeof makePortalFetcher>[1]): FullPortalApi {
   const fetcher = makePortalFetcher(token, opts);
-  return { ...createPortalApi(fetcher), ...createPortalApiExtra(fetcher) };
+  return {
+    ...createPortalApi(fetcher),
+    ...createPortalApiExtra(fetcher),
+    estimateMeal: (imageBase64, mimeType = 'image/jpeg') =>
+      fetcher(estimateMealPath, { method: 'POST', body: JSON.stringify({ imageBase64, mimeType }) }) as Promise<{ estimate: MealEstimate }>,
+  };
 }

@@ -56,7 +56,7 @@ export async function publicSlots(slug: string): Promise<Slot[]> {
 export async function submitLead(slug: string, body: Record<string, unknown>, now: Date = new Date()) {
   const inst = await practiceBySlug(slug);
   if (!inst) throw new LeadError('Not found', 404);
-  if (typeof body.website === 'string' && body.website.trim()) return { ok: true };
+  if (typeof body.website === 'string' && body.website.trim()) return { ok: true, consultBooked: false };
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 80) : '';
   if (name.length < 2) throw new LeadError('Tell us your name', 400);
   const email = typeof body.email === 'string' && EMAIL_RE.test(body.email.trim()) ? body.email.trim().toLowerCase().slice(0, 255) : null;
@@ -64,6 +64,7 @@ export async function submitLead(slug: string, body: Record<string, unknown>, no
   if (!email && !phone) throw new LeadError('Leave an email or phone number so the trainer can reply', 400);
   const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) || null : null);
 
+  let consultBooked = false;
   const lead = await prisma.ptLead.create({ data: { practiceId: inst.id, name, email, phone, goal: text(body.goal, 300), message: text(body.message, 1000) } });
   // A free consult, if they picked one of the offered slots.
   if (typeof body.consultAt === 'string') {
@@ -74,6 +75,7 @@ export async function submitLead(slug: string, body: Record<string, unknown>, no
           data: { practiceId: inst.id, trainerId: slot.trainerId, clientId: `${LEAD_PREFIX}${lead.id}`, startsAt: new Date(slot.startsAt), endsAt: new Date(slot.endsAt), slotKey: `${slot.trainerId}|${slot.startsAt}`, source: 'portal', location: slot.location, notes: `Free consult: ${name}` },
         });
         await prisma.ptLead.update({ where: { id: lead.id }, data: { status: 'consult_booked', consultAt: b.startsAt, bookingId: b.id } });
+        consultBooked = true;
       } catch { /* the slot went in the meantime; the lead still stands */ }
     }
   }
@@ -85,7 +87,8 @@ export async function submitLead(slug: string, body: Record<string, unknown>, no
     }).catch(() => {});
     sendPushToUser(c.userId, `New enquiry from ${name}`, lead.goal ?? 'From your public page', { type: 'pt_lead' }).catch(() => {});
   }
-  return { ok: true };
+  // False when they asked for a consult but the slot went in the meantime: the trainer will arrange one.
+  return { ok: true, consultBooked };
 }
 
 type Row = Awaited<ReturnType<typeof prisma.ptLead.findMany>>[number];

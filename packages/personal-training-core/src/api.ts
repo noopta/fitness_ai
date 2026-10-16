@@ -384,6 +384,6 @@ export function createPublicApi(fetcher: Fetcher) {
     practice: (slug: string) => fetcher(`/pt-public/${encodeURIComponent(slug)}`) as Promise<{ practice: PublicPractice }>,
     slots: (slug: string) => fetcher(`/pt-public/${encodeURIComponent(slug)}/slots`) as Promise<{ slots: Slot[] }>,
     enquire: (slug: string, input: { name: string; email?: string; phone?: string; goal?: string; message?: string; consultAt?: string; website?: string }) =>
-      fetcher(`/pt-public/${encodeURIComponent(slug)}/leads`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ ok: true }>,
+      fetcher(`/pt-public/${encodeURIComponent(slug)}/leads`, { method: 'POST', body: JSON.stringify(input) }) as Promise<{ ok: true; consultBooked: boolean }>,
   };
 }

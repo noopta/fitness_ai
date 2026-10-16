@@ -1,8 +1,8 @@
 // Booking sessions with the trainer: what is coming up, what is open, and
 // cancelling with the notice rule spelled out. The server decides whether a
-// cancelled session's credit comes back; the page reads the credits again to say so.
+// cancelled session's credit comes back, and says so on the cancelled booking.
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { CalendarCheck, CalendarX2, MapPin } from 'lucide-react';
 import type { BookingView, Slot } from '@axiom/personal-training-core';
 import {
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import {
-  CANCEL_NOTICE_HOURS, creditComesBack, formatInstantDay, formatLocalDate, formatMinute, formatTimeRange, groupSlotsByDate,
+  creditComesBack, formatInstantDay, formatLocalDate, formatMinute, formatTimeRange, groupSlotsByDate, noticeHours,
 } from '@/features/personal-training/businessFormat';
 import { errorMessage } from '../api';
 import { Card, EmptyState, Eyebrow, InlineError, ListSkeleton, LoadFailed, PortalButton, ScreenTitle } from '../components';
@@ -21,6 +21,14 @@ const STATUS: Record<BookingView['status'], string> = { booked: 'Booked', cancel
 
 export function totalCredits(plans: { status: string; creditsLeft: number }[] | undefined): number {
   return (plans ?? []).filter((p) => p.status === 'active' || p.status === 'past_due' || p.status === 'complete').reduce((n, p) => n + Math.max(0, p.creditsLeft), 0);
+}
+
+/** What happened, from the server's answer on the cancelled booking. */
+export function cancelMessage(b: BookingView): string {
+  if (!b.usedCredit) return 'Session cancelled.';
+  if (b.creditReturned === true) return 'Session cancelled. Your session credit is back.';
+  if (b.creditReturned === false) return `Session cancelled. With less than ${noticeHours(b)} hours' notice, the session credit is used.`;
+  return 'Session cancelled.';
 }
 
 function BookingRow({ b, onCancel }: { b: BookingView; onCancel?: (b: BookingView) => void }) {
@@ -49,20 +57,8 @@ export function BookScreen({ trainerName }: { trainerName: string }) {
   const [confirmCancel, setConfirmCancel] = useState<BookingView | null>(null);
   const [booked, setBooked] = useState<BookingView | null>(null);
   const [cancelNote, setCancelNote] = useState<string | null>(null);
-  const pendingCredit = useRef<{ before: number; usedCredit: boolean; since: number } | null>(null);
   const first = trainerName.split(/\s+/)[0] || trainerName;
   const credits = billing.data?.available ? totalCredits(billing.data.plans) : null;
-
-  // After a cancel, the billing refetch says whether the credit came back.
-  useEffect(() => {
-    const p = pendingCredit.current;
-    if (!p || !billing.data || billing.dataUpdatedAt <= p.since) return;
-    pendingCredit.current = null;
-    if (!p.usedCredit) return setCancelNote('Session cancelled.');
-    setCancelNote(totalCredits(billing.data.plans) > p.before
-      ? 'Session cancelled. Your session credit is back.'
-      : `Session cancelled. With less than ${CANCEL_NOTICE_HOURS} hours' notice, the session credit is used.`);
-  }, [billing.data, billing.dataUpdatedAt]);
 
   const now = Date.now();
   const all = bookings.data?.bookings ?? [];
@@ -82,9 +78,7 @@ export function BookScreen({ trainerName }: { trainerName: string }) {
     setConfirmCancel(null);
     if (!b) return;
     setCancelNote(null);
-    cancel.mutate(b.id, {
-      onSuccess: () => { pendingCredit.current = { before: credits ?? 0, usedCredit: b.usedCredit, since: Date.now() - 1 }; if (!billing.data?.available) setCancelNote('Session cancelled.'); },
-    });
+    cancel.mutate(b.id, { onSuccess: ({ booking }) => setCancelNote(cancelMessage(booking)) });
   };
 
   return (
@@ -176,8 +170,8 @@ export function BookScreen({ trainerName }: { trainerName: string }) {
             <AlertDialogDescription>
               {confirmCancel && (confirmCancel.usedCredit
                 ? creditComesBack(confirmCancel)
-                  ? `It's more than ${CANCEL_NOTICE_HOURS} hours away, so your session credit comes back.`
-                  : `It's less than ${CANCEL_NOTICE_HOURS} hours away, so the session credit won't come back.`
+                  ? `It's more than ${noticeHours(confirmCancel)} hours away, so your session credit comes back.`
+                  : `It's less than ${noticeHours(confirmCancel)} hours away, so the session credit won't come back.`
                 : `${first} will see that you cancelled.`)}
             </AlertDialogDescription>
           </AlertDialogHeader>

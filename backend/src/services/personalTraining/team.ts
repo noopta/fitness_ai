@@ -108,7 +108,9 @@ export async function teamAnalytics(practiceId: string, ownerId: string, now: Da
   const ownerFor = new Map(profiles.map((p) => [p.clientId, p.assignedTrainerId ?? ownerId]));
   const offerById = new Map(offers.map((o) => [o.id, o]));
   const riskBy = new Map(risk.map((r) => [r.clientId, r.level]));
+  const acct = await prisma.ptStripeAccount.findUnique({ where: { practiceId }, select: { currency: true } });
   return {
+    currency: acct?.currency ?? 'usd',
     trainers: members.map((m) => {
       const mine = clients.filter((c) => (ownerFor.get(c.id) ?? ownerId) === m.userId);
       const avg = mine.length ? Math.round((mine.reduce((s, c) => s + c.engagement8w.slice(-2).reduce((a, b) => a + b, 0) / 2, 0) / mine.length) * 10) / 10 : null;

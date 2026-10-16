@@ -2,15 +2,16 @@
 // The client sees their own numbers and the targets their trainer set —
 // described plainly, never graded.
 
-import { useState } from 'react';
-import { Utensils } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera, Loader2, Sparkles, Utensils } from 'lucide-react';
 import type { PortalNutrition } from '@axiom/personal-training-core';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '../api';
 import { Card, EmptyState, Eyebrow, InlineError, ListSkeleton, LoadFailed, PortalButton, ProgressBar, Select } from '../components';
 import { formatDay, localDateISO } from '../helpers';
-import { useLogMeal, useNutrition, type MealInput } from '../hooks';
+import { useEstimateMeal, useLogMeal, useNutrition, type MealInput } from '../hooks';
+import { downscalePhoto } from '../media';
 
 const MEAL_TYPES = [
   { value: 'breakfast', label: 'Breakfast' }, { value: 'lunch', label: 'Lunch' }, { value: 'dinner', label: 'Dinner' },
@@ -40,6 +41,14 @@ export function parseOptionalNumber(v: string): number | undefined | null {
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
+/** "low", "Low confidence", or a 0–1 number under one half all read as low. */
+export function isLowConfidence(confidence: string | null | undefined): boolean {
+  if (!confidence) return false;
+  const n = Number(confidence);
+  if (Number.isFinite(n)) return n <= 1 ? n < 0.5 : n < 50;
+  return /low|unsure|uncertain/i.test(confidence);
+}
+
 function MealForm() {
   const log = useLogMeal();
   const [name, setName] = useState('');
@@ -51,6 +60,41 @@ function MealForm() {
   const parsed = MACROS.map((m) => [m.key, parseOptionalNumber(nums[m.key])] as const);
   const badNumber = parsed.some(([, v]) => v === null);
   const valid = name.trim() !== '' && !badNumber;
+  const estimate = useEstimateMeal();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [estimated, setEstimated] = useState<{ low: boolean } | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
+
+  /** A photo pre-fills the form; the client checks it and presses Save themselves. */
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setPhotoError(null);
+    setEstimated(null);
+    setSaved(false);
+    estimate.reset();
+    setPreparing(true);
+    let base64: string;
+    try {
+      base64 = (await downscalePhoto(file)).base64;
+    } catch (err) {
+      setPreparing(false);
+      return setPhotoError(err instanceof Error ? err.message : 'That photo could not be read. Try another.');
+    }
+    setPreparing(false);
+    estimate.mutate(base64, {
+      onSuccess: ({ estimate: m }) => {
+        setName(m.name);
+        setNums({ calories: String(m.calories), proteinG: String(m.proteinG), carbsG: String(m.carbsG), fatG: String(m.fatG) });
+        if (MEAL_TYPES.some((t) => t.value === m.mealType)) setMealType(m.mealType);
+        setEstimated({ low: isLowConfidence(m.confidence) });
+      },
+      onError: (err) => setPhotoError(errorMessage(err, 'Could not read that photo. Try another, or type the meal in.')),
+    });
+  };
+  const reading = preparing || estimate.isPending;
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +103,7 @@ function MealForm() {
     for (const [k, v] of parsed) if (typeof v === 'number') input[k] = v;
     setSaved(false);
     log.mutate(input, {
-      onSuccess: () => { setName(''); setNums({ calories: '', proteinG: '', carbsG: '', fatG: '' }); setSaved(true); },
+      onSuccess: () => { setName(''); setNums({ calories: '', proteinG: '', carbsG: '', fatG: '' }); setSaved(true); setEstimated(null); },
     });
   };
 
@@ -70,6 +114,22 @@ function MealForm() {
           <Utensils aria-hidden className="size-4 text-axiom-zinc-500" />
           <h2 id="meal-h" className="text-[15px] font-semibold">Log a meal</h2>
         </div>
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={onPhoto} />
+        <PortalButton variant="secondary" className="mb-3 w-full" onClick={() => fileRef.current?.click()} disabled={reading}>
+          {reading ? <Loader2 className="motion-safe:animate-spin" /> : <Camera />} {reading ? 'Reading your photo…' : 'Estimate from a photo'}
+        </PortalButton>
+        <div aria-live="polite">
+          {estimated && (
+            <p className="mb-3 flex items-start gap-2 rounded-xl bg-axiom-zinc-100 px-3 py-2 text-sm">
+              <Sparkles aria-hidden className="mt-0.5 size-4 shrink-0 text-axiom-zinc-600" />
+              <span>
+                Estimated from your photo. Check the numbers and change anything that's off, then save.
+                {estimated.low && <strong className="mt-1 block font-semibold text-axiom-warning-ink">This one was hard to read, so the numbers may be well off.</strong>}
+              </span>
+            </p>
+          )}
+        </div>
+        {photoError && <div className="mb-3"><InlineError>{photoError}</InlineError></div>}
         <Label htmlFor="meal-name" className="mb-1.5 block text-xs text-axiom-zinc-600">What did you eat?</Label>
         <Input id="meal-name" maxLength={120} value={name} onChange={(e) => { setName(e.target.value); setSaved(false); }} placeholder="Chicken, rice and greens" className="h-11 rounded-xl text-base md:text-sm" />
         <div className="mt-3 grid grid-cols-2 gap-3">

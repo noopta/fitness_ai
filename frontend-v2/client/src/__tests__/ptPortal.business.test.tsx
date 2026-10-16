@@ -12,7 +12,7 @@ import { Route, Router } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
 import type { BookingView, ClientPlanView, OfferView, PortalHome, Slot } from '@axiom/personal-training-core';
 import PortalApp from '@/features/pt-portal/PortalApp';
-import { totalCredits } from '@/features/pt-portal/screens/BookScreen';
+import { cancelMessage, totalCredits } from '@/features/pt-portal/screens/BookScreen';
 
 const HOME: PortalHome = {
   client: { firstName: 'Maya', name: 'Maya Okafor', unit: 'kg' },
@@ -142,7 +142,7 @@ describe('booking', () => {
     let credits = 3;
     routes['GET /pt-portal/bookings'] = () => ({ body: { bookings: [booking()] } });
     routes['GET /pt-portal/billing'] = () => ({ body: { available: true, offers: OFFERS, plans: [plan(credits)], payments: [] } });
-    routes['DELETE /pt-portal/bookings/b1'] = () => { credits = 4; return { body: { booking: booking({ status: 'cancelled' }) } }; };
+    routes['DELETE /pt-portal/bookings/b1'] = () => { credits = 4; return { body: { booking: booking({ status: 'cancelled', creditReturned: true }) } }; };
     renderPortal('?tab=book');
 
     await user.click(await screen.findByRole('button', { name: /^Cancel session on/ }));
@@ -155,12 +155,31 @@ describe('booking', () => {
     const user = userEvent.setup();
     const soon = new Date(Date.now() + 3 * 3_600_000);
     routes['GET /pt-portal/bookings'] = () => ({ body: { bookings: [booking({ startsAt: soon.toISOString(), endsAt: new Date(soon.getTime() + 3_600_000).toISOString() })] } });
-    routes['DELETE /pt-portal/bookings/b1'] = () => ({ body: { booking: booking({ status: 'cancelled' }) } });
+    routes['DELETE /pt-portal/bookings/b1'] = () => ({ body: { booking: booking({ status: 'cancelled', creditReturned: false }) } });
     renderPortal('?tab=book');
     await user.click(await screen.findByRole('button', { name: /^Cancel session on/ }));
     expect(await screen.findByText(/less than 24 hours away, so the session credit won't come back/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cancel session' }));
     expect(await screen.findByText(/With less than 24 hours' notice, the session credit is used/)).toBeInTheDocument();
+  });
+});
+
+describe('cancel notice from the server', () => {
+  it('uses the notice hours each booking carries', async () => {
+    const user = userEvent.setup();
+    // 30 hours away: inside a 48-hour rule.
+    const at = new Date(Date.now() + 30 * 3_600_000);
+    routes['GET /pt-portal/bookings'] = () => ({ body: { bookings: [booking({ startsAt: at.toISOString(), endsAt: new Date(at.getTime() + 3_600_000).toISOString(), cancelNoticeHours: 48 })] } });
+    renderPortal('?tab=book');
+    await user.click(await screen.findByRole('button', { name: /^Cancel session on/ }));
+    expect(await screen.findByText(/less than 48 hours away, so the session credit won't come back/)).toBeInTheDocument();
+  });
+
+  it('words the result from creditReturned', () => {
+    const b = booking({ status: 'cancelled', cancelNoticeHours: 12 });
+    expect(cancelMessage({ ...b, creditReturned: true })).toMatch(/credit is back/);
+    expect(cancelMessage({ ...b, creditReturned: false })).toMatch(/less than 12 hours' notice/);
+    expect(cancelMessage({ ...b, usedCredit: false })).toBe('Session cancelled.');
   });
 });
 

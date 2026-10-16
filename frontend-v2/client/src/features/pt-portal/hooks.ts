@@ -223,6 +223,12 @@ export function useNutrition() {
 
 export type MealInput = Parameters<FullPortalApi['logMeal']>[0];
 
+/** Read a meal photo into numbers for the client to check. Never logs anything. */
+export function useEstimateMeal() {
+  const api = usePortalApi();
+  return useMutation({ mutationFn: (imageBase64: string) => api.estimateMeal(imageBase64, 'image/jpeg') });
+}
+
 export function useLogMeal() {
   const api = usePortalApi();
   const qc = useQueryClient();

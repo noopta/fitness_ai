@@ -92,7 +92,8 @@ describe('roster', () => {
     expect(within(rows[0]).getByRole('img', { name: 'Engagement falling over 8 weeks' })).toBeInTheDocument();
     expect(within(rows[1]).getByText('No program yet')).toBeInTheDocument();
     expect(screen.getByText('3 clients')).toBeInTheDocument();
-    expect(screen.queryByText(/at risk/i)).not.toBeInTheDocument();
+    // The roster itself never labels a person "at risk" (the nav links to that page by name).
+    expect(within(screen.getByRole('main')).queryByText(/at risk/i)).not.toBeInTheDocument();
   });
 
   it('narrows by status chip and by search, keeping chip counts honest', async () => {
@@ -131,8 +132,9 @@ describe('roster', () => {
     await screen.findByRole('table');
     const rail = screen.getAllByRole('navigation', { name: /personal training/i })[0];
     expect(within(rail).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '/personal-training', '/personal-training/clients', '/personal-training/inbox', '/personal-training/check-ins', '/personal-training/progress',
-      '/personal-training/programs', '/personal-training/schedule', '/personal-training/billing', '/personal-training/anakin',
+      '/personal-training', '/personal-training/clients', '/personal-training/inbox', '/personal-training/leads', '/personal-training/check-ins',
+      '/personal-training/progress', '/personal-training/at-risk', '/personal-training/programs', '/personal-training/schedule',
+      '/personal-training/billing', '/personal-training/team', '/personal-training/anakin',
     ]);
     expect(within(rail).getByRole('link', { name: /clients/i })).toHaveAttribute('aria-current', 'page');
     expect(within(rail).getByRole('link', { name: /briefing/i })).not.toHaveAttribute('aria-current');

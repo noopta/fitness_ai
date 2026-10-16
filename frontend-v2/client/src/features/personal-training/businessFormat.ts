@@ -144,11 +144,16 @@ export function bookingsByDay(bookings: BookingView[]): Map<string, BookingView[
   return out;
 }
 
-export const CANCEL_NOTICE_HOURS = 24;
+/** Used only when a booking does not say (older servers); the server's own rule travels on each booking. */
+export const DEFAULT_CANCEL_NOTICE_HOURS = 24;
 
-/** Whether a client cancelling now gets the session credit back (the server has the final word). */
-export function creditComesBack(booking: Pick<BookingView, 'startsAt' | 'usedCredit'>, now: Date = new Date()): boolean {
-  return booking.usedCredit && new Date(booking.startsAt).getTime() - now.getTime() >= CANCEL_NOTICE_HOURS * 3_600_000;
+export function noticeHours(booking: Pick<BookingView, 'cancelNoticeHours'>): number {
+  return typeof booking.cancelNoticeHours === 'number' && booking.cancelNoticeHours >= 0 ? booking.cancelNoticeHours : DEFAULT_CANCEL_NOTICE_HOURS;
+}
+
+/** Whether a client cancelling now would get the session credit back (the server has the final word). */
+export function creditComesBack(booking: Pick<BookingView, 'startsAt' | 'usedCredit' | 'cancelNoticeHours'>, now: Date = new Date()): boolean {
+  return booking.usedCredit && new Date(booking.startsAt).getTime() - now.getTime() >= noticeHours(booking) * 3_600_000;
 }
 
 /** "7:30 am – 8:30 am" from ISO instants, in the viewer's own clock. */

@@ -5,7 +5,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import {
-  CalendarDays, ClipboardCheck, CreditCard, Dumbbell, Inbox, LineChart, MessageCircle, MoreHorizontal, Settings, Sunrise, Users, type LucideIcon,
+  CalendarDays, ClipboardCheck, CreditCard, Dumbbell, HeartHandshake, Inbox, LineChart, MessageCircle, MoreHorizontal, Settings, Sunrise, UserPlus,
+  Users, UsersRound, type LucideIcon,
 } from 'lucide-react';
 import { COPY, type MeResponse } from '@axiom/personal-training-core';
 import { BrandLogo } from '@/components/BrandLogo';
@@ -16,7 +17,8 @@ import { BCOPY } from '../copyBusiness';
 import { NotificationBell } from './NotificationBell';
 import { Avatar } from './primitives';
 
-export type NavKey = 'briefing' | 'clients' | 'inbox' | 'checkIns' | 'progress' | 'programs' | 'schedule' | 'billing' | 'anakin' | 'settings';
+export type NavKey =
+  | 'briefing' | 'clients' | 'inbox' | 'leads' | 'checkIns' | 'progress' | 'atRisk' | 'programs' | 'schedule' | 'billing' | 'team' | 'anakin' | 'settings';
 
 const ANAKIN_HREF = '/personal-training/anakin';
 
@@ -26,11 +28,14 @@ const NAV: NavEntry[] = [
   { key: 'briefing', label: COPY.nav.briefing, icon: Sunrise, href: '/personal-training' },
   { key: 'clients', label: COPY.nav.clients, icon: Users, href: '/personal-training/clients' },
   { key: 'inbox', label: BCOPY.nav.inbox, icon: Inbox, href: '/personal-training/inbox' },
+  { key: 'leads', label: BCOPY.nav.leads, icon: UserPlus, href: '/personal-training/leads' },
   { key: 'checkIns', label: COPY.nav.checkIns, icon: ClipboardCheck, href: '/personal-training/check-ins' },
   { key: 'progress', label: COPY.nav.progress, icon: LineChart, href: '/personal-training/progress' },
+  { key: 'atRisk', label: BCOPY.nav.atRisk, icon: HeartHandshake, href: '/personal-training/at-risk' },
   { key: 'programs', label: BCOPY.nav.programs, icon: Dumbbell, href: '/personal-training/programs' },
   { key: 'schedule', label: BCOPY.nav.schedule, icon: CalendarDays, href: '/personal-training/schedule' },
   { key: 'billing', label: BCOPY.nav.billing, icon: CreditCard, href: '/personal-training/billing' },
+  { key: 'team', label: BCOPY.nav.team, icon: UsersRound, href: '/personal-training/team' },
   { key: 'anakin', label: COPY.nav.anakin, tabLabel: 'Anakin', icon: MessageCircle, href: ANAKIN_HREF },
 ];
 
@@ -176,7 +181,7 @@ export function Shell({
           {COPY.nav.anakin}
           <kbd className="rounded-md bg-axiom-zinc-100 px-1.5 py-0.5 text-[11px] font-semibold text-axiom-zinc-600">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
         </Link>
-        <nav aria-label={COPY.productName} className="flex flex-col gap-1">
+        <nav aria-label={COPY.productName} className="-mx-1 flex min-h-0 flex-col gap-1 overflow-y-auto px-1">
           {NAV.map((item) => <NavItem key={item.key} item={item} active={item.key === active} layout="rail" badge={item.key === 'inbox' ? unread : 0} />)}
         </nav>
         <div className="mt-auto flex items-center gap-3 border-t border-border px-2 pt-4">

@@ -334,7 +334,7 @@ describe('Photos tab', () => {
 describe('practice settings', () => {
   it('saves the profile with the sub-navigation in place', async () => {
     api.practiceProfile.mockResolvedValue({ profile: {
-      bio: '', specialties: ['Strength'], styleTags: [], languages: [], format: null, timezone: null, brandColor: null, accentColor: null, logoUrl: null,
+      bio: '', specialties: ['Strength'], styleTags: [], languages: [], format: null, timezone: null, brandColor: null, accentColor: null, logoUrl: null, name: 'Kofi Coaching', publicPage: false,
     } });
     api.savePracticeProfile.mockImplementation(async (p) => ({ profile: { ...p, logoUrl: null } }));
     renderAt('/personal-training/settings/practice', <PracticeSettingsPage />);
@@ -348,13 +348,13 @@ describe('practice settings', () => {
     await userEvent.type(screen.getByLabelText('Brand colour'), '#1F6FEB');
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     await waitFor(() => expect(api.savePracticeProfile).toHaveBeenCalledWith({
-      bio: '', specialties: ['Strength'], styleTags: [], languages: ['English', 'Spanish'], format: 'hybrid', timezone: null, brandColor: '#1F6FEB', accentColor: null,
+      bio: '', specialties: ['Strength'], styleTags: [], languages: ['English', 'Spanish'], format: 'hybrid', timezone: null, brandColor: '#1F6FEB', accentColor: null, publicPage: false,
     }));
     expect(await screen.findByText('Saved.')).toBeInTheDocument();
   });
 
   it('will not save a colour that is not hex', async () => {
-    api.practiceProfile.mockResolvedValue({ profile: { bio: '', specialties: [], styleTags: [], languages: [], format: null, timezone: null, brandColor: null, accentColor: null, logoUrl: null } });
+    api.practiceProfile.mockResolvedValue({ profile: { bio: '', specialties: [], styleTags: [], languages: [], format: null, timezone: null, brandColor: null, accentColor: null, logoUrl: null, name: 'Kofi Coaching', publicPage: false } });
     renderAt('/personal-training/settings/practice', <PracticeSettingsPage />);
     await userEvent.type(await screen.findByLabelText('Accent colour'), 'blue');
     expect(screen.getByText('Use a hex colour like #1F6FEB.')).toBeInTheDocument();

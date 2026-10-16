@@ -3,7 +3,10 @@
 // as hooks.ts — short stale time, refetch on focus, no retry on a 4xx.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { PersonalTrainingApiError, queryKeys, type AvailabilityWindow, type BillingStatus, type BookingView, type OfferView } from '@axiom/personal-training-core';
+import {
+  PersonalTrainingApiError, queryKeys,
+  type AvailabilityWindow, type BillingStatus, type BookingView, type Client, type LeadView, type OfferView,
+} from '@axiom/personal-training-core';
 import { ptApi } from './api';
 
 const LIVE = { staleTime: 60_000, refetchOnWindowFocus: true } as const;
@@ -173,6 +176,107 @@ export function useUpdateBooking() {
       qc.setQueriesData<{ bookings: BookingView[] }>({ queryKey: ['personal-training', 'schedule', 'bookings'] }, (d) =>
         d ? { bookings: d.bookings.map((b) => (b.id === booking.id ? booking : b)) } : d);
       void refreshBookings(qc);
+    },
+  });
+}
+
+// ── Retention ────────────────────────────────────────────────────────────────
+
+export function useRetention() {
+  return useQuery({ queryKey: queryKeys.retention, queryFn: () => ptApi.retention(), retry, ...LIVE });
+}
+
+export function useDraftOutreach(clientId: string) {
+  return useMutation({ mutationFn: () => ptApi.draftOutreach(clientId) });
+}
+
+// ── Leads ────────────────────────────────────────────────────────────────────
+
+const LEADS_KEY = ['personal-training', 'leads'] as const;
+
+export function useLeads() {
+  return useQuery({ queryKey: LEADS_KEY, queryFn: () => ptApi.leads(), retry, ...LIVE });
+}
+
+const storeLead = (qc: ReturnType<typeof useQueryClient>, lead: LeadView) =>
+  qc.setQueryData<{ leads: LeadView[] }>(LEADS_KEY, (d) => {
+    if (!d) return d;
+    const has = d.leads.some((l) => l.id === lead.id);
+    return { leads: has ? d.leads.map((l) => (l.id === lead.id ? lead : l)) : [lead, ...d.leads] };
+  });
+
+export function useAddLead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof ptApi.addLead>[0]) => ptApi.addLead(input),
+    onSuccess: ({ lead }) => storeLead(qc, lead),
+  });
+}
+
+export function useUpdateLead(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: Parameters<typeof ptApi.updateLead>[1]) => ptApi.updateLead(id, patch),
+    onSuccess: ({ lead }) => storeLead(qc, lead),
+  });
+}
+
+export function useConvertLead(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => ptApi.convertLead(id),
+    onSuccess: ({ client }) => {
+      qc.setQueryData<{ leads: LeadView[] }>(LEADS_KEY, (d) => (d ? { leads: d.leads.map((l) => (l.id === id ? { ...l, clientId: client.id, status: 'won', needsFollowUp: false } : l)) } : d));
+      void qc.invalidateQueries({ queryKey: LEADS_KEY });
+      void qc.invalidateQueries({ queryKey: queryKeys.roster, exact: true });
+    },
+  });
+}
+
+// ── Team ─────────────────────────────────────────────────────────────────────
+
+/** A 403 here means "not the owner": a decision, not an outage. */
+const ownerOnly = { retry: false, staleTime: 60_000, refetchOnWindowFocus: true } as const;
+
+export function useTeam() {
+  return useQuery({ queryKey: queryKeys.team, queryFn: () => ptApi.team(), retry, ...LIVE });
+}
+
+export function useTeamAnalytics(enabled = true) {
+  return useQuery({ queryKey: queryKeys.teamAnalytics, queryFn: () => ptApi.teamAnalytics(), enabled, ...ownerOnly });
+}
+
+export function useInviteCoach() {
+  return useMutation({ mutationFn: (email: string) => ptApi.inviteCoach(email) });
+}
+
+export function useRemoveCoach() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => ptApi.removeCoach(userId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.team });
+      void qc.invalidateQueries({ queryKey: queryKeys.roster, exact: true });
+    },
+  });
+}
+
+export function useAcceptCoachInvite(token: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => ptApi.acceptCoachInvite(token),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.me }),
+  });
+}
+
+export function useAssignClient() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { clientId: string; trainerId: string | null }) => ptApi.assignClient(v.clientId, v.trainerId),
+    onSuccess: (_d, v) => {
+      qc.setQueryData<{ clients: Client[] }>(queryKeys.roster, (d) =>
+        d ? { ...d, clients: d.clients.map((c) => (c.id === v.clientId ? { ...c, assignedTrainerId: v.trainerId } : c)) } : d);
+      void qc.invalidateQueries({ queryKey: queryKeys.team });
     },
   });
 }
