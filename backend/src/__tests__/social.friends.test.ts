@@ -198,6 +198,14 @@ describe('GET /api/social/users/search', () => {
     expect(res.body.find((u: any) => u.id === 'u4')).toBeUndefined();
   });
 
+  it("never matches a trainer's no-install client (an account with no way to sign in)", async () => {
+    userMock.findMany.mockResolvedValue([]);
+    friendshipMock.findMany.mockResolvedValue([]);
+    await request(app).get('/api/social/users/search?q=ada');
+    const where = userMock.findMany.mock.calls[0][0].where;
+    expect(where.AND).toEqual([{ OR: [{ email: { not: null } }, { googleId: { not: null } }, { appleId: { not: null } }] }]);
+  });
+
   it('defaults friendshipStatus to "none" for users with no relationship', async () => {
     userMock.findMany.mockResolvedValue([
       { id: 'stranger', name: 'A Stranger', username: 'strange', avatarBase64: null },

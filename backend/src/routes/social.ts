@@ -341,6 +341,9 @@ router.get('/social/users/search', wrap(async (req, res) => {
         { username: { contains: q } },
         ...(q.includes('@') ? [{ email: q.toLowerCase() }] : []),
       ],
+      // A trainer's no-install client is an account nobody can sign in to. It must never be
+      // findable here: a match would reveal that the person is someone's client.
+      AND: [{ OR: [{ email: { not: null } }, { googleId: { not: null } }, { appleId: { not: null } }] }],
     },
     select: { id: true, name: true, username: true, avatarBase64: true },
     take: 10,
