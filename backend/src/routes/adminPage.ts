@@ -13,7 +13,7 @@
  * few hundred rows, and a build pipeline for an internal page nobody but us
  * loads would cost more than it saves.
  */
-export const ADMIN_HTML = String.raw`<!doctype html>
+export const ADMIN_HTML_TEMPLATE = String.raw`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -78,14 +78,14 @@ export const ADMIN_HTML = String.raw`<!doctype html>
       <h1>Axiom · Admin</h1>
       <div class="sub" id="stamp">loading…</div>
     </div>
-    <button onclick="load()">Refresh</button>
+    <button id="refresh">Refresh</button>
   </header>
 
   <div id="err"></div>
   <div id="auth" class="card">
     <div style="margin-bottom:8px">Not authenticated. Paste an admin JWT:</div>
     <input type="search" id="tok" placeholder="eyJhbGciOi..." style="min-width:330px">
-    <button onclick="saveTok()">Save</button>
+    <button id="saveTok">Save</button>
   </div>
 
   <h2>Lifecycle</h2>
@@ -93,8 +93,8 @@ export const ADMIN_HTML = String.raw`<!doctype html>
 
   <h2>Users</h2>
   <div class="toolbar">
-    <input type="search" id="q" placeholder="Filter by email, username, name…" oninput="renderUsers()">
-    <label><input type="checkbox" id="onlyActive" onchange="renderUsers()"> only ever-active</label>
+    <input type="search" id="q" placeholder="Filter by email, username, name…" >
+    <label><input type="checkbox" id="onlyActive"> only ever-active</label>
     <span class="sub" id="ucount"></span>
   </div>
   <div class="scroll"><table id="users">
@@ -102,30 +102,43 @@ export const ADMIN_HTML = String.raw`<!doctype html>
   </table></div>
 </div>
 
-<script>
+<script nonce="__CSP_NONCE__">
+// Every value from the API is user-controlled somewhere (names, emails,
+// usernames), so the DOM is built with textContent only — never innerHTML.
+// The page CSP (no inline handlers, nonce'd script) backs that up.
+const el = (tag, opts, kids) => {
+  const n = document.createElement(tag);
+  if (opts) {
+    if (opts.cls) n.className = opts.cls;
+    if (opts.text !== undefined && opts.text !== null) n.textContent = String(opts.text);
+    if (opts.style) for (const k in opts.style) n.style[k] = opts.style[k];
+  }
+  (kids || []).forEach(k => { if (k !== null && k !== undefined) n.append(typeof k === 'string' ? document.createTextNode(k) : k); });
+  return n;
+};
+const flag = v => v ? el('span', { cls:'pill on', text:'yes' }) : el('span', { cls:'off', text:'—' });
+function quiet(u){
+  if (u.daysQuiet === null) return el('span', { cls:'never', text:'never active' });
+  const c = u.daysQuiet <= 7 ? 'quiet-hot' : u.daysQuiet <= 30 ? 'quiet-warm' : 'quiet-cold';
+  return el('span', { cls:c, text: u.daysQuiet + 'd' });
+}
 const COLS = [
-  { k:'email',           t:'User',      fmt:u => u.username ? u.username+' · '+(u.email||'') : (u.email||u.name||u.id.slice(0,8)) },
+  { k:'email',           t:'User',      fmt:u => u.username ? u.username+' · '+(u.email||'') : (u.email||u.name||String(u.id).slice(0,8)) },
   { k:'signedUp',        t:'Signed up' },
-  { k:'tier',            t:'Tier',      fmt:u => u.tier==='free' ? '<span class="off">free</span>' : '<span class="pill on">'+u.tier+'</span>' },
+  { k:'tier',            t:'Tier',      fmt:u => u.tier==='free' ? el('span', { cls:'off', text:'free' }) : el('span', { cls:'pill on', text:u.tier }) },
   { k:'hasProgram',      t:'Program',   fmt:u => flag(u.hasProgram), num:true },
   { k:'usedChat',        t:'Chat',      fmt:u => flag(u.usedChat),   num:true },
   { k:'meals',           t:'Meals',     num:true },
   { k:'workouts',        t:'Workouts',  num:true },
   { k:'wellness',        t:'Wellness',  num:true },
   { k:'activeDays',      t:'Active days', num:true },
-  { k:'lastActionType',  t:'Last action', fmt:u => u.lastActionType || '<span class="never">never</span>' },
+  { k:'lastActionType',  t:'Last action', fmt:u => u.lastActionType ? String(u.lastActionType) : el('span', { cls:'never', text:'never' }) },
   { k:'daysQuiet',       t:'Days quiet', num:true, fmt:quiet },
 ];
 let USERS = [], sortKey = 'daysQuiet', sortDir = 1;
 
-const flag = v => v ? '<span class="pill on">yes</span>' : '<span class="off">—</span>';
-function quiet(u){
-  if (u.daysQuiet === null) return '<span class="never">never active</span>';
-  const c = u.daysQuiet <= 7 ? 'quiet-hot' : u.daysQuiet <= 30 ? 'quiet-warm' : 'quiet-cold';
-  return '<span class="'+c+'">'+u.daysQuiet+'d</span>';
-}
-const tok = () => localStorage.getItem('axiom_admin_tok');
-function saveTok(){ localStorage.setItem('axiom_admin_tok', document.getElementById('tok').value.trim()); load(); }
+const tok = () => { try { return localStorage.getItem('axiom_admin_tok'); } catch { return null; } };
+function saveTok(){ try { localStorage.setItem('axiom_admin_tok', document.getElementById('tok').value.trim()); } catch {} load(); }
 
 async function api(path){
   const h = {};
@@ -137,26 +150,31 @@ async function api(path){
 }
 
 function renderFunnel(d){
+  const box = document.getElementById('funnel');
+  box.replaceChildren();
   const max = Math.max(...d.stages.map(s => s.count), 1);
-  let h = '';
   d.stages.forEach((s, i) => {
     if (i > 0) {
       const lost = d.stages[i-1].count - s.count;
-      if (lost > 0) h += '<div class="lost">↓ lost '+lost+'</div>';
+      if (lost > 0) box.append(el('div', { cls:'lost', text:'↓ lost ' + lost }));
     }
-    h += '<div class="stage"><div class="label">'+s.label+'</div>'
-       + '<div><div class="bar" style="width:'+Math.max((s.count/max)*100,0.4)+'%"></div></div>'
-       + '<div class="count">'+s.count+'</div></div>';
+    box.append(el('div', { cls:'stage' }, [
+      el('div', { cls:'label', text:s.label }),
+      el('div', null, [el('div', { cls:'bar', style:{ width: Math.max((Number(s.count)/max)*100, 0.4) + '%' } })]),
+      el('div', { cls:'count', text:s.count }),
+    ]));
   });
   const o = d.offPath || {};
-  h += '<div class="note">';
-  if (d.biggestDropOff) h += '<b>Biggest drop:</b> '+d.biggestDropOff.from+' → '+d.biggestDropOff.to+' ('+d.biggestDropOff.lost+' people).<br>';
-  h += 'Stages are a strictly nested cohort, so each “lost” figure is real people. '
-     + 'Off-path: <b>'+(o.loggedWithoutProgram||0)+'</b> logged without ever having a program'
-     + (o.programWithoutIntakeFlag ? ', <b>'+o.programWithoutIntakeFlag+'</b> have a program but no intake flag (legacy rows)' : '')
-     + '.<br>Ever used coach chat: <b>'+(d.side?.usedCoachChat ?? '?')+'</b> · Paying: <b>'+(d.side?.payingUsers ?? '?')+'</b>';
-  h += '</div>';
-  document.getElementById('funnel').innerHTML = h;
+  const note = el('div', { cls:'note' });
+  if (d.biggestDropOff) {
+    note.append(el('b', { text:'Biggest drop:' }), ' ' + d.biggestDropOff.from + ' → ' + d.biggestDropOff.to + ' (' + d.biggestDropOff.lost + ' people).', el('br'));
+  }
+  note.append('Stages are a strictly nested cohort, so each “lost” figure is real people. Off-path: ',
+    el('b', { text:String(o.loggedWithoutProgram || 0) }), ' logged without ever having a program');
+  if (o.programWithoutIntakeFlag) note.append(', ', el('b', { text:String(o.programWithoutIntakeFlag) }), ' have a program but no intake flag (legacy rows)');
+  note.append('.', el('br'), 'Ever used coach chat: ', el('b', { text:String(d.side?.usedCoachChat ?? '?') }),
+    ' · Paying: ', el('b', { text:String(d.side?.payingUsers ?? '?') }));
+  box.append(note);
 }
 
 function renderUsers(){
@@ -174,12 +192,17 @@ function renderUsers(){
     if (x === null) x = ''; if (y === null) y = '';
     return (typeof x === 'number' && typeof y === 'number') ? (x-y)*sortDir : String(x).localeCompare(String(y))*sortDir;
   });
-  document.querySelector('#users thead tr').innerHTML =
-    COLS.map(c => '<th onclick="sortBy(\''+c.k+'\')">'+c.t+(sortKey===c.k ? (sortDir>0?' ▲':' ▼') : '')+'</th>').join('');
-  document.querySelector('#users tbody').innerHTML = rows.map(u =>
-    '<tr>' + COLS.map(c =>
-      '<td'+(c.num?' class="num"':'')+'>'+(c.fmt ? c.fmt(u) : (u[c.k] ?? ''))+'</td>'
-    ).join('') + '</tr>').join('');
+  const head = document.querySelector('#users thead tr');
+  head.replaceChildren(...COLS.map(c => {
+    const th = el('th', { text: c.t + (sortKey===c.k ? (sortDir>0?' ▲':' ▼') : '') });
+    th.addEventListener('click', () => sortBy(c.k));
+    return th;
+  }));
+  const body = document.querySelector('#users tbody');
+  body.replaceChildren(...rows.map(u => el('tr', null, COLS.map(c => {
+    const v = c.fmt ? c.fmt(u) : (u[c.k] ?? '');
+    return el('td', c.num ? { cls:'num' } : null, [typeof v === 'object' ? v : String(v)]);
+  }))));
   document.getElementById('ucount').textContent =
     rows.length + ' of ' + USERS.length + ' shown · ' + USERS.filter(u=>u.lastActivityDay===null).length + ' never active';
 }
@@ -198,7 +221,37 @@ async function load(){
     document.getElementById('stamp').textContent = '';
   }
 }
+document.getElementById('refresh').addEventListener('click', load);
+document.getElementById('saveTok').addEventListener('click', saveTok);
+document.getElementById('q').addEventListener('input', renderUsers);
+document.getElementById('onlyActive').addEventListener('change', renderUsers);
 load();
 </script>
 </body>
 </html>`;
+
+/**
+ * The page with a per-response CSP nonce on its one script. Pair with
+ * adminPageCsp(nonce): no inline handlers, no other script, fetches only to
+ * this origin — so even a value that slipped past textContent can't run.
+ */
+export function renderAdminHtml(nonce: string): string {
+  return ADMIN_HTML_TEMPLATE.replace('__CSP_NONCE__', nonce);
+}
+
+export function adminPageCsp(nonce: string): string {
+  return [
+    "default-src 'none'",
+    `script-src 'nonce-${nonce}'`,
+    "style-src 'unsafe-inline'",
+    "connect-src 'self'",
+    "img-src 'self' data:",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+}
+
+/** Back-compat: the page with a placeholder nonce (tests / static checks). */
+export const ADMIN_HTML = renderAdminHtml('static');
+

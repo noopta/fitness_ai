@@ -25,7 +25,8 @@ vi.mock('../services/posthogClient.js', () => ({ default: { capture: vi.fn(), ca
 vi.mock('../services/cacheService.js', () => ({ cacheDelete: vi.fn(), cacheClearByPrefix: vi.fn() }));
 vi.mock('../agent/proactiveSweep.js', () => ({ runProactiveSweep: vi.fn(async () => {}) }));
 
-import { createWorkoutLog, createWorkoutLogsBulk, streakSettleDates, WorkoutDateError, todayForTz, addDays } from '../services/workoutLogService.js';
+import { createWorkoutLog, createWorkoutLogsBulk, streakSettleDates, WorkoutDateError, todayForTz, addDays, workoutLogSchema } from '../services/workoutLogService.js';
+import { runProactiveSweep } from '../agent/proactiveSweep.js';
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
@@ -128,3 +129,35 @@ describe('streakSettleDates', () => {
     expect(streakSettleDates('2026-09-01', ['2026-07-01', '2026-08-01', '2026-09-01', '2026-09-02', '2026-09-03'])).toEqual(['2026-08-01', '2026-09-02', '2026-09-03']);
   });
 });
+
+describe('workout log bounds (Oct 2026 audit)', () => {
+  const base = { date: '2026-10-01', exercises: [{ name: 'Bench', sets: 3, reps: '5', weightKg: 100 }] };
+  const ok = (x: any) => workoutLogSchema.safeParse(x).success;
+  it('accepts a normal log', () => { expect(ok(base)).toBe(true); });
+  it('rejects non-finite or out-of-range numbers', () => {
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], weightKg: 601 }] })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], weightKg: Infinity }] })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], sets: 51 }] })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], setEntries: [{ reps: 201, weightKg: 50 }] }] })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], rpe: Infinity }] })).toBe(false);
+  });
+  it('caps strings and lists', () => {
+    expect(ok({ ...base, title: 'x'.repeat(121) })).toBe(false);
+    expect(ok({ ...base, notes: 'x'.repeat(2001) })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], name: 'x'.repeat(121) }] })).toBe(false);
+    expect(ok({ ...base, exercises: Array.from({ length: 61 }, () => base.exercises[0]) })).toBe(false);
+    expect(ok({ ...base, exercises: [{ ...base.exercises[0], setEntries: Array.from({ length: 101 }, () => ({ reps: 5 })) }] })).toBe(false);
+  });
+});
+
+describe('post-workout proactive sweep gate (audit HIGH-2)', () => {
+  it('does not start the sweep unless AGENT_PROACTIVE_ENABLED=true', async () => {
+    delete process.env.AGENT_PROACTIVE_ENABLED;
+    (runProactiveSweep as any).mockClear();
+    const today = todayForTz(null);
+    await createWorkoutLog('u1', { date: today, exercises: [{ name: 'Bench', sets: 3, reps: '5', weightKg: 100 }] } as any).catch(() => null);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(runProactiveSweep).not.toHaveBeenCalled();
+  });
+});
+

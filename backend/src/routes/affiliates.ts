@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
@@ -20,8 +20,29 @@ const prisma = new PrismaClient();
 // route requires it. Never accept a bare email or affiliateId here: email is
 // public knowledge, and an affiliateId unlocks a Stripe Express login link.
 
-async function affiliateByToken(raw: unknown) {
-  const token = typeof raw === 'string' ? raw.trim() : '';
+// The token travels in the X-Affiliate-Token header (preferred) or a POST
+// body. `?token=` still works for older web builds, but a credential in a URL
+// lands in access logs, browser history and Referer headers, so it is
+// deprecated and logged (once, without the value).
+let queryTokenDeprecationLogged = false;
+export function affiliateTokenFrom(req: Request): string {
+  const header = req.get('x-affiliate-token');
+  if (typeof header === 'string' && header.trim()) return header.trim();
+  const body = (req.body as any)?.token;
+  if (typeof body === 'string' && body.trim()) return body.trim();
+  const query = req.query?.token;
+  if (typeof query === 'string' && query.trim()) {
+    if (!queryTokenDeprecationLogged) {
+      queryTokenDeprecationLogged = true;
+      console.warn(`[affiliates] deprecated: affiliate token sent as ?token= on ${req.path}; send the X-Affiliate-Token header`);
+    }
+    return query.trim();
+  }
+  return '';
+}
+
+async function affiliateByToken(req: Request) {
+  const token = affiliateTokenFrom(req);
   if (!token) return null;
   return prisma.affiliate.findUnique({ where: { inviteToken: token } });
 }
@@ -29,11 +50,10 @@ async function affiliateByToken(raw: unknown) {
 // POST /api/affiliate/setup — complete onboarding from invite link
 // Body: { token } — matches inviteToken on Affiliate record
 router.post('/affiliate/setup', async (req, res) => {
-  const { token } = req.body;
-  if (!token) return res.status(400).json({ error: 'token is required' });
+  if (!affiliateTokenFrom(req)) return res.status(400).json({ error: 'token is required' });
 
   try {
-    const affiliate = await affiliateByToken(token);
+    const affiliate = await affiliateByToken(req);
     if (!affiliate) return res.status(404).json({ error: 'Invalid or expired invite token' });
 
     if (affiliate.inviteUsedAt) {
@@ -54,14 +74,14 @@ router.post('/affiliate/setup', async (req, res) => {
     });
   } catch (err: any) {
     console.error('[affiliates] setup error:', err);
-    res.status(500).json({ error: err?.message || 'Setup failed' });
+    res.status(500).json({ error: 'Setup failed' });
   }
 });
 
 // GET /api/affiliate/me?token=... — the affiliate's own dashboard
 router.get('/affiliate/me', async (req, res) => {
   try {
-    const affiliate = await affiliateByToken(req.query.token);
+    const affiliate = await affiliateByToken(req);
     if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to view your dashboard.' });
 
     // Refresh onboarding status from Stripe
@@ -71,20 +91,20 @@ router.get('/affiliate/me', async (req, res) => {
     res.json(dashboard);
   } catch (err: any) {
     console.error('[affiliates] me error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to fetch affiliate data' });
+    res.status(500).json({ error: 'Failed to fetch affiliate data' });
   }
 });
 
 // POST /api/affiliate/onboard — get/refresh Stripe Connect onboarding link
 router.post('/affiliate/onboard', async (req, res) => {
   try {
-    const affiliate = await affiliateByToken(req.body?.token);
+    const affiliate = await affiliateByToken(req);
     if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
     const url = await generateOnboardingLink(affiliate.id);
     res.json({ url });
   } catch (err: any) {
     console.error('[affiliates] onboard error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to generate onboarding link' });
+    res.status(500).json({ error: 'Failed to generate onboarding link' });
   }
 });
 
@@ -92,27 +112,27 @@ router.post('/affiliate/onboard', async (req, res) => {
 // Token-gated: this link is a full login to the affiliate's Stripe account.
 router.get('/affiliate/dashboard-url', async (req, res) => {
   try {
-    const affiliate = await affiliateByToken(req.query.token);
+    const affiliate = await affiliateByToken(req);
     if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
     await checkAndUpdateOnboardingStatus(affiliate.id);
     const url = await generateDashboardLink(affiliate.id);
     res.json({ url });
   } catch (err: any) {
     console.error('[affiliates] dashboard-url error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to generate dashboard link' });
+    res.status(500).json({ error: 'Failed to generate dashboard link' });
   }
 });
 
 // POST /api/affiliate/onboarding-complete — poll after Stripe Connect return
 router.post('/affiliate/onboarding-complete', async (req, res) => {
   try {
-    const affiliate = await affiliateByToken(req.body?.token);
+    const affiliate = await affiliateByToken(req);
     if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
     const ready = await checkAndUpdateOnboardingStatus(affiliate.id);
     res.json({ onboarded: ready });
   } catch (err: any) {
     console.error('[affiliates] onboarding-complete error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to check onboarding status' });
+    res.status(500).json({ error: 'Failed to check onboarding status' });
   }
 });
 
@@ -197,7 +217,7 @@ router.post('/affiliates/:id/onboard', requireAuth, requireAdmin, async (req, re
     res.json({ url });
   } catch (err: any) {
     console.error('[affiliates] admin onboard error:', err);
-    res.status(500).json({ error: err?.message || 'Failed to generate onboarding link' });
+    res.status(500).json({ error: 'Failed to generate onboarding link' });
   }
 });
 

@@ -121,10 +121,26 @@ export function fallbackSentence(ctx: { lastWellness?: { sleepHours: number } | 
 
 const inFlight = new Map<string, Promise<void>>();
 
+// Agent turns spent on brief lines per user per server day (audit MEDIUM-4).
+// The cache key carries the client's date, so without this a client sending a
+// new date each poll could re-bill the agent without bound.
+const BRIEF_WRITES_PER_DAY = 4;
+const briefWrites = new Map<string, { day: string; n: number }>();
+export function takeBriefWrite(userId: string, now = new Date()): boolean {
+  const day = now.toISOString().slice(0, 10);
+  const cur = briefWrites.get(userId);
+  const n = cur && cur.day === day ? cur.n : 0;
+  if (n >= BRIEF_WRITES_PER_DAY) return false;
+  briefWrites.set(userId, { day, n: n + 1 });
+  if (briefWrites.size > 50_000) for (const [k, v] of briefWrites) if (v.day !== day) briefWrites.delete(k);
+  return true;
+}
+
 /** Kick off Anakin's line for today if it isn't cached or already being written. Returns whether one is in flight. */
 export function ensureBriefSentence(userId: string, cacheKey: string, write = writeBriefSentence): boolean {
   if (cacheGet<string>(cacheKey) || cacheGet<boolean>(`${cacheKey}:failed`)) return false;
   if (inFlight.has(cacheKey)) return true;
+  if (!takeBriefWrite(userId)) return false;
   // A failed write backs off for 10 minutes (the fallback line stands) rather than re-billing every home visit.
   const failed = () => cacheSet(`${cacheKey}:failed`, true, 10 * 60 * 1000);
   const job = write(userId)

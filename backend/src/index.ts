@@ -150,7 +150,7 @@ app.use(cors({
     callback(corsErr);
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Timezone'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Timezone', 'X-Affiliate-Token'],
   credentials: true
 }));
 // Body size. The 10MB ceiling exists for base64 image payloads (meal photos,

@@ -3,12 +3,10 @@
 // can call: find candidate users for a trigger, ask the agent to decide,
 // and (only if delivery is enabled) send the proposed push.
 //
-// SAFETY (two independent gates):
-//   1. The sweep only does anything meaningful when AGENT_ENABLED is on
-//      (otherwise the agent has no API path).
-//   2. It only SENDS when AGENT_PROACTIVE_ENABLED is on. With it off, it
-//      evaluates + logs the decisions but sends nothing — so you can watch
-//      what it *would* send in the logs before trusting it with delivery.
+// SAFETY: nothing runs unless AGENT_PROACTIVE_ENABLED=true. The evaluation is
+// a paid agent turn (up to 8 Claude calls); it used to run on every workout
+// log even with delivery off (Oct 2026 audit HIGH-2). With the flag on, each
+// user gets at most AGENT_PROACTIVE_DAILY_CAP evaluations a day (default 3).
 
 import { PrismaClient } from '@prisma/client';
 import type Anthropic from '@anthropic-ai/sdk';
@@ -16,6 +14,24 @@ import { sendPushNotification } from '../services/notificationService.js';
 import { evaluateProactiveTrigger, proactiveDeliveryEnabled, type ProactiveTrigger } from './proactive.js';
 
 const prisma = new PrismaClient();
+
+// Per-user daily cap on evaluations (in memory: a restart resets it, which
+// only ever allows a few more, and keeps this off the DB schema).
+const evalsToday = new Map<string, { day: string; n: number }>();
+function proactiveCap(): number {
+  const n = parseInt(process.env.AGENT_PROACTIVE_DAILY_CAP || '', 10);
+  return Number.isFinite(n) && n >= 0 ? n : 3;
+}
+export function takeProactiveSlot(userId: string, now = new Date()): boolean {
+  const day = now.toISOString().slice(0, 10);
+  const cur = evalsToday.get(userId);
+  const n = cur && cur.day === day ? cur.n : 0;
+  if (n >= proactiveCap()) return false;
+  evalsToday.set(userId, { day, n: n + 1 });
+  if (evalsToday.size > 50_000) for (const [k, v] of evalsToday) if (v.day !== day) evalsToday.delete(k);
+  return true;
+}
+export function resetProactiveSlotsForTests() { evalsToday.clear(); }
 
 export interface SweepResult {
   trigger: ProactiveTrigger;
@@ -36,6 +52,9 @@ export async function runProactiveSweep(
   opts: { max?: number; injectClient?: Pick<Anthropic, 'messages'> } = {},
 ): Promise<SweepResult> {
   const max = opts.max ?? 100;
+  const empty: SweepResult = { trigger, evaluated: 0, wouldNotify: 0, sent: 0, decisions: [] };
+  // Off unless explicitly enabled: evaluation itself costs an agent turn.
+  if (!proactiveDeliveryEnabled()) return empty;
 
   let targets: string[];
   if (userIds && userIds.length) {
@@ -50,9 +69,10 @@ export async function runProactiveSweep(
   }
 
   const deliver = proactiveDeliveryEnabled();
-  const result: SweepResult = { trigger, evaluated: 0, wouldNotify: 0, sent: 0, decisions: [] };
+  const result: SweepResult = empty;
 
   for (const userId of targets) {
+    if (!takeProactiveSlot(userId)) continue;
     let decision;
     try {
       decision = await evaluateProactiveTrigger(userId, trigger, opts.injectClient);

@@ -55,4 +55,14 @@ describe('agent tool registry', () => {
       }
     }
   });
+
+  it('offers no direct-apply tools on any contract, and v1 gets the macro proposal (audit HIGH-1)', () => {
+    for (const c of [1, 2] as const) {
+      const names = new Set(toolsFor(c).map((t) => t.name));
+      expect(names.has('adjust_macros'), `contract ${c}`).toBe(false);
+      expect(names.has('apply_program_update'), `contract ${c}`).toBe(false);
+      expect(names.has('propose_macro_change'), `contract ${c}`).toBe(true);
+    }
+    expect(toolsFor(1).find((t) => t.name === 'propose_program_update')?.kind).toBe('propose');
+  });
 });

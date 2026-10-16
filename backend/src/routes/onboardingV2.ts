@@ -11,6 +11,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { gapsForGoal, profileFromAnswers, phasesFromProgram, nutritionLine, goalKind } from '../services/onboardingV2.js';
 import { cacheClearByPrefix } from '../services/cacheService.js';
 
@@ -20,12 +21,13 @@ const prisma = new PrismaClient();
 const gapsSchema = z.object({ goal: z.string().min(2).max(200) });
 const buildSchema = z.object({
   goal: z.string().min(2).max(200),
-  answers: z.record(z.string(), z.string().max(200)).default({}),
-  prefilled: z.array(z.object({ key: z.string(), label: z.string(), value: z.string(), source: z.string(), field: z.string().optional() })).optional(),
-  consent: z.record(z.string(), z.boolean()).optional(),
+  // Bounded (audit MEDIUM-4): these feed the program-generation prompt.
+  answers: z.record(z.string().max(60), z.string().max(200)).refine((a) => Object.keys(a).length <= 60, 'Too many answers').default({}),
+  prefilled: z.array(z.object({ key: z.string().max(60), label: z.string().max(120), value: z.string().max(300), source: z.string().max(60), field: z.string().max(60).optional() })).max(40).optional(),
+  consent: z.record(z.string().max(40), z.boolean()).refine((c) => Object.keys(c).length <= 20, 'Too many consent keys').optional(),
 });
 
-router.post('/coach/onboarding/gaps', requireAuth, async (req, res) => {
+router.post('/coach/onboarding/gaps', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { goal } = gapsSchema.parse(req.body);
     const out = await gapsForGoal(req.user!.id, goal.trim());
@@ -37,7 +39,7 @@ router.post('/coach/onboarding/gaps', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/coach/onboarding/build', requireAuth, async (req, res) => {
+router.post('/coach/onboarding/build', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { goal, answers, prefilled, consent } = buildSchema.parse(req.body);
     const userId = req.user!.id;

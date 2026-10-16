@@ -16,6 +16,7 @@ import { shareDiagnostic } from '../api';
 import { DiagnosticRadar, EfficiencyGauge } from './Charts';
 import { VideoCard, tagStyle } from './ThreadItems';
 import { Eyebrow, OutlineButton } from './primitives';
+import { MedicalDisclaimer } from '../../components/ui/MedicalDisclaimer';
 
 const C = DX.color;
 
@@ -164,6 +165,8 @@ export function ReportView({ verdict, onClose, onAddNumbers, readOnly }: Props) 
             ))}
           </Section>
         ) : null}
+
+        <MedicalDisclaimer color={C.muted} style={{ marginTop: 16 }} />
       </ScrollView>
     </View>
   );

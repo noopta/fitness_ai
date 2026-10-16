@@ -17,6 +17,12 @@ vi.mock('@prisma/client', () => {
   return { PrismaClient };
 });
 
+const mod = vi.hoisted(() => ({ allowed: true }));
+vi.mock('../services/moderationService.js', () => ({
+  moderateText: vi.fn(async () => ({ allowed: mod.allowed, blockedCategory: mod.allowed ? null : 'harassment', needsSupport: false, flaggedCategories: [], topScore: 0, failOpen: false, message: null })),
+}));
+vi.mock('../services/notificationService.js', () => ({ sendPushToUsers: vi.fn(async () => {}) }));
+
 import { runAnakinGroupCheckin } from '../services/groupAccountability.js';
 
 beforeEach(() => {
@@ -87,5 +93,39 @@ describe('runAnakinGroupCheckin', () => {
     const out = await runAnakinGroupCheckin('g1', { injectClient: client });
     expect(out.posted).toBe(false);
     expect(out.text).toBeNull();
+  });
+
+  it('never puts body weight in the prompt and tells the model not to share health details (audit MEDIUM-1)', async () => {
+    setupGroup({ anakinDailyEnabled: true });
+    let user = '', system = '';
+    const client = { messages: { create: vi.fn(async (args: any) => { user = args.messages[0].content; system = args.system; return { content: [{ type: 'text', text: 'Nice week, all.' }] }; }) } } as any;
+    mocks.groupMessage.create.mockResolvedValue({});
+    await runAnakinGroupCheckin('g1', { injectClient: client, dryRun: true });
+    expect(user).not.toMatch(/197|weight/i);
+    expect(mocks.bodyWeightLog.findFirst).not.toHaveBeenCalled();
+    expect(system).toMatch(/never state anyone's weight/);
+    expect(user).toContain('<untrusted_text');
+  });
+
+  it("leaves out activity a member's consent switched off", async () => {
+    setupGroup({ anakinDailyEnabled: true });
+    mocks.user.findUnique.mockImplementation(async ({ where }: any) =>
+      where.id === 'u1' ? { username: 'pomelo', name: 'Anupta', coachProfile: JSON.stringify({ consent: { logs: false, nutrition: false } }) } : { username: 'b', name: 'B' },
+    );
+    let user = '';
+    const client = { messages: { create: vi.fn(async (args: any) => { user = args.messages[0].content; return { content: [{ type: 'text', text: 'Hi.' }] }; }) } } as any;
+    await runAnakinGroupCheckin('g1', { injectClient: client, dryRun: true });
+    expect(user).toMatch(/Anupta \(goal: lose 10 lbs\): activity private/);
+  });
+
+  it('does not post a draft that moderation blocks', async () => {
+    setupGroup({ anakinDailyEnabled: true });
+    mod.allowed = false;
+    try {
+      const client = { messages: { create: vi.fn(async () => ({ content: [{ type: 'text', text: 'something nasty' }] })) } } as any;
+      const out = await runAnakinGroupCheckin('g1', { injectClient: client });
+      expect(out.posted).toBe(false);
+      expect(mocks.groupMessage.create).not.toHaveBeenCalled();
+    } finally { mod.allowed = true; }
   });
 });

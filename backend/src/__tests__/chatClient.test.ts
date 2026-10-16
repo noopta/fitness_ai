@@ -20,8 +20,9 @@ describe('chatComplete routing', () => {
     h.router.mockResolvedValue(reply('{}'));
     await chatComplete({ messages: [], max_completion_tokens: 100 });
     const body = h.router.mock.calls[0][0];
-    expect(OPENROUTER_PROVIDERS).toEqual(['alibaba', 'baidu']);
-    expect(body.provider).toEqual({ order: ['alibaba', 'baidu'], allow_fallbacks: false, require_parameters: true });
+    // US hosts only, no prompt retention (audit HIGH-4).
+    expect(OPENROUTER_PROVIDERS).toEqual(['fireworks', 'together', 'deepinfra', 'baseten']);
+    expect(body.provider).toEqual({ order: ['fireworks', 'together', 'deepinfra', 'baseten'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny' });
     expect(body.max_tokens).toBe(100);
     expect(body.max_completion_tokens).toBeUndefined();
   });
@@ -31,7 +32,7 @@ describe('chatComplete routing', () => {
     await chatComplete({ messages: [], modelOverride: 'z-ai/glm-5.2' } as any);
     const body = h.router.mock.calls[0][0];
     expect(body.model).toBe('z-ai/glm-5.2');
-    expect(body.provider).toEqual({ sort: 'throughput', require_parameters: true });
+    expect(body.provider).toEqual({ sort: 'throughput', require_parameters: true, data_collection: 'deny' });
   });
 
   it('passes a timeout with no SDK retries only when asked', async () => {
@@ -92,3 +93,27 @@ describe('incompleteJson', () => {
     expect(incompleteJson({ choices: [] } as any)).toBe('no choices');
   });
 });
+
+describe('chatComplete health-data routing (audit HIGH-4)', () => {
+  it('sends a sensitive prompt straight to OpenAI, never OpenRouter', async () => {
+    h.direct.mockResolvedValue(reply('{}'));
+    await chatComplete({ messages: [] }, { sensitive: true });
+    expect(h.router).not.toHaveBeenCalled();
+    expect(h.direct.mock.calls[0][0].model).toBe('gpt-5.4-mini');
+  });
+
+  it('falls back to OpenAI when OpenRouter has no providers available (thrown 404)', async () => {
+    h.router.mockRejectedValue(Object.assign(new Error('404 No endpoints found matching your data policy'), { status: 404 }));
+    const fb = reply('ok');
+    h.direct.mockResolvedValue(fb);
+    expect(await chatComplete({ messages: [] })).toBe(fb);
+  });
+
+  it('falls back when OpenRouter answers 200 with an error body and no choices', async () => {
+    h.router.mockResolvedValue({ error: { message: 'No allowed providers are available for the selected model.' } });
+    const fb = reply('ok');
+    h.direct.mockResolvedValue(fb);
+    expect(await chatComplete({ messages: [] })).toBe(fb);
+  });
+});
+

@@ -17,15 +17,12 @@ import { readMemory } from '../agent/memory.js';
 import { knownFacts } from '../agent/profile/coachProfile.js';
 import { loadTurn, loadStoredMessages, appendTurn, clearConversation } from '../agent/conversation.js';
 import { cardRef, splitStored } from '../agent/cardNotes.js';
-import { evaluateProactiveTrigger, type ProactiveTrigger } from '../agent/proactive.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
+import { moderateText } from '../services/moderationService.js';
+import { NEEDS_SUPPORT_ADDENDUM } from '../prompts/safety.js';
 import { runAgentTask, AGENT_TASKS, type AgentTaskId } from '../agent/tasks.js';
 import { applyProgramUpdate, applyExerciseSwap } from '../agent/applyTools.js';
 import '../agent/toolkits/index.js';
-
-const PROACTIVE_TRIGGERS: ProactiveTrigger[] = [
-  'nightly_review', 'streak_at_risk', 'post_workout', 'wellness_flag', 'nutrition_gap',
-  'micro_gap',
-];
 
 const router = Router();
 
@@ -56,6 +53,27 @@ function requireAgentAccess(req: any, res: any, next: any) {
   next();
 }
 
+// Coach chat is a Pro feature (direct-entry paywall, Oct 2026); the agent
+// turn routes enforce it server-side too (audit HIGH-3). AGENT_PRO_ONLY=false
+// reopens them to free accounts (still under the daily cap).
+function requireAgentPro(req: any, res: any, next: any) {
+  if (process.env.AGENT_PRO_ONLY === 'false') return next();
+  const tier = req.user?.tier;
+  if (tier === 'pro' || tier === 'enterprise') return next();
+  return res.status(403).json({ error: 'Chat with Anakin is a Pro feature', upgrade: true, code: 'pro_required' });
+}
+
+/**
+ * Moderate the user's message before a turn (audit INFO: agent turns were
+ * never moderated). Coach messages fail open on an outage; a block answers
+ * 400; self-harm signals add the needsSupport rule to the system prompt.
+ */
+async function moderateTurn(message: string, userId: string): Promise<{ blocked: string | null; addendum?: string }> {
+  const verdict = await moderateText(message, 'coach_message', userId);
+  if (!verdict.allowed) return { blocked: verdict.message ?? 'That message can\'t be sent.' };
+  return { blocked: null, ...(verdict.needsSupport ? { addendum: NEEDS_SUPPORT_ADDENDUM } : {}) };
+}
+
 const turnSchema = z.object({
   // Room for a pasted training log (log_past_workouts reads it from the
   // message); matches the notes parser's MAX_NOTES_CHARS.
@@ -68,10 +86,12 @@ const turnSchema = z.object({
 // POST /api/coach/agent — one agent turn. Conversation history is loaded +
 // persisted server-side so multi-turn continuity works without the client
 // tracking it.
-router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, aiLimiter, checkAgentRateLimit, async (req, res) => {
   try {
     const { message, resetConversation } = turnSchema.parse(req.body);
     const userId = req.user!.id;
+    const mod = await moderateTurn(message, userId);
+    if (mod.blocked) return res.status(400).json({ error: mod.blocked, code: 'moderation_blocked' });
 
     // One turn at a time: a second send would run the same work twice.
     const run = startRun(userId, message);
@@ -84,7 +104,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, checkAgentRateLimit
     // Same card contract as the stream: v2 clients get server cards here too
     // (this route is their fallback when SSE can't open).
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
-    const result = await inRun(run, () => runAgentTurn(userId, turn.message, { history: turn.history, cardContract }));
+    const result = await inRun(run, () => runAgentTurn(userId, turn.message, { history: turn.history, cardContract, systemAddendum: mod.addendum }));
 
     // Log what the agent did this turn — invaluable for diagnosing
     // "agent said done but nothing changed" bug reports. The toolsUsed
@@ -154,7 +174,7 @@ router.get('/coach/agent/memory', requireAuth, requireAgentAccess, async (req, r
 // POST /api/coach/agent/stream — Server-Sent Events. Mirrors the existing
 // /coach/chat/stream UX (token stream) so the web client doesn't sit on a
 // 5-20s blank wait. Emits: status (thinking/tool), delta (text tokens), done.
-router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent/stream', requireAuth, requireAgentAccess, requireAgentPro, aiLimiter, checkAgentRateLimit, async (req, res) => {
   let parsed;
   try {
     parsed = turnSchema.parse(req.body);
@@ -162,6 +182,8 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
     return res.status(400).json({ error: 'Invalid request', details: err?.errors });
   }
   const userId = req.user!.id;
+  const mod = await moderateTurn(parsed.message, userId);
+  if (mod.blocked) return res.status(400).json({ error: mod.blocked, code: 'moderation_blocked' });
   // One turn at a time; the app waits on the running one instead (GET /coach/agent/turn-status).
   const run = startRun(userId, parsed.message, (step) => send({ type: 'receipt', id: step.id, verb: step.verb as any, text: step.text, final: !/ing$/.test(step.verb) } as any));
   if (!run) return res.status(409).json({ error: 'Anakin is still working on your last message.', code: 'turn_running' });
@@ -188,7 +210,7 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, checkAgentRa
     // builds don't send the header and keep the single legacy card.
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
     const t0 = Date.now();
-    const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract }));
+    const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract, systemAddendum: mod.addendum }));
     await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef));
     console.log(`[agent] stream user=${userId.slice(0, 8)} ms=${Date.now() - t0} tools=${JSON.stringify((result as any).toolsUsed ?? [])}`);
   } catch (err: any) {
@@ -214,13 +236,17 @@ const taskSchema = z.object({ input: z.string().max(4000).optional() });
 // (program_adjustment, life_happened, plateau, meal_suggestions, daily_tips,
 // weekly_review, injury_intake, research_apply). Each is the same agent loop
 // with a task-specific framing. `input` required for tasks that need it.
-router.post('/coach/agent/task/:taskId', requireAuth, requireAgentAccess, checkAgentRateLimit, async (req, res) => {
+router.post('/coach/agent/task/:taskId', requireAuth, requireAgentAccess, aiLimiter, checkAgentRateLimit, async (req, res) => {
   try {
     const taskId = req.params.taskId as AgentTaskId;
     if (!(taskId in AGENT_TASKS)) {
       return res.status(400).json({ error: `Unknown task. One of: ${Object.keys(AGENT_TASKS).join(', ')}` });
     }
     const { input } = taskSchema.parse(req.body ?? {});
+    if (input) {
+      const mod = await moderateTurn(input, req.user!.id);
+      if (mod.blocked) return res.status(400).json({ error: mod.blocked, code: 'moderation_blocked' });
+    }
     const result = await runAgentTask(req.user!.id, taskId, input);
     res.json(result);
   } catch (err: any) {
@@ -304,22 +330,9 @@ router.post('/coach/agent/confirm-proposal', requireAuth, requireAgentAccess, as
   }
 });
 
-// POST /api/coach/agent/proactive/:trigger — DECISION-ONLY. Runs the agent's
-// proactive evaluation for the current user and returns what it would do.
-// Never sends a notification (that's the sweep + AGENT_PROACTIVE_ENABLED).
-// Exists so you can eyeball the agent's judgement before trusting delivery.
-router.post('/coach/agent/proactive/:trigger', requireAuth, requireAgentAccess, async (req, res) => {
-  try {
-    const trigger = req.params.trigger as ProactiveTrigger;
-    if (!PROACTIVE_TRIGGERS.includes(trigger)) {
-      return res.status(400).json({ error: `Unknown trigger. One of: ${PROACTIVE_TRIGGERS.join(', ')}` });
-    }
-    const decision = await evaluateProactiveTrigger(req.user!.id, trigger);
-    res.json({ ...decision, note: 'decision-only — nothing was sent' });
-  } catch (err: any) {
-    console.error('[agent] proactive eval failed:', err?.message ?? err);
-    res.status(500).json({ error: err?.message ?? 'Proactive eval error' });
-  }
-});
+// POST /api/coach/agent/proactive/:trigger was removed (Oct 2026 audit
+// HIGH-2): a debug-only route no client called, with no spend limiter, that
+// ran a full agent turn per request. Proactive evaluation runs only from the
+// sweep, behind AGENT_PROACTIVE_ENABLED.
 
 export default router;

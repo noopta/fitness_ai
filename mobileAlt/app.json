@@ -16,7 +16,12 @@
       "url": "https://u.expo.dev/f9c4fa25-f804-4a57-abfe-5db4a8bfcf72",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "codeSigningCertificate": "./certs/certificate.pem",
+      "codeSigningMetadata": {
+        "keyid": "main",
+        "alg": "rsa-v1_5-sha256"
+      }
     },
     "runtimeVersion": "3.2.0",
     "plugins": [
@@ -29,14 +34,15 @@
         "expo-image-picker",
         {
           "photosPermission": "Axiom uses your photo library to analyze meals and estimate calories.",
-          "cameraPermission": "Axiom uses your camera to take photos of meals for calorie estimation."
+          "cameraPermission": "Axiom uses your camera to photograph meals for calorie estimation, scan food barcodes, and record video of your lifts for form analysis."
         }
       ],
       [
         "react-native-vision-camera",
         {
-          "cameraPermissionText": "Axiom uses your camera to scan food barcodes and analyze meals.",
+          "cameraPermissionText": "Axiom uses your camera to photograph meals for calorie estimation, scan food barcodes, and record video of your lifts for form analysis.",
           "enableCodeScanner": true,
+          "enableLocation": false,
           "enableFrameProcessors": false
         }
       ],
@@ -74,11 +80,10 @@
       "bundleIdentifier": "io.axiomtraining.app",
       "buildNumber": "100",
       "infoPlist": {
-        "NSCameraUsageDescription": "Axiom uses your camera to take photos of meals for calorie estimation.",
+        "NSCameraUsageDescription": "Axiom uses your camera to photograph meals for calorie estimation, scan food barcodes, and record video of your lifts for form analysis.",
         "NSPhotoLibraryUsageDescription": "Axiom uses your photo library to analyze meals and estimate calories.",
         "NSPhotoLibraryAddUsageDescription": "Axiom saves your shareable workout cards to your photo library.",
         "NSMicrophoneUsageDescription": "Axiom uses your microphone to transcribe voice notes about meals you ate.",
-        "NSLocationWhenInUseUsageDescription": "Axiom does not use your location. This purpose string is required only because one of our SDKs (react-native-vision-camera) references location APIs.",
         "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": [
           "instagram",
@@ -91,6 +96,7 @@
       }
     },
     "android": {
+      "allowBackup": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#09090b"

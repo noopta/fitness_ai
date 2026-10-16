@@ -27,7 +27,8 @@ export async function inviteAffiliate(
   });
 
   const setupLink = `${FRONTEND_URL}/affiliate/setup?token=${inviteToken}`;
-  console.log(`[affiliates] Invited ${email} — code: ${referralCode} — setup: ${setupLink}`);
+  // Never log the setup link: its token is the affiliate's credential.
+  console.log(`[affiliates] Invited affiliate ${affiliate.id} — code: ${referralCode}`);
   return { affiliate, setupLink };
 }
 

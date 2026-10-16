@@ -2,7 +2,8 @@
 // forward, hairline-ruled, citations inline. Doubles as the "living
 // document" view opened later from Coach → Nutrition (mode='document').
 import React, { useMemo, useState } from 'react';
-import { Modal, View, Text, Pressable, ScrollView, Linking, StyleSheet } from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { openExternal } from '../../../../lib/openExternal';
 import { colors } from '../../../../constants/theme';
 import { Eyebrow, CitationChip, EST_NOTE } from './GutPrimitives';
 
@@ -189,7 +190,7 @@ export function PlanRevealScreen({
                 <Text style={{ fontSize: 13, color: colors.mutedForeground, marginTop: 4 }}>{sourceOpen.detail}</Text>
               )}
               {!!sourceOpen.url && (
-                <Pressable onPress={() => Linking.openURL(sourceOpen.url!)} style={[styles.primaryButton, { marginTop: 16 }]}>
+                <Pressable onPress={() => { void openExternal(sourceOpen.url); }} style={[styles.primaryButton, { marginTop: 16 }]}>
                   <Text style={{ color: colors.primaryForeground, fontWeight: '600', fontSize: 14 }}>
                     Watch the clip
                   </Text>

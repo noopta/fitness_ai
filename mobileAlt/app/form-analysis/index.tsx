@@ -21,6 +21,7 @@ import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { formAnalysisApi, authApi, type FormAnalysisPayload, type FormReferenceFrame } from '../../src/lib/api';
 import { posthog } from '../../src/lib/analytics';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
+import { MedicalDisclaimer } from '../../src/components/ui/MedicalDisclaimer';
 
 // 'capture'    — upload picker
 // 'uploading'  — POST /form-analysis/video still in flight (shows spinner)
@@ -512,6 +513,7 @@ function ResultView({
           {(analysis.safetyFlags ?? []).map((s, i) => (
             <Bullet key={i} icon="warning" tone="danger" text={s} />
           ))}
+          <MedicalDisclaimer style={{ marginTop: 0 }} />
         </Section>
       )}
 

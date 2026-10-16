@@ -1397,6 +1397,16 @@ export function NutritionTab({
               </motion.div>
             )}
           </AnimatePresence>
+          <p className="text-[10px] text-muted-foreground" data-testid="off-attribution">
+            Food data ©{' '}
+            <a href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer" className="underline">
+              Open Food Facts
+            </a>{' '}
+            contributors,{' '}
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener noreferrer" className="underline">
+              ODbL
+            </a>
+          </p>
         </Card>
       </motion.div>
 

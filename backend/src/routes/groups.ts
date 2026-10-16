@@ -10,6 +10,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { runAnakinGroupCheckin } from '../services/groupAccountability.js';
 import { sendPushToUsers } from '../services/notificationService.js';
 
@@ -249,13 +250,28 @@ router.patch('/groups/:id', requireAuth, requireGroupsAccess, async (req, res) =
 // POST /api/groups/:id/anakin-checkin — manually trigger Anakin's check-in
 // for this group (useful for testing). Posts a real message (or returns the
 // draft if ?dryRun=1). Membership required.
-router.post('/groups/:id/anakin-checkin', requireAuth, requireGroupsAccess, async (req, res) => {
+// At most one manual check-in per group per 6 hours (each is a Claude call
+// and, unless dryRun, a post + push to every member).
+const CHECKIN_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const lastManualCheckin = new Map<string, number>();
+export function takeGroupCheckinSlot(groupId: string, now = Date.now()): boolean {
+  const last = lastManualCheckin.get(groupId);
+  if (last != null && now - last < CHECKIN_COOLDOWN_MS) return false;
+  lastManualCheckin.set(groupId, now);
+  if (lastManualCheckin.size > 20_000) for (const [k, t] of lastManualCheckin) if (now - t >= CHECKIN_COOLDOWN_MS) lastManualCheckin.delete(k);
+  return true;
+}
+
+router.post('/groups/:id/anakin-checkin', requireAuth, requireGroupsAccess, aiLimiter, async (req, res) => {
   try {
     const userId = req.user!.id;
     const membership = await prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId: req.params.id, userId } },
     });
     if (!membership) return res.status(404).json({ error: 'Not found' });
+    if (!takeGroupCheckinSlot(req.params.id)) {
+      return res.status(429).json({ error: 'Anakin already checked in on this group recently. Try again later.', code: 'checkin_cooldown' });
+    }
     const dryRun = req.query.dryRun === '1';
     const result = await runAnakinGroupCheckin(req.params.id, { dryRun });
     res.json(result);

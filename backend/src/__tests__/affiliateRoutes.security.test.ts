@@ -95,3 +95,29 @@ describe('affiliate self-service — token is the only credential', () => {
     expect((await request(app).post('/api/affiliates/payouts/run')).status).toBe(401);
   });
 });
+
+describe('affiliate token transport', () => {
+  it('accepts the X-Affiliate-Token header on GET routes (no token in the URL)', async () => {
+    const me = await request(app).get('/api/affiliate/me').set('X-Affiliate-Token', 'tok-secret-1');
+    expect(me.status).toBe(200);
+    const dash = await request(app).get('/api/affiliate/dashboard-url').set('X-Affiliate-Token', 'tok-secret-1');
+    expect(dash.status).toBe(200);
+  });
+
+  it('accepts the header on POST routes and /affiliate/setup', async () => {
+    expect((await request(app).post('/api/affiliate/onboard').set('X-Affiliate-Token', 'tok-secret-1').send({})).status).toBe(200);
+    expect((await request(app).post('/api/affiliate/setup').set('X-Affiliate-Token', 'tok-secret-1').send({})).status).toBe(200);
+  });
+
+  it('a wrong header token is still refused', async () => {
+    expect((await request(app).get('/api/affiliate/me').set('X-Affiliate-Token', 'guess')).status).toBe(401);
+  });
+
+  it('never logs the token value when the deprecated ?token= is used', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await request(app).get('/api/affiliate/me?token=tok-secret-1');
+    for (const call of warn.mock.calls) expect(call.join(' ')).not.toContain('tok-secret-1');
+    warn.mockRestore();
+  });
+});
+

@@ -62,7 +62,7 @@ deterministic engine). The agent CALLS authoritative code, it doesn't re-derive.
 - `POST /coach/agent/task/:taskId` — purpose-built tasks (program_adjustment,
   life_happened, plateau, meal_suggestions, daily_tips, weekly_review,
   injury_intake, research_apply).
-- `POST /coach/agent/proactive/:trigger` — decision-only, never sends.
+- (`POST /coach/agent/proactive/:trigger` was removed in the Oct 2026 audit; proactive runs only from the sweep behind `AGENT_PROACTIVE_ENABLED`.)
 - `GET  /coach/agent/memory` — what the agent remembers about the user.
 
 All gated by `AGENT_ENABLED` + `AGENT_USER_ALLOWLIST`; turn endpoints are

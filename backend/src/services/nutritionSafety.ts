@@ -92,13 +92,20 @@ export function clampDailyCalories(kcal: number, p: FloorProfile = {}): ClampedC
   };
 }
 
+/** Columns floorProfileFromRow reads — spread into a caller's own select. */
+export const FLOOR_SELECT = { weightKg: true, heightCm: true, dateOfBirth: true, coachProfile: true } as const;
+
+/** The floor inputs from a user row (any subset of FLOOR_SELECT). */
+export function floorProfileFromRow(u: { weightKg?: number | null; heightCm?: number | null; dateOfBirth?: Date | string | null; coachProfile?: unknown } | null | undefined): FloorProfile {
+  if (!u) return {};
+  const blob = parseBlob(u.coachProfile);
+  return { sex: blob.gender ?? blob.biologicalSex ?? blob.sex ?? null, weightKg: u.weightKg ?? null, heightCm: u.heightCm ?? null, dateOfBirth: u.dateOfBirth ?? null, ageYears: typeof blob.age === 'number' ? blob.age : null };
+}
+
 /** Read what the floor needs for a user. Never throws (a missing row → generic floors). */
 export async function floorProfileFor(prisma: any, userId: string): Promise<FloorProfile> {
   try {
-    const u = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, heightCm: true, dateOfBirth: true, coachProfile: true } });
-    if (!u) return {};
-    const blob = parseBlob(u.coachProfile);
-    return { sex: blob.gender ?? blob.biologicalSex ?? blob.sex ?? null, weightKg: u.weightKg, heightCm: u.heightCm, dateOfBirth: u.dateOfBirth ?? null, ageYears: typeof blob.age === 'number' ? blob.age : null };
+    return floorProfileFromRow(await prisma.user.findUnique({ where: { id: userId }, select: FLOOR_SELECT }));
   } catch {
     return {};
   }

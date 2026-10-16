@@ -24,7 +24,8 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
-import { ADMIN_HTML } from './adminPage.js';
+import crypto from 'node:crypto';
+import { renderAdminHtml, adminPageCsp } from './adminPage.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -213,7 +214,9 @@ router.get('/admin/users', requireAuth, requireAdmin, async (_req, res) => {
 router.get('/admin', (_req, res) => {
   res.set('Content-Type', 'text/html; charset=utf-8');
   res.set('Cache-Control', 'no-store');
-  res.send(ADMIN_HTML);
+  const nonce = crypto.randomBytes(16).toString('base64');
+  res.set('Content-Security-Policy', adminPageCsp(nonce));
+  res.send(renderAdminHtml(nonce));
 });
 
 export default router;

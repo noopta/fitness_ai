@@ -19,6 +19,8 @@ import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSe
 import { setTurnMessage } from './turnMessage.js';
 import { needsPlanCard, PLAN_CARD_NUDGE } from './nutrientAdvice.js';
 import { claimsCaptureWithoutTool, CAPTURE_NUDGE } from './actionClaims.js';
+import { SAFETY_BLOCK, UNTRUSTED_DATA_RULE } from '../prompts/safety.js';
+import { userRequestedWrite } from './untrusted.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -31,6 +33,26 @@ const MAX_TOKENS = 4096;
 // Hard ceiling on tool round-trips so a misbehaving loop can't run up an
 // unbounded API bill or hang a request. 8 is generous — most turns need 1-3.
 const MAX_ITERATIONS = 8;
+// Total model calls one user turn may make, sub-agents included (a
+// delegate_task used to add its own 8 on top of the parent's 8 — audit HIGH-3).
+export const MAX_MODEL_CALLS_PER_TURN = 16;
+
+/**
+ * Per-turn guard shared by a turn and any sub-agent it spawns:
+ *  - modelCalls counts every Anthropic call against MAX_MODEL_CALLS_PER_TURN;
+ *  - untrustedSeen flips once a tool returned third-party text (untrusted.ts),
+ *    after which set/log tools are refused unless the user's own message asked
+ *    for a write;
+ *  - readOnly (proactive runs: there is no user message at all) refuses every
+ *    set/log tool.
+ */
+export interface TurnGuard { modelCalls: number; untrustedSeen: boolean; userAskedWrite: boolean; readOnly: boolean }
+export function newTurnGuard(userMessage: string, readOnly = false): TurnGuard {
+  return { modelCalls: 0, untrustedSeen: false, userAskedWrite: userRequestedWrite(userMessage), readOnly };
+}
+export function writesBlocked(g: TurnGuard): boolean {
+  return g.readOnly || (g.untrustedSeen && !g.userAskedWrite);
+}
 
 const SYSTEM_PROMPT = `You are Anakin, an elite strength & conditioning and nutrition coach inside the Axiom app. You are direct, evidence-based, and concise — you talk like a great coach texting a client, not like a chatbot. The app renders your tool results as live cards under your reply. When a card is shown (the tool result says card_shown), keep the text to at most two short sentences — the card carries the numbers and the buttons. Otherwise at most four sentences. Plain prose; no markdown headings or bullet lists in chat; units as "lb" or "kg" with a space; no "~" and no slashes in copy.
 
@@ -65,10 +87,14 @@ How changes work — the app enforces these, so follow them:
 - A user message may open with an <app_note> block. That is the app telling you which cards are on screen under your previous reply — the user did not type it. Use it to follow references ("make it 190", "apply that"), never repeat it, and never write card names in brackets, card codes or ids in a reply: the app places the cards, your reply is only the words.
 - Many tools aren't loaded up front. If you need one you don't see (recipes, friends, groups, notifications, diagnostics, form checks, streaks, billing…), search for it with the tool search tool before saying you can't.
 
-Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.`;
+Keep replies tight. Lead with the answer. Use the user's real numbers. If you took an action, say so in one line.
 
-// The classic app renders three proposal cards and relies on two direct tools.
-const V1_ADDENDUM = `In this version of the app: macro targets change directly with adjust_macros once the user agrees (any "yes", "ok", "do it" — call it on that same turn), and broad program rewrites use apply_program_update after they agree. Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, give the count, the range and what was left out, then one question — "Found 8 workouts from 15 Jul to 5 Aug. One was already logged. Log the other 7?" — with no list unless they ask. When they say yes, call it again with confirm: true and the previewId.`;
+${SAFETY_BLOCK}`;
+
+// The classic app renders the proposal cards; nothing applies without a tap.
+// (adjust_macros / apply_program_update — direct writes with no card and no
+// undo — were retired for every client in the Oct 2026 audit.)
+const V1_ADDENDUM = `In this version of the app: macro and calorie targets are never changed from chat. Use propose_macro_change to check the new numbers (it applies the calorie floor), then give the user the exact targets and tell them to set them in the Nutrition tab's targets, or to update the app to apply them from chat — never say the targets are changed. Broad program rewrites go through propose_program_update (a diff they confirm). Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, give the count, the range and what was left out, then one question — "Found 8 workouts from 15 Jul to 5 Aug. One was already logged. Log the other 7?" — with no list unless they ask. When they say yes, call it again with confirm: true and the previewId.`;
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -102,6 +128,12 @@ export interface AgentTurnOptions {
   depth?: number;
   /** 2 = build agent-first cards (server ids) for the result. */
   cardContract?: 1 | 2;
+  /** Shared with a parent turn (sub-agents): model-call budget + untrusted-text state. */
+  guard?: TurnGuard;
+  /** No set/log tool may write (proactive evaluation — there is no user turn). */
+  readOnly?: boolean;
+  /** Appended to the system prompt for this turn (e.g. the needsSupport rule). */
+  systemAddendum?: string;
 }
 
 // Phase 6 — sub-agent delegation. One level deep: the top-level agent can
@@ -109,7 +141,9 @@ export interface AgentTurnOptions {
 // delegate tool of its own.
 const MAX_SUBAGENT_DEPTH = 1;
 
-const SUBAGENT_SYSTEM = `You are a focused sub-agent spun up by Anakin to handle ONE bounded task. Do exactly the task you were given using your tools, then return a concise result. Don't chat, don't ask follow-ups — produce the deliverable.`;
+const SUBAGENT_SYSTEM = `You are a focused sub-agent spun up by Anakin to handle ONE bounded task. Do exactly the task you were given using your tools, then return a concise result. Don't chat, don't ask follow-ups — produce the deliverable.
+
+${SAFETY_BLOCK}`;
 
 /** Lift a legacy propose_* result onto the turn (v1 cards + the web app). */
 function extractProposal(r: any): AgentProposal | undefined {
@@ -131,10 +165,15 @@ function extractProposal(r: any): AgentProposal | undefined {
   return { kind: r.kind ?? 'program_update', updatedProgram: r.updatedProgram, summary, changedDays: Array.isArray(r.changedDays) ? r.changedDays : [] };
 }
 
-/** System prompt as a cacheable block: stable instructions, then the per-user context. */
-function systemBlocks(base: string, ctxText: string): Anthropic.TextBlockParam[] {
+/**
+ * System prompt as a cacheable block: stable instructions, then the per-user
+ * context. Any framing that doesn't carry the safety rules yet (a caller's
+ * systemOverride) gets them appended, so no agent surface runs without them.
+ */
+export function systemBlocks(base: string, ctxText: string): Anthropic.TextBlockParam[] {
+  const withSafety = base.includes(UNTRUSTED_DATA_RULE) ? base : `${base}\n\n${SAFETY_BLOCK}`;
   return [
-    { type: 'text', text: base, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: withSafety, cache_control: { type: 'ephemeral' } },
     { type: 'text', text: ctxText },
   ];
 }
@@ -183,6 +222,9 @@ export async function runAgentTurn(
   const history = opts.history ?? [];
   const anthropic = opts.injectClient ?? getClient();
   const depth = opts.depth ?? 0;
+  // A sub-agent shares its parent's guard: same budget, same untrusted state,
+  // and the PARENT user's message decides whether writes were requested.
+  const guard = opts.guard ?? newTurnGuard(userMessage, opts.readOnly === true);
 
   // Offer the delegate tool only above the depth ceiling so sub-agents can't
   // recurse. Built here (not in the static registry) so it can capture the
@@ -203,6 +245,7 @@ export async function runAgentTurn(
         depth: depth + 1,
         injectClient: opts.injectClient,
         systemOverride: SUBAGENT_SYSTEM,
+        guard,
       });
       return { result: sub.reply, toolsUsed: sub.toolsUsed };
     },
@@ -213,9 +256,11 @@ export async function runAgentTurn(
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const system = systemBlocks(opts.systemOverride ?? (opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`), renderContext(ctx));
+  const baseSystem = opts.systemOverride ?? (opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`);
+  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
 
-  setTurnMessage(userId, userMessage);
+  // A sub-agent's task text is not the user's message (log_past_workouts reads this).
+  if (depth === 0) setTurnMessage(userId, userMessage);
   const messages: Anthropic.MessageParam[] = [...history, { role: 'user', content: userMessage }];
   const toolsUsed: string[] = [];
   let iterations = 0;
@@ -232,8 +277,9 @@ export async function runAgentTurn(
   let captureNudged = false;
   let nudgedReply = '';
 
-  while (iterations < MAX_ITERATIONS) {
+  while (iterations < MAX_ITERATIONS && guard.modelCalls < MAX_MODEL_CALLS_PER_TURN) {
     iterations++;
+    guard.modelCalls++;
     const res = await createWithFallback(anthropic, { system, tools, messages }, false);
     // Record the assistant turn verbatim so tool_use ids line up with the
     // tool_result blocks we send next (tool-search blocks included).
@@ -280,6 +326,8 @@ export async function runAgentTurn(
     }
 
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    // Decided per step: tools the model chose before it saw untrusted text keep running.
+    const blockWrites = writesBlocked(guard);
     for (const block of res.content) {
       if (block.type !== 'tool_use') continue;
       toolsUsed.push(block.name);
@@ -289,7 +337,8 @@ export async function runAgentTurn(
         continue;
       }
       try {
-        const out = await runToolCall(tool, (block.input ?? {}) as Record<string, unknown>, userId, tctx, { buildCards: opts.cardContract === 2 });
+        const out = await runToolCall(tool, (block.input ?? {}) as Record<string, unknown>, userId, tctx, { buildCards: opts.cardContract === 2, blockWrites });
+        if (out.untrusted) guard.untrustedSeen = true;
         proposal = extractProposal(out.raw) ?? proposal;
         cards.push(...out.cards);
         toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out.modelResult) });
@@ -344,6 +393,8 @@ export interface StreamOptions {
   /** 2 = the agent-first card contract (server ids, many cards). */
   cardContract?: 1 | 2;
   turnId?: string;
+  /** Appended to the system prompt for this turn (e.g. the needsSupport rule). */
+  systemAddendum?: string;
 }
 
 /**
@@ -366,8 +417,10 @@ export async function streamAgentTurn(
   const contract = opts.cardContract ?? 1;
   const turnId = opts.turnId ?? `t${Date.now().toString(36)}`;
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const system = systemBlocks(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, renderContext(ctx));
+  const baseSystem = contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`;
+  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
   const tools = toolsFor(contract);
+  const guard = newTurnGuard(userMessage);
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   setTurnMessage(userId, userMessage);
@@ -408,8 +461,9 @@ export async function streamAgentTurn(
     return { reply, toolsUsed, iterations, proposal };
   };
 
-  while (iterations < MAX_ITERATIONS) {
+  while (iterations < MAX_ITERATIONS && guard.modelCalls < MAX_MODEL_CALLS_PER_TURN) {
     iterations++;
+    guard.modelCalls++;
     onEvent({ type: 'status', phase: 'thinking' });
     const res = await createWithFallback(anthropic, {
       system, tools, messages,
@@ -456,6 +510,7 @@ export async function streamAgentTurn(
     if (finalText.trim()) { earlier.push(finalText.trim()); emitText(' '); }
     finalText = '';
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
+    const blockWrites = writesBlocked(guard);
     for (const block of res.content) {
       if (block.type !== 'tool_use') continue;
       toolsUsed.push(block.name);
@@ -470,7 +525,8 @@ export async function streamAgentTurn(
         continue;
       }
       try {
-        const out = await runToolCall(tool, toolInput, userId, tctx, { buildCards: contract === 2 });
+        const out = await runToolCall(tool, toolInput, userId, tctx, { buildCards: contract === 2, blockWrites });
+        if (out.untrusted) guard.untrustedSeen = true;
         const result = out.raw;
         // Sharpen the receipt with what the tool found, and surface nested
         // (sub-agent) tool calls as indented receipts.

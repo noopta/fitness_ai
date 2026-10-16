@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
-  Linking,
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { liftCoachApi } from '../../src/lib/api';
+import { openExternal } from '../../src/lib/openExternal';
 import { Button } from '../../src/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
@@ -600,7 +600,7 @@ export default function PlanScreen() {
                   {acc.videoUrl ? (
                     <TouchableOpacity
                       style={styles.videoLink}
-                      onPress={() => Linking.openURL(acc.videoUrl!)}
+                      onPress={() => { void openExternal(acc.videoUrl); }}
                     >
                       <Ionicons name="play-circle-outline" size={16} color={colors.primary} />
                       <Text style={styles.videoLinkText}>

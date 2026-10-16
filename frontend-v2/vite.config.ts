@@ -47,10 +47,17 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 3000,
-    allowedHosts: true,
+    // Only the Replit dev domains and localhost may reach the dev server
+    // (allowedHosts: true disabled Vite's DNS-rebinding protection).
+    allowedHosts: [".replit.dev", "localhost"],
+    // fs.strict stays on (default). Explicitly allow this package plus the
+    // shared packages / assets that the aliases above resolve outside it.
     fs: {
-      strict: false,
+      allow: [
+        path.resolve(import.meta.dirname),
+        path.resolve(import.meta.dirname, "..", "packages"),
+        path.resolve(import.meta.dirname, "..", "attached_assets"),
+      ],
     },
-
   },
 });
