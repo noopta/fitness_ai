@@ -39,6 +39,17 @@ model User {
   emailVerified       Boolean           @default(false)
   emailVerifiedAt     DateTime?
   dateOfBirth         DateTime?
+  // ── Security / consent (Oct 2026 audit) ──────────────────────────────
+  // Bumped on logout-all, password reset and account deletion; requireAuth
+  // rejects JWTs whose `tv` claim is older. Gives 30-day tokens a kill switch.
+  tokenVersion        Int               @default(0)
+  // Consent records (GDPR Art. 7 / MHMDA). Null = never recorded.
+  acceptedTermsAt     DateTime?
+  termsVersion        String?
+  healthConsentAt     DateTime?
+  marketingConsentAt  DateTime?
+  // One-time free lift-diagnostic exemption; never cleared by session deletion.
+  onboardingDiagnosticUsedAt DateTime?
   tier                        String            @default("free")
   stripeCustomerId            String?
   stripeSubStatus             String?
