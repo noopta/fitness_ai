@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { AffiliateResources } from '@/components/AffiliateResources';
 import {
   affiliateFetch, consumeAffiliateTokenFromUrl, clearAffiliateToken,
 } from '@/lib/affiliateToken';
@@ -260,6 +261,11 @@ export default function AffiliatePage() {
               Share this link with your audience. Users who sign up get <strong>{Math.round(dashboard.discountRate * 100)}% off</strong> their first payment.
             </p>
           </Card>
+        </motion.div>
+
+        {/* Resources */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
+          <AffiliateResources token={token} />
         </motion.div>
 
         {/* Commission History */}

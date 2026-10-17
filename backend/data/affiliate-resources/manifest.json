@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "outreach-guide",
+    "title": "Axiom Affiliate Outreach Guide",
+    "description": "How to bring personal trainers onto the platform and get paid for it: who to target, which channels to use, and how to structure your messages.",
+    "file": "axiom-affiliate-outreach-guide.pdf",
+    "category": "Outreach",
+    "updatedAt": "2026-10-16",
+    "audience": "trainer-plan"
+  },
+  {
+    "slug": "affiliate-playbook",
+    "title": "Axiom Affiliate Playbook",
+    "description": "The general knowledge base: the 30-second pitch, the coaching dashboard for trainers, the client app, pricing, commission, bonus and projections.",
+    "file": "axiom-affiliate-playbook.pdf",
+    "category": "Knowledge base",
+    "updatedAt": "2026-10-16",
+    "audience": "general"
+  }
+]

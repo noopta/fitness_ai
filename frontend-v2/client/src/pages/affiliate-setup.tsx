@@ -81,6 +81,10 @@ export default function AffiliateSetupPage() {
             </ul>
           </div>
 
+          <p className="text-xs text-muted-foreground text-center">
+            Once your account is activated, your outreach guide and playbook appear in the dashboard under Resources.
+          </p>
+
           <Button className="w-full" onClick={() => window.location.href = onboardingUrl}>
             <ExternalLink size={15} className="mr-2" />
             Set Up Stripe Payout Account

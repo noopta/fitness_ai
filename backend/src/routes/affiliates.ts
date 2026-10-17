@@ -1,4 +1,4 @@
-import { Router, type Request } from 'express';
+import { Router, type Request, type Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
@@ -10,6 +10,9 @@ import {
   runMonthlyPayouts,
   getAffiliateDashboard,
 } from '../services/affiliateService.js';
+import { listResources, resolveResourceFile } from '../services/affiliateResources.js';
+import { signLink, verifyLink } from '../services/signedLinks.js';
+import { createReadStream, statSync } from 'node:fs';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -133,6 +136,103 @@ router.post('/affiliate/onboarding-complete', async (req, res) => {
   } catch (err: any) {
     console.error('[affiliates] onboarding-complete error:', err);
     res.status(500).json({ error: 'Failed to check onboarding status' });
+  }
+});
+
+// ─── Enablement resources (outreach guide, playbook) ─────────────────────────
+// List + link are token-gated like the rest of the self-service surface and
+// need an ACTIVE affiliate. The browser can't send X-Affiliate-Token when it
+// opens a PDF in a new tab, and the long-lived token must not go in a URL, so
+// /link mints a 10-minute HMAC-signed URL (slug|affiliateId|exp) and /file
+// accepts only that signature.
+const RESOURCE_LINK_TTL_MS = 10 * 60 * 1000;
+const API_PUBLIC_URL = () => (process.env.API_PUBLIC_URL || 'https://api.airthreads.ai:4009/api').replace(/\/+$/, '');
+
+async function activeAffiliateByToken(req: Request, res: Response) {
+  const affiliate = await affiliateByToken(req);
+  if (!affiliate) {
+    res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    return null;
+  }
+  if (!affiliate.active) {
+    res.status(403).json({ error: 'Resources are available once your affiliate account is active.' });
+    return null;
+  }
+  return affiliate;
+}
+
+// GET /api/affiliate/resources — document metadata (no file paths)
+router.get('/affiliate/resources', async (req, res) => {
+  try {
+    const affiliate = await activeAffiliateByToken(req, res);
+    if (!affiliate) return;
+    res.json({ resources: listResources() });
+  } catch (err: any) {
+    console.error('[affiliates] resources list error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load resources' });
+  }
+});
+
+// GET /api/affiliate/resources/:slug/link — short-lived signed file URL
+router.get('/affiliate/resources/:slug/link', async (req, res) => {
+  try {
+    const affiliate = await activeAffiliateByToken(req, res);
+    if (!affiliate) return;
+    const slug = String(req.params.slug);
+    if (!resolveResourceFile(slug)) return res.status(404).json({ error: 'Resource not found' });
+    const { exp, sig } = signLink(['affiliate-resource', slug, affiliate.id], RESOURCE_LINK_TTL_MS);
+    const qs = new URLSearchParams({ aid: affiliate.id, exp: String(exp), sig });
+    res.set('Cache-Control', 'private, no-store');
+    res.json({
+      url: `${API_PUBLIC_URL()}/affiliate/resources/${encodeURIComponent(slug)}/file?${qs.toString()}`,
+      expiresAt: new Date(exp).toISOString(),
+    });
+  } catch (err: any) {
+    console.error('[affiliates] resource link error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to create link' });
+  }
+});
+
+// GET /api/affiliate/resources/:slug/file?aid=&exp=&sig=[&download=1]
+// The signature is the credential — no affiliate token here.
+router.get('/affiliate/resources/:slug/file', async (req, res) => {
+  try {
+    const slug = String(req.params.slug);
+    const file = resolveResourceFile(slug);
+    if (!file) return res.status(404).json({ error: 'Resource not found' });
+
+    const aid = typeof req.query.aid === 'string' ? req.query.aid : '';
+    const exp = typeof req.query.exp === 'string' ? req.query.exp : '';
+    const sig = typeof req.query.sig === 'string' ? req.query.sig : '';
+    if (!aid || !verifyLink(['affiliate-resource', slug, aid], exp, sig)) {
+      return res.status(403).json({ error: 'This link is invalid or has expired. Open it again from your dashboard.' });
+    }
+    // Deactivated since the link was minted → no file.
+    const affiliate = await prisma.affiliate.findUnique({ where: { id: aid } });
+    if (!affiliate || !affiliate.active) {
+      return res.status(403).json({ error: 'This link is invalid or has expired. Open it again from your dashboard.' });
+    }
+
+    const size = statSync(file.absPath).size;
+    const disposition = req.query.download === '1' ? 'attachment' : 'inline';
+    res.status(200);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `${disposition}; filename="${file.fileName.replace(/["\\\r\n]/g, '')}"`,
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Length': String(size),
+    });
+    const stream = createReadStream(file.absPath);
+    stream.on('error', err => {
+      console.error('[affiliates] resource stream error:', slug, err.message);
+      if (!res.headersSent) res.status(500).json({ error: 'Failed to read resource' });
+      else res.destroy();
+    });
+    stream.pipe(res);
+  } catch (err: any) {
+    console.error('[affiliates] resource file error:', err?.message ?? err);
+    if (!res.headersSent) res.status(500).json({ error: 'Failed to read resource' });
   }
 });
 
