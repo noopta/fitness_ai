@@ -775,8 +775,62 @@ model Affiliate {
   inviteUsedAt    DateTime?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @default(now()) @updatedAt
+  // Personal terms beyond consumer Pro (see services/affiliatePaymentStructure.ts).
+  trainerCommissionRate Float?                     // agreed rate on paid trainer invoices (12 months per trainer)
+  campaignRate          Float?    @default(0.30)   // once, on the first paid invoice
+  perVideoFeeCents      Int?                       // UGC fee per accepted video (CAD cents)
+  agreementNote         String?
+  agreementUpdatedAt    DateTime?
   commissions     AffiliateCommission[]
   payouts         AffiliatePayout[]
+  trainerReferrals AffiliateTrainerReferral[]
+  manualPayouts    AffiliateManualPayout[]
+}
+
+/// Trainers an affiliate brought in. Recorded by the Axiom team (trainer
+/// billing isn't attributed automatically yet); optionally linked to the
+/// /coaches beta sign-up row.
+model AffiliateTrainerReferral {
+  id                String    @id @default(uuid())
+  affiliateId       String
+  trainerName       String
+  organization      String?
+  /// Email or social handle.
+  contact           String?
+  /// free | coach | pro | unknown
+  plan              String?
+  /// lead | contacted | signed_up | onboarded | active | lost
+  status            String    @default("lead")
+  coachBetaSignupId String?   @unique
+  startedAt         DateTime?
+  note              String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
+  affiliate         Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+}
+
+/// Payouts made outside the Stripe commission pipeline (UGC fees, trainer
+/// bonuses, campaign commissions, discretionary bonuses).
+model AffiliateManualPayout {
+  id          String    @id @default(uuid())
+  affiliateId String
+  /// ugc | trainer_bonus | campaign | discretionary | other
+  kind        String
+  description String
+  amountCents Int
+  currency    String    @default("CAD")
+  /// pending | paid
+  status      String    @default("pending")
+  paidAt      DateTime?
+  reference   String?
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
 }
 
 model AffiliateCommission {

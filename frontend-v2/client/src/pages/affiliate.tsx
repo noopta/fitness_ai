@@ -6,11 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AffiliateResources } from '@/components/AffiliateResources';
+import { AffiliateTerms, AffiliateTrainerReferrals, AffiliateManualPayouts } from '@/components/AffiliateExtras';
 import {
   affiliateFetch, consumeAffiliateTokenFromUrl, clearAffiliateToken,
 } from '@/lib/affiliateToken';
 import {
-  LogOut, DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock,
+  LogOut, DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock, Wallet,
 } from 'lucide-react';
 
 interface Commission {
@@ -44,6 +45,8 @@ interface Dashboard {
   activeSubscriptions: number;
   commissionRate: number;
   discountRate: number;
+  /** Payouts recorded by the Axiom team outside Stripe (UGC, bonuses). */
+  manualPayoutTotals?: { paidCents: number; pendingCents: number };
   recentCommissions: Commission[];
   payouts: Payout[];
 }
@@ -229,11 +232,14 @@ export default function AffiliatePage() {
 
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          className={`grid grid-cols-2 gap-4 ${dashboard.manualPayoutTotals ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
           {[
             { label: 'Pending Earnings', value: cad(dashboard.pendingCents), icon: TrendingUp, highlight: true },
             { label: 'Total Paid Out', value: cad(dashboard.paidCents), icon: DollarSign },
             { label: 'Active Referrals', value: dashboard.activeSubscriptions, icon: Users },
+            ...(dashboard.manualPayoutTotals
+              ? [{ label: 'Paid outside Stripe', value: cad(dashboard.manualPayoutTotals.paidCents), icon: Wallet, highlight: false }]
+              : []),
           ].map(({ label, value, icon: Icon, highlight }) => (
             <Card key={label} className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -266,6 +272,21 @@ export default function AffiliatePage() {
         {/* Resources */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
           <AffiliateResources token={token} />
+        </motion.div>
+
+        {/* Your terms */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.095 }}>
+          <AffiliateTerms token={token} />
+        </motion.div>
+
+        {/* Trainer referrals */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <AffiliateTrainerReferrals token={token} />
+        </motion.div>
+
+        {/* UGC & other payouts */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <AffiliateManualPayouts token={token} />
         </motion.div>
 
         {/* Commission History */}

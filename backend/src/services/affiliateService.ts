@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { stripe } from './stripeService.js';
 import crypto from 'crypto';
+import { manualPayoutTotals } from './affiliateExtras.js';
 
 const prisma = new PrismaClient();
 
@@ -267,6 +268,9 @@ export async function getAffiliateDashboard(affiliateId: string) {
     affiliate.commissions.filter(c => c.status === 'pending').map(c => c.stripeSubscriptionId),
   ).size;
 
+  // UGC fees / bonuses paid by the Axiom team outside the Stripe pipeline.
+  const manualTotals = await manualPayoutTotals(affiliate.id);
+
   return {
     id: affiliate.id,
     name: affiliate.name,
@@ -280,6 +284,7 @@ export async function getAffiliateDashboard(affiliateId: string) {
     activeSubscriptions,
     commissionRate: affiliate.commissionRate,
     discountRate: affiliate.discountRate,
+    manualPayoutTotals: manualTotals,
     recentCommissions: affiliate.commissions.map(c => ({
       id: c.id,
       commissionCents: c.commissionCents,

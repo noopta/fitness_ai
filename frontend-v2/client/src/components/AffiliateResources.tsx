@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { affiliateFetch } from '@/lib/affiliateToken';
-import { Download, Eye, FileText, Loader2 } from 'lucide-react';
+import { BookOpen, Download, Eye, FileText, Loader2, X } from 'lucide-react';
+import { CoachMarkdown } from '@/components/CoachMarkdown';
+import { fetchAffiliateResourceText } from '@/lib/affiliateResourceText';
 import { toast } from 'sonner';
 
 export interface AffiliateResource {
@@ -14,6 +16,8 @@ export interface AffiliateResource {
   audience: string;
   fileName: string;
   sizeBytes: number;
+  /** 'md' documents render inline; PDFs open via a signed link. Older APIs omit it (= pdf). */
+  format?: 'pdf' | 'md';
 }
 
 function formatSize(bytes: number) {
@@ -30,14 +34,17 @@ function formatDate(iso: string) {
 }
 
 /**
- * Enablement documents (outreach guide, playbook). The file URL is a
- * 10-minute signed link minted per click, so the affiliate token never goes
- * into a URL the browser opens.
+ * Enablement documents (outreach guide, playbook, payment structure). PDFs
+ * open via a 10-minute signed link minted per click, so the affiliate token
+ * never goes into a URL the browser opens. Markdown documents are fetched
+ * through the same signed link and rendered inline with the hardened
+ * markdown renderer.
  */
 export function AffiliateResources({ token }: { token: string }) {
   const [resources, setResources] = useState<AffiliateResource[] | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [reading, setReading] = useState<{ slug: string; text: string } | null>(null);
 
   async function load() {
     setError('');
@@ -72,8 +79,20 @@ export function AffiliateResources({ token }: { token: string }) {
     }
   }
 
+  async function read(slug: string) {
+    if (reading?.slug === slug) { setReading(null); return; }
+    setBusy(`${slug}:read`);
+    try {
+      setReading({ slug, text: await fetchAffiliateResourceText(slug, token) });
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to open document');
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
-    <Card className="p-5">
+    <Card className="p-5" id="affiliate-resources">
       <h2 className="text-sm font-semibold mb-1">Resources</h2>
       <p className="text-xs text-muted-foreground mb-4">Guides to help you bring trainers onto Axiom and pitch the platform.</p>
 
@@ -100,9 +119,22 @@ export function AffiliateResources({ token }: { token: string }) {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{r.description}</p>
                 <p className="text-xs text-muted-foreground mt-1.5">
-                  Updated {formatDate(r.updatedAt)} · PDF · {formatSize(r.sizeBytes)}
+                  Updated {formatDate(r.updatedAt)} · {r.format === 'md' ? 'Read online' : `PDF · ${formatSize(r.sizeBytes)}`}
                 </p>
+                {reading?.slug === r.slug && (
+                  <div data-testid={`resource-doc-${r.slug}`} className="mt-3 rounded-md border border-border bg-muted/30 p-4 max-h-[32rem] overflow-y-auto">
+                    <CoachMarkdown content={reading.text} />
+                  </div>
+                )}
               </div>
+              {r.format === 'md' ? (
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => read(r.slug)} disabled={busy !== null} aria-label={`${reading?.slug === r.slug ? 'Close' : 'Read'} ${r.title}`}>
+                    {busy === `${r.slug}:read` ? <Loader2 size={13} className="animate-spin mr-1.5" /> : reading?.slug === r.slug ? <X size={13} className="mr-1.5" /> : <BookOpen size={13} className="mr-1.5" />}
+                    {reading?.slug === r.slug ? 'Close' : 'Read'}
+                  </Button>
+                </div>
+              ) : (
               <div className="flex items-center gap-2 shrink-0">
                 <Button size="sm" variant="outline" onClick={() => open(r.slug, false)} disabled={busy !== null} aria-label={`View ${r.title}`}>
                   {busy === `${r.slug}:view` ? <Loader2 size={13} className="animate-spin mr-1.5" /> : <Eye size={13} className="mr-1.5" />}
@@ -113,6 +145,7 @@ export function AffiliateResources({ token }: { token: string }) {
                   Download
                 </Button>
               </div>
+              )}
             </div>
           ))}
         </div>

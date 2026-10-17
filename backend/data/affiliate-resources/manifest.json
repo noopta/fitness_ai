@@ -16,5 +16,14 @@
     "category": "Knowledge base",
     "updatedAt": "2026-10-16",
     "audience": "general"
+  },
+  {
+    "slug": "payment-structure",
+    "title": "Axiom Affiliate Payment Structure",
+    "description": "How you get paid: the four commission streams, bonus ladders and payment rules. Your personal rates are in the \"Your terms\" card.",
+    "file": "payment-structure.md",
+    "category": "Payments",
+    "updatedAt": "2026-10-17",
+    "audience": "general"
   }
 ]

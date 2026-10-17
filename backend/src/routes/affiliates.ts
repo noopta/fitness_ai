@@ -11,6 +11,13 @@ import {
   getAffiliateDashboard,
 } from '../services/affiliateService.js';
 import { listResources, resolveResourceFile } from '../services/affiliateResources.js';
+import {
+  getTerms, updateTerms, termsUpdateSchema,
+  listTrainerReferrals, autoSignupsForCode, createTrainerReferral, updateTrainerReferral, deleteTrainerReferral,
+  trainerReferralCreateSchema, trainerReferralUpdateSchema,
+  listManualPayouts, createManualPayout, updateManualPayout, deleteManualPayout,
+  manualPayoutCreateSchema, manualPayoutUpdateSchema, zodMessage,
+} from '../services/affiliateExtras.js';
 import { signLink, verifyLink } from '../services/signedLinks.js';
 import { createReadStream, statSync } from 'node:fs';
 
@@ -217,7 +224,7 @@ router.get('/affiliate/resources/:slug/file', async (req, res) => {
     const disposition = req.query.download === '1' ? 'attachment' : 'inline';
     res.status(200);
     res.set({
-      'Content-Type': 'application/pdf',
+      'Content-Type': file.contentType,
       'Content-Disposition': `${disposition}; filename="${file.fileName.replace(/["\\\r\n]/g, '')}"`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
@@ -236,7 +243,173 @@ router.get('/affiliate/resources/:slug/file', async (req, res) => {
   }
 });
 
+// ─── Terms, trainer referrals, payouts outside Stripe ────────────────────────
+// Read-only for the affiliate (token); written by admins below.
+
+// GET /api/affiliate/terms — personal rates + the published general structure
+router.get('/affiliate/terms', async (req, res) => {
+  try {
+    const affiliate = await affiliateByToken(req);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    const terms = await getTerms(affiliate.id);
+    if (!terms) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    res.set('Cache-Control', 'private, no-store');
+    res.json(terms);
+  } catch (err: any) {
+    console.error('[affiliates] terms error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load terms' });
+  }
+});
+
+// GET /api/affiliate/trainer-referrals — recorded referrals + masked coach
+// sign-ups that came through this affiliate's ?ref= link
+router.get('/affiliate/trainer-referrals', async (req, res) => {
+  try {
+    const affiliate = await affiliateByToken(req);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    const [referrals, autoSignups] = await Promise.all([
+      listTrainerReferrals(affiliate.id),
+      autoSignupsForCode(affiliate.referralCode),
+    ]);
+    // The affiliate sees the trainer's name/org/status, not the contact we hold.
+    const visible = referrals.map(({ contact: _contact, coachBetaSignupId: _sid, ...r }: any) => r);
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ referrals: visible, autoSignups });
+  } catch (err: any) {
+    console.error('[affiliates] trainer-referrals error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load trainer referrals' });
+  }
+});
+
+// GET /api/affiliate/manual-payouts — UGC fees / bonuses paid outside Stripe
+router.get('/affiliate/manual-payouts', async (req, res) => {
+  try {
+    const affiliate = await affiliateByToken(req);
+    if (!affiliate) return res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    res.set('Cache-Control', 'private, no-store');
+    res.json(await listManualPayouts(affiliate.id));
+  } catch (err: any) {
+    console.error('[affiliates] manual-payouts error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load payouts' });
+  }
+});
+
 // ─── Admin routes ─────────────────────────────────────────────────────────────
+
+async function affiliateExists(id: string): Promise<boolean> {
+  return !!(await prisma.affiliate.findUnique({ where: { id } }));
+}
+
+// GET /api/affiliates/:id/extras — terms + trainer referrals + manual payouts
+router.get('/affiliates/:id/extras', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const affiliate = await prisma.affiliate.findUnique({ where: { id: req.params.id } });
+    if (!affiliate) return res.status(404).json({ error: 'Affiliate not found' });
+    const [terms, trainerReferrals, autoSignups, manual] = await Promise.all([
+      getTerms(affiliate.id),
+      listTrainerReferrals(affiliate.id),
+      autoSignupsForCode(affiliate.referralCode),
+      listManualPayouts(affiliate.id),
+    ]);
+    res.json({ ...terms, trainerReferrals, autoSignups, manualPayouts: manual.payouts, manualPayoutTotals: manual.totals });
+  } catch (err: any) {
+    console.error('[affiliates] extras error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load affiliate details' });
+  }
+});
+
+// PUT /api/affiliates/:id/terms
+router.put('/affiliates/:id/terms', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = termsUpdateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    const terms = await updateTerms(req.params.id, parsed.data);
+    if (!terms) return res.status(404).json({ error: 'Affiliate not found' });
+    res.json(terms);
+  } catch (err: any) {
+    console.error('[affiliates] terms update error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update terms' });
+  }
+});
+
+// POST /api/affiliates/:id/trainer-referrals
+router.post('/affiliates/:id/trainer-referrals', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = trainerReferralCreateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    if (!(await affiliateExists(req.params.id))) return res.status(404).json({ error: 'Affiliate not found' });
+    res.status(201).json(await createTrainerReferral(req.params.id, parsed.data));
+  } catch (err: any) {
+    if (err?.code === 'P2002') return res.status(409).json({ error: 'That coach sign-up is already linked to a referral' });
+    console.error('[affiliates] trainer referral create error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to create trainer referral' });
+  }
+});
+
+// PUT /api/affiliates/:id/trainer-referrals/:refId
+router.put('/affiliates/:id/trainer-referrals/:refId', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = trainerReferralUpdateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    const row = await updateTrainerReferral(req.params.id, req.params.refId, parsed.data);
+    if (!row) return res.status(404).json({ error: 'Trainer referral not found' });
+    res.json(row);
+  } catch (err: any) {
+    if (err?.code === 'P2002') return res.status(409).json({ error: 'That coach sign-up is already linked to a referral' });
+    console.error('[affiliates] trainer referral update error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update trainer referral' });
+  }
+});
+
+// DELETE /api/affiliates/:id/trainer-referrals/:refId
+router.delete('/affiliates/:id/trainer-referrals/:refId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    if (!(await deleteTrainerReferral(req.params.id, req.params.refId))) return res.status(404).json({ error: 'Trainer referral not found' });
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error('[affiliates] trainer referral delete error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to delete trainer referral' });
+  }
+});
+
+// POST /api/affiliates/:id/manual-payouts
+router.post('/affiliates/:id/manual-payouts', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = manualPayoutCreateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    if (!(await affiliateExists(req.params.id))) return res.status(404).json({ error: 'Affiliate not found' });
+    res.status(201).json(await createManualPayout(req.params.id, parsed.data));
+  } catch (err: any) {
+    console.error('[affiliates] manual payout create error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to create payout' });
+  }
+});
+
+// PUT /api/affiliates/:id/manual-payouts/:payoutId — { status: 'paid' } marks paid (sets paidAt)
+router.put('/affiliates/:id/manual-payouts/:payoutId', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = manualPayoutUpdateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    const row = await updateManualPayout(req.params.id, req.params.payoutId, parsed.data);
+    if (!row) return res.status(404).json({ error: 'Payout not found' });
+    res.json(row);
+  } catch (err: any) {
+    console.error('[affiliates] manual payout update error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update payout' });
+  }
+});
+
+// DELETE /api/affiliates/:id/manual-payouts/:payoutId
+router.delete('/affiliates/:id/manual-payouts/:payoutId', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    if (!(await deleteManualPayout(req.params.id, req.params.payoutId))) return res.status(404).json({ error: 'Payout not found' });
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error('[affiliates] manual payout delete error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to delete payout' });
+  }
+});
+
 
 // POST /api/affiliates/invite — create affiliate and return setup link
 router.post('/affiliates/invite', requireAuth, requireAdmin, async (req, res) => {
