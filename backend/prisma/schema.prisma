@@ -781,10 +781,14 @@ model Affiliate {
   perVideoFeeCents      Int?                       // UGC fee per accepted video (CAD cents)
   agreementNote         String?
   agreementUpdatedAt    DateTime?
+  /// Opt-in: the affiliate may log people they referred before they had a
+  /// code (AffiliateSelfReportedReferral). Off by default.
+  selfReportEnabled     Boolean   @default(false)
   commissions     AffiliateCommission[]
   payouts         AffiliatePayout[]
   trainerReferrals AffiliateTrainerReferral[]
   manualPayouts    AffiliateManualPayout[]
+  selfReportedReferrals AffiliateSelfReportedReferral[]
 }
 
 /// Trainers an affiliate brought in. Recorded by the Axiom team (trainer
@@ -829,6 +833,28 @@ model AffiliateManualPayout {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
   affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+}
+
+/// People an affiliate says they referred before they had a code. Written by
+/// the affiliate from their dashboard (only while status = submitted);
+/// reviewed by the Axiom team. Approving records the decision only — it never
+/// changes User.referredByCode or commissions.
+model AffiliateSelfReportedReferral {
+  id               String    @id @default(uuid())
+  affiliateId      String
+  name             String
+  email            String?
+  note             String?
+  approxSignupDate DateTime?
+  /// submitted | matched | approved | rejected
+  status           String    @default("submitted")
+  matchedUserId    String?
+  adminNote        String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
 
   @@index([affiliateId])
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { CheckCircle2, Loader2, Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { SELF_REFERRAL_STATUS_LABELS } from '@/components/AffiliateSelfReferrals';
 import {
   cad, PAYOUT_KIND_LABELS, PLAN_LABELS, TRAINER_STATUS_LABELS,
   type PersonalTerms, type AutoSignup,
@@ -261,6 +262,146 @@ function ManualPayoutForm({ affiliateId, initial, onDone }: { affiliateId: strin
   );
 }
 
+// ─── Self-reported referrals (people referred before the affiliate had a code)
+
+interface AdminSelfReferral {
+  id: string;
+  name: string;
+  email: string | null;
+  note: string | null;
+  approxSignupDate: string | null;
+  status: string;
+  matchedUserId: string | null;
+  adminNote: string | null;
+  createdAt: string | null;
+  suggestedMatch: { userId: string; name: string | null; tier: string | null; createdAt: string | null; referredByCode: string | null } | null;
+}
+
+function SelfReferralReviewRow({ affiliateId, row, onSaved }: { affiliateId: string; row: AdminSelfReferral; onSaved: () => void }) {
+  const [status, setStatus] = useState(row.status);
+  const [adminNote, setAdminNote] = useState(row.adminNote ?? '');
+  const [matchedUserId, setMatchedUserId] = useState(row.matchedUserId ?? '');
+  const [saving, setSaving] = useState(false);
+  const m = row.suggestedMatch;
+
+  async function save() {
+    setSaving(true);
+    try {
+      await adminJson(`/affiliates/${affiliateId}/self-referrals/${row.id}`, 'PUT', {
+        status, adminNote, matchedUserId: matchedUserId.trim() || null,
+      });
+      toast.success('Review saved');
+      onSaved();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <tr className="border-t border-border/50 align-top" data-testid={`admin-self-referral-${row.id}`}>
+      <td className="px-2 py-2 font-medium">{row.name}</td>
+      <td className="px-2 py-2 text-muted-foreground">{row.email ?? '—'}</td>
+      <td className="px-2 py-2 text-muted-foreground whitespace-nowrap">{dateOnly(row.approxSignupDate) || '—'}</td>
+      <td className="px-2 py-2 text-muted-foreground max-w-[200px]">{row.note ?? ''}</td>
+      <td className="px-2 py-2">
+        {m ? (
+          <div className="space-y-1">
+            <div>{m.name ?? 'User'} · {m.tier ?? '—'} · joined {dateOnly(m.createdAt) || '—'}</div>
+            <div className="text-muted-foreground">code: {m.referredByCode ?? 'none'}</div>
+            {matchedUserId !== m.userId && (
+              <button type="button" className="underline text-xs" onClick={() => setMatchedUserId(m.userId)} aria-label={`Use suggested match for ${row.name}`}>Use this user</button>
+            )}
+          </div>
+        ) : <span className="text-muted-foreground">No match</span>}
+        <input className={`${input} mt-1`} placeholder="Matched user id" value={matchedUserId} onChange={e => setMatchedUserId(e.target.value)} aria-label={`Matched user id for ${row.name}`} />
+      </td>
+      <td className="px-2 py-2">
+        <select className={input} value={status} onChange={e => setStatus(e.target.value)} aria-label={`Review status for ${row.name}`}>
+          {Object.entries(SELF_REFERRAL_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </td>
+      <td className="px-2 py-2">
+        <input className={input} maxLength={1000} placeholder="Admin only" value={adminNote} onChange={e => setAdminNote(e.target.value)} aria-label={`Admin note for ${row.name}`} />
+      </td>
+      <td className="px-2 py-2">
+        <Button size="sm" onClick={save} disabled={saving} aria-label={`Save review for ${row.name}`}>
+          {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+        </Button>
+      </td>
+    </tr>
+  );
+}
+
+function SelfReferralsReview({ affiliateId }: { affiliateId: string }) {
+  const [data, setData] = useState<{ selfReportEnabled: boolean; referrals: AdminSelfReferral[] } | null>(null);
+  const [error, setError] = useState('');
+  const [toggling, setToggling] = useState(false);
+
+  async function load() {
+    setError('');
+    try {
+      const d = await adminJson(`/affiliates/${affiliateId}/self-referrals`);
+      setData({ selfReportEnabled: !!d.selfReportEnabled, referrals: Array.isArray(d.referrals) ? d.referrals : [] });
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [affiliateId]);
+
+  async function toggle(enabled: boolean) {
+    setToggling(true);
+    try {
+      await adminJson(`/affiliates/${affiliateId}/self-report`, 'PUT', { enabled });
+      toast.success(enabled ? 'Past-referral logging enabled' : 'Past-referral logging disabled');
+      await load();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  if (error) return <div className="text-xs text-destructive" role="alert">{error} <button className="underline ml-2" onClick={load}>Retry</button></div>;
+  if (!data) return <div className="flex justify-center py-2"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-3" data-testid="admin-self-referrals">
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={data.selfReportEnabled} disabled={toggling} onChange={e => toggle(e.target.checked)} aria-label="Allow this affiliate to log past referrals" />
+        Allow this affiliate to log past referrals
+      </label>
+      <p className="text-xs text-muted-foreground">Approving records the decision only. It does not change a user's referral code or create commissions.</p>
+      {data.referrals.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No past referrals logged.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-2 py-2 font-semibold">Name</th>
+                <th className="px-2 py-2 font-semibold">Email</th>
+                <th className="px-2 py-2 font-semibold">Date</th>
+                <th className="px-2 py-2 font-semibold">Note</th>
+                <th className="px-2 py-2 font-semibold">Suggested match</th>
+                <th className="px-2 py-2 font-semibold">Status</th>
+                <th className="px-2 py-2 font-semibold">Admin note</th>
+                <th className="px-2 py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {data.referrals.map(r => (
+                <SelfReferralReviewRow key={`${r.id}:${r.status}:${r.adminNote ?? ''}:${r.matchedUserId ?? ''}`} affiliateId={affiliateId} row={r} onSaved={load} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
 export function AdminAffiliateExtras({ affiliateId }: { affiliateId: string }) {
@@ -358,6 +499,11 @@ export function AdminAffiliateExtras({ affiliateId }: { affiliateId: string }) {
             {extras.autoSignups.length} coach sign-up{extras.autoSignups.length === 1 ? '' : 's'} from this affiliate's link: {extras.autoSignups.map(s => s.name).join(', ')}. Link one when adding a trainer.
           </p>
         )}
+      </section>
+
+      <section className="space-y-3">
+        <div className={sectionTitle}>Referred before they had a code</div>
+        <SelfReferralsReview affiliateId={affiliateId} />
       </section>
 
       <section className="space-y-3">
