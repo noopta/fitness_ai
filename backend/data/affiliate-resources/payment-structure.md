@@ -4,10 +4,9 @@ Axiom pays affiliates through four streams, all paid monthly in CAD.
 
 ## How you get paid
 
-- Give people your code (for example SAEED10). They enter it at checkout on axiomtraining.io.
-- Your code gives them 20% off Pro for life plus a 30-day free trial, and you earn 40% of every payment they make.
-- The code is what credits the sale to you. Your optional link only pre-fills the code; nobody needs to click it.
-- Codes only work on web checkout. Apple and Google in-app purchases cannot take a code and are not attributed.
+- Give people your code (for example SAEED10). They enter it when they subscribe: at Apple (App Store) checkout in the app, or at Stripe checkout on axiomtraining.io.
+- Your code gives them the referral offer, and you earn 40% of every payment they make.
+- The code is what credits the sale to you.
 
 ## The four streams
 
@@ -31,7 +30,7 @@ Bonuses stack on top of your rates and never reduce them. The exact rungs are in
 ## Payment rules
 
 - All streams are paid monthly in CAD to your Stripe Express account.
-- Only web (card) purchases earn consumer commission; Apple/Google in-app purchases are not attributed.
+- Subscriptions started with your code at Apple (App Store) or Stripe checkout are credited to you.
 - Commissions earned before you finish Stripe onboarding are held for up to 12 months.
 - You get 30 days' notice before any rate change.
 

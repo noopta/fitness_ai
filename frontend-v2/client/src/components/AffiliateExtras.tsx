@@ -284,9 +284,9 @@ export function AffiliateTrainerReferrals({ token }: { token: string }) {
           )}
 
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Coach sign-ups from your link</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Coach sign-ups credited to you</h3>
             {data.autoSignups.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No coach sign-ups through your link yet. Share your link on the coaches page (add <code className="font-mono">?ref=YOURCODE</code>).</p>
+              <p className="text-xs text-muted-foreground">No coach sign-ups credited to you yet.</p>
             ) : (
               <div className="divide-y divide-border" data-testid="auto-signups">
                 {data.autoSignups.map(s => (

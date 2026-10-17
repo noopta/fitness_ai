@@ -151,7 +151,7 @@ describe('register', () => {
 });
 
 describe('affiliate dashboard: "Your code" card', () => {
-  it('shows the code large + copyable, code-first copy, the optional link and the in-app warning', async () => {
+  it('shows the code large + copyable with Apple/Stripe checkout copy and no link', async () => {
     fetchMock.mockImplementation(async (url: string) => {
       const path = new URL(url).pathname.replace(/^\/api/, '');
       if (path === '/affiliate/me') return json({
@@ -169,14 +169,14 @@ describe('affiliate dashboard: "Your code" card', () => {
     expect(within(card).getByRole('heading', { name: 'Your code' })).toBeTruthy();
     expect(screen.queryByText('Your Referral Link')).toBeNull();
     expect(within(card).getByTestId('affiliate-code').textContent).toBe('SAEED10');
-    expect(card.textContent).toContain('Tell people to enter this code at checkout on axiomtraining.io — they get 20% off Pro for life plus a 30-day trial, and you earn 40% of every payment.');
-    expect(within(card).getByTestId('affiliate-code-warning').textContent).toBe('Codes only work on web checkout. Apple and Google in-app purchases cannot take a code and are not attributed.');
-    expect(card.textContent).toContain('Optional link (pre-fills the code)');
     fireEvent.click(within(card).getByRole('button', { name: /Copy code/ }));
     expect(writeText).toHaveBeenCalledWith('SAEED10');
+    expect(card.textContent).toContain('Tell people to enter this code when they subscribe, at Apple (App Store) checkout in the app or Stripe checkout on axiomtraining.io.');
+    expect(card.textContent).not.toContain('link');
+    expect(within(card).queryByTestId('affiliate-code-warning')).toBeNull();
 
     const how = screen.getByRole('heading', { name: 'How it works' }).parentElement!;
-    expect(how.textContent).toMatch(/enter it at checkout on axiomtraining\.io/);
+    expect(how.textContent).toMatch(/Apple \(App Store\) checkout in the app, or at Stripe checkout on axiomtraining\.io/);
     expect(how.textContent).not.toMatch(/clicks it/);
     sessionStorage.clear();
   });

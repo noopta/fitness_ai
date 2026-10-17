@@ -25,10 +25,9 @@ export const AFFILIATE_PAYMENT_STRUCTURE = {
   proPriceMonthly: '$12.99/mo',
   /** How a referral is credited to you (code-first since 2026-10). */
   howYouGetPaid: [
-    'Give people your code (for example SAEED10). They enter it at checkout on axiomtraining.io.',
-    'Your code gives them 20% off Pro for life plus a 30-day free trial, and you earn 40% of every payment they make.',
-    'The code is what credits the sale to you. Your optional link only pre-fills the code; nobody needs to click it.',
-    'Codes only work on web checkout. Apple and Google in-app purchases cannot take a code and are not attributed.',
+    'Give people your code (for example SAEED10). They enter it when they subscribe: at Apple (App Store) checkout in the app, or at Stripe checkout on axiomtraining.io.',
+    'Your code gives them the referral offer, and you earn 40% of every payment they make.',
+    'The code is what credits the sale to you.',
   ],
   streams: [
     {
@@ -76,7 +75,7 @@ export const AFFILIATE_PAYMENT_STRUCTURE = {
   ] as BonusLadder[],
   paymentRules: [
     'All streams are paid monthly in CAD to your Stripe Express account.',
-    'Only web (card) purchases earn consumer commission; Apple/Google in-app purchases are not attributed.',
+    'Subscriptions started with your code at Apple (App Store) or Stripe checkout are credited to you.',
     'Commissions earned before you finish Stripe onboarding are held for up to 12 months.',
     "You get 30 days' notice before any rate change.",
   ],

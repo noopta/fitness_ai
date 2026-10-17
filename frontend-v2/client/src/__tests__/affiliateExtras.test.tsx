@@ -151,7 +151,7 @@ describe('AffiliateTrainerReferrals', () => {
     routes['/affiliate/trainer-referrals'] = () => json({ referrals: [], autoSignups: [] });
     render(<AffiliateTrainerReferrals token="tok-1" />);
     expect(await screen.findByText('Trainers you bring will appear here — tell the Axiom team who you referred.')).toBeTruthy();
-    expect(screen.getByText(/No coach sign-ups through your link yet/)).toBeTruthy();
+    expect(screen.getByText(/No coach sign-ups credited to you yet/)).toBeTruthy();
   });
 });
 

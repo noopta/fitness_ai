@@ -149,12 +149,6 @@ export default function AffiliatePage() {
     toast.success('Signed out of the affiliate portal.');
   }
 
-  function copyReferralLink() {
-    if (!dashboard) return;
-    navigator.clipboard.writeText(dashboard.referralLink);
-    toast.success('Link copied to clipboard');
-  }
-
   function copyReferralCode() {
     if (!dashboard) return;
     navigator.clipboard.writeText(dashboard.referralCode);
@@ -180,7 +174,7 @@ export default function AffiliatePage() {
               </div>
               {loading ? <Loader2 size={20} className="animate-spin mx-auto text-muted-foreground" /> : null}
               <p className="text-xs text-muted-foreground">
-                Lost your link, or want to join the program? Contact us at <strong>hello@axiomtraining.io</strong>.
+                Lost your dashboard link, or want to join the program? Contact us at <strong>hello@axiomtraining.io</strong>.
               </p>
             </Card>
           </motion.div>
@@ -257,7 +251,7 @@ export default function AffiliatePage() {
           ))}
         </motion.div>
 
-        {/* Your code (code-first: people type it at checkout; the link only pre-fills it) */}
+        {/* Your code: people enter it at App Store or Stripe checkout */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <Card className="p-5" data-testid="affiliate-code-card">
             <h2 className="text-sm font-semibold mb-3">Your code</h2>
@@ -270,22 +264,8 @@ export default function AffiliatePage() {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground mt-3">
-              Tell people to enter this code at checkout on axiomtraining.io — they get 20% off Pro for life plus a 30-day trial, and you earn 40% of every payment.
+              Tell people to enter this code when they subscribe, at Apple (App Store) checkout in the app or Stripe checkout on axiomtraining.io. They get the referral offer and the subscription is credited to you.
             </p>
-            <p className="text-xs text-amber-700 dark:text-amber-400 mt-2" data-testid="affiliate-code-warning">
-              Codes only work on web checkout. Apple and Google in-app purchases cannot take a code and are not attributed.
-            </p>
-            <div className="mt-4 border-t pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-1.5">Optional link (pre-fills the code)</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-muted rounded-md px-3 py-1.5 text-xs font-mono truncate">
-                  {dashboard.referralLink}
-                </div>
-                <Button size="sm" variant="outline" onClick={copyReferralLink}>
-                  <Copy size={13} className="mr-1.5" /> Copy link
-                </Button>
-              </div>
-            </div>
           </Card>
         </motion.div>
 
@@ -368,11 +348,10 @@ export default function AffiliatePage() {
           <Card className="p-5">
             <h2 className="text-sm font-semibold mb-3">How it works</h2>
             <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-              <li>Give people your code, <strong>{dashboard.referralCode}</strong>. They enter it at checkout on axiomtraining.io (the "Have a referral code?" field) — no link needed.</li>
+              <li>Give people your code, <strong>{dashboard.referralCode}</strong>. They enter it when they subscribe: at Apple (App Store) checkout in the app, or at Stripe checkout on axiomtraining.io.</li>
               <li>The code gives them <strong>{Math.round(dashboard.discountRate * 100)}% off Pro for life</strong> plus a 30-day trial, and credits the subscription to you.</li>
               <li>You earn <strong>{Math.round(dashboard.commissionRate * 100)}%</strong> of each payment — every month they stay subscribed.</li>
               <li>On the 1st of each month, your pending earnings are transferred to your Stripe account.</li>
-              <li>Only web checkout counts: Apple and Google in-app purchases can't take a code, so send people to axiomtraining.io to subscribe.</li>
             </ol>
           </Card>
         </motion.div>

@@ -5,7 +5,7 @@
  *  (backend/src/services/affiliateService.ts, routes/payments.ts):
  *  commissionRate default 0.40 of the pre-discount web price, referred users
  *  get 20% off (forever coupon) + a 30-day web trial, commissions recorded
- *  from Stripe invoices (web only; store/IAP purchases are not attributed),
+ *  from Stripe invoices and App Store subscriptions,
  *  monthly payouts on the 1st in CAD to a Stripe Connect Express account,
  *  inactive affiliates accrue nothing. [SQUARE BRACKETS] = founder fills.
  *  Counsel: confirm Stripe Express is collecting W-9/W-8BEN and issuing
@@ -23,7 +23,7 @@ export default function AffiliateTerms() {
       title="Affiliate Terms"
       intro={
         <p>
-          These Affiliate Terms apply if you join the Axiom affiliate program and share a referral link or code. They add to our{" "}
+          These Affiliate Terms apply if you join the Axiom affiliate program and share a referral code. They add to our{" "}
           <Link href="/terms" className={link}>Terms of Service</Link>. By finishing affiliate setup you agree to them.
         </p>
       }
@@ -37,9 +37,9 @@ export default function AffiliateTerms() {
 
       <Section title="2. How referrals and commissions work">
         <List>
-          <li>People who sign up through your link or code and subscribe to Axiom Pro on the web get the referral offer shown at checkout (currently 20% off and a 30-day free trial).</li>
-          <li>You earn a commission on each paid web subscription payment from people you referred, at the rate shown in your affiliate dashboard (the standard rate is 40% of the price before the referral discount). Payments made through Apple or Google in-app purchase are not attributed to affiliates.</li>
-          <li>A referral is credited only if our systems recorded your code at sign-up. We decide attribution from our records; if two affiliates claim a sign-up, the code recorded with the account wins.</li>
+          <li>People who enter your code when they subscribe to Axiom Pro, at Apple (App Store) checkout or Stripe checkout on the web, get the referral offer shown at checkout.</li>
+          <li>You earn a commission on each paid subscription payment from people who used your code, at the rate shown in your affiliate dashboard (the standard rate is 40% of the price before the referral discount).</li>
+          <li>A referral is credited only if our systems recorded your code with the subscription. We decide attribution from our records; if two affiliates claim a sign-up, the code recorded with the account wins.</li>
           <li>No commission is earned on: payments that are refunded, charged back or found to be fraudulent (and we may deduct those from future payouts); your own account or accounts you control; or sign-ups obtained in breach of these terms.</li>
           <li>Commissions stop accruing while your affiliate account is inactive or suspended.</li>
         </List>
@@ -64,9 +64,9 @@ export default function AffiliateTerms() {
       <Section title="5. You must disclose that you are paid">
         <p>
           US law (the FTC's Guides Concerning the Use of Endorsements and Testimonials in Advertising, 16 CFR Part 255), Canada's Competition Act and similar
-          rules elsewhere require you to tell people that you earn money when they sign up through your link. This applies every time you promote Axiom.
+          rules elsewhere require you to tell people that you earn money when they use your code. This applies every time you promote Axiom.
         </p>
-        <Sub>Every post, video, story, email or page that mentions Axiom with your link or code must:</Sub>
+        <Sub>Every post, video, story, email or page that mentions Axiom with your code must:</Sub>
         <List>
           <li>say clearly that you earn a commission or get something from Axiom, for example <em>"I earn a commission if you subscribe through my link"</em> or <em>"#ad: paid partnership with Axiom"</em>;</li>
           <li>put the disclosure where people will see it before they click: in the post itself, not only in a bio, behind a "see more" link, or at the end of a long video; in videos, say it out loud and show it on screen;</li>
