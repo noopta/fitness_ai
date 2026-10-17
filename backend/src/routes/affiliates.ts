@@ -29,7 +29,7 @@ const prisma = new PrismaClient();
 // ─── Public: referral code check ──────────────────────────────────────────────
 // GET /api/affiliate/code/:code/validate — used by the web checkout / register
 // "Have a referral code?" field. Case-insensitive. Unknown, malformed or
-// inactive codes answer 200 { valid: false } (no 404, so the response shape
+// unknown codes answer 200 { valid: false } (no 404, so the response shape
 // leaks nothing). Only the affiliate's first name is ever returned — never
 // email, id or rates. IP rate-limited against enumeration.
 router.get('/affiliate/code/:code/validate', codeLookupLimiter, async (req, res) => {
@@ -41,7 +41,10 @@ router.get('/affiliate/code/:code/validate', codeLookupLimiter, async (req, res)
       where: { referralCode: code },
       select: { name: true, active: true },
     });
-    if (!affiliate || !affiliate.active) return res.json({ valid: false });
+    // Any real code is valid for the CUSTOMER (matches create-checkout, which
+    // applies the discount even while the affiliate's own onboarding is
+    // incomplete); commission is gated on affiliate.active separately.
+    if (!affiliate) return res.json({ valid: false });
     const affiliateFirstName = String(affiliate.name ?? '').trim().split(/\s+/)[0] || null;
     res.json({ valid: true, code, discountPercent: REFERRAL_DISCOUNT_PERCENT, trialDays: REFERRAL_TRIAL_DAYS, affiliateFirstName });
   } catch (err: any) {

@@ -65,10 +65,13 @@ describe('GET /api/affiliate/code/:code/validate', () => {
     expect(r.body).toEqual({ valid: false });
   });
 
-  it('inactive affiliate → valid:false', async () => {
+  it('inactive affiliate → still valid for the customer (matches create-checkout)', async () => {
+    // The customer's discount applies for any real code; commission is gated
+    // on affiliate.active elsewhere.
     const r = await get('kavi10');
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ valid: false });
+    expect(r.body.valid).toBe(true);
+    expect(r.body.code).toBe('KAVI10');
   });
 
   it('malformed code → valid:false without a DB lookup', async () => {
