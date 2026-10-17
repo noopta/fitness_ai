@@ -37,7 +37,7 @@
  * objectUser-only and cannot create buckets; an admin pre-creates it.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { Storage } from '@google-cloud/storage';
 import { cacheGet, cacheSet } from './cacheService.js';
 
@@ -110,6 +110,41 @@ export function sniffImageMime(bytes: Buffer): string | null {
     return 'image/webp';
   }
   return null;
+}
+
+/**
+ * Exact shape of a key produced by contentKey(). Anything else (path
+ * traversal, another prefix, a client-invented name) is never signed.
+ */
+export const IMAGE_KEY_RE = /^img\/([0-9a-f]{2})\/([0-9a-f]{64})\.(jpg|jpeg|png|webp|gif)$/;
+
+export function isValidImageKey(key: unknown): key is string {
+  if (typeof key !== 'string') return false;
+  const m = IMAGE_KEY_RE.exec(key);
+  // The fan-out directory is the digest's first two hex chars.
+  return !!m && m[2].startsWith(m[1]);
+}
+
+// HMAC secret for marking a key as server-set. Falls back to a per-process
+// random secret (signatures then don't survive a restart) when neither env var
+// exists, which only happens in tests.
+const KEY_SIG_SECRET = process.env.MEDIA_KEY_SECRET || process.env.JWT_SECRET || randomBytes(32).toString('hex');
+
+/**
+ * Signature proving `key` was written into a payload by this server (after an
+ * upload it performed), not supplied by a client. Stored next to the key as
+ * `imageKeySig`. Oct 2026 audit M2b: the image route used to sign whatever key
+ * a post payload carried, so a client could point its post at any object.
+ */
+export function signImageKey(key: string): string {
+  return createHmac('sha256', KEY_SIG_SECRET).update(`imgkey:${key}`).digest('hex').slice(0, 32);
+}
+
+export function verifyImageKeySig(key: unknown, sig: unknown): boolean {
+  if (!isValidImageKey(key) || typeof sig !== 'string' || sig.length !== 32) return false;
+  const want = Buffer.from(signImageKey(key));
+  const got = Buffer.from(sig);
+  return want.length === got.length && timingSafeEqual(want, got);
 }
 
 /** sha256 of the decoded bytes — the content address. */

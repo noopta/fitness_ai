@@ -5,11 +5,14 @@ import { Navbar } from '@/components/Navbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { AffiliateResources } from '@/components/AffiliateResources';
+import { AffiliateTerms, AffiliateTrainerReferrals, AffiliateManualPayouts } from '@/components/AffiliateExtras';
 import {
-  DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock,
+  affiliateFetch, consumeAffiliateTokenFromUrl, clearAffiliateToken,
+} from '@/lib/affiliateToken';
+import {
+  LogOut, DollarSign, TrendingUp, Users, ExternalLink, Copy, Loader2, CheckCircle2, Clock, Wallet,
 } from 'lucide-react';
-
-const API = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
 interface Commission {
   id: string;
@@ -42,6 +45,8 @@ interface Dashboard {
   activeSubscriptions: number;
   commissionRate: number;
   discountRate: number;
+  /** Payouts recorded by the Axiom team outside Stripe (UGC, bonuses). */
+  manualPayoutTotals?: { paidCents: number; pendingCents: number };
   recentCommissions: Commission[];
   payouts: Payout[];
 }
@@ -50,9 +55,6 @@ function cad(cents: number) {
   return `CA$${(cents / 100).toFixed(2)}`;
 }
 
-function apiFetch(path: string, opts?: RequestInit) {
-  return fetch(`${API}${path}`, { credentials: 'include', ...opts });
-}
 
 export default function AffiliatePage() {
   const [location] = useLocation();
@@ -68,14 +70,12 @@ export default function AffiliatePage() {
   // Handle ?onboarding=complete callback from Stripe Connect + auto-load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get('token')?.trim() ?? '';
-    const savedToken = localStorage.getItem('affiliateToken') ?? '';
-    const t = urlToken || savedToken;
-    if (urlToken) localStorage.setItem('affiliateToken', urlToken);
+    // Reads ?token= then strips it from the address bar (replaceState).
+    const t = consumeAffiliateTokenFromUrl();
     setToken(t);
 
     if (params.get('onboarding') === 'complete' && t) {
-      apiFetch('/affiliate/onboarding-complete', {
+      affiliateFetch('/affiliate/onboarding-complete', t, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: t }),
@@ -92,9 +92,9 @@ export default function AffiliatePage() {
   async function loadDashboard(t: string) {
     setLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/me?token=${encodeURIComponent(t)}`);
+      const res = await affiliateFetch('/affiliate/me', t);
       if (res.status === 401 || res.status === 404) {
-        localStorage.removeItem('affiliateToken');
+        clearAffiliateToken();
         setToken('');
         toast.error('This affiliate link is no longer valid — contact hello@axiomtraining.io.');
         return;
@@ -112,7 +112,7 @@ export default function AffiliatePage() {
     if (!dashboard) return;
     setOnboardingLoading(true);
     try {
-      const res = await apiFetch('/affiliate/onboard', {
+      const res = await affiliateFetch('/affiliate/onboard', token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -131,7 +131,7 @@ export default function AffiliatePage() {
     if (!dashboard) return;
     setDashboardLoading(true);
     try {
-      const res = await apiFetch(`/affiliate/dashboard-url?token=${encodeURIComponent(token)}`);
+      const res = await affiliateFetch('/affiliate/dashboard-url', token);
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       window.open(d.url, '_blank');
@@ -142,10 +142,17 @@ export default function AffiliatePage() {
     }
   }
 
-  function copyReferralLink() {
+  function handleSignOut() {
+    clearAffiliateToken();
+    setToken('');
+    setDashboard(null);
+    toast.success('Signed out of the affiliate portal.');
+  }
+
+  function copyReferralCode() {
     if (!dashboard) return;
-    navigator.clipboard.writeText(dashboard.referralLink);
-    toast.success('Referral link copied to clipboard');
+    navigator.clipboard.writeText(dashboard.referralCode);
+    toast.success(`Code ${dashboard.referralCode} copied`);
   }
 
   // Access gate — the dashboard only opens from the affiliate's personal
@@ -167,7 +174,7 @@ export default function AffiliatePage() {
               </div>
               {loading ? <Loader2 size={20} className="animate-spin mx-auto text-muted-foreground" /> : null}
               <p className="text-xs text-muted-foreground">
-                Lost your link, or want to join the program? Contact us at <strong>hello@axiomtraining.io</strong>.
+                Lost your dashboard link, or want to join the program? Contact us at <strong>hello@axiomtraining.io</strong>.
               </p>
             </Card>
           </motion.div>
@@ -190,12 +197,18 @@ export default function AffiliatePage() {
               {' '}You earn <strong>{Math.round(dashboard.commissionRate * 100)}%</strong> commission on every subscription your referrals pay.
             </p>
           </div>
-          {dashboard.onboarded && (
-            <Button variant="outline" size="sm" onClick={handleStripeDashboard} disabled={dashboardLoading}>
-              {dashboardLoading ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <ExternalLink size={14} className="mr-1.5" />}
-              Stripe Dashboard
+          <div className="flex items-center gap-2">
+            {dashboard.onboarded && (
+              <Button variant="outline" size="sm" onClick={handleStripeDashboard} disabled={dashboardLoading}>
+                {dashboardLoading ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <ExternalLink size={14} className="mr-1.5" />}
+                Stripe Dashboard
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut size={14} className="mr-1.5" />
+              Sign out
             </Button>
-          )}
+          </div>
         </motion.div>
 
         {/* Stripe Connect Banner */}
@@ -219,11 +232,14 @@ export default function AffiliatePage() {
 
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          className={`grid grid-cols-2 gap-4 ${dashboard.manualPayoutTotals ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
           {[
             { label: 'Pending Earnings', value: cad(dashboard.pendingCents), icon: TrendingUp, highlight: true },
             { label: 'Total Paid Out', value: cad(dashboard.paidCents), icon: DollarSign },
             { label: 'Active Referrals', value: dashboard.activeSubscriptions, icon: Users },
+            ...(dashboard.manualPayoutTotals
+              ? [{ label: 'Paid outside Stripe', value: cad(dashboard.manualPayoutTotals.paidCents), icon: Wallet, highlight: false }]
+              : []),
           ].map(({ label, value, icon: Icon, highlight }) => (
             <Card key={label} className="p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -235,22 +251,42 @@ export default function AffiliatePage() {
           ))}
         </motion.div>
 
-        {/* Referral Link */}
+        {/* Your code: people enter it at App Store or Stripe checkout */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <Card className="p-5">
-            <h2 className="text-sm font-semibold mb-3">Your Referral Link</h2>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-md px-3 py-2 text-sm font-mono truncate">
-                {dashboard.referralLink}
+          <Card className="p-5" data-testid="affiliate-code-card">
+            <h2 className="text-sm font-semibold mb-3">Your code</h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="rounded-lg bg-muted px-4 py-2.5 font-mono text-3xl font-bold tracking-wider select-all" data-testid="affiliate-code">
+                {dashboard.referralCode}
               </div>
-              <Button size="sm" variant="outline" onClick={copyReferralLink}>
-                <Copy size={13} className="mr-1.5" /> Copy
+              <Button size="sm" onClick={copyReferralCode}>
+                <Copy size={13} className="mr-1.5" /> Copy code
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Share this link with your audience. Users who sign up get <strong>{Math.round(dashboard.discountRate * 100)}% off</strong> their first payment.
+            <p className="text-sm text-muted-foreground mt-3">
+              Tell people to enter this code when they subscribe, at Apple (App Store) checkout in the app or Stripe checkout on axiomtraining.io. They get the referral offer and the subscription is credited to you.
             </p>
           </Card>
+        </motion.div>
+
+        {/* Resources */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
+          <AffiliateResources token={token} />
+        </motion.div>
+
+        {/* Your terms */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.095 }}>
+          <AffiliateTerms token={token} />
+        </motion.div>
+
+        {/* Trainer referrals */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <AffiliateTrainerReferrals token={token} />
+        </motion.div>
+
+        {/* UGC & other payouts */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <AffiliateManualPayouts token={token} />
         </motion.div>
 
         {/* Commission History */}
@@ -258,7 +294,7 @@ export default function AffiliatePage() {
           <Card className="p-5">
             <h2 className="text-sm font-semibold mb-4">Recent Commissions</h2>
             {dashboard.recentCommissions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No commissions yet. Share your referral link to get started.</p>
+              <p className="text-sm text-muted-foreground">No commissions yet. Share your code to get started.</p>
             ) : (
               <div className="space-y-0 divide-y divide-border">
                 {dashboard.recentCommissions.map(c => (
@@ -312,10 +348,10 @@ export default function AffiliatePage() {
           <Card className="p-5">
             <h2 className="text-sm font-semibold mb-3">How it works</h2>
             <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-              <li>Share your referral link. Anyone who clicks it and subscribes is tracked to you.</li>
-              <li>You earn <strong>{Math.round(dashboard.commissionRate * 100)}%</strong> of each monthly payment — every month they stay subscribed.</li>
+              <li>Give people your code, <strong>{dashboard.referralCode}</strong>. They enter it when they subscribe: at Apple (App Store) checkout in the app, or at Stripe checkout on axiomtraining.io.</li>
+              <li>The code gives them <strong>{Math.round(dashboard.discountRate * 100)}% off Pro for life</strong> plus a 30-day trial, and credits the subscription to you.</li>
+              <li>You earn <strong>{Math.round(dashboard.commissionRate * 100)}%</strong> of each payment — every month they stay subscribed.</li>
               <li>On the 1st of each month, your pending earnings are transferred to your Stripe account.</li>
-              <li>Your referrals get <strong>{Math.round(dashboard.discountRate * 100)}% off</strong> their subscription — forever.</li>
             </ol>
           </Card>
         </motion.div>

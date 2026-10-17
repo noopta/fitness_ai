@@ -4,7 +4,7 @@
 // message to chat and a client action runs here.
 
 import React, { useMemo, useState } from 'react';
-import { Linking } from 'react-native';
+import { openExternal } from '../../lib/openExternal';
 import { useRouter } from 'expo-router';
 import type { Card, CardRoute } from '@axiom/agent-ui-core';
 import { CardView } from './card/CardView';
@@ -44,7 +44,7 @@ export function StandaloneCard({ card: initial, onChange }: { card: Card; onChan
             case 'send_message': if (args.text) toChat(String(args.text)); return;
             case 'purchase': router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any); return;
             case 'open_page': { const { page, ...rest } = args; open(c, { page: String(page), params: Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, String(v)])) }); return; }
-            case 'open_url': if (args.url) void Linking.openURL(String(args.url)); return;
+            case 'open_url': if (args.url) void openExternal(String(args.url)); return;
             default: return;
           }
         }

@@ -38,27 +38,34 @@ function build(): AgentTool[] {
 }
 
 /**
- * The classic app (card contract 1) can't render the new cards. It keeps the
- * tools it can show today: reads, logs, settings, the three proposal kinds it
+ * The classic app (card contract 1) can't render every new card. It keeps the
+ * tools it can show today: reads, logs, settings and the proposal kinds it
  * renders (week move, exercise swap, program diff — which also carries a
- * rebuilt program) and its two direct-apply
- * tools. Proposal/draft/confirm/intent tools without a v1 rendering are left
- * out so a v1 user is never shown "tap Apply" with nothing to tap.
+ * rebuilt program — and new targets). Proposal/draft/confirm/intent tools
+ * without a v1 rendering are left out so a v1 user is never shown "tap Apply"
+ * with nothing to tap.
+ *
+ * Oct 2026 audit HIGH-1: the two direct-apply legacy tools (adjust_macros,
+ * apply_program_update) are gone from this set too — they wrote with no card,
+ * no undo and no floor, and were reachable by injected text. Targets now go
+ * through propose_macro_change, programs through propose_program_update.
  */
 // propose_new_program also returns a program_update proposal (with a rebuild
 // marker applyProgramUpdate understands), so "give me a PPL split" / "I'm
 // intermediate now" no longer dead-ends on the classic app.
-const V1_PROPOSALS = new Set(['propose_workout_swap', 'propose_exercise_swap', 'propose_program_edit', 'propose_program_update', 'propose_new_program']);
+export const V1_PROPOSALS = new Set(['propose_workout_swap', 'propose_exercise_swap', 'propose_program_edit', 'propose_program_update', 'propose_new_program', 'propose_macro_change']);
 // Legacy tools only the classic app gets (its Strength "Apply to your program"
-// diff comes from propose_program_update).
-const V1_DIRECT = new Set(['adjust_macros', 'apply_program_update', 'propose_program_update']);
+// diff comes from propose_program_update). Proposals only — never a direct write.
+const V1_LEGACY = new Set(['propose_program_update']);
+/** Never offered on any contract: direct writes with no card. */
+export const DIRECT_APPLY_TOOLS = new Set(['adjust_macros', 'apply_program_update']);
 let cachedV1: AgentTool[] | null = null;
 export function toolsFor(contract: 1 | 2): AgentTool[] {
-  if (contract === 2) return [...AGENT_TOOLS];
+  if (contract === 2) return AGENT_TOOLS.filter((t) => !DIRECT_APPLY_TOOLS.has(t.name));
   if (!cachedV1) {
     const all = [...AGENT_TOOLS];
-    const legacyDirect = LEGACY.filter((t) => V1_DIRECT.has(t.name)).map((t) => ({ ...t, kind: (t.name.startsWith('propose_') ? 'propose' : 'set') as AgentTool['kind'], core: true }));
-    cachedV1 = [...all.filter((t) => ['read', 'log', 'set'].includes(t.kind ?? 'read') || V1_PROPOSALS.has(t.name)), ...legacyDirect];
+    const legacy = LEGACY.filter((t) => V1_LEGACY.has(t.name) && !DIRECT_APPLY_TOOLS.has(t.name)).map((t) => ({ ...t, kind: 'propose' as AgentTool['kind'], core: true }));
+    cachedV1 = [...all.filter((t) => !DIRECT_APPLY_TOOLS.has(t.name) && (['read', 'log', 'set'].includes(t.kind ?? 'read') || V1_PROPOSALS.has(t.name))), ...legacy];
   }
   return cachedV1;
 }

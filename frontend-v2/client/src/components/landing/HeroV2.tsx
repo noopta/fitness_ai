@@ -2,8 +2,10 @@
 // Spec: handoff §05. Three changes vs. the original hero:
 //   • A right-column phone visual replaces the centered text-only layout.
 //   • App Store badges (iOS live, Play "coming soon") sit beneath the CTA pair.
-//   • A compact social-proof stack ("5.0 ★ · App Store", "+24 lb bench", "87% broke a plateau")
-//     anchors the column before the user scrolls.
+//   • A compact feature stack anchors the column before the user scrolls.
+//     (It used to be a social-proof stack — "5.0 ★ App Store", "+24 lb avg.
+//     bench", "87% broke a plateau" — with placeholder numbers; removed as
+//     unsubstantiated claims. Only real, substantiated figures may go here.)
 //
 // The existing 5-pill stats row still sits below the hero grid — handoff calls
 // it `HeroStatsRow` and keeps it unchanged. We pass that in as `statsRow`.
@@ -29,46 +31,24 @@ interface Props {
   statsRow?: React.ReactNode;
 }
 
-function StarRow({ size = 14, color = "#f59e0b" }: { size?: number; color?: string }) {
-  return (
-    <div className="inline-flex" style={{ gap: 1 }} aria-hidden="true">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={color}>
-          <path d="M12 .587l3.668 7.568L24 9.75l-6 5.852L19.336 24 12 19.897 4.664 24 6 15.602 0 9.75l8.332-1.595z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-/** Three compact proof rows under the hero CTA pair. Same numbers as the
- *  full Social Proof section below but condensed to a single column so they
- *  fit alongside the headline. */
+/** Three compact, claim-free feature rows under the hero CTA pair. */
 function HeroSocialProofStack() {
+  const rows: Array<[string, string]> = [
+    ["Diagnose", "the weak link behind a stuck lift"],
+    ["Program", "around your limiter, equipment and schedule"],
+    ["Adapt", "as you log — you approve every change"],
+  ];
   return (
     <div
       className="flex flex-col"
       style={{ marginTop: 28, gap: 12, maxWidth: 460 }}
     >
-      <div className="flex items-center gap-3">
-        <StarRow />
-        <div style={{ lineHeight: 1.2 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#09090b" }}>
-            5.0
-          </span>
-          <span className="text-muted-foreground" style={{ fontSize: 13 }}>
-            {" · App Store · Early reviews"}
-          </span>
+      {rows.map(([lead, rest]) => (
+        <div key={lead} className="flex items-center gap-3 text-sm">
+          <span style={{ fontWeight: 700, color: "#09090b" }}>{lead}</span>
+          <span className="text-muted-foreground">{rest}</span>
         </div>
-      </div>
-      <div className="flex items-center gap-3 text-sm">
-        <span style={{ fontWeight: 700, color: "#09090b" }}>+24 lb</span>
-        <span className="text-muted-foreground">avg. bench in 12 weeks</span>
-      </div>
-      <div className="flex items-center gap-3 text-sm">
-        <span style={{ fontWeight: 700, color: "#09090b" }}>87%</span>
-        <span className="text-muted-foreground">broke a plateau in 6 wks</span>
-      </div>
+      ))}
     </div>
   );
 }

@@ -23,7 +23,10 @@ import {
 import {
   scoreGutWeek, distinctPlants, PLANT_TARGET,
 } from '../services/gutHealthScoreService.js';
-import { consumeMealLoggingQuota, nutritionProfileCacheKey } from '../services/nutritionShared.js';
+import {
+  consumeMealLoggingQuota, nutritionProfileCacheKey, isValidIsoDate, ISO_DATE_MESSAGE, boundNutrientMap, MAX_ENTRY_KCAL,
+} from '../services/nutritionShared.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { cacheDelete } from '../services/cacheService.js';
 import { trackValidationFailure } from '../services/errorAlertService.js';
 import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
@@ -103,7 +106,7 @@ router.get('/nutrition/assessment', requireAuth, async (req, res) => {
 
 // ── Plan ───────────────────────────────────────────────────────────────────
 
-router.post('/nutrition/plan/generate', requireAuth, async (req, res) => {
+router.post('/nutrition/plan/generate', requireAuth, aiLimiter, async (req, res) => {
   try {
     const result = await generateNutritionPlan(req.user!.id);
     cacheDelete(nutritionProfileCacheKey(req.user!.id));
@@ -176,7 +179,7 @@ router.get('/nutrition/micros/daily', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const date = (req.query.date as string) || await requestToday(req);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Invalid date' });
+    if (!isValidIsoDate(date)) return res.status(400).json({ error: 'Invalid date' });
 
     const [entries, targets] = await Promise.all([
       prisma.mealEntry.findMany({ where: { userId, date }, select: { nutrientsJson: true } }),
@@ -230,7 +233,7 @@ router.get('/nutrition/gut/week', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const end = (req.query.end as string) || await requestToday(req);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(end)) return res.status(400).json({ error: 'Invalid date' });
+    if (!isValidIsoDate(end)) return res.status(400).json({ error: 'Invalid date' });
     const start = dateNDaysAgo(6, end);
 
     const [entries, firstEver, targets] = await Promise.all([
@@ -299,7 +302,7 @@ const orderScanSchema = z.object({
   mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/heic']),
 });
 
-router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
+router.post('/nutrition/order-scan', requireAuth, aiLimiter, async (req, res) => {
   try {
     const { imageBase64, mimeType } = orderScanSchema.parse(req.body);
     const userId = req.user!.id;
@@ -347,7 +350,7 @@ router.post('/nutrition/order-scan', requireAuth, async (req, res) => {
 });
 
 const orderLogSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  date: z.string().refine(isValidIsoDate, ISO_DATE_MESSAGE).optional(),
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).default('meal'),
   vendor: z.string().max(120).nullable().optional(),
   items: z.array(z.object({
@@ -363,7 +366,8 @@ const orderLogSchema = z.object({
     plants: z.array(z.string().max(60)).max(30).default([]),
     fermentedFoods: z.array(z.string().max(60)).max(20).default([]),
     ultraProcessed: z.boolean().default(false),
-    nutrients: z.record(z.string(), z.unknown()).optional(),
+    nutrients: z.record(z.string(), z.unknown()).optional()
+      .transform((m) => (m == null ? m : boundNutrientMap(m) ?? undefined)),
   })).min(1).max(12),
 });
 
@@ -382,6 +386,13 @@ router.post('/nutrition/order-log', requireAuth, async (req, res) => {
       }
       return out;
     };
+
+    // Per-field caps don't bound the product (5000 kcal × 3 portion × 10
+    // quantity = 150k): the FINAL entry is what lands in the day's totals.
+    const tooBig = body.items.find((i) => i.calories * i.portionFactor * i.quantity > MAX_ENTRY_KCAL);
+    if (tooBig) {
+      return res.status(400).json({ error: `"${tooBig.name.slice(0, 60)}" comes to more than ${MAX_ENTRY_KCAL} kcal in one entry. Check the quantity.` });
+    }
 
     const created = await prisma.$transaction(
       body.items.map((item) => {

@@ -39,6 +39,17 @@ model User {
   emailVerified       Boolean           @default(false)
   emailVerifiedAt     DateTime?
   dateOfBirth         DateTime?
+  // ── Security / consent (Oct 2026 audit) ──────────────────────────────
+  // Bumped on logout-all, password reset and account deletion; requireAuth
+  // rejects JWTs whose `tv` claim is older. Gives 30-day tokens a kill switch.
+  tokenVersion        Int               @default(0)
+  // Consent records (GDPR Art. 7 / MHMDA). Null = never recorded.
+  acceptedTermsAt     DateTime?
+  termsVersion        String?
+  healthConsentAt     DateTime?
+  marketingConsentAt  DateTime?
+  // One-time free lift-diagnostic exemption; never cleared by session deletion.
+  onboardingDiagnosticUsedAt DateTime?
   tier                        String            @default("free")
   stripeCustomerId            String?
   stripeSubStatus             String?
@@ -764,8 +775,62 @@ model Affiliate {
   inviteUsedAt    DateTime?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @default(now()) @updatedAt
+  // Personal terms beyond consumer Pro (see services/affiliatePaymentStructure.ts).
+  trainerCommissionRate Float?                     // agreed rate on paid trainer invoices (12 months per trainer)
+  campaignRate          Float?    @default(0.30)   // once, on the first paid invoice
+  perVideoFeeCents      Int?                       // UGC fee per accepted video (CAD cents)
+  agreementNote         String?
+  agreementUpdatedAt    DateTime?
   commissions     AffiliateCommission[]
   payouts         AffiliatePayout[]
+  trainerReferrals AffiliateTrainerReferral[]
+  manualPayouts    AffiliateManualPayout[]
+}
+
+/// Trainers an affiliate brought in. Recorded by the Axiom team (trainer
+/// billing isn't attributed automatically yet); optionally linked to the
+/// /coaches beta sign-up row.
+model AffiliateTrainerReferral {
+  id                String    @id @default(uuid())
+  affiliateId       String
+  trainerName       String
+  organization      String?
+  /// Email or social handle.
+  contact           String?
+  /// free | coach | pro | unknown
+  plan              String?
+  /// lead | contacted | signed_up | onboarded | active | lost
+  status            String    @default("lead")
+  coachBetaSignupId String?   @unique
+  startedAt         DateTime?
+  note              String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
+  affiliate         Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+}
+
+/// Payouts made outside the Stripe commission pipeline (UGC fees, trainer
+/// bonuses, campaign commissions, discretionary bonuses).
+model AffiliateManualPayout {
+  id          String    @id @default(uuid())
+  affiliateId String
+  /// ugc | trainer_bonus | campaign | discretionary | other
+  kind        String
+  description String
+  amountCents Int
+  currency    String    @default("CAD")
+  /// pending | paid
+  status      String    @default("pending")
+  paidAt      DateTime?
+  reference   String?
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
 }
 
 model AffiliateCommission {
@@ -1279,6 +1344,11 @@ model BlogSubscriber {
   addedBy        String?
   /// Set when they click unsubscribe; never emailed again unless cleared.
   unsubscribedAt DateTime?
+  /// Double opt-in: set when they click the signed confirm link. Broadcasts go
+  /// only to rows with confirmedAt set. Null = pending (or legacy, never confirmed).
+  confirmedAt    DateTime?
+  /// Last time a confirmation email was sent (throttles re-sends).
+  confirmSentAt  DateTime?
   createdAt      DateTime  @default(now())
 }
 
@@ -2109,4 +2179,39 @@ model PtLead {
   updatedAt   DateTime  @default(now()) @updatedAt
 
   @@index([practiceId, status, createdAt])
+}
+
+// ─── Coach beta / launch list (public /coaches page) ─────────────────────────
+// A personal trainer who isn't on the personal-training allow-list asked to
+// hear about the coaching beta. Not an account. Every row is an explicit
+// opt-in (marketingConsentAt); unsubscribedAt stops all mail to it.
+model CoachBetaSignup {
+  id                 String    @id @default(uuid())
+  /// Stored lowercased + trimmed; unique.
+  email              String    @unique
+  name               String?
+  socialHandle       String?
+  /// instagram | tiktok | youtube | x | other
+  socialPlatform     String?
+  /// online | in_person | hybrid
+  coachingType       String?
+  /// Bucket: 0 | 1-10 | 11-30 | 31-100 | 100+
+  clientCount        String?
+  website            String?
+  /// Free text (<= 200): the tool they use today.
+  platformToday      String?
+  /// Free text (<= 1000).
+  message            String?
+  marketingConsentAt DateTime
+  /// Ref code / utm (<= 120).
+  source             String?
+  ip                 String?
+  userAgent          String?
+  createdAt          DateTime  @default(now())
+  /// Last time the confirmation email went out (throttles re-sends).
+  notifiedAt         DateTime?
+  unsubscribedAt     DateTime?
+  invitedAt          DateTime?
+
+  @@index([createdAt])
 }

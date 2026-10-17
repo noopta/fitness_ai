@@ -82,6 +82,14 @@ vi.mock('@/components/ui/input', () => ({
   ),
 }));
 
+const callOrder: string[] = [];
+const mockAnalyticsLogin = vi.fn((method: string) => {
+  callOrder.push(`analytics:${method}:${window.location.href}`);
+});
+vi.mock('@/lib/analytics', () => ({
+  WebAnalytics: { login: (m: string) => mockAnalyticsLogin(m) },
+}));
+
 vi.mock('@/components/ui/label', () => ({
   Label: ({ children }: any) => <label>{children}</label>,
 }));
@@ -303,5 +311,62 @@ describe('resolvePostAuthRedirect', () => {
   it('lets trainer and invite paths through ahead of onboarding', () => {
     expect(resolvePostAuthRedirect('/onboarding', '/personal-training')).toBe('/personal-training');
     expect(resolvePostAuthRedirect('/onboarding', '/personal-training/join/tok-1')).toBe('/personal-training/join/tok-1');
+  });
+});
+
+// ─── OAuth return via URL fragment (#auth=success&token=) ─────────────────────
+
+import { readOAuthReturn } from '@/lib/oauthReturn';
+
+describe('readOAuthReturn', () => {
+  it('reads auth + token from the fragment', () => {
+    expect(readOAuthReturn({ search: '', hash: '#auth=success&token=abc.def.ghi' }))
+      .toEqual({ auth: 'success', token: 'abc.def.ghi' });
+  });
+  it('still accepts the legacy query form', () => {
+    expect(readOAuthReturn({ search: '?auth=success&token=legacy', hash: '' }))
+      .toEqual({ auth: 'success', token: 'legacy' });
+  });
+  it('reads ?auth=error from the query', () => {
+    expect(readOAuthReturn({ search: '?auth=error', hash: '' })).toEqual({ auth: 'error', token: null });
+  });
+  it('prefers the fragment over the query and tolerates a missing hash', () => {
+    expect(readOAuthReturn({ search: '?auth=error', hash: '#auth=success&token=t' }).auth).toBe('success');
+    expect(readOAuthReturn({ search: '' })).toEqual({ auth: null, token: null });
+  });
+});
+
+describe('Login page — Google OAuth fragment return', () => {
+  beforeEach(() => {
+    callOrder.length = 0;
+    mockAnalyticsLogin.mockClear();
+    sessionStorage.clear();
+    mockRefreshUser.mockResolvedValue({ user: { id: 'u1', coachOnboardingDone: true }, features: {} });
+  });
+
+  it('stores the token and scrubs the URL before any analytics capture', async () => {
+    const loc = {
+      search: '',
+      hash: '#auth=success&token=jwt.token.value',
+      pathname: '/login',
+      href: 'http://localhost/login#auth=success&token=jwt.token.value',
+    };
+    Object.defineProperty(window, 'location', { value: loc, writable: true });
+    window.history.replaceState = vi.fn((_s: any, _t: string, url?: string | URL | null) => {
+      callOrder.push(`replace:${url}`);
+      loc.hash = '';
+      loc.href = `http://localhost${url}`;
+    }) as any;
+
+    render(<Login />);
+
+    await waitFor(() => expect(mockAnalyticsLogin).toHaveBeenCalledWith('google'));
+    expect(sessionStorage.getItem('liftoff_bearer_token')).toBe('jwt.token.value');
+    expect(callOrder[0]).toBe('replace:/login');
+    // The analytics call happened after the scrub: the URL it saw has no token.
+    const analyticsCall = callOrder.find(c => c.startsWith('analytics:'))!;
+    expect(analyticsCall).not.toContain('jwt.token.value');
+    expect(mockAnalyticsLogin.mock.calls.flat().join(' ')).not.toContain('jwt.token.value');
+    await waitFor(() => expect(mockSetLocation).toHaveBeenCalled());
   });
 });

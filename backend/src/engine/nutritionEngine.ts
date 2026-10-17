@@ -13,6 +13,8 @@
  *  - Nutrient adequacy flags
  */
 
+import { calorieFloorFor } from '../services/nutritionSafety.js';
+
 // ─── Input Types ───────────────────────────────────────────────────────────────
 
 export interface NutritionEngineUser {
@@ -187,6 +189,8 @@ function calcMacroTargets(
   weightKg: number,
   goal: string | null,
   lift: string | null,
+  /** Hard calorie floor (services/nutritionSafety.ts); the deficit never goes below it. */
+  calorieFloor = 0,
 ): MacroTargets {
   const g = goal?.toLowerCase() ?? '';
 
@@ -206,7 +210,7 @@ function calcMacroTargets(
   } else if (isHypertrophy) {
     targetCalories = tdee + 200;
   }
-  targetCalories = Math.round(targetCalories);
+  targetCalories = Math.round(Math.max(targetCalories, calorieFloor));
 
   // Protein g/kg by goal
   let proteinPerKg = 1.8; // default
@@ -445,7 +449,8 @@ export function runNutritionEngine(input: NutritionEngineInput): NutritionEngine
   // ── Macro targets ──
   const effectiveTDEE = tdee ?? Math.max(avgCalories, 1800);
   const effectiveWeight = user.weightKg ?? 75;
-  const targets = calcMacroTargets(effectiveTDEE, effectiveWeight, user.goal, user.primaryLift);
+  const floor = calorieFloorFor({ sex: user.sex, weightKg: user.weightKg, heightCm: user.heightCm, ageYears: user.ageYears }).floor;
+  const targets = calcMacroTargets(effectiveTDEE, effectiveWeight, user.goal, user.primaryLift, floor);
   const periodization = calcPeriodization(targets, effectiveWeight);
 
   // ── Trend ──

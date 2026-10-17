@@ -259,7 +259,7 @@ function DayWorkoutSheet({
                       <TouchableOpacity
                         style={{ width: '100%', height: SHEET_VIDEO_HEIGHT, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }}
                         activeOpacity={0.8}
-                        onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${sheetVideo!.videoId}`)}
+                        onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${encodeURIComponent(sheetVideo!.videoId)}`)}
                       >
                         <Ionicons name="logo-youtube" size={40} color="#FF0000" />
                         <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>
@@ -1175,7 +1175,7 @@ export function OverviewTab({ coachData, onGoToProgram, onRefresh, onAskAnakin, 
             <TouchableOpacity
               style={[videoStyles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
               activeOpacity={0.8}
-              onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
+              onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${encodeURIComponent(videoModal.videoId)}`)}
             >
               <Ionicons name="logo-youtube" size={40} color="#FF0000" />
               <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>

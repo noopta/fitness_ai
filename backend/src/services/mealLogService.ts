@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { cacheMarkStale } from './cacheService.js';
 import type { Micronutrients } from './llmService.js';
 import { logActivity } from './activityService.js';
-import { nutritionProfileCacheKey, normalizeFoodName, updateNutritionStreakInBackground } from './nutritionShared.js';
+import { nutritionProfileCacheKey, normalizeFoodName, updateNutritionStreakInBackground, isValidIsoDate, ISO_DATE_MESSAGE, boundNutrientMap } from './nutritionShared.js';
 import { descriptiveLabel, KNOWN_MEAL_SOURCES, KNOWN_PARSE_CONFIDENCE } from '../validation/descriptiveLabel.js';
 import { normalizeMicronutrients } from './nutritionEnrichmentService.js';
 import { appendFile, mkdir } from 'node:fs/promises';
@@ -25,8 +25,13 @@ const clampedEstimate = (max: number) =>
     .transform((v) => (v == null ? v : Math.min(Math.max(v, 0), max)));
 
 // Exported for schema-level tests (clamping behavior).
+// Open nutrient maps are trimmed (≤ MAX_NUTRIENT_KEYS finite, non-negative
+// entries), never rejected — they are parser estimates, not user assertions.
+const boundedNutrientMap = z.record(z.string(), z.number().finite())
+  .transform((m) => boundNutrientMap(m) ?? {});
+
 export const mealEntrySchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: z.string().refine(isValidIsoDate, ISO_DATE_MESSAGE),
   name: z.string().min(1).max(200),
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack', 'meal']).default('meal'),
   calories: z.number().min(0).max(5000).optional().default(0),
@@ -71,10 +76,10 @@ export const mealEntrySchema = z.object({
   notes: z.string().max(500).optional(),
   // OPEN nutrient channel — any nutrient keys the parser produced. Not capped
   // to a fixed set; the effects engine reads this. Values must be finite.
-  nutrientMap: z.record(z.string(), z.number().finite()).optional(),
+  nutrientMap: boundedNutrientMap.optional(),
   ingredientNutrients: z.array(z.object({
     name: z.string().min(1).max(120),
-    nutrients: z.record(z.string(), z.number().finite()),
+    nutrients: boundedNutrientMap,
   })).max(40).optional(),
 });
 
@@ -223,7 +228,7 @@ export const mealUpdateSchema = z.object({
   fatG: z.number().min(0).max(500).optional(),
   notes: z.string().max(2000).optional().nullable(),
   // Chat can also move a meal to another day.
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  date: z.string().refine(isValidIsoDate, ISO_DATE_MESSAGE).optional(),
 });
 export type MealUpdate = z.infer<typeof mealUpdateSchema>;
 

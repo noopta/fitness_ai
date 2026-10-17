@@ -34,6 +34,23 @@ const defaultsFor = (pref: UnitPreference) => ({ unit: pref === 'metric' ? 'kg' 
 /** A date-only string as an instant: noon UTC, so it stays on the same calendar day in any timezone. */
 const atNoon = (date: string) => new Date(`${date}T12:00:00Z`);
 
+/**
+ * What's kept of an upload once it's been imported or undone: each sheet's
+ * name and header row. Every other cell is client data (names, emails, phone
+ * numbers, injuries, bodyweights) that now lives in the prospect/workout rows
+ * or was deliberately taken back out, so the raw copy is purged (Oct 2026
+ * audit). Exported for tests.
+ */
+export function headersOnly(sheetsJson: string): string {
+  try {
+    const grids = JSON.parse(sheetsJson);
+    if (!Array.isArray(grids)) return '[]';
+    return JSON.stringify(grids.map((g: any) => ({ name: String(g?.name ?? ''), rows: Array.isArray(g?.rows) && g.rows.length ? [g.rows[0]] : [] })));
+  } catch {
+    return '[]';
+  }
+}
+
 async function owned(importId: string, practiceId: string) {
   const row = await prisma.ptImport.findUnique({ where: { id: importId } });
   if (!row || row.practiceId !== practiceId) throw new ImportError('Import not found', 404);
@@ -198,7 +215,7 @@ export async function confirmImport(importId: string, practiceId: string, traine
         summary.bodyweights += fresh.length;
       }
     }
-    await tx.ptImport.update({ where: { id: row.id }, data: { summaryJson: JSON.stringify(summary) } });
+    await tx.ptImport.update({ where: { id: row.id }, data: { summaryJson: JSON.stringify(summary), sheetsJson: headersOnly(row.sheetsJson) } });
   }, { timeout: 120_000 });
 
   await audit({ practiceId, trainerId, action: 'import_confirmed', itemType: 'import', itemId: row.id, meta: { fileName: row.fileName, ...summary } });
@@ -224,9 +241,68 @@ export async function undoImport(importId: string, practiceId: string, trainerId
         await tx.ptProspect.delete({ where: { id: p.id } });
       }
     }
-    await tx.ptImport.update({ where: { id: row.id }, data: { status: 'undone', undoneAt: new Date() } });
+    await tx.ptImport.update({ where: { id: row.id }, data: { status: 'undone', undoneAt: new Date(), sheetsJson: headersOnly(row.sheetsJson) } });
   }, { timeout: 60_000 });
   await audit({ practiceId, trainerId, action: 'import_undone', itemType: 'import', itemId: row.id, meta: { fileName: row.fileName } });
+}
+
+// ── Prospects: deleting and retention ────────────────────────────────────────
+
+/** Everything the practice holds about one "Not joined" prospect, inside a transaction. */
+async function deleteProspectRecords(tx: any, practiceId: string, prospectId: string) {
+  const clientId = `${PROSPECT_PREFIX}${prospectId}`;
+  await tx.ptImportedWorkout.deleteMany({ where: { prospectId } });
+  await tx.ptImportedWeight.deleteMany({ where: { prospectId } });
+  // Trainer-side records filed under the prospect's client id. Each model is
+  // optional in a given deployment, so a missing one never blocks the delete.
+  for (const model of ['ptNote', 'ptGoal', 'ptMeasurement', 'ptContraindication', 'ptClientProfile', 'ptIntake', 'ptNutritionTarget']) {
+    await tx[model]?.deleteMany?.({ where: { practiceId, clientId } });
+  }
+  await tx.ptProspect.delete({ where: { id: prospectId } });
+}
+
+/**
+ * DELETE /personal-training/prospects/:id — remove a "Not joined" client and
+ * their imported history. Practice-scoped: another practice's id is a 404.
+ * A prospect who has joined is a real client and is not deleted here.
+ */
+export async function deleteProspect(prospectId: string, practiceId: string, trainerId: string): Promise<void> {
+  const prospect = await prisma.ptProspect.findUnique({ where: { id: prospectId } });
+  if (!prospect || prospect.practiceId !== practiceId) throw new ImportError('Client not found', 404);
+  if (prospect.userId) throw new ImportError('This client has joined. Remove them from your roster instead.', 409);
+  await prisma.$transaction(async (tx) => deleteProspectRecords(tx, practiceId, prospect.id), { timeout: 60_000 });
+  await audit({ practiceId, trainerId, action: 'prospect_deleted', itemType: 'prospect', itemId: prospect.id, meta: {} });
+}
+
+export const PROSPECT_RETENTION_DAYS = 90;
+
+/**
+ * Retention: "Not joined" prospects older than `days` who were never invited
+ * in that window are purged with their imported history (people who never
+ * signed up to Axiom shouldn't sit in it indefinitely). Meant for a daily job;
+ * not wired to a scheduler here. Returns how many were removed.
+ */
+export async function purgeStaleProspects(days = PROSPECT_RETENTION_DAYS, now: Date = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - days * 86_400_000);
+  const stale = await prisma.ptProspect.findMany({
+    where: {
+      userId: null,
+      createdAt: { lt: cutoff },
+      OR: [{ invitedAt: null }, { invitedAt: { lt: cutoff } }],
+    },
+    select: { id: true, practiceId: true },
+    take: 500,
+  });
+  let removed = 0;
+  for (const p of stale) {
+    try {
+      await prisma.$transaction(async (tx) => deleteProspectRecords(tx, p.practiceId, p.id), { timeout: 60_000 });
+      removed += 1;
+    } catch (err) {
+      console.error('[personal-training] purge prospect failed', p.id, err);
+    }
+  }
+  return removed;
 }
 
 // ── Prospects: inviting, and linking when they join ──────────────────────────

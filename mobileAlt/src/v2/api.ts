@@ -78,7 +78,7 @@ export interface NutritionPlanSummary {
     upfPct: { n: number; max: number };
   };
   supplements: { name: string; dose: string; when: string | null }[];
-  sources: { id: number; type: string; title: string; detail?: string | null; url?: string | null }[];
+  sources: { id: number; type: string; title: string; detail?: string | null; url?: string | null; disclaimer?: string | null }[];
   plan: { summary?: string; focusNutrients?: { key: string; why?: string }[] };
   generatedAt: string;
 }
@@ -203,9 +203,11 @@ export const v2Api = {
     });
     if (!res.ok) {
       let msg = `HTTP ${res.status}`;
-      try { const j = await res.json(); if (j?.error) msg = j.error; } catch { /* keep */ }
+      let code: string | undefined;
+      try { const j = await res.json(); if (j?.error) msg = j.error; if (typeof j?.code === 'string') code = j.code; } catch { /* keep */ }
       // The server answered and refused (limit, auth, validation): the turn never ran.
-      throw Object.assign(new Error(msg), { status: res.status });
+      // `code`: 403 'pro_required' (free account), 503 'limit_unavailable' (quota check down).
+      throw Object.assign(new Error(msg), { status: res.status, code });
     }
     const body = res.body;
     if (!body) throw new Error('No response body');

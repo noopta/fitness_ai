@@ -21,6 +21,8 @@ export const FEATURE = {
   FORM_VIDEO: 'form_video',
   MEAL_PHOTO: 'meal_photo',
   LIFT_DIAGNOSTIC: 'lift_diagnostic',
+  /** Clip uploads inside a lift diagnostic (GCS write + two Gemini video calls each). */
+  DIAGNOSTIC_VIDEO: 'diagnostic_video',
 } as const;
 
 export type FeatureKey = (typeof FEATURE)[keyof typeof FEATURE];
@@ -38,6 +40,8 @@ export function dailyLimitFor(feature: FeatureKey): number {
       // Shares the historical env var used by checkAnalysisRateLimit so the
       // two stay in lockstep.
       return intEnv('FREE_TIER_DAILY_LIMIT', 1);
+    case FEATURE.DIAGNOSTIC_VIDEO:
+      return intEnv('FREE_DIAGNOSTIC_VIDEO_DAILY_LIMIT', 2);
     default:
       return 1;
   }

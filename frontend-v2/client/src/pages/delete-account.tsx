@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { Navbar } from "@/components/Navbar";
 
 // Public-facing page describing how to request account deletion. Required by
@@ -12,7 +13,7 @@ export default function DeleteAccount() {
       <main className="container-tight py-12 sm:py-16">
         <div className="max-w-3xl mx-auto space-y-6 text-sm text-muted-foreground">
           <h1 className="text-2xl font-bold text-foreground mb-1">Delete Your Axiom Account</h1>
-          <p className="text-sm text-muted-foreground mt-1">Last updated: May 12, 2026</p>
+          <p className="text-sm text-muted-foreground mt-1">Last updated: October 16, 2026</p>
 
           <section>
             <p>
@@ -51,9 +52,12 @@ export default function DeleteAccount() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">3. How to delete your account</h2>
 
-            <p className="font-medium text-foreground mt-4">Option A — In the app (fastest)</p>
+            <p className="font-medium text-foreground mt-4">Option A — In Settings (fastest)</p>
             <p className="mt-1">
-              Open Axiom on your phone, go to <strong>Settings → Delete Account</strong>, and confirm. Your account and associated data are deleted immediately. You will be signed out and cannot recover the account.
+              On the web, sign in and open <Link href="/settings" className="text-foreground underline">Settings</Link> → <strong>Account → Delete my account</strong>. In the phone app, go to <strong>Settings → Delete Account</strong>. Confirm, and your account and associated data are deleted immediately. You will be signed out and cannot recover the account.
+            </p>
+            <p className="mt-2">
+              Want a copy first? <Link href="/settings" className="text-foreground underline">Settings</Link> → <strong>Account → Download my data</strong> exports everything as a JSON file.
             </p>
 
             <p className="font-medium text-foreground mt-4">Option B — Email request (if you no longer have the app)</p>
@@ -76,15 +80,15 @@ export default function DeleteAccount() {
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-2">4. Subscriptions</h2>
             <p>
-              Deleting your Axiom account does not automatically cancel an active subscription billed through Apple, Google Play, or Stripe. To cancel your subscription:
+              Deleting your Axiom account automatically cancels an active web (Stripe) subscription. It cannot cancel a subscription billed through Apple or Google Play — cancel those in the store:
             </p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li><strong>iOS (Apple):</strong> Settings → [Your Apple ID] → Subscriptions → Axiom → Cancel Subscription.</li>
               <li><strong>Android (Google Play):</strong> Google Play Store → Profile icon → Payments &amp; subscriptions → Subscriptions → Axiom → Cancel subscription.</li>
-              <li><strong>Web (Stripe):</strong> reply to your most recent Stripe billing email or email <a href="mailto:inquiries@axiomtraining.io" className="text-foreground underline">inquiries@axiomtraining.io</a> and we will cancel on your behalf.</li>
+              <li><strong>Web (Stripe):</strong> <Link href="/settings" className="text-foreground underline">Settings</Link> → Billing → Manage Billing &amp; Subscription, or email <a href="mailto:inquiries@axiomtraining.io" className="text-foreground underline">inquiries@axiomtraining.io</a> and we will cancel on your behalf.</li>
             </ul>
             <p className="mt-2">
-              We recommend cancelling your subscription <em>before</em> requesting account deletion so you don't continue to be billed.
+              If you subscribed through Apple or Google Play, cancel <em>before</em> deleting your account so you don't continue to be billed.
             </p>
           </section>
 

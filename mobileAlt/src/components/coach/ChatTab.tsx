@@ -21,6 +21,14 @@ import { MarkdownText } from '../ui/MarkdownText';
 import { ThinkingDots, useThinkingLabel } from './ThinkingLabel';
 import { PlanPatchCard } from './PlanPatchCard';
 import { MoveSessionCard } from './MoveSessionCard';
+import { log } from '../../lib/log';
+import { MedicalDisclaimer } from '../ui/MedicalDisclaimer';
+import { UpgradeSheet } from '../UpgradeSheet';
+import { useAuth } from '../../context/AuthContext';
+
+/** Copy for coach-agent refusals the server answers with a machine code. */
+const PRO_REQUIRED_TEXT = 'Chat with Anakin is part of Pro. Start your free week to keep going.';
+const LIMIT_UNAVAILABLE_TEXT = 'Anakin is busy right now. Please try again in a moment.';
 
 // Tool names that mutate program / nutrition / wellness state on the server.
 // After the agent uses any of these, the mobile-side coach cache must be
@@ -232,6 +240,9 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
+  // 403 pro_required → the upgrade sheet (server-side Pro gate on the agent).
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const { refreshUser } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
   // Hooks must be called unconditionally at the top of the component body —
   // calling useThinkingLabel inside the conditional typing-indicator JSX
@@ -347,9 +358,20 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
       // in app/_layout.tsx will also pick it up). Generic "Something went
       // wrong" with no detail was making real bugs invisible per user
       // feedback "I typed and all I got was Something went wrong."
+      // Server refusals with a machine code get friendly copy, not "HTTP 403".
+      const code = err?.code ?? err?.body?.code;
+      if ((err?.status === 403 && code === 'pro_required') || (err?.status === 503 && code === 'limit_unavailable')) {
+        const pro = code === 'pro_required';
+        setMessages((prev) =>
+          prev.map((m) => (m.id === streamId ? { ...m, content: pro ? PRO_REQUIRED_TEXT : LIMIT_UNAVAILABLE_TEXT, _isTemp: false } : m))
+        );
+        if (pro) setUpgradeOpen(true);
+        else setInputText((cur) => cur || text); // keep their message for the retry
+        return;
+      }
       const errMsg = err?.message || (typeof err === 'string' ? err : 'Unknown error');
       const status = err?.status ? ` (HTTP ${err.status})` : '';
-      console.error('[ChatTab] handleSend failed:', errMsg, err);
+      log.error('[ChatTab] handleSend failed:', errMsg, err);
       setMessages((prev) =>
         prev.map((m) =>
           m.id === streamId
@@ -411,6 +433,8 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
   }
 
   const canSend = inputText.trim().length > 0 && !sending;
+  // Empty conversation (only the greeting so far) → show the medical disclaimer.
+  const chatIsEmpty = !messages.some((m) => m.role === 'user');
 
   return (
     <KeyboardAvoider style={styles.container} iosOffset={160}>
@@ -438,6 +462,8 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
             />
           )
         )}
+
+        {chatIsEmpty ? <MedicalDisclaimer style={{ textAlign: 'center', marginHorizontal: spacing.md }} /> : null}
 
         {/* Typing indicator — only show when sending but no content streamed yet */}
         {sending && messages.every((m) => !m._isTemp || m.content.length > 0) === false && (
@@ -476,6 +502,11 @@ export function ChatTab({ coachData, initialPrompt, onInitialPromptConsumed }: C
           <Text style={styles.sendIcon}>➤</Text>
         </Pressable>
       </View>
+      <UpgradeSheet
+        visible={upgradeOpen}
+        onClose={() => setUpgradeOpen(false)}
+        onSuccess={() => { setUpgradeOpen(false); void refreshUser(); }}
+      />
     </KeyboardAvoider>
   );
 }

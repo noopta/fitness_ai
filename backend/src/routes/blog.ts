@@ -13,6 +13,9 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { scheduleBlogBroadcast, broadcastBlogPost } from '../services/blogBroadcastService.js';
+import { sendEmail } from '../services/mailService.js';
+import { subscriberConfirmationEmail, SUPPORT_EMAIL } from '../services/emailTemplates.js';
+import { confirmSubscriptionUrl } from '../services/emailUnsubscribe.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -220,24 +223,47 @@ router.delete('/blog/admin/posts/:id', requireAuth, requireAdmin, async (req, re
 });
 
 // ─── Admin: subscriber list ──────────────────────────────────────────────────
-// Email-only recipients (not accounts). Every broadcast goes to opted-in users
-// + these, deduped by email. Unsubscribed rows are kept (so a click sticks)
-// and shown as such; re-adding an unsubscribed address is a no-op.
+// Email-only recipients (not accounts). Every broadcast goes to consenting
+// users + CONFIRMED subscribers, deduped by email. Adding an address never
+// subscribes it: it creates a pending row and sends one double opt-in email
+// with a signed confirm link (routes/email.ts). Only rows with confirmedAt
+// receive broadcasts. Unsubscribed rows are kept (so a click sticks) and shown
+// as such; re-adding an unsubscribed address is a no-op. Re-adding a pending
+// address re-sends the confirmation at most once per CONFIRM_RESEND_MS.
 
 const emailInput = z.string().trim().toLowerCase().email().max(254);
 const subscribersInput = z.object({
   emails: z.array(emailInput).min(1).max(500),
 });
 
-function subscriberShape(s: { id: string; email: string; source: string; addedBy: string | null; unsubscribedAt: Date | null; createdAt: Date }) {
+const CONFIRM_RESEND_MS = 7 * 86_400_000;
+
+type SubscriberRow = { id: string; email: string; source: string; addedBy: string | null; unsubscribedAt: Date | null; confirmedAt?: Date | null; confirmSentAt?: Date | null; createdAt: Date };
+
+function subscriberShape(s: SubscriberRow) {
   return {
     id: s.id,
     email: s.email,
     source: s.source,
     addedBy: s.addedBy,
     unsubscribedAt: s.unsubscribedAt ? s.unsubscribedAt.toISOString() : null,
+    confirmedAt: s.confirmedAt ? s.confirmedAt.toISOString() : null,
+    status: s.unsubscribedAt ? 'unsubscribed' : s.confirmedAt ? 'confirmed' : 'pending',
     createdAt: s.createdAt.toISOString(),
   };
+}
+
+/** Send the double opt-in email and stamp confirmSentAt. Never throws. */
+async function sendConfirmation(sub: { id: string; email: string }): Promise<boolean> {
+  try {
+    const msg = subscriberConfirmationEmail(confirmSubscriptionUrl(sub.id));
+    const r = await sendEmail({ to: sub.email, subject: msg.subject, html: msg.html, text: msg.text, replyTo: SUPPORT_EMAIL });
+    if (r.sent) await prisma.blogSubscriber.update({ where: { id: sub.id }, data: { confirmSentAt: new Date() } });
+    return r.sent;
+  } catch (err) {
+    console.error('[blog] confirmation send error:', (err as Error)?.message ?? err);
+    return false;
+  }
 }
 
 router.get('/blog/admin/subscribers', requireAuth, requireAdmin, async (_req, res) => {
@@ -256,13 +282,23 @@ router.post('/blog/admin/subscribers', requireAuth, requireAdmin, async (req, re
   try {
     const added: string[] = [];
     const existing: string[] = [];
+    const confirmationsSent: string[] = [];
     for (const email of Array.from(new Set(parsed.data.emails))) {
       const found = await prisma.blogSubscriber.findUnique({ where: { email } });
-      if (found) { existing.push(email); continue; }
-      await prisma.blogSubscriber.create({ data: { email, source: 'admin', addedBy: req.user!.email ?? null } });
+      if (found) {
+        existing.push(email);
+        // Still pending and not nudged recently: one more confirmation request.
+        const stale = !found.confirmSentAt || Date.now() - new Date(found.confirmSentAt).getTime() > CONFIRM_RESEND_MS;
+        if (!found.unsubscribedAt && !found.confirmedAt && stale && await sendConfirmation(found)) confirmationsSent.push(email);
+        continue;
+      }
+      const row = await prisma.blogSubscriber.create({ data: { email, source: 'admin', addedBy: req.user!.email ?? null } });
       added.push(email);
+      if (await sendConfirmation(row)) confirmationsSent.push(email);
     }
-    res.json({ added, existing });
+    // `added` rows are PENDING: they receive nothing but the confirmation
+    // email until the recipient clicks through.
+    res.json({ added, existing, confirmationsSent, pending: true });
   } catch (err) {
     console.error('[blog] subscribers add error:', err);
     res.status(500).json({ error: 'Failed to add subscribers' });

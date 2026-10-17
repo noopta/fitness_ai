@@ -20,12 +20,14 @@
 //    `needsSupport`, the write proceeds, and the caller is expected to surface
 //    crisis resources alongside the normal response.
 //
-// 2. FAIL-OPEN ON INFRASTRUCTURE ERROR.
-//    If OpenAI is unreachable we allow the write and record `failOpen: true`.
-//    A moderation outage taking down all posting is a worse failure mode than
-//    a short window of unmoderated content, and the ContentFlag audit trail
-//    lets those windows be swept retroactively. Set MODERATION_FAIL_CLOSED=true
-//    to invert this.
+// 2. FAIL-CLOSED FOR USER-TO-USER SURFACES, FAIL-OPEN FOR THE COACH.
+//    If OpenAI is unreachable, text another person will see (DMs, comments,
+//    posts, group messages, the group check-in bot, push bodies) is rejected
+//    with a "try again shortly" message (Oct 2026 audit). The user's own coach
+//    message is still allowed (`failOpen: true`): refusing someone's question
+//    to their coach during an outage helps no one. MODERATION_FAIL_CLOSED=true
+//    closes every surface; MODERATION_SOCIAL_FAIL_OPEN=true is the incident
+//    lever that re-opens the social surfaces.
 
 import OpenAI from 'openai';
 import { PrismaClient } from '@prisma/client';
@@ -35,6 +37,19 @@ const prisma = new PrismaClient();
 /** Master switch. Off by default so a deploy without an API key is inert. */
 const ENABLED = process.env.MODERATION_ENABLED !== 'false';
 const FAIL_CLOSED = process.env.MODERATION_FAIL_CLOSED === 'true';
+
+/** Surfaces whose text reaches other people — these fail closed on an outage. */
+export const FAIL_CLOSED_SURFACES: ReadonlySet<ModerationSurface> = new Set<ModerationSurface>([
+  'dm', 'comment', 'post_caption', 'post_image', 'group_message', 'group_checkin', 'push_body',
+]);
+
+/** Whether a moderation outage blocks this surface. Exported for tests. */
+export function failsClosed(surface: ModerationSurface): boolean {
+  if (FAIL_CLOSED) return true;
+  if (surface === 'coach_message') return false;
+  if (process.env.MODERATION_SOCIAL_FAIL_OPEN === 'true') return false;
+  return FAIL_CLOSED_SURFACES.has(surface);
+}
 
 let _client: OpenAI | null = null;
 function client(): OpenAI | null {
@@ -76,6 +91,10 @@ export type ModerationSurface =
   | 'display_name'
   | 'coach_message'
   | 'group_message'
+  /** Model-written group check-in posted to a whole group. */
+  | 'group_checkin'
+  /** Model-written push notification body. */
+  | 'push_body'
   | 'meal_photo'
   | 'form_video_frame'
   | 'profile_text';
@@ -166,7 +185,7 @@ async function run(
   const openai = client();
   if (!openai) {
     // No key configured. Treated as an infrastructure error, not a pass.
-    return FAIL_CLOSED
+    return failsClosed(surface)
       ? { ...ALLOW, allowed: false, failOpen: true, message: 'Content checks are unavailable right now. Please try again shortly.' }
       : { ...ALLOW, failOpen: true };
   }
@@ -185,7 +204,7 @@ async function run(
     });
   } catch (err: any) {
     console.error(`[moderation] check failed (surface=${surface}):`, err?.message ?? err);
-    return FAIL_CLOSED
+    return failsClosed(surface)
       ? { ...ALLOW, allowed: false, failOpen: true, message: 'Content checks are unavailable right now. Please try again shortly.' }
       : { ...ALLOW, failOpen: true };
   }

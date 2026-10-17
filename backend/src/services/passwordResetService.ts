@@ -1,6 +1,7 @@
 // Password reset by emailed 6-digit code (ACC-07). Same shape as the
 // verification OTP: only a SHA-256 of the code is stored, 15-minute expiry,
-// 5 attempts, 60 s resend cooldown. requestReset never says whether an
+// 5 attempts per code, 60 s resend cooldown, and per-address daily caps (5
+// codes, 10 wrong guesses across codes). requestReset never says whether an
 // account exists, so it can't be used to enumerate emails.
 
 import crypto from 'crypto';
@@ -13,11 +14,44 @@ export const RESET_TTL_MINUTES = 15;
 export const RESET_MAX_ATTEMPTS = 5;
 export const RESET_COOLDOWN_SECONDS = 60;
 
+/** Max reset codes mailed to one address per rolling 24 h. */
+export const RESET_MAX_CODES_PER_DAY = 5;
+/** Max wrong guesses against one address per rolling 24 h, across all its codes. */
+export const RESET_MAX_WRONG_PER_DAY = 10;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 const hash = (code: string) => crypto.createHash('sha256').update(code).digest('hex');
 const norm = (email: string) => email.trim().toLowerCase();
 
+// Per-email daily budgets. Without them each new code (every 60 s) reset the
+// 5-attempt counter — ~7,200 guesses a day at one account, spread over any
+// number of IPs — and anyone could mail any address once a minute forever.
+// In-memory is authoritative for this single-process server (see
+// rateLimiter.ts); a restart forgives a day's budget, which is acceptable.
+const codesSent = new Map<string, number[]>();
+const wrongGuesses = new Map<string, number[]>();
+
+function recent(map: Map<string, number[]>, key: string, now = Date.now()): number[] {
+  const list = (map.get(key) ?? []).filter((t) => now - t < DAY_MS);
+  if (list.length) map.set(key, list); else map.delete(key);
+  return list;
+}
+function note(map: Map<string, number[]>, key: string, now = Date.now()) {
+  const list = recent(map, key, now);
+  list.push(now);
+  map.set(key, list);
+}
+/** Test hook. */
+export function __resetDailyBudgetsForTests() { codesSent.clear(); wrongGuesses.clear(); }
+
 export async function requestReset(email: string): Promise<{ accepted: true; cooldownRemainingSec?: number }> {
   const e = norm(email);
+  // Daily cap: answer exactly as for any other request (no enumeration, no
+  // signal to the sender) but send nothing.
+  if (recent(codesSent, e).length >= RESET_MAX_CODES_PER_DAY) {
+    console.warn('[password-reset] daily code cap reached for an address; not sending');
+    return { accepted: true };
+  }
   const user = await prisma.user.findFirst({ where: { email: e }, select: { id: true, hashedPassword: true } });
   const existing = await prisma.passwordResetCode.findUnique({ where: { email: e } });
   if (existing) {
@@ -29,6 +63,7 @@ export async function requestReset(email: string): Promise<{ accepted: true; coo
   if (!user) return { accepted: true };
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
   const expiresAt = new Date(Date.now() + RESET_TTL_MINUTES * 60_000);
+  note(codesSent, e);
   await prisma.passwordResetCode.upsert({
     where: { email: e },
     create: { email: e, codeHash: hash(code), expiresAt, attempts: 0, lastSentAt: new Date() },
@@ -48,13 +83,19 @@ export async function resetPassword(email: string, code: string, newPassword: st
   if (!row || row.consumedAt) return { ok: false, reason: 'no_code' };
   if (row.expiresAt.getTime() < Date.now()) return { ok: false, reason: 'expired' };
   if (row.attempts >= RESET_MAX_ATTEMPTS) return { ok: false, reason: 'too_many_attempts' };
-  if (hash(code.trim()) !== row.codeHash) {
+  if (recent(wrongGuesses, e).length >= RESET_MAX_WRONG_PER_DAY) return { ok: false, reason: 'too_many_attempts' };
+  const given = Buffer.from(hash(code.trim()));
+  const stored = Buffer.from(row.codeHash);
+  if (given.length !== stored.length || !crypto.timingSafeEqual(given, stored)) {
+    note(wrongGuesses, e);
     await prisma.passwordResetCode.update({ where: { email: e }, data: { attempts: { increment: 1 } } });
     return { ok: false, reason: 'mismatch' };
   }
   const user = await prisma.user.findFirst({ where: { email: e }, select: { id: true } });
   if (!user) return { ok: false, reason: 'no_code' };
-  await prisma.user.update({ where: { id: user.id }, data: { hashedPassword: await bcrypt.hash(newPassword, 12) } });
+  // Bumping tokenVersion signs out every existing session: a reset is what a
+  // user does when they think someone else is in their account.
+  await prisma.user.update({ where: { id: user.id }, data: { hashedPassword: await bcrypt.hash(newPassword, 12), tokenVersion: { increment: 1 } } as any });
   await prisma.passwordResetCode.update({ where: { email: e }, data: { consumedAt: new Date() } });
   return { ok: true, userId: user.id };
 }

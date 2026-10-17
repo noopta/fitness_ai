@@ -44,9 +44,11 @@ describe('isAllowedRedirectTarget (production)', () => {
     expect(isAllowedRedirectTarget('https://liftoffmvp.io')).toBe(true);
   });
 
-  it('allows Replit preview and deploy domains', () => {
-    expect(isAllowedRedirectTarget('https://something.replit.app')).toBe(true);
-    expect(isAllowedRedirectTarget('https://x-y-z.replit.dev')).toBe(true);
+  it('rejects Replit preview/deploy suffix domains (anyone can register one)', () => {
+    // Oct 2026 audit: a suffix wildcard turned the allowlist into a token sink.
+    // Specific hosts go in EXTRA_ALLOWED_REDIRECT_HOSTS instead.
+    expect(isAllowedRedirectTarget('https://something.replit.app')).toBe(false);
+    expect(isAllowedRedirectTarget('https://x-y-z.replit.dev')).toBe(false);
   });
 
   // ── The attack cases ──────────────────────────────────────────────────────

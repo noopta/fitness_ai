@@ -3,6 +3,11 @@
 // User.welcomeEmailSentAt, claimed atomically so two concurrent sign-ins can't
 // both send. Accounts created before the feature shipped are skipped (marked
 // as sent) so long-standing users don't get a "welcome" on their next login.
+//
+// Consent: the welcome is transactional by default (account ready, how to
+// start, how to reach us). The promotional "what members use most" block and
+// the unsubscribe link/headers appear only when the user opted in to marketing
+// email (User.marketingConsentAt set; unsubscribing clears it).
 import { PrismaClient } from '@prisma/client';
 import { sendEmail } from './mailService.js';
 import { welcomeEmail, SUPPORT_EMAIL } from './emailTemplates.js';
@@ -13,6 +18,15 @@ const prisma = new PrismaClient();
 /** Accounts created before this instant never get the welcome mail. */
 export const WELCOME_EMAIL_SINCE = new Date(process.env.WELCOME_EMAIL_SINCE || '2026-09-10T00:00:00Z');
 
+/**
+ * Opt-in marketing consent. marketingConsentAt is the single source of truth:
+ * it is set when the user ticks the marketing box and cleared by unsubscribe
+ * (routes/email.ts). The legacy opt-OUT flag is not consulted.
+ */
+export function hasMarketingConsent(u: { marketingConsentAt?: Date | null }): boolean {
+  return !!u.marketingConsentAt;
+}
+
 export type WelcomeOutcome = 'sent' | 'already_sent' | 'no_email' | 'legacy_account' | 'send_failed' | 'disabled';
 
 export async function maybeSendWelcomeEmail(userId: string): Promise<WelcomeOutcome> {
@@ -20,7 +34,7 @@ export async function maybeSendWelcomeEmail(userId: string): Promise<WelcomeOutc
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, createdAt: true, welcomeEmailSentAt: true },
+    select: { id: true, name: true, email: true, createdAt: true, welcomeEmailSentAt: true, marketingConsentAt: true },
   });
   if (!user || user.welcomeEmailSentAt) return 'already_sent';
   if (!user.email) return 'no_email';
@@ -34,13 +48,16 @@ export async function maybeSendWelcomeEmail(userId: string): Promise<WelcomeOutc
 
   if (user.createdAt < WELCOME_EMAIL_SINCE) return 'legacy_account';
 
-  const msg = welcomeEmail(user.name, unsubscribeUrl(user.id));
+  const marketing = hasMarketingConsent(user);
+  const unsub = marketing ? unsubscribeUrl(user.id) : undefined;
+  const msg = welcomeEmail(user.name, { marketing, unsubscribeUrl: unsub });
   const res = await sendEmail({
     to: user.email,
     subject: msg.subject,
     html: msg.html,
     text: msg.text,
     replyTo: SUPPORT_EMAIL,
+    ...(unsub ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}),
   });
   if (!res.sent) {
     // Release the claim so the next sign-in retries instead of losing the mail.

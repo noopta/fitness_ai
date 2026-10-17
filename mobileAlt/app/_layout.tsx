@@ -22,6 +22,7 @@ import { usePushNotifications } from '../src/lib/usePushNotifications';
 import { ensureDailyReminderScheduled, cancelDailyReminder } from '../src/lib/dailyReminder';
 import { posthog, identifyUser, resetUser } from '../src/lib/analytics';
 import { WhatsNewModal, shouldShowWhatsNew, markWhatsNewSeen } from '../src/components/WhatsNewModal';
+import { ConsentSheet, consentPending } from '../src/components/ConsentSheet';
 import { hydrateCacheFromStorage } from '../src/lib/cache';
 import { runBootPrefetch } from '../src/lib/prefetch';
 import { hasSeenCinematicOnboarding } from '../src/onboarding/OnboardingPager';
@@ -38,7 +39,7 @@ import * as Sentry from '@sentry/react-native';
 const queryClient = new QueryClient();
 
 function RootNavigator() {
-  const { user, loading, needsDobCheck, getFeatures } = useAuth();
+  const { user, loading, needsDobCheck, getFeatures, consent } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
@@ -151,16 +152,18 @@ function RootNavigator() {
     void markWhatsNewSeen();
   }
 
+  // Signed out: drop every react-query result so the next account on this
+  // phone never sees the previous one's data (the mcache is purged in logout()).
+  useEffect(() => {
+    if (!loading && !user) queryClient.clear();
+  }, [loading, user]);
+
   // Sync PostHog identity whenever auth state changes
   useEffect(() => {
     if (loading) return;
     if (user) {
-      identifyUser(user.id, {
-        name: user.name,
-        email: user.email,
-        username: (user as any).username ?? null,
-        tier: user.tier ?? 'free',
-      });
+      // Id + tier only — no name/email/username to the analytics vendor.
+      identifyUser(user.id, { tier: user.tier ?? 'free' });
     } else {
       resetUser();
     }
@@ -297,7 +300,9 @@ function RootNavigator() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />
-      <WhatsNewModal visible={whatsNewOpen} onClose={handleWhatsNewClose} />
+      {/* Only one native modal can present at a time — consent goes first. */}
+      <WhatsNewModal visible={whatsNewOpen && !consentPending(consent)} onClose={handleWhatsNewClose} />
+      <ConsentSheet />
     </>
   );
 }

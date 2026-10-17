@@ -24,9 +24,19 @@ export const PRIMARY_CHAT_MODEL =
   process.env.OPENROUTER_CHAT_MODEL || 'deepseek/deepseek-v4-flash';
 const FALLBACK_CHAT_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-5.4-mini';
 
-/** OpenRouter provider slugs, in preference order (OPENROUTER_PROVIDERS="alibaba,baidu"). */
-export const OPENROUTER_PROVIDERS = (process.env.OPENROUTER_PROVIDERS || 'alibaba,baidu')
+/**
+ * OpenRouter provider slugs, in preference order. Default is US-headquartered
+ * hosts only (Oct 2026 audit HIGH-4: prompts carrying health data used to be
+ * pinned to Alibaba/Baidu). Override with OPENROUTER_PROVIDERS="a,b".
+ */
+export const DEFAULT_OPENROUTER_PROVIDERS = 'fireworks,together,deepinfra,baseten';
+export const OPENROUTER_PROVIDERS = (process.env.OPENROUTER_PROVIDERS || DEFAULT_OPENROUTER_PROVIDERS)
   .split(',').map((x) => x.trim()).filter(Boolean);
+
+/** LLM_SENSITIVE_ROUTING=off sends sensitive prompts through OpenRouter again (incident lever). */
+function sensitiveRoutingOn(): boolean {
+  return process.env.LLM_SENSITIVE_ROUTING !== 'off';
+}
 
 type NonStreamingParams = Omit<
   OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
@@ -50,6 +60,12 @@ export interface ChatCompleteOptions {
   requireJson?: boolean;
   /** Names the call in the log line. */
   label?: string;
+  /**
+   * The prompt carries profile / health fields (injuries, conditions, body
+   * metrics, training notes). Skips the OpenRouter tier entirely and goes
+   * straight to the OpenAI (US, no-training API) path.
+   */
+  sensitive?: boolean;
 }
 type StreamingParams = Omit<
   OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming,
@@ -69,7 +85,9 @@ function toOpenRouterParams<
     model,
     ...(max_completion_tokens != null ? { max_tokens: max_completion_tokens } : {}),
     reasoning: { enabled: false },
-    // Pinned providers, not per-request routing. `sort: 'throughput'` picked a
+    // Pinned providers, not per-request routing. (The Oct 2026 audit moved the
+    // default list off the China-HQ hosts benchmarked below to US hosts; the
+    // OpenAI fallback still catches a slow or failing pin.) `sort: 'throughput'` picked a
     // different host each call, and on 6 Oct one of them ignored JSON mode
     // (fenced output) and crawled at ~60 tok/s until the token cap. Bake-off
     // 6 Oct on a 6-day/12-week program prompt (5 runs each): Alibaba 131–136
@@ -80,9 +98,10 @@ function toOpenRouterParams<
     // The pin is for the primary model only: an override (the nutrition plan's
     // GLM) isn't served by these hosts, so it keeps throughput routing — but
     // still only to hosts that honour response_format.
+    // data_collection 'deny': only hosts that neither retain nor train on prompts.
     provider: model === PRIMARY_CHAT_MODEL
-      ? { order: OPENROUTER_PROVIDERS, allow_fallbacks: false, require_parameters: true }
-      : { sort: 'throughput', require_parameters: true },
+      ? { order: OPENROUTER_PROVIDERS, allow_fallbacks: false, require_parameters: true, data_collection: 'deny' }
+      : { sort: 'throughput', require_parameters: true, data_collection: 'deny' },
   };
 }
 
@@ -93,19 +112,27 @@ export async function chatComplete(
   const reqOpts = opts.timeoutMs ? { timeout: opts.timeoutMs, maxRetries: 0 } : undefined;
   const t0 = Date.now();
   let reason: string;
-  try {
-    const res = await openrouter.chat.completions.create(
-      toOpenRouterParams(params) as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
-      reqOpts,
-    );
-    if (opts.label) logCall(opts.label, res, t0);
-    const bad = opts.requireJson ? incompleteJson(res) : null;
-    if (!bad) return res;
-    reason = bad;
-  } catch (err) {
-    reason = (err as Error)?.message ?? String(err);
+  if (opts.sensitive && sensitiveRoutingOn()) {
+    reason = 'sensitive prompt';
+  } else {
+    try {
+      const res = await openrouter.chat.completions.create(
+        toOpenRouterParams(params) as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
+        reqOpts,
+      );
+      if (opts.label) logCall(opts.label, res, t0);
+      // OpenRouter can answer 200 with an error body and no choices (e.g. "no
+      // providers available" for a pinned list) — that is a failure too.
+      const bad = !res?.choices?.length
+        ? `no choices${(res as any)?.error?.message ? `: ${(res as any).error.message}` : ''}`
+        : opts.requireJson ? incompleteJson(res) : null;
+      if (!bad) return res;
+      reason = bad;
+    } catch (err) {
+      reason = (err as Error)?.message ?? String(err);
+    }
+    console.warn(`[chatClient] ${opts.label ?? 'call'}: OpenRouter primary unusable (${reason}) after ${Date.now() - t0}ms, falling back to OpenAI`);
   }
-  console.warn(`[chatClient] ${opts.label ?? 'call'}: OpenRouter primary unusable (${reason}) after ${Date.now() - t0}ms, falling back to OpenAI`);
   const { modelOverride: _ignored, ...fallbackParams } = params;
   const t1 = Date.now();
   const res = await openaiDirect.chat.completions.create(
@@ -136,7 +163,9 @@ function logCall(label: string, res: OpenAI.Chat.Completions.ChatCompletion, t0:
   console.log(`[llm] ${label} model=${res.model} provider=${provider} finish=${res.choices?.[0]?.finish_reason} tokens=${tok} ms=${ms} tps=${ms ? Math.round(tok / (ms / 1000)) : 0}`);
 }
 
-export async function chatStream(params: StreamingParams) {
+export async function chatStream(params: StreamingParams, opts: { sensitive?: boolean } = {}) {
+  // Health-bearing prompts never take the OpenRouter tier.
+  if (opts.sensitive && sensitiveRoutingOn()) return openaiDirect.chat.completions.create({ ...params, model: FALLBACK_CHAT_MODEL });
   try {
     return await openrouter.chat.completions.create(
       toOpenRouterParams(params) as OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming,

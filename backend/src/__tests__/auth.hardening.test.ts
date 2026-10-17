@@ -13,6 +13,7 @@ process.env.JWT_SECRET = 'test_secret_key_at_least_32_chars_long!!';
 process.env.JWT_EXPIRES_IN = '1h';
 process.env.EMAIL_VERIFICATION_ENABLED = 'true';
 process.env.NODE_ENV = 'production';
+process.env.EMAIL_UNSUB_SECRET ??= 'test_unsub_secret_at_least_32_chars!!';
 
 const verifiedUser = {
   id: 'user_v', name: 'Verified', email: 'v@example.com', hashedPassword: '$2a$12$x',

@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { log } from './log';
 
 let SecureStore: typeof import('expo-secure-store') | null = null;
 if (Platform.OS !== 'web') {
@@ -89,7 +90,7 @@ export async function apiFetch(
   }
 
   const url = `${API_BASE}${path}`;
-  console.log(`[API] ${fetchOptions.method || 'GET'} ${url}`);
+  log.debug(`[API] ${fetchOptions.method || 'GET'} ${path}`);
 
   // Abort the request if it exceeds timeoutMs so a slow/stuck endpoint fails
   // fast with a clean error instead of hanging the screen. Pass timeoutMs: 0
@@ -103,7 +104,7 @@ export async function apiFetch(
       headers,
       signal: controller?.signal ?? fetchOptions.signal,
     });
-    console.log(`[API] ${path} -> ${res.status}`);
+    log.debug(`[API] ${path} -> ${res.status}`);
 
     // 304 is a SUCCESS, not a failure — but res.ok is false for it, so the
     // block below would throw on a routine cache revalidation. The body is
@@ -120,18 +121,23 @@ export async function apiFetch(
       // 401 is an expected auth state (signed out / expired), not a code error —
       // log it quietly so it doesn't read as a red error in the console.
       if (res.status === 401) {
-        console.log(`[API] ${path} -> 401 (auth required)`);
+        log.debug(`[API] ${path} -> 401 (auth required)`);
       } else {
         // 404s on optional resources (e.g. "no nutrition plan yet") are an
         // expected state, not an error — keep the console clean.
         if (res.status === 404 && (options as any)?.silent404) {
-          console.log(`[API] ${path} -> 404 (expected: ${message})`);
+          log.debug(`[API] ${path} -> 404 (expected: ${message})`);
         } else {
-          console.error(`[API] Error ${res.status} on ${path}: ${message}`);
+          log.error(`[API] Error ${res.status} on ${path}: ${message}`);
         }
       }
       const error = new Error(message);
       (error as any).status = res.status;
+      // Machine-readable fields (e.g. /auth/set-dob → reason: 'underage').
+      (error as any).body = parsed;
+      if (typeof parsed?.reason === 'string') (error as any).reason = parsed.reason;
+      // e.g. coach agent → 403 code 'pro_required', 503 code 'limit_unavailable'.
+      if (typeof parsed?.code === 'string') (error as any).code = parsed.code;
       throw error;
     }
 
@@ -140,19 +146,19 @@ export async function apiFetch(
     try {
       return JSON.parse(text);
     } catch {
-      console.warn(`[API] Non-JSON response from ${path}`);
+      log.warn(`[API] Non-JSON response from ${path}`);
       return { raw: text };
     }
   } catch (err: any) {
     if (err?.status) throw err;
     if (err?.name === 'AbortError') {
-      console.warn(`[API] ${path} timed out after ${timeoutMs}ms`);
+      log.warn(`[API] ${path} timed out after ${timeoutMs}ms`);
       const e: any = new Error('Request timed out. Please try again.');
       e.status = 0;
       e.timedOut = true;
       throw e;
     }
-    console.error(`[API] Network error on ${path}:`, err?.message || err);
+    log.error(`[API] Network error on ${path}:`, err?.message || err);
     throw new Error(`Network error: ${err?.message || 'Could not connect to server'}`);
   } finally {
     if (timer) clearTimeout(timer);
@@ -204,6 +210,12 @@ export const authApi = {
     apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) }, false),
 
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
+  /** Revokes every session for this account (bumps the server's tokenVersion). */
+  logoutAll: () => apiFetch('/auth/logout-all', { method: 'POST' }),
+
+  /** Records Terms/Privacy acceptance + explicit health-data consent (+ optional marketing). */
+  setConsent: (c: { acceptedTerms: boolean; healthConsent: boolean; marketingConsent: boolean }) =>
+    apiFetch('/auth/consent', { method: 'POST', body: JSON.stringify(c) }),
 
   getMe: () => apiFetch('/auth/me'),
 
@@ -1205,6 +1217,11 @@ export const socialApi = {
   removeFriend: (userId: string) => apiFetch(`/social/friends/${userId}`, { method: 'DELETE' }),
   blockUser: (targetUserId: string) =>
     apiFetch('/social/friends/block', { method: 'POST', body: JSON.stringify({ targetUserId }) }),
+  /** Block from anywhere (profile, comment, DM) — Guideline 1.2. */
+  blockUserById: (userId: string) =>
+    apiFetch(`/social/users/${encodeURIComponent(userId)}/block`, { method: 'POST' }),
+  unblockUser: (userId: string) =>
+    apiFetch(`/social/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' }),
 
   // User search
   searchUsers: (q: string) => apiFetch(`/social/users/search?q=${encodeURIComponent(q)}`),
@@ -1319,8 +1336,10 @@ export const socialApi = {
     apiFetch(`/social/posts/${postId}`, { method: 'DELETE' }),
 
   // Content moderation (required by Apple App Store for UGC)
-  reportPost: (itemId: string, reason: string) =>
-    apiFetch('/social/report', { method: 'POST', body: JSON.stringify({ itemId, reason }) }),
+  // reason ∈ sexual | harassment | hate | violence | spam | impersonation |
+  // self_harm | misinformation | other (the server 400s anything else).
+  reportPost: (itemId: string, reason: string, targetType: 'post' | 'comment' | 'message' | 'user' = 'post', details?: string) =>
+    apiFetch('/social/report', { method: 'POST', body: JSON.stringify({ itemId, reason, targetType, ...(details ? { details } : {}) }) }),
 };
 
 // ─── Train Together API ───────────────────────────────────────────────────────
@@ -1411,7 +1430,7 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const url = `${API_BASE}${path}`;
-  console.log(`[API] POST(upload) ${url}`);
+  log.debug(`[API] POST(upload) ${path}`);
   // Form-video analysis can run 60-90s end-to-end (upload + GCS save +
   // Vertex Gemini inference). RN's default fetch timeout on iOS is 60s,
   // which was causing "Network req failed" 499s — extend to 3 min.
@@ -1422,7 +1441,7 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
   try {
     const res = await fetch(url, { method: 'POST', headers, body: form, signal: controller.signal });
     clearTimeout(timeoutId);
-    console.log(`[API] ${path} -> ${res.status}`);
+    log.debug(`[API] ${path} -> ${res.status}`);
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
       let parsed: any = {};
@@ -1443,7 +1462,7 @@ export async function apiUpload(path: string, form: FormData, extraHeaders?: Rec
     if (err?.name === 'AbortError') {
       throw new Error('Upload timed out after 3 minutes. Try a shorter clip or a stronger connection.');
     }
-    console.error(`[API] Upload network error on ${path}:`, err?.message || err);
+    log.error(`[API] Upload network error on ${path}:`, err?.message || err);
     throw new Error(`Network error: ${err?.message || 'Could not upload'}`);
   }
 }

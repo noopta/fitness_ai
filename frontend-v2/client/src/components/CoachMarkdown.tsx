@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { SAFE_MARKDOWN_PROPS, SafeMarkdownLink } from "@/lib/markdown";
 
 interface CoachMarkdownProps {
   content: string;
@@ -15,7 +16,9 @@ export function CoachMarkdown({ content, compact = false }: CoachMarkdownProps) 
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        {...SAFE_MARKDOWN_PROPS}
         components={{
+          a: ({ href, children }) => <SafeMarkdownLink href={href}>{children}</SafeMarkdownLink>,
           table: ({ children }) => (
             <div className="my-3 overflow-x-auto rounded-lg border border-border">
               <table className="w-full min-w-[280px] border-collapse text-left">{children}</table>

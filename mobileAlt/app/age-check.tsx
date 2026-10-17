@@ -30,6 +30,20 @@ export default function AgeCheckScreen() {
     return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
   }
 
+  // Under 13: the server deletes the account when it sees the DOB (reason
+  // 'underage'), so all that's left here is the message and a local sign-out.
+  function endUnderage() {
+    Alert.alert(
+      'Age Restriction',
+      'You must be at least 13 years old to use Axiom. Your account has been removed.',
+      [{
+        text: 'OK',
+        onPress: () => { void logout().finally(() => router.replace('/(auth)/login' as any)); },
+      }],
+      { cancelable: false },
+    );
+  }
+
   async function handleContinue() {
     if (!dateOfBirth.trim()) {
       Alert.alert('Required', 'Please enter your date of birth.');
@@ -42,11 +56,12 @@ export default function AgeCheckScreen() {
     }
     const ageDays = (Date.now() - dob.getTime()) / 86400000;
     if (ageDays < 13 * 365.25) {
-      Alert.alert(
-        'Age Restriction',
-        'You must be at least 13 years old to use this app.',
-        [{ text: 'OK', onPress: () => logout() }],
-      );
+      // Still tell the server, so it removes the under-13 account's data
+      // rather than leaving it behind; the outcome is the same either way.
+      setSubmitting(true);
+      try { await authApi.setDob(dateOfBirth.trim()); } catch { /* expected: 400 underage */ }
+      setSubmitting(false);
+      endUnderage();
       return;
     }
 
@@ -60,6 +75,7 @@ export default function AgeCheckScreen() {
       // users see their dashboard.
       router.replace((await postAuthDestination(getLatestUser(), getFeatures())) as any);
     } catch (err: any) {
+      if (err?.reason === 'underage' || err?.body?.reason === 'underage') { endUnderage(); return; }
       Alert.alert('Error', err?.message || 'Could not save your date of birth. Please try again.');
     } finally {
       setSubmitting(false);

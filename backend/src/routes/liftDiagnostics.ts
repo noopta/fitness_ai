@@ -15,7 +15,6 @@
 // reducer (packages/diagnostic-core).
 
 import { Router, type Request, type Response } from 'express';
-import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -45,6 +44,15 @@ import {
 } from '../services/liftDiagnostic/verdict.js';
 import { parseTrimWindow, probeBufferDurationSec, runDiagnosticVideo, trimVideoBuffer } from '../services/liftDiagnostic/video.js';
 import { writeThroughWorkingSets } from '../services/liftDiagnostic/writeThrough.js';
+import {
+  createVideoUpload,
+  videoMaxMb,
+  readUploadedVideo,
+  cleanupVideoUpload,
+  videoJobSlots,
+  VIDEO_SLOT_WAIT_MS,
+  VIDEO_BUSY_MESSAGE,
+} from '../services/videoUpload.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -208,8 +216,18 @@ async function releaseStrandedTurns(sessionId: string, userId: string) {
   });
   if (!stranded.length) return;
   await prisma.diagnosticTurn.deleteMany({ where: { id: { in: stranded.map((t) => t.id) } } });
-  if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId)) && !(await isOnboarding(userId, sessionId))) {
-    await refundDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
+  if (stranded.some((t) => t.type === 'verdict') && !(await latestVerdict(sessionId))) {
+    // Which credit did the dead verdict spend? A stamped onboarding pass with
+    // no plan anywhere can only have been spent by a verdict that never landed.
+    const row = (await prisma.user.findUnique({
+      where: { id: userId },
+      select: { onboardingDiagnosticUsedAt: true } as any,
+    })) as { onboardingDiagnosticUsedAt?: Date | null } | null;
+    if (row?.onboardingDiagnosticUsedAt && !(await hasPlanElsewhere(userId, null))) {
+      await releaseOnboardingDiagnostic(userId);
+    } else {
+      await refundDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC).catch(() => {});
+    }
   }
 }
 
@@ -224,16 +242,49 @@ function missingNow(lift: ConversationLift, turns: TurnRow[]): string[] {
 
 /**
  * The first diagnosis a user ever gets is their onboarding, and onboarding
- * never counts toward a daily limit (product decision 2026-09-13). It stays
- * onboarding until some session of theirs — this flow or the old wizard —
- * has produced a plan, so exactly one diagnosis is free of the quota.
+ * never counts toward a daily limit (product decision 2026-09-13).
+ *
+ * Oct 2026 audit: "first" used to be derived from "no other session of theirs
+ * has a plan", which a user could reset by deleting sessions, so the free pass
+ * was repeatable. It is now a one-time stamp, User.onboardingDiagnosticUsedAt,
+ * claimed atomically when the onboarding verdict is generated and released
+ * only if that generation fails. The plan-based check is kept as a legacy
+ * guard so accounts that finished a diagnosis before the column existed are
+ * not handed a second free one.
  */
-async function isOnboarding(userId: string, sessionId: string): Promise<boolean> {
+async function hasPlanElsewhere(userId: string, sessionId: string | null): Promise<boolean> {
   const sessions = await prisma.session.findMany({
     where: { userId },
     select: { id: true, plans: { take: 1, select: { id: true } } },
   });
-  return !sessions.some((s) => s.id !== sessionId && s.plans.length > 0);
+  return sessions.some((s) => s.id !== sessionId && s.plans.length > 0);
+}
+
+/** Read-only: would this session's verdict still be the free onboarding one? */
+async function onboardingDiagnosticAvailable(userId: string, sessionId: string): Promise<boolean> {
+  const row = (await prisma.user.findUnique({
+    where: { id: userId },
+    select: { onboardingDiagnosticUsedAt: true } as any,
+  })) as { onboardingDiagnosticUsedAt?: Date | null } | null;
+  if (row?.onboardingDiagnosticUsedAt) return false;
+  return !(await hasPlanElsewhere(userId, sessionId));
+}
+
+/** Atomically spend the one-time onboarding pass. True only for the caller that stamped it. */
+async function claimOnboardingDiagnostic(userId: string, sessionId: string): Promise<boolean> {
+  if (!(await onboardingDiagnosticAvailable(userId, sessionId))) return false;
+  const r = await (prisma.user as any).updateMany({
+    where: { id: userId, onboardingDiagnosticUsedAt: null },
+    data: { onboardingDiagnosticUsedAt: new Date() },
+  });
+  return (r?.count ?? 0) === 1;
+}
+
+/** Give the pass back after a failed onboarding verdict. */
+async function releaseOnboardingDiagnostic(userId: string): Promise<void> {
+  await (prisma.user as any)
+    .updateMany({ where: { id: userId, onboardingDiagnosticUsedAt: { not: null } }, data: { onboardingDiagnosticUsedAt: null } })
+    .catch(() => {});
 }
 
 const sessionLocks = new Map<string, Promise<unknown>>();
@@ -372,7 +423,7 @@ async function applyTurn(
       // q2 always closes the interview (a video removes q0, never q2). The
       // daily limit blocks here, with the answer saved (§8).
       if (input.question !== 'q2' || (await latestVerdict(session.id))) return {};
-      if (await isOnboarding(userId, session.id)) return {};
+      if (await onboardingDiagnosticAvailable(userId, session.id)) return {};
       const quota = await peekDailyQuota(userId, await freshTier(userId), FEATURE.LIFT_DIAGNOSTIC);
       return quota.allowed ? {} : { limitReached: true };
     }
@@ -382,8 +433,15 @@ async function applyTurn(
         // A second tap (or a replayed client) never spends another diagnosis.
         const existing = await latestVerdict(session.id);
         if (existing) return { verdict: existing };
-        // Onboarding diagnoses skip the quota entirely.
-        if (await isOnboarding(userId, session.id)) return { verdict: await generateVerdict(session, userId) };
+        // The one-time onboarding diagnosis skips the quota entirely.
+        if (await claimOnboardingDiagnostic(userId, session.id)) {
+          try {
+            return { verdict: await generateVerdict(session, userId) };
+          } catch (err) {
+            await releaseOnboardingDiagnostic(userId);
+            throw err;
+          }
+        }
         const tier = await freshTier(userId);
         const quota = await consumeDailyQuota(userId, tier, FEATURE.LIFT_DIAGNOSTIC);
         if (!quota.allowed) return { limitReached: true };
@@ -468,7 +526,7 @@ router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
       prisma.user.findUnique({ where: { id: req.user!.id }, select: { unitPreference: true } }),
     ]);
     let reached = false;
-    if (!verdict && !(await isOnboarding(req.user!.id, session.id))) {
+    if (!verdict && !(await onboardingDiagnosticAvailable(req.user!.id, session.id))) {
       const quota = await peekDailyQuota(req.user!.id, await freshTier(req.user!.id), FEATURE.LIFT_DIAGNOSTIC);
       reached = !quota.allowed;
     }
@@ -490,7 +548,15 @@ router.get('/lift-diagnostics/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
+// Turns that can trigger plan generation (a verdict, or a late ratio that
+// re-scores) go through aiLimiter (Oct 2026 audit). The cheap bookkeeping
+// turns don't: a whole interview is ~12 taps in under a minute, and limiting
+// those would trip real users mid-conversation.
+const LLM_TURN_TYPES = new Set(['verdict', 'accessory']);
+const turnLimiter = (req: any, res: any, next: any) =>
+  LLM_TURN_TYPES.has(req.body?.input?.type) ? aiLimiter(req, res, next) : next();
+
+router.post('/lift-diagnostics/:id/turns', requireAuth, turnLimiter, async (req, res) => {
   const userId = req.user!.id;
   let claimedId: string | null = null;
   try {
@@ -564,18 +630,40 @@ router.post('/lift-diagnostics/:id/turns', requireAuth, async (req, res) => {
   }
 });
 
-const MAX_MB = parseInt(process.env.DIAGNOSTIC_VIDEO_MAX_MB || process.env.FORM_VIDEO_MAX_MB || '200', 10);
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_MB * 1024 * 1024, files: 1 },
-  fileFilter: (_req, file, cb) => (file.mimetype?.startsWith('video/') ? cb(null, true) : cb(new Error('Only video uploads are supported'))),
-});
-const uploadVideo = (req: any, res: any, next: any) =>
-  upload.single('video')(req, res, (err: any) => {
-    if (!err) return next();
-    if (err?.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: `Video is too large. Keep it under ${MAX_MB}MB.` });
-    return res.status(400).json({ error: err?.message || 'Invalid video upload' });
-  });
+// Disk-backed upload into a private temp dir, 100 MB default (Oct 2026 audit
+// M8/H2). DIAGNOSTIC_VIDEO_MAX_MB, then FORM_VIDEO_MAX_MB, override.
+const videoUpload = createVideoUpload('video', videoMaxMb('DIAGNOSTIC_VIDEO_MAX_MB'));
+const uploadVideo = videoUpload.middleware;
+
+/** Clip uploads per session, aborted ones included — each costs a GCS write + Gemini calls. */
+export const MAX_VIDEOS_PER_SESSION = 3;
+
+/**
+ * Runs BEFORE multer, so a request that would be refused never streams its
+ * body: ownership, the per-session clip cap, and the daily video quota (peek;
+ * the atomic charge happens once the clip is in).
+ */
+const videoPrecheck = async (req: any, res: any, next: any) => {
+  try {
+    const session = await loadConversation(req);
+    const videoTurns = await prisma.diagnosticTurn.findMany({
+      where: { sessionId: session.id, type: 'video' },
+      select: { id: true },
+    });
+    if (videoTurns.length >= MAX_VIDEOS_PER_SESSION) {
+      throw new HttpError(409, 'This diagnostic has reached its video limit');
+    }
+    const tier = await freshTier(req.user!.id);
+    req.diagnosticVideoTier = tier;
+    const quota = await peekDailyQuota(req.user!.id, tier, FEATURE.DIAGNOSTIC_VIDEO);
+    if (!quota.allowed) {
+      return res.status(429).json({ error: 'You have used today\'s video analyses. Try again tomorrow or upgrade to Pro.', feature: FEATURE.DIAGNOSTIC_VIDEO, limit: (quota as any).limit, resetAt: (quota as any).resetAt });
+    }
+    next();
+  } catch (err) {
+    sendError(res, err, 'video precheck');
+  }
+};
 
 function isAdult(dob: Date | null | undefined): boolean {
   if (!dob || !Number.isFinite(dob.getTime())) return false;
@@ -584,8 +672,12 @@ function isAdult(dob: Date | null | undefined): boolean {
   return dob.getTime() <= threshold.getTime();
 }
 
-router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
+router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, videoPrecheck, uploadVideo, async (req, res) => {
   const userId = req.user!.id;
+  const tier: string = (req as any).diagnosticVideoTier ?? 'free';
+  let charged = false;
+  let release: (() => void) | null = null;
+  let handedOff = false;
   try {
     const session = await loadConversation(req);
     const clientTurnId = z.string().min(8).max(64).regex(/^[A-Za-z0-9-]+$/).parse(req.body?.clientTurnId);
@@ -601,10 +693,31 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     if (turns.some((t) => t.type === 'video' && t.result?.video?.status !== 'aborted')) {
       throw new HttpError(409, 'This diagnostic already has a video');
     }
+    if (turns.filter((t) => t.type === 'video').length >= MAX_VIDEOS_PER_SESSION) {
+      throw new HttpError(409, 'This diagnostic has reached its video limit');
+    }
+
+    // Charged at upload, not at verdict: every clip costs a GCS write and two
+    // Gemini video calls whether or not a verdict follows. Refunded below on
+    // any failure that isn't the user's own Skip.
+    const quota = await consumeDailyQuota(userId, tier, FEATURE.DIAGNOSTIC_VIDEO);
+    if (!quota.allowed) {
+      return res.status(429).json({ error: 'You have used today\'s video analyses. Try again tomorrow or upgrade to Pro.', feature: FEATURE.DIAGNOSTIC_VIDEO });
+    }
+    charged = true;
+
+    // Bound how many clips sit in memory at once across the process.
+    release = await videoJobSlots.acquire(VIDEO_SLOT_WAIT_MS);
+    if (!release) {
+      res.set('Retry-After', '30');
+      throw new HttpError(503, VIDEO_BUSY_MESSAGE);
+    }
 
     // Trim window from the in-app trimmer (Android/web; iOS trims natively
     // before upload). Cut first, so every later step sees only the chosen rep.
-    let videoBuffer = req.file.buffer;
+    let videoBuffer = await readUploadedVideo(req);
+    await cleanupVideoUpload(req);
+    if (!videoBuffer || videoBuffer.length === 0) throw new HttpError(400, 'Attach a clip as the "video" field');
     const trim = parseTrimWindow(req.body?.trimStart, req.body?.trimEnd, MAX_CLIP_SECONDS + CLIP_GRACE_SECONDS);
     if (trim) {
       const trimmed = await trimVideoBuffer(videoBuffer, req.file.mimetype, trim.startSec, trim.endSec);
@@ -646,24 +759,37 @@ router.post('/lift-diagnostics/:id/video', requireAuth, aiLimiter, uploadVideo, 
     videoJobs.set(session.id, job);
 
     // Fire-and-forget; MUST be caught — an unhandled rejection can kill the process.
+    const slot = release;
+    handedOff = true;
+    const refund = () => refundDailyQuota(userId, tier, FEATURE.DIAGNOSTIC_VIDEO).catch(() => {});
     runDiagnosticVideo({ userId, lift: session.selectedLift, videoBuffer, mimeType, framesAllowed: wantsFrame && isAdult(dob), signal: job.signal })
       .finally(() => {
+        slot();
         if (videoJobs.get(session.id) === job) videoJobs.delete(session.id);
       })
-      .then((result) =>
+      .then(async (result) => {
+        // A failed analysis gives the credit back; a Skip (aborted) does not.
+        if (!result && !job.signal.aborted) await refund();
         // Only while still pending: a job that outlived the stale window was
         // already reported failed, and the user has moved on to the interview.
-        prisma.diagnosticTurn.updateMany({
+        return prisma.diagnosticTurn.updateMany({
           where: { id: turn.id, resultJson: JSON.stringify(pending) },
           data: { resultJson: JSON.stringify({ video: result ? { status: 'complete', result } : { status: 'failed', result: null } }) },
-        }),
-      )
-      .catch((err) => console.error('[lift-diagnostic] video job error:', err));
+        });
+      })
+      .catch(async (err) => {
+        console.error('[lift-diagnostic] video job error:', err);
+        if (!job.signal.aborted) await refund();
+      });
 
     posthog.capture({ distinctId: userId, event: 'diagnostic_video_attached', properties: { session_id: session.id, duration_sec: durationSec } });
     res.status(202).json({ result: pending });
   } catch (err) {
+    if (charged && !handedOff) await refundDailyQuota(userId, tier, FEATURE.DIAGNOSTIC_VIDEO).catch(() => {});
     sendError(res, err, 'video');
+  } finally {
+    await cleanupVideoUpload(req);
+    if (!handedOff) release?.();
   }
 });
 

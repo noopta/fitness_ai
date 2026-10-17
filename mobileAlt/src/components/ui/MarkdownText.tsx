@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { openExternal } from '../../lib/openExternal';
 
 // ── Inline token parser ────────────────────────────────────────────────────────
 // Handles **bold**, __bold__, *italic*, _italic_, `code`, ~~strike~~,
@@ -66,7 +67,7 @@ function InlineContent({ tokens, baseStyle }: { tokens: InlineToken[]; baseStyle
               <Text
                 key={i}
                 style={{ color: '#3b82f6', textDecorationLine: 'underline' }}
-                onPress={() => Linking.openURL(tok.href).catch(() => {})}
+                onPress={() => { void openExternal(tok.href); }}
               >
                 {tok.value}
               </Text>

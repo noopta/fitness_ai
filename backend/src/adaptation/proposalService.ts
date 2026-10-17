@@ -6,6 +6,7 @@
 // and both record what they did on the proposal row.
 
 import { parseUserPrefs } from '../services/userPrefs.js';
+import { clampDailyCalories, floorProfileFromRow } from '../services/nutritionSafety.js';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizePreference, type UnitPreference } from '../services/weightUnits.js';
@@ -362,9 +363,12 @@ async function applyLogTrend(
     inverse = { kind: 'restore_phase', previous };
     touched = 1;
   } else if (payload.kind === 'calorie_adjust') {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { dailyCalorieTarget: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { dailyCalorieTarget: true, weightKg: true, heightCm: true, dateOfBirth: true, coachProfile: true } });
     inverse = { kind: 'restore_calories', dailyCalorieTarget: user?.dailyCalorieTarget ?? null };
-    await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: payload.toKcal } });
+    // Hard calorie floor (Oct 2026 audit): no adaptation may push a target
+    // below the safety floor, whatever the proposal said.
+    const clamped = clampDailyCalories(payload.toKcal, floorProfileFromRow(user));
+    await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: clamped.calories } });
     cacheDelete(`userctx:${userId}`);
     cacheClearByPrefix(`dashboard:${userId}:`);
     touched = 1;

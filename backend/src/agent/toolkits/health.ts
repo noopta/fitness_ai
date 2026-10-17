@@ -8,7 +8,7 @@ import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { applyMacroChange } from '../applyTools.js';
 import { logBodyWeight, deleteBodyWeight, restoreBodyWeight, removeBodyWeightOn } from '../../services/bodyWeightService.js';
 import { upsertCheckin, revertCheckin } from '../../services/wellnessService.js';
-import { readMemory, appendMemory, replaceMemory } from '../memory.js';
+import { readMemory, appendMemory, replaceMemory, looksLikeInstruction } from '../memory.js';
 import { mergeBlobKeys, parseBlob } from '../profile/coachProfile.js';
 import { cacheDelete, cacheClearByPrefix } from '../../services/cacheService.js';
 import { dayNutrition } from './nutrition.js';
@@ -31,7 +31,7 @@ defineOp({
     const r = await applyMacroChange(userId, change);
     cacheClearByPrefix(`nutrition_profile:${userId}`);
     const lines = Object.keys(change).map((k) => `${LABEL[k]} · ${num(prev[k])}${UNIT[k]} → ${num(r.macros[k as keyof typeof r.macros] as number)}${UNIT[k]}`);
-    return { result: r, inverse: { op: 'nutrition.restore_macros', args: { macros: Object.fromEntries(Object.keys(change).map((k) => [k, prev[k]])), dailyCalorieTarget: u?.dailyCalorieTarget ?? null } }, summary: `Targets · ${lines.join('; ')}` };
+    return { result: r, inverse: { op: 'nutrition.restore_macros', args: { macros: Object.fromEntries(Object.keys(change).map((k) => [k, prev[k]])), dailyCalorieTarget: u?.dailyCalorieTarget ?? null } }, summary: `Targets · ${lines.join('; ')}${r.floorNote ? ` (${r.floorNote})` : ''}` };
   },
 });
 defineOp({
@@ -39,10 +39,16 @@ defineOp({
   run: async (userId, args) => {
     await applyMacroChange(userId, args.macros as any);
     // applyMacroChange mirrors calories into dailyCalorieTarget; put the user's own value back.
-    await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: (args.dailyCalorieTarget as number | null) ?? null } });
+    await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: await flooredTarget(userId, args.dailyCalorieTarget) } });
     return { inverse: null, summary: 'Targets restored' };
   },
 });
+/** A restored dailyCalorieTarget still respects the calorie floor. */
+async function flooredTarget(userId: string, v: unknown): Promise<number | null> {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return null;
+  const { clampDailyCalories, floorProfileFor } = await import('../../services/nutritionSafety.js');
+  return clampDailyCalories(v, await floorProfileFor(prisma, userId)).calories;
+}
 const LABEL: Record<string, string> = { calories: 'Calories', proteinG: 'Protein', carbsG: 'Carbs', fatG: 'Fat' };
 const UNIT: Record<string, string> = { calories: ' kcal', proteinG: ' g', carbsG: ' g', fatG: ' g' };
 
@@ -118,7 +124,7 @@ defineOp({
     if (args.planId) await prisma.nutritionPlan.deleteMany({ where: { id: String(args.planId), userId } });
     if (args.macros) {
       await applyMacroChange(userId, args.macros as any);
-      await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: (args.dailyCalorieTarget as number | null) ?? null } });
+      await prisma.user.update({ where: { id: userId }, data: { dailyCalorieTarget: await flooredTarget(userId, args.dailyCalorieTarget) } });
     }
     cacheClearByPrefix(`nutrition_profile:${userId}`);
     return { inverse: null, summary: 'Nutrition plan restored' };
@@ -276,15 +282,22 @@ export const HEALTH_TOOLS = [
       const change = Object.fromEntries(['calories', 'proteinG', 'carbsG', 'fatG'].filter((k) => numOr(input[k]) != null).map((k) => [k, Math.round(numOr(input[k])!)]));
       if (!Object.keys(change).length) throw new Error('Say which targets to change.');
       if (!before.calories && change.calories == null) throw new Error('Set a calorie target first — say the number.');
+      // The card shows the floor, not the request, when the request is below it.
+      let floorNote: string | null = null;
+      if (change.calories != null) {
+        const { clampDailyCalories, floorProfileFor } = await import('../../services/nutritionSafety.js');
+        const c = clampDailyCalories(change.calories, await floorProfileFor(prisma, userId));
+        if (c.clamped) { change.calories = c.calories; floorNote = c.note; }
+      }
       const tdee = np?.expectedOutcomes?.tdee;
       const kcal = (change.calories ?? before.calories) as number;
-      return { change, before, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why) };
+      return { change, before, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why), ...(floorNote ? { floorNote, tellUser: floorNote } : {}) };
     },
     card: (_i, r, ctx) => ({
       fn: 'NTP-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
       diff: Object.keys(r.change).map((k) => ({ key: LABEL[k], from: `${num(r.before[k])}${UNIT[k]}`, to: `${num(r.change[k])}${UNIT[k]}` })),
-      // One consequence line (P-04): the projected weekly change, else the reason.
-      why: r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : (r.why || undefined),
+      // One consequence line (P-04): the calorie-floor note, else the projected weekly change, else the reason.
+      why: r.floorNote ? r.floorNote : r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : (r.why || undefined),
       actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
       entity: 'nutrition:targets',
       pending: { actions: { apply: { op: 'nutrition.set_macros', args: { change: r.change } }, keep: { kind: 'keep' } } },
@@ -565,6 +578,8 @@ export const HEALTH_TOOLS = [
       const note = str(input.note).slice(0, 240);
       if (!note) throw new Error('Nothing to remember.');
       const change = await executeOp(userId, 'memory.add', { note });
+      // Instruction-like notes are kept for the user to see but never enter the prompt (memory.ts).
+      if (looksLikeInstruction(note)) return { saved: note, flagged: true, note: 'Saved for the user to review only. Notes are facts, not instructions — it will not be used in future prompts.', _change: change };
       return { saved: note, _change: change };
     },
     card: (_i, r) => ({ fn: 'MEM-02', pattern: 'logged', rule: 'log_undo', meta: { label: 'Noted', open: { page: 'memory' } }, rows: [{ key: r.saved }], undoLine: 'Undone — forgotten' }),

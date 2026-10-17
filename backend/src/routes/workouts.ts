@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { aiLimiter } from '../middleware/rateLimiter.js';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { normalizeExerciseBatch } from '../services/exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from './strength.js';
@@ -141,7 +142,7 @@ router.post('/workouts', requireAuth, async (req, res) => {
 // POST /api/workouts/parse-notes — read workouts pasted from somewhere else
 // (usually the phone's notes app) into sessions for the log form to prefill.
 // Nothing is saved here: each session is reviewed in the form first.
-router.post('/workouts/parse-notes', requireAuth, async (req, res) => {
+router.post('/workouts/parse-notes', requireAuth, aiLimiter, async (req, res) => {
   const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
   if (!text) return res.status(400).json({ error: 'Paste your workout first' });
   if (text.length > MAX_NOTES_CHARS) return res.status(400).json({ error: 'That is too much to read at once. Paste a few days at a time.', code: 'too_long' });

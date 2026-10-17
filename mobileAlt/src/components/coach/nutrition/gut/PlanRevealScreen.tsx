@@ -2,12 +2,15 @@
 // forward, hairline-ruled, citations inline. Doubles as the "living
 // document" view opened later from Coach → Nutrition (mode='document').
 import React, { useMemo, useState } from 'react';
-import { Modal, View, Text, Pressable, ScrollView, Linking, StyleSheet } from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { openExternal } from '../../../../lib/openExternal';
 import { colors } from '../../../../constants/theme';
 import { Eyebrow, CitationChip, EST_NOTE } from './GutPrimitives';
 
 interface PlanSource {
   id: number; type: string; title: string; detail?: string | null; url?: string | null;
+  /** Podcast sources carry a non-affiliation notice wherever they're shown. */
+  disclaimer?: string | null;
 }
 interface FocusNutrient {
   key: string; label: string; target: number; unit: string; why: string;
@@ -188,8 +191,11 @@ export function PlanRevealScreen({
               {!!sourceOpen.detail && (
                 <Text style={{ fontSize: 13, color: colors.mutedForeground, marginTop: 4 }}>{sourceOpen.detail}</Text>
               )}
+              {!!sourceOpen.disclaimer && (
+                <Text style={{ fontSize: 12, lineHeight: 17, color: colors.mutedForeground, marginTop: 8 }}>{sourceOpen.disclaimer}</Text>
+              )}
               {!!sourceOpen.url && (
-                <Pressable onPress={() => Linking.openURL(sourceOpen.url!)} style={[styles.primaryButton, { marginTop: 16 }]}>
+                <Pressable onPress={() => { void openExternal(sourceOpen.url); }} style={[styles.primaryButton, { marginTop: 16 }]}>
                   <Text style={{ color: colors.primaryForeground, fontWeight: '600', fontSize: 14 }}>
                     Watch the clip
                   </Text>

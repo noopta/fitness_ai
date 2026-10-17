@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, SendHorizonal, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { SAFE_MARKDOWN_PROPS, SafeMarkdownLink } from "@/lib/markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -89,7 +90,12 @@ export function ResultsChatCore({
                     )}
                     <div className="flex-1 min-w-0 [&_p]:my-1 [&_ul]:my-2 [&_li]:my-0 [&_strong]:font-semibold text-sm leading-relaxed">
                       {m.role === "assistant" ? (
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                        <ReactMarkdown
+                          {...SAFE_MARKDOWN_PROPS}
+                          components={{ a: ({ href, children }) => <SafeMarkdownLink href={href}>{children}</SafeMarkdownLink> }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
                       ) : (
                         <p className="leading-relaxed whitespace-pre-wrap m-0">{m.content}</p>
                       )}

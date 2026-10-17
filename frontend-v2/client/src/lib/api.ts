@@ -26,11 +26,49 @@ export function authFetch(url: string, options: RequestInit = {}): Promise<Respo
  * onChunk receives text deltas; onStatus (optional) receives the agent's
  * thinking/tool indicators. Resolves when the stream ends; throws on error.
  */
+/** A source the classic coach stream cites (podcast RAG). */
+export interface CoachReference {
+  speaker?: string;
+  guest?: string | null;
+  episode?: string;
+  chapter?: string | null;
+  url?: string;
+}
+
+/**
+ * Non-2xx from a coach chat route. `code` is the backend's machine code:
+ *   - 'pro_required'      (403) — chat is a Pro feature → show the upgrade CTA
+ *   - 'limit_unavailable' (503) — rate limiter backend down → "try again shortly"
+ */
+export class CoachChatError extends Error {
+  status: number;
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'CoachChatError';
+    this.status = status;
+    this.code = code;
+  }
+  get proRequired() { return this.code === 'pro_required' || (this.status === 403 && /pro/i.test(this.message)); }
+  get limitUnavailable() { return this.code === 'limit_unavailable' || this.status === 503; }
+}
+
+/** User-facing copy for a failed coach turn. */
+export function coachChatErrorMessage(err: unknown): string {
+  if (err instanceof CoachChatError) {
+    if (err.proRequired) return 'Chat with Anakin is a Pro feature. Upgrade to keep coaching.';
+    if (err.limitUnavailable) return 'Anakin is busy right now. Please try again in a moment.';
+  }
+  return (err as any)?.message || 'Failed to get response';
+}
+
 export async function streamCoachChat(opts: {
   message: string;
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
   onChunk: (text: string) => void;
   onStatus?: (phase: string, tool?: string) => void;
+  /** Cited sources + the attribution disclaimer that must be shown with them. */
+  onReferences?: (references: CoachReference[], disclaimer?: string) => void;
 }): Promise<void> {
   const body = JSON.stringify({ message: opts.message, history: opts.history });
 
@@ -40,8 +78,8 @@ export async function streamCoachChat(opts: {
     res = await authFetch(`${API_BASE_URL}/coach/chat/stream`, { method: 'POST', body });
   }
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error((data as any).error || 'Chat failed');
+    const data: any = await res.json().catch(() => ({}));
+    throw new CoachChatError(data.error || 'Chat failed', res.status, typeof data.code === 'string' ? data.code : undefined);
   }
 
   const reader = res.body!.getReader();
@@ -61,6 +99,10 @@ export async function streamCoachChat(opts: {
         const evt = JSON.parse(payload);
         // Classic format
         if (typeof evt.chunk === 'string') { opts.onChunk(evt.chunk); continue; }
+        if (Array.isArray(evt.references)) {
+          opts.onReferences?.(evt.references, typeof evt.disclaimer === 'string' ? evt.disclaimer : undefined);
+          continue;
+        }
         // Agent format
         if (evt.type === 'delta' && typeof evt.text === 'string') opts.onChunk(evt.text);
         else if (evt.type === 'status') opts.onStatus?.(evt.phase, evt.tool);

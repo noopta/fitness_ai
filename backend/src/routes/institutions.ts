@@ -6,6 +6,27 @@ import { requireInstitutionRole } from '../middleware/requireInstitutionRole.js'
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { computeStrengthProfile } from './strength.js';
 import { claimInvite, InviteError } from '../services/institutionInvites.js';
+import { moderateText } from '../services/moderationService.js';
+
+/** Institution display name cap (shown to every member). */
+export const INSTITUTION_NAME_MAX = 120;
+/** Logo URL cap; must be https. */
+export const LOGO_URL_MAX = 2048;
+/** Coach → athlete direct message cap. */
+export const COACH_MESSAGE_MAX = 2000;
+
+/** null when acceptable, else the client-facing error. Exported for tests. */
+export function validateLogoUrl(v: unknown): string | null {
+  if (v === null) return null; // clearing the logo
+  if (typeof v !== 'string' || !v.trim() || v.length > LOGO_URL_MAX) return `logoUrl must be an https URL of at most ${LOGO_URL_MAX} characters`;
+  try {
+    const u = new URL(v.trim());
+    if (u.protocol !== 'https:') return 'logoUrl must use https';
+  } catch {
+    return 'logoUrl must be a valid URL';
+  }
+  return null;
+}
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -100,16 +121,25 @@ router.post('/invite/:token/claim', requireAuth, async (req, res) => {
 // PATCH /institutions/:slug — update institution name/logo
 router.patch('/:slug', requireAuth, requireInstitutionRole('coach'), async (req, res) => {
   const { slug } = req.params;
-  const { name, logoUrl } = req.body;
+  const { name, logoUrl } = req.body ?? {};
   if (!name && logoUrl === undefined) {
     return res.status(400).json({ error: 'Provide at least one field to update: name, logoUrl' });
+  }
+  // Both are shown to every member (and logoUrl is fetched by their clients),
+  // so neither may be arbitrary: a bounded name, an https URL or null.
+  if (name !== undefined && (typeof name !== 'string' || !name.trim() || name.trim().length > INSTITUTION_NAME_MAX)) {
+    return res.status(400).json({ error: `name must be 1-${INSTITUTION_NAME_MAX} characters` });
+  }
+  if (logoUrl !== undefined) {
+    const logoErr = validateLogoUrl(logoUrl);
+    if (logoErr) return res.status(400).json({ error: logoErr });
   }
   try {
     const updated = await prisma.institution.update({
       where: { slug },
       data: {
-        ...(name !== undefined && { name }),
-        ...(logoUrl !== undefined && { logoUrl }),
+        ...(name !== undefined && { name: name.trim() }),
+        ...(logoUrl !== undefined && { logoUrl: logoUrl === null ? null : logoUrl.trim() }),
       },
     });
     return res.json(updated);
@@ -161,8 +191,14 @@ router.post('/:slug/invite', requireAuth, requireInstitutionRole('coach'), async
   if (!Number.isFinite(hours) || hours <= 0 || hours > 24 * 30) {
     return res.status(400).json({ error: 'expiresIn must be between 1 and 720 hours' });
   }
-  if (email !== undefined && (typeof email !== 'string' || email.length > 255)) {
+  if (email !== undefined && email !== null && (typeof email !== 'string' || email.length > 255)) {
     return res.status(400).json({ error: 'email must be a string' });
+  }
+  // A coach invite grants coach access to every athlete's data. An open
+  // (email-less) coach link can be forwarded to anyone, so it must name the
+  // person it is for; claimInvite enforces the match.
+  if (role === 'coach' && (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+    return res.status(400).json({ error: 'Coach invites must be addressed to an email' });
   }
 
   const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
@@ -172,7 +208,7 @@ router.post('/:slug/invite', requireAuth, requireInstitutionRole('coach'), async
       data: {
         institutionId: institution.id,
         invitedByUserId: req.user!.id,
-        email: email ?? null,
+        email: typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : null,
         role,
         expiresAt,
       },
@@ -201,6 +237,12 @@ router.delete(
         where: { institutionId_userId: { institutionId: institution.id, userId } },
       });
       if (!member) return res.status(404).json({ error: 'Member not found' });
+      // Coaches are peers: one may remove athletes or step down themselves,
+      // but not lock another coach out. (No 'owner' role exists; an admin
+      // handles coach disputes.)
+      if (member.role === 'coach' && userId !== req.user!.id) {
+        return res.status(403).json({ error: 'Coaches can\'t remove another coach.' });
+      }
 
       const updated = await prisma.institutionMember.update({
         where: { institutionId_userId: { institutionId: institution.id, userId } },
@@ -330,6 +372,9 @@ router.post(
     if (!body || typeof body !== 'string' || !body.trim()) {
       return res.status(400).json({ error: 'Message body is required' });
     }
+    if (body.trim().length > COACH_MESSAGE_MAX) {
+      return res.status(400).json({ error: `Message must be at most ${COACH_MESSAGE_MAX} characters` });
+    }
 
     try {
       // Confirm athlete is in this institution
@@ -341,6 +386,12 @@ router.post(
       }
 
       // Canonical ordering: participantA < participantB (lexicographic)
+      // Same moderation as any other DM (fails open for coach_message).
+      const verdict = await moderateText(body, 'coach_message', coachId);
+      if (!verdict.allowed) {
+        return res.status(400).json({ error: verdict.message ?? 'Message not allowed', blockedCategory: verdict.blockedCategory });
+      }
+
       const [participantAId, participantBId] =
         coachId < athleteId ? [coachId, athleteId] : [athleteId, coachId];
 

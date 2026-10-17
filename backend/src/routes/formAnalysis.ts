@@ -1,7 +1,7 @@
 // Workout-form video analysis (async / polling).
 //
 // POST /api/form-analysis/video — upload a lift video (multipart, "video"
-//   field, ≤200MB). Creates a FormAnalysis row with status='pending',
+//   field, ≤100MB by default). Creates a FormAnalysis row with status='pending',
 //   kicks off the Gemini call in the background, and returns 202 with the
 //   row id immediately. The client polls GET /:id to render terminal state.
 //   Free tier capped at FEATURE.FORM_VIDEO daily quota; pro unmetered.
@@ -34,13 +34,11 @@
 // parser and hands us a Buffer that the gemini service streams to GCS.
 
 import { Router } from 'express';
-import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { aiLimiter } from '../middleware/rateLimiter.js';
 import { screenFormVideo, recordScreenVerdict } from '../services/formVideoScreeningService.js';
 import {
-  analyzeWorkoutVideo,
   uploadFormVideo,
   analyzeFormVideoQuick,
   analyzeFormVideoFull,
@@ -52,31 +50,24 @@ import { postInitiatedLater } from '../agent/initiated.js';
 import { formResultCard } from '../agent/toolkits/cards.js';
 import {
   consumeDailyQuota,
+  peekDailyQuota,
   refundDailyQuota,
   FEATURE,
 } from '../services/featureUsageService.js';
+import {
+  createVideoUpload,
+  videoMaxMb,
+  readUploadedVideo,
+  cleanupVideoUpload,
+  videoJobSlots,
+  VIDEO_SLOT_WAIT_MS,
+  VIDEO_BUSY_MESSAGE,
+} from '../services/videoUpload.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
-// 200MB default — covers a 60s clip even at 4K. geminiService uploads the
-// video to GCS (no inline-base64 ceiling anymore), so the real constraint
-// is now nginx's body-size limit + how long the user is willing to wait
-// for the upload over their connection. Env-overridable.
-const MAX_MB = parseInt(process.env.FORM_VIDEO_MAX_MB || '200', 10);
 const UPGRADE_URL = 'https://buy.stripe.com/28E9AU15CaIJgYQ5zD0Ba00';
-
-// In-memory storage: the buffer is handed to geminiService which streams it
-// to GCS, never to local disk. Size-capped so a malicious upload can't
-// exhaust memory.
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_MB * 1024 * 1024, files: 1 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype?.startsWith('video/')) return cb(null, true);
-    cb(new Error('Only video uploads are supported'));
-  },
-});
 
 // Retaining stills of a minor's body is a materially different proposition to
 // retaining an adult's, and the app's floor is 13. Under-18 accounts get the
@@ -131,156 +122,251 @@ async function mayStoreFrames(userId: string, requested: boolean): Promise<boole
   }
 }
 
-// Wrap multer so its errors become clean JSON (it throws MulterError, e.g.
-// LIMIT_FILE_SIZE, which would otherwise hit the generic 500 handler).
-const uploadVideo = (req: any, res: any, next: any) =>
-  upload.single('video')(req, res, (err: any) => {
-    if (!err) return next();
-    if (err?.code === 'LIMIT_FILE_SIZE') {
-      return res.status(413).json({ error: `Video is too large. Keep it under ${MAX_MB}MB.` });
-    }
-    return res.status(400).json({ error: err?.message || 'Invalid video upload' });
-  });
+// Upload handling lives in services/videoUpload: the body streams to a private
+// temp dir (never the heap), the default cap is 100 MB (env FORM_VIDEO_MAX_MB),
+// and at most VIDEO_JOB_CONCURRENCY clips are held in memory per process.
+const videoUpload = createVideoUpload('video', videoMaxMb());
+const uploadVideo = videoUpload.middleware;
 
-router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
-  const userId = req.user!.id;
-  const tier = req.user!.tier;
+/** A clip the screening pass refused; its message is our own user-facing copy. */
+class ScreenedOutError extends Error {
+  readonly isScreenedOut = true;
+}
 
-  if (!req.file) {
-    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
-  }
+/** Fixed user-facing failure text. Provider errors (bucket/project/model ids) are logged, never stored or echoed. */
+const GENERIC_FAILURE = 'Analysis failed. Try again with a clip that clearly shows the full lift.';
 
-  const exerciseHint =
-    typeof req.body?.exerciseHint === 'string' && req.body.exerciseHint.trim()
-      ? req.body.exerciseHint.trim().slice(0, 120)
-      : null;
-
-  // Reserve the daily credit up-front (atomic) so concurrent requests can't
-  // both slip through. Refunded below if the analysis itself fails.
-  const quota = await consumeDailyQuota(userId, tier, FEATURE.FORM_VIDEO);
-  if (!quota.allowed) {
-    return res.status(429).json({
-      error: 'Free tier includes 1 form-video analysis per day. Upgrade to Pro for unlimited form checks.',
-      feature: FEATURE.FORM_VIDEO,
-      limit: quota.limit,
-      resetAt: quota.resetAt,
-      upgradeUrl: `${UPGRADE_URL}?client_reference_id=${userId}`,
-    });
-  }
-
-  // Backward-compatible mode select. Installed (synchronous) clients POST and
-  // wait for the analysis inline (legacy 200 contract). The new mobile build
-  // sends `X-Form-Analysis-Async: 1` to opt into the async flow: get a row id
-  // back immediately (202) and poll GET /:id, free to background the app.
-  const wantAsync = req.header('x-form-analysis-async') === '1';
-
-  const usage = {
-    feature: FEATURE.FORM_VIDEO,
-    used: quota.used,
-    limit: quota.limit,
-    remaining: quota.remaining,
-    resetAt: quota.resetAt,
-  };
-
-  // Create the row up-front as 'pending'. Both modes persist to FormAnalysis;
-  // async clients poll this id, sync clients get the row id back in the result.
-  const pending = await prisma.formAnalysis.create({
-    data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
-    select: { id: true, createdAt: true },
-  });
-
-  // Snapshot the buffer + mime — req.file goes out of scope once we respond,
-  // so the (possibly background) analysis needs its own references.
-  const videoBuffer = req.file.buffer;
-  const mimeType = req.file.mimetype;
-
-  // Opt-in, so anything other than an explicit '1' means no stills.
-  const framesRequested = String(req.body?.saveFrames ?? '') === '1';
-  const framesAllowed = await mayStoreFrames(userId, framesRequested);
-
-  // Shared work: run the analysis, write the row's terminal state, optionally
-  // push. Returns the analysis on success; on failure it marks the row failed,
-  // refunds the credit, then rethrows so the sync caller can 502.
-  const finalize = async (notify: boolean) => {
-    try {
-      const analysis = await analyzeWorkoutVideo(videoBuffer, mimeType, exerciseHint);
-
-      // Reference stills, if the user asked for them. Best-effort by design:
-      // extractReferenceFrames swallows its own failures and returns [], so a
-      // bad clip or a missing ffmpeg costs the pictures, never the analysis.
-      // `framesConsent` is persisted alongside so the row records the choice
-      // that produced it, not just the result.
-      const referenceFrames = framesAllowed
-        ? await extractReferenceFrames(videoBuffer, mimeType, analysis.weaknesses)
-        : [];
-      const stored = { ...analysis, framesConsent: framesAllowed, referenceFrames };
-
-      await prisma.formAnalysis.update({
-        where: { id: pending.id },
-        data: {
-          status: 'complete',
-          exercise: analysis.exercise || 'unknown',
-          formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
-          repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
-          analysisJson: JSON.stringify(stored),
-          errorMessage: null,
-        },
-      });
-      // Agent-first app: the result also lands in the chat as Anakin's turn.
-      postInitiatedLater(userId, async () => ({
-        text: `Your ${analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise.toLowerCase() : ''} form check is in.`.replace('  ', ' '),
-        cards: [formResultCard({ id: pending.id, status: 'complete', exercise: analysis.exercise, formScore: analysis.formScore, repCount: analysis.repCount, analysis })],
-      }));
-      if (notify) {
-        const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
-        const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
-        await sendPushToUser(
-          userId,
-          'Form analysis ready 🎥',
-          `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
-          { screen: 'form-analysis', id: pending.id },
-        ).catch(() => {});
-      }
-      return stored;
-    } catch (err: any) {
-      console.error('Form video analysis error:', err);
-      // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
-      await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
-      await prisma.formAnalysis.update({
-        where: { id: pending.id },
-        data: { status: 'failed', exercise: 'unknown', errorMessage: (err?.message ?? 'Analysis failed').slice(0, 500) },
-      }).catch(() => {});
-      if (notify) {
-        await sendPushToUser(
-          userId,
-          "Form analysis didn't finish",
-          "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
-          { screen: 'form-analysis', id: pending.id },
-        ).catch(() => {});
-      }
-      throw err;
-    }
-  };
-
-  if (wantAsync) {
-    // Fire-and-forget; notify on completion. MUST be caught — an uncaught
-    // rejection on a fire-and-forget promise can kill the process.
-    finalize(true).catch(() => {});
-    return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending', usage });
-  }
-
-  // Synchronous (default): await and return the analysis inline — the legacy
-  // 200 contract installed clients depend on. No push (the client is waiting).
+/** Tier from the DB, not the (up to 30-day-old) JWT claim. */
+async function freshTier(userId: string): Promise<string> {
   try {
-    const analysis = await finalize(false);
-    return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
-  } catch (err: any) {
-    // A safety refusal is the user's problem to fix, not ours — tell them what
-    // happened instead of the generic "couldn't analyze" that used to cover it.
-    if (err?.isContentBlocked) {
-      return res.status(400).json({ error: err.message });
+    const row = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+    return row?.tier ?? 'free';
+  } catch {
+    return 'free';
+  }
+}
+
+function quotaExceeded(res: any, userId: string, quota: { limit: number | null; resetAt: string }) {
+  return res.status(429).json({
+    error: 'Free tier includes 1 form-video analysis per day. Upgrade to Pro for unlimited form checks.',
+    feature: FEATURE.FORM_VIDEO,
+    limit: quota.limit,
+    resetAt: quota.resetAt,
+    upgradeUrl: `${UPGRADE_URL}?client_reference_id=${userId}`,
+  });
+}
+
+/**
+ * Runs BEFORE multer: an over-quota free user is answered 429 before a byte
+ * of their upload is read (Oct 2026 audit M8). The atomic consume still
+ * happens after the upload, so this peek can't be raced into a free pass.
+ */
+const formVideoPrecheck = async (req: any, res: any, next: any) => {
+  try {
+    const tier = await freshTier(req.user!.id);
+    req.formVideoTier = tier;
+    const quota = await peekDailyQuota(req.user!.id, tier, FEATURE.FORM_VIDEO);
+    if (!quota.allowed) return quotaExceeded(res, req.user!.id, quota);
+    next();
+  } catch (err) {
+    console.error('[form-analysis] precheck failed:', err);
+    res.status(503).json({ error: 'Form analysis is unavailable right now. Try again shortly.' });
+  }
+};
+
+router.post('/form-analysis/video', requireAuth, aiLimiter, formVideoPrecheck, uploadVideo, async (req, res) => {
+  const userId = req.user!.id;
+  const tier: string = (req as any).formVideoTier ?? (await freshTier(userId));
+  let handedOff = false;
+  let release: (() => void) | null = null;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
     }
-    return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
+
+    const exerciseHint =
+      typeof req.body?.exerciseHint === 'string' && req.body.exerciseHint.trim()
+        ? req.body.exerciseHint.trim().slice(0, 120)
+        : null;
+
+    // Reserve the daily credit up-front (atomic) so concurrent requests can't
+    // both slip through. Refunded below if the analysis itself fails.
+    const quota = await consumeDailyQuota(userId, tier, FEATURE.FORM_VIDEO);
+    if (!quota.allowed) return quotaExceeded(res, userId, quota);
+
+    // Bound how many clips sit in memory at once across the process.
+    release = await videoJobSlots.acquire(VIDEO_SLOT_WAIT_MS);
+    if (!release) {
+      await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
+      return res.status(503).set('Retry-After', '30').json({ error: VIDEO_BUSY_MESSAGE });
+    }
+
+    // Snapshot the buffer + mime — the temp file is removed in the finally
+    // below, so the (possibly background) analysis needs its own references.
+    const videoBuffer = await readUploadedVideo(req);
+    const mimeType = req.file.mimetype;
+    await cleanupVideoUpload(req);
+    if (!videoBuffer || videoBuffer.length === 0) {
+      await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
+      return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
+    }
+
+    // Backward-compatible mode select. Installed (synchronous) clients POST and
+    // wait for the analysis inline (legacy 200 contract). The new mobile build
+    // sends `X-Form-Analysis-Async: 1` to opt into the async flow: get a row id
+    // back immediately (202) and poll GET /:id, free to background the app.
+    const wantAsync = req.header('x-form-analysis-async') === '1';
+
+    const usage = {
+      feature: FEATURE.FORM_VIDEO,
+      used: quota.used,
+      limit: quota.limit,
+      remaining: quota.remaining,
+      resetAt: quota.resetAt,
+    };
+
+    // Create the row up-front as 'pending'. Both modes persist to FormAnalysis;
+    // async clients poll this id, sync clients get the row id back in the result.
+    const pending = await prisma.formAnalysis.create({
+      data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
+      select: { id: true, createdAt: true },
+    });
+
+    // Opt-in, so anything other than an explicit '1' means no stills.
+    const framesRequested = String(req.body?.saveFrames ?? '') === '1';
+    const framesAllowed = await mayStoreFrames(userId, framesRequested);
+
+    // Shared work: screen + analyze, write the row's terminal state, optionally
+    // push. Returns the analysis on success; on failure it marks the row failed,
+    // refunds the credit, then rethrows so the sync caller can 502.
+    const slot = release;
+    const finalize = async (notify: boolean) => {
+      let upload: { fileUri: string; cleanup: () => void } | null = null;
+      let preserveObject = false;
+      try {
+        upload = await uploadFormVideo(videoBuffer, mimeType);
+        // Screening (minor / CSAM / non-training content) runs alongside the
+        // analysis, exactly as on the onboarding and lift-diagnostic paths
+        // (Oct 2026 audit H4). allSettled: a safety block makes the analysis
+        // THROW, and that is precisely the clip whose verdict must be acted on.
+        const [screened, analyzed] = await Promise.allSettled([
+          screenFormVideo(upload.fileUri, mimeType),
+          analyzeFormVideoFull(upload.fileUri, mimeType, exerciseHint),
+        ]);
+        if (screened.status === 'rejected') throw screened.reason;
+        const screen = screened.value;
+        if (screen.action !== 'allow') {
+          preserveObject = screen.action === 'quarantine';
+          await recordScreenVerdict({
+            userId,
+            surface: 'form_video',
+            verdict: screen,
+            preservedObject: preserveObject ? upload.fileUri : null,
+          });
+          // Nothing derived from a refused clip is stored — no analysis, no stills.
+          await prisma.formAnalysis.update({
+            where: { id: pending.id },
+            data: { status: 'failed', exercise: 'unknown', errorMessage: screen.userMessage ?? 'This video could not be processed.' },
+          });
+          console.log(`[form-analysis] screened out ${pending.id}: ${screen.concern} (${screen.action})`);
+          throw new ScreenedOutError(screen.userMessage ?? 'This video could not be processed.');
+        }
+        if (analyzed.status === 'rejected') throw analyzed.reason;
+        const analysis = analyzed.value;
+
+        // Reference stills, if the user asked for them. Best-effort by design:
+        // extractReferenceFrames swallows its own failures and returns [], so a
+        // bad clip or a missing ffmpeg costs the pictures, never the analysis.
+        // `framesConsent` is persisted alongside so the row records the choice
+        // that produced it, not just the result.
+        const referenceFrames = framesAllowed
+          ? await extractReferenceFrames(videoBuffer, mimeType, analysis.weaknesses)
+          : [];
+        const stored = { ...analysis, framesConsent: framesAllowed, referenceFrames };
+
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: {
+            status: 'complete',
+            exercise: analysis.exercise || 'unknown',
+            formScore: Number.isFinite(analysis.formScore) ? analysis.formScore : null,
+            repCount: typeof analysis.repCount === 'number' ? analysis.repCount : null,
+            analysisJson: JSON.stringify(stored),
+            errorMessage: null,
+          },
+        });
+        // Agent-first app: the result also lands in the chat as Anakin's turn.
+        postInitiatedLater(userId, async () => ({
+          text: `Your ${analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise.toLowerCase() : ''} form check is in.`.replace('  ', ' '),
+          cards: [formResultCard({ id: pending.id, status: 'complete', exercise: analysis.exercise, formScore: analysis.formScore, repCount: analysis.repCount, analysis })],
+        }));
+        if (notify) {
+          const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
+          const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';
+          await sendPushToUser(
+            userId,
+            'Form analysis ready 🎥',
+            `${exerciseLabel} form check is done${scoreSuffix}. Tap to see your breakdown.`,
+            { screen: 'form-analysis', id: pending.id },
+          ).catch(() => {});
+        }
+        return stored;
+      } catch (err: any) {
+        if (err instanceof ScreenedOutError) throw err;
+        console.error('Form video analysis error:', err);
+        // Refund the credit — the user shouldn't lose it to a failure they didn't cause.
+        await refundDailyQuota(userId, tier, FEATURE.FORM_VIDEO).catch(() => {});
+        await prisma.formAnalysis.update({
+          where: { id: pending.id },
+          data: { status: 'failed', exercise: 'unknown', errorMessage: err?.isContentBlocked ? String(err.message).slice(0, 200) : GENERIC_FAILURE },
+        }).catch(() => {});
+        if (notify) {
+          await sendPushToUser(
+            userId,
+            "Form analysis didn't finish",
+            "We couldn't analyze that clip. Tap to try again — your daily credit was refunded.",
+            { screen: 'form-analysis', id: pending.id },
+          ).catch(() => {});
+        }
+        throw err;
+      } finally {
+        slot();
+        if (preserveObject) {
+          console.error(`[form-analysis] object preserved for review, cleanup skipped: ${upload?.fileUri}`);
+        } else {
+          upload?.cleanup();
+        }
+      }
+    };
+
+    handedOff = true;
+    if (wantAsync) {
+      // Fire-and-forget; notify on completion. MUST be caught — an uncaught
+      // rejection on a fire-and-forget promise can kill the process.
+      finalize(true).catch(() => {});
+      return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending', usage });
+    }
+
+    // Synchronous (default): await and return the analysis inline — the legacy
+    // 200 contract installed clients depend on. No push (the client is waiting).
+    try {
+      const analysis = await finalize(false);
+      return res.json({ id: pending.id, createdAt: pending.createdAt, analysis, usage });
+    } catch (err: any) {
+      // A safety refusal is the user's problem to fix, not ours — tell them what
+      // happened instead of the generic "couldn't analyze" that used to cover it.
+      // Both messages are our own fixed strings, never provider text.
+      if (err?.isContentBlocked || err instanceof ScreenedOutError) {
+        return res.status(400).json({ error: err.message });
+      }
+      return res.status(502).json({ error: 'Could not analyze that video. Make sure it clearly shows the full lift, then try again.' });
+    }
+  } catch (err) {
+    console.error('[form-analysis] upload handling failed:', err);
+    if (!res.headersSent) res.status(500).json({ error: 'Could not process that upload.' });
+  } finally {
+    await cleanupVideoUpload(req);
+    if (!handedOff) release?.();
   }
 });
 
@@ -304,19 +390,17 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, uploadVideo, async (
 //  3. Eligibility is "this user has never run an analysis", which needs no
 //     schema column — the FormAnalysis row count IS the flag. A second call
 //     404s back to the metered route rather than handing out free passes.
-router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, async (req, res) => {
-  const userId = req.user!.id;
-
-  if (!onboardingHookAvailableFor(userId, req.user!.email)) {
-    return res.status(403).json({
-      error: 'The onboarding form check is not available.',
-      reason: 'not_enabled',
-    });
-  }
-
-  if (!req.file) {
-    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
-  }
+// Eligibility (flag, 18+, first clip) is decided BEFORE multer reads the body,
+// so an ineligible request never costs an upload's worth of disk or memory.
+const onboardingPrecheck = async (req: any, res: any, next: any) => {
+  try {
+    const userId = req.user!.id;
+    if (!onboardingHookAvailableFor(userId, req.user!.email)) {
+      return res.status(403).json({
+        error: 'The onboarding form check is not available.',
+        reason: 'not_enabled',
+      });
+    }
 
   // ── Age gate. The onboarding hook is 18+ ────────────────────────────────
   //
@@ -332,24 +416,51 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
   // Unknown DOB fails closed. A user with no date of birth on file is not
   // assumed adult — they skip the hook and go straight to intake, which is a
   // strictly better outcome than guessing.
-  const dobRow = await prisma.user.findUnique({ where: { id: userId }, select: { dateOfBirth: true } });
-  if (!isAtLeast(dobRow?.dateOfBirth, ONBOARDING_MIN_AGE_YEARS)) {
-    return res.status(403).json({
-      error: 'The onboarding form check is available to users 18 and over.',
-      reason: 'age_restricted',
-    });
+    const dobRow = await prisma.user.findUnique({ where: { id: userId }, select: { dateOfBirth: true } });
+    if (!isAtLeast(dobRow?.dateOfBirth, ONBOARDING_MIN_AGE_YEARS)) {
+      return res.status(403).json({
+        error: 'The onboarding form check is available to users 18 and over.',
+        reason: 'age_restricted',
+      });
+    }
+
+    // The eligibility gate. Note this is a count, not a boolean flag: it is
+    // self-healing (deleting your analyses makes you eligible again, which is
+    // fine — you also deleted your history) and needs no migration.
+    // NOTE (audit L13): that self-reset makes the hook quota-free on repeat;
+    // move to a one-time user marker before enabling ONBOARDING_FORM_HOOK_ENABLED.
+    const priorAnalyses = await prisma.formAnalysis.count({ where: { userId } });
+    if (priorAnalyses > 0) {
+      return res.status(409).json({
+        error: 'The onboarding analysis is only available on your first clip.',
+        useInstead: '/api/form-analysis/video',
+      });
+    }
+    next();
+  } catch (err) {
+    console.error('[form-analysis] onboarding precheck failed:', err);
+    res.status(503).json({ error: 'Form analysis is unavailable right now. Try again shortly.' });
+  }
+};
+
+router.post('/form-analysis/onboarding', requireAuth, aiLimiter, onboardingPrecheck, uploadVideo, async (req, res) => {
+  const userId = req.user!.id;
+  let handedOff = false;
+  let release: (() => void) | null = null;
+  try {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
   }
 
-  // The eligibility gate. Note this is a count, not a boolean flag: it is
-  // self-healing (deleting your analyses makes you eligible again, which is
-  // fine — you also deleted your history) and needs no migration.
-  const priorAnalyses = await prisma.formAnalysis.count({ where: { userId } });
-  if (priorAnalyses > 0) {
-    return res.status(409).json({
-      error: 'The onboarding analysis is only available on your first clip.',
-      useInstead: '/api/form-analysis/video',
-    });
+  release = await videoJobSlots.acquire(VIDEO_SLOT_WAIT_MS);
+  if (!release) return res.status(503).set('Retry-After', '30').json({ error: VIDEO_BUSY_MESSAGE });
+  const videoBuffer = await readUploadedVideo(req);
+  const mimeType = req.file.mimetype;
+  await cleanupVideoUpload(req);
+  if (!videoBuffer || videoBuffer.length === 0) {
+    return res.status(400).json({ error: 'No video uploaded. Attach a clip as the "video" field.' });
   }
+  const slot = release;
 
   const exerciseHint =
     typeof req.body?.exerciseHint === 'string' && req.body.exerciseHint.trim()
@@ -368,11 +479,6 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
     data: { userId, status: 'pending', exercise: 'pending', exerciseHint, analysisJson: '{}' },
     select: { id: true, createdAt: true },
   });
-
-  // req.file goes out of scope once we respond; the background work needs
-  // its own references.
-  const videoBuffer = req.file.buffer;
-  const mimeType = req.file.mimetype;
 
   // Two passes, one upload. The user waits only for the first.
   const runBothPasses = async () => {
@@ -493,11 +599,12 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
           data: {
             status: 'failed',
             exercise: 'unknown',
-            errorMessage: err?.message?.slice(0, 300) ?? 'Analysis failed',
+            errorMessage: err?.isContentBlocked ? String(err.message).slice(0, 200) : GENERIC_FAILURE,
           },
         })
         .catch(() => {});
     } finally {
+      slot();
       // Quarantined objects are left in place on purpose. The bucket's 1-day
       // lifecycle rule would still reap them, so acting on a quarantine alert
       // is time-bound — that window is the reason the log line is an error.
@@ -512,9 +619,17 @@ router.post('/form-analysis/onboarding', requireAuth, aiLimiter, uploadVideo, as
   // Fire and forget — the client polls GET /:id. No push notification here:
   // unlike the main route the user is staring at the screen, and a push for
   // something already on screen reads as a bug.
+  handedOff = true;
   runBothPasses().catch(() => {});
 
   return res.status(202).json({ id: pending.id, createdAt: pending.createdAt, status: 'pending' });
+  } catch (err) {
+    console.error('[form-analysis] onboarding upload handling failed:', err);
+    if (!res.headersSent) res.status(500).json({ error: 'Could not process that upload.' });
+  } finally {
+    await cleanupVideoUpload(req);
+    if (!handedOff) release?.();
+  }
 });
 
 router.get('/form-analysis', requireAuth, async (req, res) => {

@@ -6,6 +6,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { bounded } from '../validation/physiologicalBounds.js';
 import { cacheDelete, cacheClearByPrefix } from './cacheService.js';
 import { normalizeExerciseBatch } from './exerciseNormalizationService.js';
 import { recomputeStrengthProfileInBackground } from '../routes/strength.js';
@@ -30,26 +31,32 @@ const prisma = new PrismaClient();
 // source of truth for the diagnostic engine + e1RM calc; the top-level
 // `weightKg` and `reps` then represent a summary view (top set's load and
 // reps) and are still accepted for backward compatibility with old clients.
+//
+// Bounds (Oct 2026 audit): every number finite and inside the physiological
+// HARD range (validation/physiologicalBounds.ts), every string and list
+// capped — a log is replayed into LLM prompts and the leaderboard.
+export const WORKOUT_LIMITS = { name: 120, title: 120, notes: 2000, reps: 20, exercises: 60, setEntries: 100 } as const;
+
 export const setEntrySchema = z.object({
-  weightKg: z.number().nonnegative().optional().nullable(),
-  reps: z.number().int().min(0).max(100),
-  rpe: z.number().min(0).max(10).optional().nullable(),
+  weightKg: bounded('liftWeightKg', 'Weight').optional().nullable(),
+  reps: bounded('reps', 'Reps').int(),
+  rpe: z.number().finite().min(0).max(10).optional().nullable(),
 });
 
 export const exerciseSchema = z.object({
-  name: z.string().min(1),
-  sets: z.number().int().min(1).max(100),
-  reps: z.string().min(1),         // e.g. "8" or "6-8"
-  weightKg: z.number().nonnegative().optional().nullable(),
-  rpe: z.number().min(0).max(10).optional().nullable(),
-  notes: z.string().optional().nullable(),
+  name: z.string().trim().min(1).max(WORKOUT_LIMITS.name),
+  sets: bounded('sets', 'Sets').int().min(1),
+  reps: z.string().min(1).max(WORKOUT_LIMITS.reps),         // e.g. "8" or "6-8"
+  weightKg: bounded('liftWeightKg', 'Weight').optional().nullable(),
+  rpe: z.number().finite().min(0).max(10).optional().nullable(),
+  notes: z.string().max(WORKOUT_LIMITS.notes).optional().nullable(),
   // True for unloaded movements (abs, push-ups, etc.). Stored verbatim so
   // progress/PR logic can track by reps instead of load.
   bodyweight: z.boolean().optional(),
   // Optional per-set breakdown. When provided, length should match `sets`
   // but we don't fail validation if it doesn't — we just trust whichever
   // value is the source of truth (setEntries.length).
-  setEntries: z.array(setEntrySchema).optional().nullable(),
+  setEntries: z.array(setEntrySchema).max(WORKOUT_LIMITS.setEntries).optional().nullable(),
 });
 
 // Which planned program day this log fulfils. Sent by the client when the
@@ -63,9 +70,9 @@ export const programDayRefSchema = z.object({
 
 export const workoutLogSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  title: z.string().optional().nullable(),
-  exercises: z.array(exerciseSchema).min(1),
-  notes: z.string().optional().nullable(),
+  title: z.string().max(WORKOUT_LIMITS.title).optional().nullable(),
+  exercises: z.array(exerciseSchema).min(1).max(WORKOUT_LIMITS.exercises),
+  notes: z.string().max(WORKOUT_LIMITS.notes).optional().nullable(),
   duration: z.number().int().min(1).max(600).optional().nullable(),
   programDayRef: programDayRefSchema.optional().nullable(),
 });
@@ -218,8 +225,9 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
     console.error('[workouts] adaptation post-workout failed:', err?.message ?? err);
   }
 
-  // Proactive agent drop-in (inert until AGENT_PROACTIVE_ENABLED).
-  if (!backdated && !quiet) void (async () => {
+  // Proactive agent drop-in. Gated HERE, not only at delivery: the evaluation
+  // is a paid agent turn, and it used to run on every log (audit HIGH-2).
+  if (!backdated && !quiet && process.env.AGENT_PROACTIVE_ENABLED === 'true') void (async () => {
     try {
       const { runProactiveSweep } = await import('../agent/proactiveSweep.js');
       await runProactiveSweep('post_workout', [userId]);

@@ -29,6 +29,19 @@ interface StoredMessage {
   cards?: CardRef[];
 }
 
+/**
+ * The <app_note> block is the server telling the model which cards are on
+ * screen; the model is told the user didn't type it. A user who types their
+ * own <app_note> could forge that channel, so any such text in a user's
+ * message is removed before the real note is prefixed (Oct 2026 audit LOW-1).
+ */
+export function stripAppNotes(text: string): string {
+  return String(text ?? '')
+    .replace(/<\s*app_note[^>]*>[\s\S]*?<\s*\/\s*app_note\s*>/gi, '')
+    .replace(/<\s*\/?\s*app_note[^>]*>/gi, '')
+    .trim();
+}
+
 /** Stored messages as-is (for the history endpoint). */
 export async function loadStoredMessages(userId: string): Promise<StoredMessage[]> {
   const row = await prisma.agentConversation.findUnique({ where: { userId } });
@@ -58,7 +71,8 @@ export function modelHistory(stored: StoredMessage[]): { history: Anthropic.Mess
     if (m.role === 'user') {
       const note = appNote(waiting);
       waiting = [];
-      msgs.push({ role: 'user', content: note ? `${note}\n\n${m.text}` : m.text });
+      const own = stripAppNotes(m.text) || '(empty message)';
+      msgs.push({ role: 'user', content: note ? `${note}\n\n${own}` : own });
       continue;
     }
     const { text, cards } = splitStored(m);
@@ -81,7 +95,9 @@ export async function loadConversation(userId: string): Promise<Anthropic.Messag
  */
 export async function loadTurn(userId: string, userText: string): Promise<{ history: Anthropic.MessageParam[]; message: string }> {
   const { history, pending } = modelHistory(await loadStoredMessages(userId));
-  return { history, message: pending ? `${pending}\n\n${userText}` : userText };
+  // Anthropic rejects empty content, so a message that was only a forged note keeps a placeholder.
+  const own = stripAppNotes(userText) || '(empty message)';
+  return { history, message: pending ? `${pending}\n\n${own}` : own };
 }
 
 export async function appendTurn(

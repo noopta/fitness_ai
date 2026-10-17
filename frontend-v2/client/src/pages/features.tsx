@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { storeReferralCode } from '@/lib/referral';
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
@@ -16,6 +17,7 @@ import { SEO } from "@/components/SEO";
 import { HeroV2 } from "@/components/landing/HeroV2";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { MemberProofSection } from "@/components/landing/MemberProofSection";
+import { SiteFooter } from "@/components/landing/SiteFooter";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 
@@ -416,7 +418,7 @@ const ANAKIN_TABS = [
     label: "Nutrition Intelligence",
     icon: Utensils,
     headline: "A 4-layer dietitian stack, not a calorie calculator",
-    body: "A deterministic engine computes your TDEE, a rules engine adjusts for your goal (deficit, surplus, or recomp), RAG retrieval pulls peer-reviewed sports science, and an LLM dietitian persona reasons over pre-computed data, never guessing, always citing. Log meals manually, by description, or by photo.",
+    body: "A deterministic engine computes your TDEE, a rules engine adjusts for your goal (deficit, surplus, or recomp), RAG retrieval pulls from established nutrition science, and an LLM dietitian persona reasons over pre-computed data, never guessing, always citing. Log meals manually, by description, or by photo.",
     mock: NutritionMock,
   },
   {
@@ -432,7 +434,7 @@ const ANAKIN_TABS = [
     label: "24/7 Chat",
     icon: MessageCircle,
     headline: "A coach with full memory who never clocks out",
-    body: "Anakin is trained on NASM, ISSA, ACE, and 7,000+ pages of peer-reviewed sports science, and he knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you, not generic advice from a textbook.",
+    body: "Anakin is built on established strength-training and nutrition science, and he knows your complete training history, current program phase, diagnostic results, wellness check-ins, and nutrition logs. Every answer is specific to you, not generic advice from a textbook.",
     mock: ChatMock,
   },
   {
@@ -1242,7 +1244,7 @@ const COMPARISON_ROWS = [
   { feature: "Phase & sticking-point identification", values: [true, false, false, false, false] },
   { feature: "Weakness hypothesis ranking", values: [true, false, false, false, false] },
   { feature: "Goal-aligned nutrition (all goal types)", values: [true, "Basic", false, false, "Calories only"] },
-  { feature: "RAG-backed peer-reviewed nutrition science", values: [true, false, false, false, false] },
+  { feature: "Grounded in established nutrition science", values: [true, false, false, false, false] },
   { feature: "Food photo scanning", values: [true, true, false, false, true] },
   { feature: "Persistent AI coach with full context", values: [true, false, false, false, false] },
   { feature: "Life Happened program adjustment", values: [true, false, false, false, false] },
@@ -1426,7 +1428,7 @@ function HeroStatsRow() {
     <div className="rounded-2xl border bg-card overflow-hidden grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x">
       <StatPill value="9" label="Supported lifts including Olympic" />
       <StatPill value="5" label="Muscle-group indices per session" />
-      <StatPill value="7,000+" label="Pages of research from NASM, ISSA, ACE" />
+      <StatPill value="Evidence" label="Built on established training & nutrition science" />
       <StatPill value="4-layer" label="AI nutrition pipeline" />
       <StatPill
         value="24/7"
@@ -1538,7 +1540,7 @@ export default function FeaturesPage() {
   useEffect(() => {
     // Store affiliate referral code from URL for use at registration
     const ref = new URLSearchParams(window.location.search).get('ref');
-    if (ref) localStorage.setItem('axiom_referral', ref.toUpperCase().trim());
+    if (ref) storeReferralCode(ref);
     return trackPageTime('features');
   }, []);
   return (
@@ -1559,6 +1561,7 @@ export default function FeaturesPage() {
       <FeatureGrid />
       <ComparisonSection />
       <CTASection />
+      <SiteFooter />
     </div>
   );
 }

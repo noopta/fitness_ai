@@ -2,6 +2,7 @@
 // the shared meal service (saved-food library, nutrition streak, activity),
 // so a meal logged in chat is identical to one logged in Fuel.
 
+import { sanitizeMealMacros } from '../../services/nutritionSafety.js';
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
@@ -259,11 +260,15 @@ export const NUTRITION_TOOLS = [
         }
         const d = await withBrandedLookups(d0, { tz: ctx.tz, userId, surface: 'chat', explicit: input.lookItUp === true || asksForLookup(desc) });
         const web = d.lookups?.some((l) => l.status === 'found');
-        meal = { date, name: str(input.name) || d.name, mealType: slotOf(input.mealType, ctx.tz), calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, ingredients: d.ingredients, tags: d.tags, plants: d.plants, fermentedFoods: d.fermentedFoods, ultraProcessed: d.ultraProcessed, nutrients: d.nutrients, nutrientMap: d.nutrientMap, ingredientNutrients: d.ingredientDetails, source: 'agent-parsed', parseConfidence: (d as any).confidence ?? null, ...(web ? { notes: d.notes } : {}) };
+        // Model-asserted numbers: clamp per meal and check calories against 4/4/9.
+        const safe = sanitizeMealMacros({ calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG });
+        meal = { date, name: str(input.name) || d.name, mealType: slotOf(input.mealType, ctx.tz), calories: safe.calories, proteinG: safe.proteinG, carbsG: safe.carbsG, fatG: safe.fatG, ingredients: d.ingredients, tags: d.tags, plants: d.plants, fermentedFoods: d.fermentedFoods, ultraProcessed: d.ultraProcessed, nutrients: d.nutrients, nutrientMap: d.nutrientMap, ingredientNutrients: d.ingredientDetails, source: 'agent-parsed', parseConfidence: (d as any).confidence ?? null, ...(web ? { notes: d.notes } : {}) };
         lookups = d.lookups ?? null;
       } else {
         if (!explicit && !str(input.name)) throw new Error('Tell me what you ate.');
-        meal = { date, name: str(input.name) || str(input.description) || 'Meal', mealType: slotOf(input.mealType, ctx.tz), calories: numOr(input.calories, 0), proteinG: numOr(input.proteinG, 0), carbsG: numOr(input.carbsG, 0), fatG: numOr(input.fatG, 0), source: 'agent-manual' };
+        // Numbers the user gave: clamp only (a partial set, like calories alone, is normal).
+        const safe = sanitizeMealMacros({ calories: numOr(input.calories, 0), proteinG: numOr(input.proteinG, 0), carbsG: numOr(input.carbsG, 0), fatG: numOr(input.fatG, 0) }, { atwater: false });
+        meal = { date, name: str(input.name) || str(input.description) || 'Meal', mealType: slotOf(input.mealType, ctx.tz), calories: safe.calories, proteinG: safe.proteinG, carbsG: safe.carbsG, fatG: safe.fatG, source: 'agent-manual' };
       }
       const change = await executeOp(userId, 'meal.create', { input: meal });
       return { logged: change.summary, mealId: (change.result as any).id, ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
@@ -475,7 +480,8 @@ export const NUTRITION_TOOLS = [
     receipt: (i) => ({ verb: 'Searched', text: str(i.food) }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
-      const { detail: d } = await parseTypedMeal(str(input.food), 'global', { tz: ctx.tz, userId, surface: 'lookup', explicit: asksForLookup(str(input.food)) });
+      const { detail: d0 } = await parseTypedMeal(str(input.food), 'global', { tz: ctx.tz, userId, surface: 'lookup', explicit: asksForLookup(str(input.food)) });
+      const d = { ...d0, ...sanitizeMealMacros({ calories: d0.calories, proteinG: d0.proteinG, carbsG: d0.carbsG, fatG: d0.fatG }) };
       return { ...(d.clarify?.length ? { couldAsk: d.clarify[0] } : {}), ...(d.lookups?.length ? { lookedUp: lookupSummary(d.lookups) } : {}), name: d.name, calories: d.calories, proteinG: d.proteinG, carbsG: d.carbsG, fatG: d.fatG, fiberG: (d.nutrients as any)?.fiberG ?? null, date: ctx.today, slot: slotOf(null, ctx.tz), _parsed: d };
     },
     card: (_i, r) => ({

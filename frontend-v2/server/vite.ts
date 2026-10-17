@@ -9,10 +9,12 @@ import { nanoid } from "nanoid";
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
+  // Inherit allowedHosts / fs from vite.config.ts (restricted hosts, strict
+  // fs) instead of overriding them with allowedHosts: true.
   const serverOptions = {
+    ...viteConfig.server,
     middlewareMode: true,
     hmr: { server, path: "/vite-hmr" },
-    allowedHosts: true as const,
   };
 
   const vite = await createViteServer({

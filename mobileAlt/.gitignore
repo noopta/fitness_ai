@@ -4,3 +4,7 @@
 
 expo-env.d.ts
 # @end expo-cli.expo/
+
+# EAS Update code-signing private key lives outside the repo (secure-backups); never commit it
+keys/
+*.private-key.pem

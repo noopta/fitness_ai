@@ -42,11 +42,11 @@ export function TrimSheet({ visible, uri, durationSec, onCancel, onDone }: Props
         <Text style={styles.hint}>{COPY.trimHint}</Text>
         <View style={styles.webWrap}>
           <WebView
-            originWhitelist={['*']}
+            // Local page only: no file-URL cross-origin/universal access (a
+            // script in the page could otherwise read other files on disk).
+            originWhitelist={['file://*']}
             source={{ html, baseUrl: 'file:///' }}
             allowFileAccess
-            allowFileAccessFromFileURLs
-            allowUniversalAccessFromFileURLs
             mediaPlaybackRequiresUserAction={false}
             javaScriptEnabled
             scrollEnabled={false}
@@ -71,8 +71,13 @@ export function TrimSheet({ visible, uri, durationSec, onCancel, onDone }: Props
   );
 }
 
+/** Escape for a double-quoted HTML attribute value. */
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function trimmerHtml(uri: string, durationSec: number): string {
-  const src = JSON.stringify(uri);
+  const src = `"${escapeAttr(String(uri))}"`;
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
   html,body{margin:0;background:#fff;font:14px -apple-system,Roboto,sans-serif;color:#09090b}

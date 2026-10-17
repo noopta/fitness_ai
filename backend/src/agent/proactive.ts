@@ -14,6 +14,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { runAgentTurn } from './loop.js';
 import type { AgentTool } from './types.js';
+import { SAFETY_BLOCK } from '../prompts/safety.js';
 
 export type ProactiveTrigger =
   | 'nightly_review'
@@ -53,7 +54,11 @@ Be conservative. A proactive push is an interruption; only send one when it's ge
 
 If — and only if — a notification is clearly worth it, call propose_notification with a SHORT title (≤5 words) and a body (≤140 chars) that is specific to their real data (use their actual numbers). Otherwise, do not call it.
 
-After deciding, reply with one sentence explaining your decision.`;
+After deciding, reply with one sentence explaining your decision.
+
+You cannot change anything for the user here: no logging, settings or targets — only decide on the notification. A push body never states body weight, calorie deficits or targets below maintenance, and never mentions an injury or medical condition.
+
+${SAFETY_BLOCK}`;
 
 /**
  * Evaluate a trigger for a user. Returns the agent's decision WITHOUT sending
@@ -71,6 +76,8 @@ export async function evaluateProactiveTrigger(
   const holder: { proposal: { title: string; body: string } | null } = { proposal: null };
 
   const proposeNotification: AgentTool = {
+    // A proposal: it only records the draft here (the run is read-only).
+    kind: 'propose',
     name: 'propose_notification',
     description:
       'Propose a push notification to send to the user. Only call this if a notification is genuinely warranted. Title ≤5 words, body ≤140 chars, specific to their real data.',
@@ -95,9 +102,21 @@ export async function evaluateProactiveTrigger(
     systemOverride: PROACTIVE_SYSTEM,
     extraTools: [proposeNotification],
     injectClient,
+    // No user is in this conversation: nothing may be written on their behalf.
+    readOnly: true,
   });
 
-  const proposal = holder.proposal;
+  let proposal = holder.proposal;
+  if (proposal) {
+    // A push is model-written text shown on a lock screen: moderate it, and
+    // drop it when moderation blocks or can't run (push_body fails closed).
+    const { moderateText } = await import('../services/moderationService.js');
+    const verdict = await moderateText(`${proposal.title}\n${proposal.body}`, 'push_body', userId).catch(() => null);
+    if (!verdict?.allowed) {
+      console.warn(`[proactive] ${trigger} user=${userId.slice(0, 8)} push dropped by moderation (${verdict?.blockedCategory ?? 'unavailable'})`);
+      proposal = null;
+    }
+  }
   return {
     trigger,
     shouldNotify: proposal !== null,

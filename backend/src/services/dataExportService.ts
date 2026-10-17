@@ -81,6 +81,26 @@ export interface UserDataExport {
   nutrition: Record<string, unknown[]>;
   social: Record<string, unknown[]>;
   coaching: Record<string, unknown[]>;
+  /** Records a personal trainer's practice holds about this user as their client. */
+  heldByTrainers: Record<string, unknown[]>;
+}
+
+/**
+ * A Train Together pin as exported for one member: their own fit cards only.
+ * sharedFitJson is `{ [userId]: cards[] }` across every member, and the other
+ * members' programmed work is theirs, not this user's (Oct 2026 audit).
+ * Exported for tests.
+ */
+export function scopePartnerWorkoutForExport<T extends { sharedFitJson?: string | null; members?: unknown }>(pin: T, userId: string): T {
+  const { members: _m, ...rest } = pin as any;
+  let mine: unknown = null;
+  if (typeof pin.sharedFitJson === 'string' && pin.sharedFitJson) {
+    try {
+      const all = JSON.parse(pin.sharedFitJson);
+      if (all && typeof all === 'object' && !Array.isArray(all) && userId in all) mine = { [userId]: all[userId] };
+    } catch { /* unparseable → nothing of theirs to export */ }
+  }
+  return { ...rest, sharedFitJson: mine ? JSON.stringify(mine) : null } as T;
 }
 
 /**
@@ -100,7 +120,9 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     posts, comments, reactions, friendships, sentMessages,
     diagnosticMessages, agentConversations, wellnessCheckins, activityLogs,
     scheduleOverrides, adaptationProposals, diagnosticTurns, agentMemory, agentCards, agentChanges,
-    groupMemberships, groupMessages, partnerWorkouts, savedArticles, featureUsage, institutionMemberships,
+    groupMemberships, groupMessages, partnerWorkoutsRaw, savedArticles, featureUsage, institutionMemberships,
+    ptClientProfiles, ptIntakes, ptGoals, ptMeasurements, ptContraindications, ptNutritionTargets,
+    ptPrograms, ptCheckIns, ptReports, ptBookings, ptClientPlans, ptNotes, ptProgressPhotos, ptProspects,
   ] = await Promise.all([
     safeMany('session', () => p.session.findMany({ where: { userId } })),
     safeMany('exerciseSnapshot', () => p.exerciseSnapshot.findMany({ where: { session: { userId } } })),
@@ -150,11 +172,35 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     safeMany('groupMember', () => p.groupMember.findMany({ where: { userId } })),
     // As with DMs, only this user's own group messages.
     safeMany('groupMessage', () => p.groupMessage.findMany({ where: { senderId: userId } })),
-    safeMany('partnerWorkout', () => p.partnerWorkout.findMany({ where: { creatorId: userId } })),
+    // Every pin the user is on (created or invited), not only ones they created.
+    safeMany('partnerWorkout', () => p.partnerWorkout.findMany({
+      where: { OR: [{ creatorId: userId }, { members: { some: { userId } } }] },
+    })),
     safeMany('savedArticle', () => p.savedArticle.findMany({ where: { userId } })),
     safeMany('featureUsage', () => p.featureUsage.findMany({ where: { userId } })),
     safeMany('institutionMember', () => p.institutionMember.findMany({ where: { userId } })),
+
+    // Trainer-held records about this user as a client (clientId = their user id).
+    safeMany('ptClientProfile', () => p.ptClientProfile.findMany({ where: { clientId: userId } })),
+    safeMany('ptIntake', () => p.ptIntake.findMany({ where: { clientId: userId } })),
+    safeMany('ptGoal', () => p.ptGoal.findMany({ where: { clientId: userId } })),
+    safeMany('ptMeasurement', () => p.ptMeasurement.findMany({ where: { clientId: userId } })),
+    safeMany('ptContraindication', () => p.ptContraindication.findMany({ where: { clientId: userId } })),
+    safeMany('ptNutritionTarget', () => p.ptNutritionTarget.findMany({ where: { clientId: userId } })),
+    safeMany('ptProgram', () => p.ptProgram.findMany({ where: { clientId: userId } })),
+    safeMany('ptCheckIn', () => p.ptCheckIn.findMany({ where: { clientId: userId } })),
+    safeMany('ptReport', () => p.ptReport.findMany({ where: { clientId: userId } })),
+    safeMany('ptBooking', () => p.ptBooking.findMany({ where: { clientId: userId } })),
+    safeMany('ptClientPlan', () => p.ptClientPlan.findMany({ where: { clientId: userId } })),
+    safeMany('ptNote', () => p.ptNote.findMany({ where: { clientId: userId } })),
+    // Photo metadata only; the images stay behind signed URLs (bucket keys omitted).
+    safeMany('ptProgressPhoto', () => p.ptProgressPhoto.findMany({
+      where: { clientId: userId },
+      select: { id: true, practiceId: true, pose: true, date: true, note: true, source: true, createdAt: true },
+    })),
+    safeMany('ptProspect', () => p.ptProspect.findMany({ where: { userId } })),
   ]);
+  const partnerWorkouts = (partnerWorkoutsRaw as any[]).map((w) => scopePartnerWorkoutForExport(w, userId));
 
   return {
     exportedAt: new Date().toISOString(),
@@ -171,5 +217,11 @@ export async function buildUserDataExport(userId: string): Promise<UserDataExpor
     nutrition: { mealEntries, nutritionLogs, nutritionPlans, savedFoods, recipes },
     social: { posts, comments, reactions, friendships, sentMessages, groupMemberships, groupMessages, partnerWorkouts, institutionMemberships },
     coaching: { diagnosticMessages, agentConversations, agentMemory, agentCards, agentChanges, wellnessCheckins, activityLogs, savedArticles, featureUsage },
+    heldByTrainers: {
+      clientProfiles: ptClientProfiles, intakes: ptIntakes, goals: ptGoals, measurements: ptMeasurements,
+      contraindications: ptContraindications, nutritionTargets: ptNutritionTargets, programs: ptPrograms,
+      checkIns: ptCheckIns, reports: ptReports, bookings: ptBookings, clientPlans: ptClientPlans,
+      notes: ptNotes, progressPhotos: ptProgressPhotos, prospectRecords: ptProspects,
+    },
   };
 }

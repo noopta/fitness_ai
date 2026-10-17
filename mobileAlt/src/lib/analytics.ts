@@ -32,16 +32,17 @@ export const posthog = new PostHog(
 
 // ─── Identity ─────────────────────────────────────────────────────────────────
 
+/**
+ * Identify by opaque user id only. Name / email / username are deliberately
+ * NOT sent as person properties (privacy audit Oct 2026): PostHog is a third
+ * party, and the id already joins events to our own records server-side.
+ * Extra keys passed by older callers are ignored.
+ */
 export function identifyUser(userId: string, props?: {
-  name?: string | null;
-  email?: string | null;
-  username?: string | null;
   tier?: string | null;
+  [legacy: string]: unknown;
 }) {
   posthog.identify(userId, {
-    name: props?.name ?? undefined,
-    email: props?.email ?? undefined,
-    username: props?.username ?? undefined,
     tier: props?.tier ?? 'free',
   });
   // Firebase: ties the device's analytics events to our user id so

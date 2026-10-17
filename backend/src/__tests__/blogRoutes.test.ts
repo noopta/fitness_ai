@@ -200,11 +200,11 @@ describe('subscriber list', () => {
     const r = await request(app).post('/api/blog/admin/subscribers').set(ADMIN)
       .send({ emails: [' Saeed.Abiissa@gmail.com ', 'themoroccandevil@gmail.com', 'saeed.abiissa@gmail.com'] });
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ added: ['saeed.abiissa@gmail.com', 'themoroccandevil@gmail.com'], existing: [] });
+    expect(r.body).toMatchObject({ added: ['saeed.abiissa@gmail.com', 'themoroccandevil@gmail.com'], existing: [] });
     expect(store.subs.map(s => s.addedBy)).toEqual(['inquiries@axiomtraining.io', 'inquiries@axiomtraining.io']);
 
     const again = await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['themoroccandevil@gmail.com'] });
-    expect(again.body).toEqual({ added: [], existing: ['themoroccandevil@gmail.com'] });
+    expect(again.body).toMatchObject({ added: [], existing: ['themoroccandevil@gmail.com'] });
     expect(store.subs).toHaveLength(2);
 
     expect((await request(app).post('/api/blog/admin/subscribers').set(ADMIN).send({ emails: ['not-an-email'] })).status).toBe(400);

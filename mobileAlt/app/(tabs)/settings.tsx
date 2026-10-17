@@ -19,6 +19,8 @@ import { Badge } from '../../src/components/ui/Badge';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { UpgradeSheet } from '../../src/components/UpgradeSheet';
 import { InAppBrowser } from '../../src/components/ui/InAppBrowser';
+import { contactSupport } from '../../src/lib/openExternal';
+import { manageSubscription, isStripeSubscriber, STORE_MANAGE_TEXT } from '../../src/v2/billing';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 import { trackScreen, trackScreenTime, Analytics } from '../../src/lib/analytics';
@@ -218,33 +220,24 @@ export default function SettingsScreen() {
     }
   };
 
+  // Only Stripe (web) subscribers get a link — the Stripe Customer Portal.
+  // App Store / Google Play subscribers see plain text pointing at their store
+  // (store policy: no external billing links for IAP subscribers).
+  const [stripeSub, setStripeSub] = useState(false);
+  useEffect(() => {
+    let live = true;
+    if (isPro) void isStripeSubscriber().then((v) => { if (live) setStripeSub(v); });
+    return () => { live = false; };
+  }, [isPro]);
+
   async function handleManageSubscription() {
-    // Rail-aware: Stripe subscribers get the Stripe Customer Portal (swap
-    // card, cancel, invoices); IAP subscribers get the platform's own
-    // subscription manager. Previously this ALWAYS opened Apple's page —
-    // Stripe subscribers landed on an empty list with no way to manage.
+    setPortalLoading(true);
     try {
-      const status = await paymentsApi.getPaymentsStatus();
-      const stripeActive = ['active', 'trialing', 'past_due'].includes(status?.subStatus);
-      if (stripeActive) {
-        const portal = await paymentsApi.getPaymentsPortal();
-        if (portal?.url) {
-          await WebBrowser.openBrowserAsync(portal.url);
-          return;
-        }
-      }
-    } catch {
-      // Status/portal unavailable — fall through to the store manager rather
-      // than dead-ending the tap.
+      const via = await manageSubscription();
+      if (via !== 'stripe') Alert.alert('Manage subscription', STORE_MANAGE_TEXT);
+    } finally {
+      setPortalLoading(false);
     }
-    if (Platform.OS === 'android') {
-      Linking.openURL('https://play.google.com/store/account/subscriptions').catch(() => {});
-      return;
-    }
-    // Apple requires this path for IAP subscribers
-    Linking.openURL('https://apps.apple.com/account/subscriptions').catch(() => {
-      Linking.openURL('App-prefs:root=APPLE_ACCOUNT&path=SUBSCRIPTIONS');
-    });
   }
 
   function handleDeleteAccount() {
@@ -463,16 +456,20 @@ export default function SettingsScreen() {
                   <Text style={styles.cardRowSub}>Full access to all features.</Text>
                 </View>
               </View>
-              <TouchableOpacity
-                style={styles.outlineButton}
-                activeOpacity={0.82}
-                onPress={handleManageSubscription}
-              >
-                {portalLoading
-                  ? <ActivityIndicator size="small" color={colors.foreground} />
-                  : <Text style={styles.outlineButtonText}>Manage Subscription</Text>
-                }
-              </TouchableOpacity>
+              {stripeSub ? (
+                <TouchableOpacity
+                  style={styles.outlineButton}
+                  activeOpacity={0.82}
+                  onPress={handleManageSubscription}
+                >
+                  {portalLoading
+                    ? <ActivityIndicator size="small" color={colors.foreground} />
+                    : <Text style={styles.outlineButtonText}>Manage Subscription</Text>
+                  }
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.cardRowSub}>{STORE_MANAGE_TEXT}</Text>
+              )}
             </View>
           </View>
         ) : (
@@ -581,6 +578,17 @@ export default function SettingsScreen() {
                 <View style={styles.rowDivider} />
               </>
             ) : null}
+            <TouchableOpacity
+              onPress={() => contactSupport()}
+              activeOpacity={0.7}
+              style={styles.accountRow}
+              accessibilityLabel="Contact or report a concern"
+            >
+              <Ionicons name="mail-outline" size={20} color={colors.foreground} />
+              <Text style={[styles.signOutText, { color: colors.foreground }]}>Contact / Report a concern</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+            <View style={styles.rowDivider} />
             <TouchableOpacity
               onPress={handleSignOut}
               activeOpacity={0.7}

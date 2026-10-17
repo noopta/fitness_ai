@@ -16,6 +16,7 @@ import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import liftDiagnosticsRoutes from './routes/liftDiagnostics.js';
 import waitlistRoutes from './routes/waitlist.js';
+import coachBetaRoutes from './routes/coachBeta.js';
 import authRoutes from './routes/auth.js';
 import paymentsRoutes from './routes/payments.js';
 import appleIapRoutes from './routes/appleIap.js';
@@ -150,7 +151,7 @@ app.use(cors({
     callback(corsErr);
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Timezone'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Timezone', 'X-Affiliate-Token'],
   credentials: true
 }));
 // Body size. The 10MB ceiling exists for base64 image payloads (meal photos,
@@ -229,6 +230,8 @@ app.use('/api', sessionsRoutes);
 // Conversational lift diagnostic (single-thread flow, turn transcript).
 app.use('/api', liftDiagnosticsRoutes);
 app.use('/api', waitlistRoutes);
+// Public coach beta / launch list (/coaches page) + admin export.
+app.use('/api', coachBetaRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', blogRoutes);
@@ -295,8 +298,13 @@ process.on('unhandledRejection', (reason) => {
   alertUncaughtException('unhandledRejection', reason).catch(() => {});
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Axiom API running on http://localhost:${PORT}`);
+// Bind to loopback in production: nginx (127.0.0.1 upstream) is the only
+// legitimate client, and `trust proxy 1` would otherwise let anyone who reaches
+// the port directly pick their own X-Forwarded-For and dodge every IP limit.
+// HOST overrides (e.g. HOST=0.0.0.0 for a container).
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0');
+app.listen(Number(PORT), HOST, () => {
+  console.log(`🚀 Axiom API running on http://${HOST}:${PORT}`);
   console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
 });
 

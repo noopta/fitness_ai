@@ -65,7 +65,7 @@ export async function completeRaw(system: string, user: string, maxTokens: numbe
   if (!llmEnabled()) return null;
   try {
     const result = await Promise.race([
-      chatComplete({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_completion_tokens: maxTokens, temperature: 0 } as any),
+      chatComplete({ messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_completion_tokens: maxTokens, temperature: 0 } as any, { sensitive: true }),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
     ]);
     return (result as any)?.choices?.[0]?.message?.content?.trim() || null;
@@ -82,7 +82,7 @@ async function complete(user: string, maxTokens: number): Promise<string | null>
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: user }],
         max_completion_tokens: maxTokens,
         temperature: 0.5,
-      } as any),
+      } as any, { sensitive: true }), // client names + trainer facts: never the OpenRouter tier
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 9000)),
     ]);
     const text = (result as any)?.choices?.[0]?.message?.content?.trim();

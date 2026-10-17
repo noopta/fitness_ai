@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getToken, socialApi } from '../../src/lib/api';
+import { userSafetyMenu } from '../../src/lib/moderation';
 import { ContributionGraph } from '../../src/components/ContributionGraph';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../src/constants/theme';
 
@@ -137,7 +138,22 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.screenTitle}>Profile</Text>
+        <Text style={[styles.screenTitle, { flex: 1 }]}>Profile</Text>
+        {/* Report / Block (Guideline 1.2) */}
+        {!isSelf ? (
+          <TouchableOpacity
+            onPress={() => userSafetyMenu({
+              userId: user.id,
+              name: displayName,
+              blocked: friendshipStatus === 'blocked',
+              onBlockChange: (b) => setFriendshipStatus(b ? 'blocked' : 'none'),
+            })}
+            hitSlop={10}
+            accessibilityLabel="Report or block"
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.foreground} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <ScrollView

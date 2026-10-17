@@ -9,7 +9,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Pressable } from '../../primitives/Pressable';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../../lib/openExternal';
 import { PushedPage } from '../../shell/Page';
 import { Row, Eyebrow } from '../../primitives/Row';
 import { TextAction } from '../../primitives/TextAction';
@@ -110,7 +110,11 @@ export function PlanSourcesPage() {
     <PushedPage back="Plan" meta={q.data ? `${list.length} ${list.length === 1 ? 'source' : 'sources'}` : null} title="Sources" lead="What your plan's focus nutrients and gut protocol are built on." loading={q.isLoading}>
       {list.map((s, i) => (
         <Row key={s.id} name={s.title} sub={s.detail || (s.type === 'podcast' ? 'Podcast' : 'Research library')} last={i === list.length - 1}
-          onPress={s.url ? () => void WebBrowser.openBrowserAsync(String(s.url)) : undefined} />
+          onPress={s.url ? () => void openExternal(String(s.url)) : undefined} />
+      ))}
+      {/* Podcast sources carry a non-affiliation notice; show each distinct one once. */}
+      {Array.from(new Set(list.map((s) => s.disclaimer).filter((d): d is string => !!d))).map((d) => (
+        <Text key={d} style={[T.caption, { marginTop: 16 }]}>{d}</Text>
       ))}
     </PushedPage>
   );

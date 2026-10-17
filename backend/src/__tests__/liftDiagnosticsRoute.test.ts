@@ -108,6 +108,19 @@ const db = vi.hoisted(() => {
     user: {
       findUnique: vi.fn(async ({ where }: any) => tables.user.find((u) => u.id === where.id) ?? null),
       update: vi.fn(async () => ({})),
+      // Only the onboarding-pass stamp uses this: { id, onboardingDiagnosticUsedAt: null | { not: null } }.
+      updateMany: vi.fn(async ({ where, data }: any) => {
+        const rows = tables.user.filter((u) => {
+          if (u.id !== where.id) return false;
+          const cur = u.onboardingDiagnosticUsedAt ?? null;
+          const want = where.onboardingDiagnosticUsedAt;
+          if (want === null) return cur === null;
+          if (want && typeof want === 'object' && 'not' in want) return cur !== null;
+          return true;
+        });
+        rows.forEach((r) => Object.assign(r, data));
+        return { count: rows.length };
+      }),
     },
   };
   return { tables, prisma, reset: () => { for (const k of Object.keys(tables)) (tables as any)[k] = []; } };
@@ -121,7 +134,7 @@ vi.mock('@prisma/client', () => ({
 
 const quota = vi.hoisted(() => ({ allowed: true }));
 vi.mock('../services/featureUsageService.js', () => ({
-  FEATURE: { LIFT_DIAGNOSTIC: 'lift_diagnostic' },
+  FEATURE: { LIFT_DIAGNOSTIC: 'lift_diagnostic', DIAGNOSTIC_VIDEO: 'diagnostic_video' },
   peekDailyQuota: vi.fn(async () => ({ allowed: quota.allowed })),
   consumeDailyQuota: vi.fn(async () => ({ allowed: quota.allowed })),
   refundDailyQuota: vi.fn(async () => {}),
@@ -493,5 +506,84 @@ describe('resume, list, share', () => {
     const pub = await request(app).get(`/api/lift-diagnostics/${SID}/public`);
     expect(pub.status).toBe(200);
     expect(pub.body.verdict.grade).toBe(2);
+  });
+});
+
+describe('one-time onboarding pass (Oct 2026 audit)', () => {
+  it('stamps onboardingDiagnosticUsedAt on the free verdict', async () => {
+    await toReady();
+    const v = await turn(FREE, { type: 'verdict' });
+    expect(v.body.result.verdict).toBeDefined();
+    expect(db.tables.user.find((u) => u.id === 'u1').onboardingDiagnosticUsedAt).toBeInstanceOf(Date);
+  });
+
+  it('deleting every earlier session does not hand out a second free diagnosis', async () => {
+    const { consumeDailyQuota } = await import('../services/featureUsageService.js');
+    vi.mocked(consumeDailyQuota).mockClear();
+    // Pass already used, but no plan rows survive (sessions deleted).
+    db.tables.user.find((u) => u.id === 'u1').onboardingDiagnosticUsedAt = new Date(1);
+    quota.allowed = false;
+    const last = await toReady();
+    expect(last.body.result).toEqual({ limitReached: true });
+    const v = await turn(FREE, { type: 'verdict' });
+    expect(v.body.result).toEqual({ limitReached: true });
+    expect(generateWorkoutPlan).not.toHaveBeenCalled();
+    expect(consumeDailyQuota).toHaveBeenCalledTimes(1);
+  });
+
+  it('a failed onboarding verdict gives the pass back', async () => {
+    await toReady();
+    generateWorkoutPlan.mockRejectedValueOnce(new Error('llm down'));
+    const bad = await turn(FREE, { type: 'verdict' });
+    expect(bad.status).toBe(500);
+    expect(db.tables.user.find((u) => u.id === 'u1').onboardingDiagnosticUsedAt ?? null).toBeNull();
+  });
+});
+
+describe('video quota + cap (Oct 2026 audit)', () => {
+  async function toVideoReady() {
+    await turn(FREE, { type: 'lift', lift: 'flat_bench_press' });
+    await turn(FREE, { type: 'main', set: SET(225) });
+  }
+  const upload = (clientTurnId: string) =>
+    request(app)
+      .post(`/api/lift-diagnostics/${SID}/video`)
+      .set('Authorization', FREE)
+      .field('clientTurnId', clientTurnId)
+      .attach('video', Buffer.from('fake'), { filename: 'set.mp4', contentType: 'video/mp4' });
+
+  it('charges the video quota at upload and refunds when the analysis fails', async () => {
+    const fu = await import('../services/featureUsageService.js');
+    vi.mocked(fu.consumeDailyQuota).mockClear();
+    vi.mocked(fu.refundDailyQuota).mockClear();
+    videoMocks.runDiagnosticVideo.mockImplementation(async () => null);
+    await toVideoReady();
+    const res = await upload('video-quota-1');
+    expect(res.status).toBe(202);
+    expect(fu.consumeDailyQuota).toHaveBeenCalledWith('u1', 'free', 'diagnostic_video');
+    await new Promise((r) => setTimeout(r, 10));
+    expect(fu.refundDailyQuota).toHaveBeenCalledWith('u1', 'free', 'diagnostic_video');
+  });
+
+  it('429s before reading the body when the video quota is spent', async () => {
+    videoMocks.runDiagnosticVideo.mockClear();
+    await toVideoReady();
+    quota.allowed = false;
+    const res = await upload('video-quota-2');
+    expect(res.status).toBe(429);
+    expect(videoMocks.runDiagnosticVideo).not.toHaveBeenCalled();
+  });
+
+  it('caps a session at 3 clips, aborted ones included', async () => {
+    await toVideoReady();
+    for (let i = 0; i < 3; i++) {
+      db.tables.turn.push({
+        id: `v${i}`, sessionId: SID, clientTurnId: `video-old-${i}`, seq: 50 + i, type: 'video', payloadJson: '{}',
+        resultJson: JSON.stringify({ video: { status: 'aborted', result: null } }), createdAt: new Date(), updatedAt: new Date(),
+      });
+    }
+    const res = await upload('video-cap-4');
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/video limit/);
   });
 });

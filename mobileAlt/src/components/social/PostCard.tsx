@@ -27,6 +27,7 @@ import Animated, {
 import { Heart, MessageCircle, Send, Dumbbell, ChevronUp, X, Globe } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { socialApi } from '../../lib/api';
+import { userSafetyMenu, confirmBlock } from '../../lib/moderation';
 import { useUnits } from '../../context/UnitsContext';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -364,11 +365,13 @@ function CommentSheet({
   post,
   onClose,
   onCommentAdded,
+  currentUserId,
 }: {
   visible: boolean;
   post: FeedItem;
   onClose: () => void;
   onCommentAdded: (c: PostComment) => void;
+  currentUserId?: string;
 }) {
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(visible);
@@ -474,6 +477,21 @@ function CommentSheet({
                         {c.author.username ? `@${c.author.username}` : (c.author.name ?? 'User')}
                       </Text>
                       <Text style={cs.commentTime}>{relativeTime(c.createdAt)}</Text>
+                      {/* Report / block the author (Guideline 1.2) */}
+                      {c.author?.id && c.author.id !== currentUserId ? (
+                        <TouchableOpacity
+                          onPress={() => userSafetyMenu({
+                            userId: c.author.id,
+                            name: c.author.username ? `@${c.author.username}` : c.author.name,
+                            content: { id: c.id, type: 'comment' },
+                          })}
+                          hitSlop={10}
+                          style={{ marginLeft: 'auto' }}
+                          accessibilityLabel="Report or block"
+                        >
+                          <Text style={cs.commentTime}>···</Text>
+                        </TouchableOpacity>
+                      ) : null}
                     </View>
                     <Text style={cs.commentBody}>{c.text}</Text>
                   </View>
@@ -623,9 +641,14 @@ function PostCardInner({
           text: 'Report',
           style: 'destructive',
           onPress: () => {
-            socialApi.reportPost(item.id, 'inappropriate').catch(() => {});
+            // 'inappropriate' isn't a reason the server accepts (it 400'd silently).
+            socialApi.reportPost(item.id, 'other', 'post').catch(() => {});
             Alert.alert('Reported', "Thank you — we'll review this post.");
           },
+        },
+        {
+          text: 'Block user',
+          onPress: () => confirmBlock(item.sharerId, item.sharer?.username ? `@${item.sharer.username}` : item.sharer?.name, () => setDeleted(true)),
         },
       ]);
     }
@@ -794,6 +817,7 @@ function PostCardInner({
         post={item}
         onClose={() => setCommentSheetVisible(false)}
         onCommentAdded={handleCommentAdded}
+        currentUserId={currentUserId}
       />
 
       {/* Forward picker */}

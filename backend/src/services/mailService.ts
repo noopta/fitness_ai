@@ -10,7 +10,21 @@
 import sgMail from '@sendgrid/mail';
 import nodemailer from 'nodemailer';
 
+// Production sets EMAIL_FROM. The fallback is a legacy domain: senders should
+// match the brand domain users recognise (axiomtraining.io) for CAN-SPAM
+// "header information not misleading" and Gmail/Yahoo bulk-sender alignment.
 const FROM = process.env.EMAIL_FROM || 'team@airthreads.ai';
+
+/** Drop CR/LF from header values so caller-supplied text can't inject headers. */
+export function sanitizeHeaders(headers?: Record<string, string>): Record<string, string> | undefined {
+  if (!headers) return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(headers)) {
+    if (!/^[A-Za-z0-9-]+$/.test(k)) continue;
+    out[k] = String(v).replace(/[\r\n]+/g, ' ');
+  }
+  return out;
+}
 
 let useSendGrid = false;
 if (process.env.SENDGRID_API_KEY) {
@@ -56,8 +70,9 @@ export interface SendEmailResult {
   reason?: string;
 }
 
-export async function sendEmail({ to, subject, html, text, from, replyTo, headers }: SendEmailInput): Promise<SendEmailResult> {
+export async function sendEmail({ to, subject, html, text, from, replyTo, headers: rawHeaders }: SendEmailInput): Promise<SendEmailResult> {
   const fromAddr = from || FROM;
+  const headers = sanitizeHeaders(rawHeaders);
   const plain = text ?? html.replace(/<[^>]*>/g, '');
 
   if (useSendGrid) {

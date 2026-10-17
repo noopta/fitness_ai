@@ -1,10 +1,16 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./static";
+import { serveStatic, securityHeaders } from "./static";
 import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
+
+app.disable("x-powered-by");
+// Security headers on every response (API + static). CSP + X-Frame-Options
+// only in production: the Vite dev server relies on inline scripts for HMR and
+// the Replit preview frames the dev app.
+app.use(securityHeaders({ production: process.env.NODE_ENV === "production" }));
 
 declare module "http" {
   interface IncomingMessage {

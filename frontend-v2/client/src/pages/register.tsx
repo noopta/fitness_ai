@@ -6,11 +6,21 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Navbar } from '@/components/Navbar';
-import { useAuth, postAuthDestination, DEFAULT_FEATURES } from '@/context/AuthContext';
+import { useAuth, postAuthDestination, DEFAULT_FEATURES, type ConsentChoices } from '@/context/AuthContext';
+import { ConsentCheckboxes, EMPTY_CONSENT } from '@/components/ConsentCheckboxes';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
+import { ReferralCodeField } from '@/components/ReferralCodeField';
+import { getStoredReferralCode, normaliseReferralCode, storeReferralCode } from '@/lib/referral';
+
+/** ?ref= wins over a stored code (and replaces it); otherwise the stored one. */
+function initialReferralCode(): string | null {
+  const urlRef = normaliseReferralCode(new URLSearchParams(window.location.search).get('ref'));
+  if (urlRef) { storeReferralCode(urlRef); return urlRef; }
+  return getStoredReferralCode();
+}
 
 export default function Register() {
   const { register, googleLogin, refreshUser, user, features, loading } = useAuth();
@@ -19,9 +29,10 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
+  const [consents, setConsents] = useState<ConsentChoices>(EMPTY_CONSENT);
   const [submitting, setSubmitting] = useState(false);
   const redirected = useRef(false);
-  const referralCode = useRef<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(initialReferralCode);
 
   // Already logged in on arrival — redirect out
   useEffect(() => {
@@ -29,15 +40,15 @@ export default function Register() {
       redirected.current = true;
       setLocation(postAuthDestination(user, features ?? DEFAULT_FEATURES));
     }
-    // Capture ?ref= or stored referral code
-    const urlRef = new URLSearchParams(window.location.search).get('ref');
-    const storedRef = localStorage.getItem('axiom_referral');
-    referralCode.current = urlRef || storedRef || null;
   }, [user, features, loading]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     if (!name || !email || !password) return;
+    if (!consents.acceptedTerms || !consents.healthConsent) {
+      toast.error('Please accept the Terms, Privacy Policy and health-data consent to continue.');
+      return;
+    }
     // The backend has required dateOfBirth since the 13+ age gate (a9ecd3d,
     // 2026-04-23). This form went on calling it optional, so anyone who left
     // it blank got a bare "Invalid request" toast and could not sign up.
@@ -59,8 +70,9 @@ export default function Register() {
     }
     setSubmitting(true);
     try {
-      const pending = await register(name, email, password, dateOfBirth, referralCode.current || undefined);
-      if (referralCode.current) localStorage.removeItem('axiom_referral');
+      // Sent as `referralCode` (stored as User.referredByCode). The code stays
+      // in localStorage so it also reaches create-checkout when they upgrade.
+      const pending = await register(name, email, password, dateOfBirth, referralCode || undefined, consents);
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
       if (pending) {
@@ -143,6 +155,7 @@ export default function Register() {
               <Label>Email</Label>
               <Input
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -153,6 +166,7 @@ export default function Register() {
               <Label>Password (min 8 chars)</Label>
               <Input
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -172,16 +186,16 @@ export default function Register() {
                 Required — we use this to confirm you're 13 or older.
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              By creating an account, you agree to our{" "}
-              <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
-              {" "}and{" "}
-              <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
-            </p>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <ConsentCheckboxes value={consents} onChange={setConsents} idPrefix="register" />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={submitting || !consents.acceptedTerms || !consents.healthConsent}
+            >
               {submitting ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
+          <ReferralCodeField value={referralCode} onChange={setReferralCode} />
         </Card>
       </motion.div>
       </div>

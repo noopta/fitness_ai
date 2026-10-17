@@ -10,6 +10,7 @@
 import { runAgentTurn } from './loop.js';
 import type { AgentTurnResult } from './types.js';
 import type Anthropic from '@anthropic-ai/sdk';
+import { SAFETY_BLOCK } from '../prompts/safety.js';
 
 export type AgentTaskId =
   | 'program_adjustment'
@@ -36,7 +37,9 @@ interface AgentTaskDef {
   needsInput: boolean;
 }
 
-const BASE = `You are Anakin, an elite strength & nutrition coach inside Axiom. Direct, evidence-based, concise. You have tools to read the user's real data (profile, program, nutrition, weight, workouts, wellness, diagnostic) and the research feed. ALWAYS read the relevant data before advising — never guess their numbers. The deterministic diagnostic engine is authoritative; call read_diagnostics, don't re-derive it.`;
+const BASE = `You are Anakin, an elite strength & nutrition coach inside Axiom. Direct, evidence-based, concise. You have tools to read the user's real data (profile, program, nutrition, weight, workouts, wellness, diagnostic) and the research feed. ALWAYS read the relevant data before advising — never guess their numbers. The deterministic diagnostic engine is authoritative; call read_diagnostics, don't re-derive it.
+
+${SAFETY_BLOCK}`;
 
 export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
   program_adjustment: {
@@ -98,23 +101,23 @@ export const AGENT_TASKS: Record<AgentTaskId, AgentTaskDef> = {
   // The user tapped "Apply to my plan" on a specific suggestion. The tap
   // means they want the agent to *propose* a concrete change — the client
   // surfaces a side-by-side diff of current vs proposed and only writes it
-  // through after the user taps Confirm. For nutrition (adjust_macros) the
-  // change is tiny and direct-apply is fine; for training, always go through
-  // propose_program_update so the user sees the diff first.
+  // through after the user taps Confirm. Nutrition used to direct-apply via
+  // adjust_macros; since the Oct 2026 audit nothing applies without a tap, so
+  // targets go through propose_macro_change and the reply states the numbers.
   apply_suggestion: {
     id: 'apply_suggestion',
     framing: `${BASE}\n\nThe user tapped "Apply to my plan" on a suggestion from their Strength/Nutrition analysis. They WILL see a diff and confirm before any training change lands — so don't ask them to confirm in chat, just produce the best proposal you can.
 
 For TRAINING changes:
 - Read the program first (read_program), and the diagnostic if the suggestion is strength-shaped (read_diagnostics, then that report by id).
-- Call propose_program_update (NOT apply_program_update). Pick the MINIMAL goal-preserving change, preferring in order:
+- Call propose_program_update (never a direct apply). Pick the MINIMAL goal-preserving change, preferring in order:
   (1) bump sets/reps on an existing exercise that already targets the weak area,
   (2) substitute one weaker-fit exercise for a stronger-fit one of the same volume,
   (3) add a single accessory at the end of one relevant training day.
 - Keep the goal, phase count, phase durations, and overall structure identical. Touch as few days as possible.
 
 For NUTRITION changes:
-- Read read_nutrition_today / read_nutrition_plan / read_coaching_profile as needed, then call adjust_macros directly. The diff there is just 4 numbers.
+- Read read_nutrition_today / read_nutrition_plan / read_coaching_profile as needed, then call propose_macro_change with the new targets (it enforces the calorie floor). Nothing is applied from here: state the exact new targets and tell the user to apply them from their Nutrition targets.
 
 If the suggestion can't be safely applied (ambiguous, or would compromise the goal), DON'T propose or apply — explain why in one line. After proposing/applying, state exactly what you're recommending in 1-2 lines.`,
     opening: 'Apply this suggestion to my plan: "{input}"',

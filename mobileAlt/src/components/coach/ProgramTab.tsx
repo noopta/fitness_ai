@@ -262,7 +262,7 @@ export function ProgramTab({ coachData }: ProgramTabProps) {
               <TouchableOpacity
                 style={[styles.webview, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', gap: 10 }]}
                 activeOpacity={0.8}
-                onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoModal.videoId}`)}
+                onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${encodeURIComponent(videoModal.videoId)}`)}
               >
                 <Ionicons name="logo-youtube" size={40} color="#FF0000" />
                 <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Open in YouTube</Text>

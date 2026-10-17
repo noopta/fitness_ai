@@ -10,6 +10,8 @@ import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import { FloatingCoachChat } from "@/components/FloatingCoachChat";
+import { ConsentBanner } from "@/components/ConsentBanner";
+import { ConsentGate } from "@/components/ConsentGate";
 import NotFound from "@/pages/not-found";
 import Signup from "./pages/signup";
 import Onboarding from "./pages/onboarding";
@@ -28,7 +30,13 @@ import VerifyEmail from "./pages/verify-email";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
+import CoachesPage from "./pages/coaches";
+const COACH_BETA_ENABLED = import.meta.env.VITE_COACH_BETA_ENABLED === "1";
 import Terms from "./pages/terms";
+import HealthDataPolicy from "./pages/health-data";
+import TrainerTerms from "./pages/trainer-terms";
+import AffiliateTerms from "./pages/affiliate-terms";
+import Accessibility from "./pages/accessibility";
 import DeleteAccount from "./pages/delete-account";
 import CoachPage from "./pages/coach";
 import SettingsPage from "./pages/settings";
@@ -218,12 +226,19 @@ function AnalyticsProvider() {
 
   useEffect(() => {
     if (user) {
-      identifyUser(user.id, { name: user.name, email: user.email, tier: user.tier });
+      identifyUser(user.id, { tier: user.tier });
     } else {
       resetUser();
     }
   }, [user?.id]);
 
+  return null;
+}
+
+/** /for-coaches → /coaches, keeping ?ref= / utm tags for attribution. */
+function ForCoachesRedirect() {
+  const [, navigate] = useLocation();
+  useEffect(() => { navigate(`/coaches${window.location.search}`, { replace: true }); }, [navigate]);
   return null;
 }
 
@@ -241,8 +256,16 @@ function Router() {
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />
+      {/* Coach beta: hidden until VITE_COACH_BETA_ENABLED=1 (no nav links, no sitemap entry). */}
+      {COACH_BETA_ENABLED && <Route path="/coaches" component={CoachesPage} />}
+      {COACH_BETA_ENABLED && <Route path="/for-coaches" component={ForCoachesRedirect} />}
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      {/* Legal pages (2026-10 audit) */}
+      <Route path="/health-data" component={HealthDataPolicy} />
+      <Route path="/trainer-terms" component={TrainerTerms} />
+      <Route path="/affiliate-terms" component={AffiliateTerms} />
+      <Route path="/accessibility" component={Accessibility} />
       <Route path="/delete-account" component={DeleteAccount} />
       <Route path="/mvp" component={ProtectedDiagnosticEntry} />
       <Route path="/onboarding" component={ProtectedDiagnosticEntry} />
@@ -355,6 +378,8 @@ function App() {
             <SonnerToaster position="top-center" richColors />
             <Router />
             <FloatingCoachChat />
+            <ConsentGate />
+            <ConsentBanner />
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

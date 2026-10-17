@@ -10,6 +10,7 @@ import {
   Play,
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { AdminAffiliateExtras } from '@/components/AdminAffiliateExtras';
 
 const API = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 
@@ -349,8 +350,9 @@ export default function AdminAffiliatesPage() {
                           {a.stripeAccountId ? 'Re-onboard' : 'Onboard'}
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" onClick={() => toggleExpand(a.id)}>
-                        {expandedId === a.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      <Button size="sm" variant="ghost" onClick={() => toggleExpand(a.id)} title="Payouts, terms, trainer referrals">
+                        {expandedId === a.id ? <ChevronUp size={14} className="mr-1" /> : <ChevronDown size={14} className="mr-1" />}
+                        Manage
                       </Button>
                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive"
                         onClick={() => handleDelete(a.id, a.name)} disabled={deleting === a.id}>
@@ -390,6 +392,11 @@ export default function AdminAffiliatesPage() {
                           ))}
                         </div>
                       )}
+
+                      {/* Terms, trainer referrals, payouts outside Stripe */}
+                      <div className="mt-5 pt-4 border-t border-border/60">
+                        <AdminAffiliateExtras affiliateId={a.id} />
+                      </div>
                     </div>
                   )}
                 </Card>

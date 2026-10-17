@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { Alert, Keyboard, Linking, Platform, Share } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../lib/openExternal';
 import * as Updates from 'expo-updates';
 import type { Card, CardAction, CardRoute, ClientAction } from '@axiom/agent-ui-core';
 import { v2Api, type CardActionExtra } from '../api';
@@ -94,15 +94,15 @@ export function useCardActions(thread: Thread) {
       }
       case 'play_video': {
         const url = args.url ?? (args.videoId ? `https://www.youtube.com/watch?v=${args.videoId}` : null);
-        if (url) await WebBrowser.openBrowserAsync(String(url));
+        if (url) await openExternal(String(url));
         return;
       }
       case 'open_url':
       case 'download': {
         const url = String(args.url ?? '');
         if (!url) return;
-        if (/^(mailto|tel):/.test(url)) void Linking.openURL(url);
-        else await WebBrowser.openBrowserAsync(url);
+        // http(s) in-app; mailto/tel confirmed; any other scheme refused.
+        await openExternal(url);
         return;
       }
       case 'share': {

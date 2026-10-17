@@ -8,6 +8,7 @@ import { getApprovedAccessories, getStabilityExercises, generateIntensityRecomme
 import { runDiagnosticEngine, type DiagnosticSignals, type SnapshotInput, type SessionFlags } from '../engine/diagnosticEngine.js';
 import type { TrainingAge, Equipment } from '../engine/liftConfigs.js';
 import { buildRAGContext, retrieveProgramSources, type ProgramSource } from './ragService.js';
+import { sanitizeMealMacros, clampDailyCalories } from './nutritionSafety.js';
 import { kgToLb, type UnitPreference } from './weightUnits.js';
 import { buildExposures, makeKeyFn, type KeyFn, type RawWorkout } from '../adaptation/history.js';
 import { chatComplete } from './chatClient.js';
@@ -1118,10 +1119,28 @@ OUTPUT FORMAT (JSON only):
     messages: [{ role: 'user', content: finalPrompt }],
     max_completion_tokens: 1500,
     response_format: { type: 'json_object' },
-  });
+  }, { sensitive: true, label: 'nutrition-plan' });
 
   const content = response.choices[0].message.content || '{}';
-  return parseModelJson(content) as NutritionPlanResult;
+  return floorNutritionPlan(parseModelJson(content) as NutritionPlanResult, params);
+}
+
+/**
+ * Hard calorie floor on a model-written nutrition plan (nutritionSafety.ts):
+ * a target below the floor is raised to it, carbs absorb the difference, and
+ * the rationale says why.
+ */
+export function floorNutritionPlan<T extends { macros?: any; rationale?: string }>(plan: T, p: { gender?: string | null; weightKg?: number | null; heightCm?: number | null; ageYears?: number | null }): T {
+  const m = plan?.macros;
+  if (!m || typeof m.calories !== 'number') return plan;
+  const c = clampDailyCalories(m.calories, { sex: p.gender ?? null, weightKg: p.weightKg ?? null, heightCm: p.heightCm ?? null, ageYears: p.ageYears ?? null });
+  if (!c.clamped) return plan;
+  const extraCarbs = Math.max(0, Math.round((c.calories - m.calories) / 4));
+  return {
+    ...plan,
+    macros: { ...m, calories: c.calories, ...(typeof m.carbsG === 'number' ? { carbsG: m.carbsG + extraCarbs } : {}) },
+    rationale: [plan.rationale, c.note].filter(Boolean).join(' '),
+  };
 }
 
 export async function generateMealSuggestions(params: {
@@ -1682,7 +1701,7 @@ Each day includes its anchor lifts.${prev ? ` Loads and volume continue from ${p
 async function writeProgramDraft(prompt: string, daysPerWeek: number): Promise<TrainingProgram> {
   if (process.env.PROGRAM_PARALLEL !== '0') {
     try {
-      const o = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${OUTLINE_STEP(daysPerWeek)}` }], max_completion_tokens: 3000, response_format: { type: 'json_object' } }, { timeoutMs: 45_000, requireJson: true, label: 'program-outline' });
+      const o = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${OUTLINE_STEP(daysPerWeek)}` }], max_completion_tokens: 3000, response_format: { type: 'json_object' } }, { timeoutMs: 45_000, requireJson: true, label: 'program-outline', sensitive: true });
       const outline = parseModelJson(o.choices[0].message.content || '{}') as any;
       if (!Array.isArray(outline?.phases) || !outline.phases.length || outline.phases.length > 6) throw new Error('outline has no phases');
       // Every phase trains the same days a week: a phase with a different count takes the standard day list.
@@ -1691,7 +1710,7 @@ async function writeProgramDraft(prompt: string, daysPerWeek: number): Promise<T
       for (const p of outline.phases) if (!Array.isArray(p.days) || p.days.length !== standard.length) p.days = standard;
       agentProgress('prog-write', 'Reading', `Writing ${outline.phases.length} phases at once`);
       const phases = await Promise.all(outline.phases.map(async (_: any, k: number) => {
-        const r = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${PHASE_STEP(outline, k)}` }], max_completion_tokens: 9000, response_format: { type: 'json_object' } }, { timeoutMs: 75_000, requireJson: true, label: 'program-phase' });
+        const r = await chatComplete({ messages: [{ role: 'user', content: `${prompt}\n\n${PHASE_STEP(outline, k)}` }], max_completion_tokens: 9000, response_format: { type: 'json_object' } }, { timeoutMs: 75_000, requireJson: true, label: 'program-phase', sensitive: true });
         const ph = parseModelJson(r.choices[0].message.content || '{}') as any;
         const days = Array.isArray(ph?.trainingDays) ? ph.trainingDays : [];
         if (!days.length || days.some((d: any) => !Array.isArray(d?.exercises) || !d.exercises.length)) throw new Error(`phase ${k + 1} came back empty`);
@@ -1709,7 +1728,7 @@ async function writeProgramDraft(prompt: string, daysPerWeek: number): Promise<T
     messages: [{ role: 'user', content: prompt }],
     max_completion_tokens: 16000,
     response_format: { type: 'json_object' },
-  }, { timeoutMs: 100_000, requireJson: true, label: 'program' });
+  }, { timeoutMs: 100_000, requireJson: true, label: 'program', sensitive: true });
   return parseModelJson(response.choices[0].message.content || '{}') as TrainingProgram;
 }
 
@@ -2195,12 +2214,21 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
       : null,
   };
 
-  return {
-    name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim() : 'Meal',
+  // Model-asserted totals: clamped to [0, 5000] per meal and calories checked
+  // against 4/4/9 (nutritionSafety.ts) — this used to be type-coercion only.
+  const safe = sanitizeMealMacros({
+    calories: toNumber(raw?.calories),
     proteinG: toNumber(raw?.proteinG),
     carbsG: toNumber(raw?.carbsG),
     fatG: toNumber(raw?.fatG),
-    calories: toNumber(raw?.calories),
+  });
+
+  return {
+    name: typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim() : 'Meal',
+    proteinG: safe.proteinG,
+    carbsG: safe.carbsG,
+    fatG: safe.fatG,
+    calories: safe.calories,
     mealType,
     confidence,
     notes: typeof raw?.notes === 'string' ? raw.notes : '',

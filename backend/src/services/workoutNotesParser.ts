@@ -42,7 +42,7 @@ export type Complete = (prompt: string) => Promise<string>;
 const defaultComplete: Complete = async (prompt) => {
   const r = await chatComplete(
     { messages: [{ role: 'user', content: prompt }], max_completion_tokens: 12000, response_format: { type: 'json_object' } },
-    { timeoutMs: 90_000, requireJson: true, label: 'workout-notes' },
+    { timeoutMs: 90_000, requireJson: true, label: 'workout-notes', sensitive: true }, // personal training notes
   );
   return r.choices[0].message.content || '{}';
 };

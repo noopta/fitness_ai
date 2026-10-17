@@ -23,6 +23,7 @@ import { Router } from 'express';
 import { createSign, createVerify, X509Certificate } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
+import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import posthog from '../services/posthogClient.js';
 
 const router = Router();
@@ -30,6 +31,10 @@ const prisma = new PrismaClient();
 
 const PRO_PRODUCT_IDS = ['io.axiomtraining.app.pro.monthly'];
 const IS_PROD = process.env.NODE_ENV === 'production';
+/** Our App Store bundle id. Signed payloads for any other app are refused. */
+export const APPLE_BUNDLE_ID = process.env.APPLE_IAP_BUNDLE_ID ?? 'io.axiomtraining.app';
+/** Replay window for signed notifications (Apple's signedDate). */
+export const APPLE_NOTIFICATION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 // ─── JWT for App Store Server API ────────────────────────────────────────────
 
@@ -70,6 +75,7 @@ interface ASAPITransaction {
   revocationDate?: number;
   type: string;               // 'Auto-Renewable Subscription' | 'Non-Consumable' etc.
   environment: string;        // 'Production' | 'Sandbox'
+  bundleId?: string;
 }
 
 /**
@@ -81,7 +87,7 @@ async function fetchTransaction(transactionId: string): Promise<ASAPITransaction
   const jwt = makeAppStoreJWT();
 
   async function tryEnv(baseUrl: string): Promise<ASAPITransaction | null> {
-    const res = await fetch(`${baseUrl}/inApps/v1/transactions/${transactionId}`, {
+    const res = await fetch(`${baseUrl}/inApps/v1/transactions/${encodeURIComponent(transactionId)}`, {
       headers: { Authorization: `Bearer ${jwt}` },
     });
     if (res.status === 404) return null; // not found in this environment
@@ -120,6 +126,9 @@ export function verifyFailure(tx: Pick<ASAPITransaction, 'environment'>, isProd 
 
 function isActiveProTransaction(tx: ASAPITransaction): boolean {
   if (!PRO_PRODUCT_IDS.includes(tx.productId)) return false;
+  // A transaction from some other app (same developer account or not) never
+  // unlocks Axiom.
+  if (tx.bundleId && tx.bundleId !== APPLE_BUNDLE_ID) return false;
   if (tx.revocationDate) return false;
   if (tx.expiresDate && tx.expiresDate < Date.now()) return false;
   // Reject sandbox transactions in production. fetchTransaction falls back to
@@ -166,6 +175,93 @@ const APPLE_ROOT_CA_G3_B64 =
   'AQH/BAQDAgEGMAoGCCqGSM49BAMDA2gAMGUCMQCD6cHEFl4aXTQY2e3v9GwOAEZLuN+yRhHFD/3m' +
   'eoyhpmvOwgPUnPWTxnS4at+qIxUCMG1mihDK1A3UT82NQz60imOlM27jbdoXt2QfyFMm+YhidDkL' +
   'F1vLUagM6BgD56KyKA==';
+
+// ─── Certificate role checks ─────────────────────────────────────────────────
+//
+// Chaining to Apple Root CA - G3 is not enough on its own: other Apple-issued
+// certificates whose private keys belong to developers chain to the same
+// root. Apple's own library also requires the App Store marker extensions —
+// the receipt-signing OID on the leaf and the WWDR intermediate OID — which is
+// what makes a certificate an App Store signing certificate. We read the
+// extension list straight out of the DER (node's X509Certificate doesn't
+// expose arbitrary extensions).
+
+/** 1.2.840.113635.100.6.11.1 — Mac App Store receipt signing (the JWS leaf). */
+export const APPLE_LEAF_OID = '1.2.840.113635.100.6.11.1';
+/** 1.2.840.113635.100.6.2.1 — Apple WWDR intermediate. */
+export const APPLE_INTERMEDIATE_OID = '1.2.840.113635.100.6.2.1';
+
+interface Tlv { tag: number; start: number; len: number; end: number }
+
+function readTlv(buf: Buffer, off: number): Tlv {
+  const tag = buf[off];
+  let lenByte = buf[off + 1];
+  let p = off + 2;
+  let len = lenByte;
+  if (lenByte & 0x80) {
+    const n = lenByte & 0x7f;
+    if (n < 1 || n > 4) throw new Error('bad DER length');
+    len = 0;
+    for (let i = 0; i < n; i++) len = (len << 8) | buf[p + i];
+    p += n;
+  }
+  const end = p + len;
+  if (end > buf.length) throw new Error('DER overrun');
+  return { tag, start: p, len, end };
+}
+
+function children(buf: Buffer, parent: Tlv): Tlv[] {
+  const out: Tlv[] = [];
+  let off = parent.start;
+  while (off < parent.end) {
+    const t = readTlv(buf, off);
+    out.push(t);
+    off = t.end;
+  }
+  return out;
+}
+
+function decodeOid(bytes: Buffer): string {
+  const parts: number[] = [];
+  let v = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    v = (v * 128) + (bytes[i] & 0x7f);
+    if (!(bytes[i] & 0x80)) {
+      if (parts.length === 0) {
+        const first = v < 80 ? Math.floor(v / 40) : 2;
+        parts.push(first, v - first * 40);
+      } else parts.push(v);
+      v = 0;
+    }
+  }
+  return parts.join('.');
+}
+
+/** The extension OIDs present in a DER certificate. Exported for tests. */
+export function certExtensionOids(der: Buffer): string[] {
+  const cert = readTlv(der, 0);
+  const tbs = children(der, cert)[0];
+  const ext = children(der, tbs).find((t) => t.tag === 0xa3); // [3] extensions
+  if (!ext) return [];
+  const seq = children(der, ext)[0];
+  if (!seq) return [];
+  return children(der, seq).map((e) => {
+    const oid = children(der, e)[0];
+    return oid && oid.tag === 0x06 ? decodeOid(der.subarray(oid.start, oid.end)) : '';
+  }).filter(Boolean);
+}
+
+/** True when the presented chain is an App Store signing chain (not just any Apple cert). */
+export function hasAppStoreCertRoles(certs: X509Certificate[]): boolean {
+  if (certs.length < 3) return false; // leaf, WWDR intermediate, root
+  const leaf = certs[0];
+  const intermediate = certs[1];
+  if (leaf.ca) return false;
+  if (!intermediate.ca) return false;
+  if (!certExtensionOids(leaf.raw).includes(APPLE_LEAF_OID)) return false;
+  if (!certExtensionOids(intermediate.raw).includes(APPLE_INTERMEDIATE_OID)) return false;
+  return true;
+}
 
 /** Decode a JWS segment as UTF-8 JSON. */
 function decodeSegment<T>(segment: string): T {
@@ -229,6 +325,9 @@ export function verifyAppleJWS<T>(jws: string): T | null {
       if (now < Date.parse(cert.validFrom) || now > Date.parse(cert.validTo)) return null;
     }
 
+    // An App Store signing chain specifically, not any Apple-rooted cert.
+    if (!hasAppStoreCertRoles(certs)) return null;
+
     // Finally the payload signature, against the leaf.
     const verifier = createVerify('SHA256');
     verifier.update(`${parts[0]}.${parts[1]}`);
@@ -278,6 +377,7 @@ router.post('/payments/apple-iap/verify', requireAuth, async (req, res) => {
         stripeSubStatus: null,
       },
     });
+    invalidateAuthCache(req.user!.id);
 
     console.log(`Apple IAP: upgraded user ${req.user!.id} to Pro`, {
       transactionId,
@@ -319,7 +419,8 @@ router.post('/payments/apple-iap/notifications', async (req, res) => {
     const payloadJson = verifyAppleJWS<{
       notificationType: string;
       subtype?: string;
-      data?: { signedTransactionInfo?: string; originalTransactionId?: string; environment?: string };
+      signedDate?: number;
+      data?: { signedTransactionInfo?: string; originalTransactionId?: string; environment?: string; bundleId?: string };
     }>(signedPayload);
 
     if (!payloadJson) {
@@ -331,17 +432,32 @@ router.post('/payments/apple-iap/notifications', async (req, res) => {
 
     const { notificationType, subtype, data } = payloadJson;
 
+    // For this app, and recent. A genuine-but-old notification (or one for
+    // another app on an Apple-signed chain) must not move anyone's tier.
+    if (data?.bundleId !== APPLE_BUNDLE_ID) {
+      console.warn(`[apple-iap] rejecting notification for bundle ${String(data?.bundleId)}`);
+      return res.status(401).json({ error: 'Notification is not for this app' });
+    }
+    if (typeof payloadJson.signedDate !== 'number' || Math.abs(Date.now() - payloadJson.signedDate) > APPLE_NOTIFICATION_MAX_AGE_MS) {
+      console.warn('[apple-iap] rejecting stale or undated notification');
+      return res.status(401).json({ error: 'Notification is stale' });
+    }
+
     // The inner transaction JWS is signed separately — verify it too rather
     // than trusting the outer envelope to vouch for its contents.
     let originalTransactionId: string | null = null;
     let txEnvironment: string | null = data?.environment ?? null;
     if (data?.signedTransactionInfo) {
-      const txPayload = verifyAppleJWS<{ originalTransactionId?: string; environment?: string }>(
+      const txPayload = verifyAppleJWS<{ originalTransactionId?: string; environment?: string; bundleId?: string }>(
         data.signedTransactionInfo,
       );
       if (!txPayload) {
         console.warn('[apple-iap] rejecting notification with an invalid inner transaction signature');
         return res.status(401).json({ error: 'Invalid transaction signature' });
+      }
+      if (txPayload.bundleId !== undefined && txPayload.bundleId !== APPLE_BUNDLE_ID) {
+        console.warn('[apple-iap] rejecting notification whose transaction is for another app');
+        return res.status(401).json({ error: 'Transaction is not for this app' });
       }
       originalTransactionId = txPayload.originalTransactionId ?? null;
       txEnvironment = txPayload.environment ?? txEnvironment;
@@ -375,12 +491,14 @@ router.post('/payments/apple-iap/notifications', async (req, res) => {
         where: { appleOriginalTransactionId: originalTransactionId },
         data: { tier: 'free', stripeSubStatus: null },
       });
+      invalidateAuthCache();
       console.log(`Apple IAP: downgraded user (originalTx: ${originalTransactionId}) to free`);
     } else if (shouldEnsurePro) {
       await prisma.user.updateMany({
         where: { appleOriginalTransactionId: originalTransactionId },
         data: { tier: 'pro' },
       });
+      invalidateAuthCache();
       console.log(`Apple IAP: confirmed pro renewal (originalTx: ${originalTransactionId})`);
     }
 

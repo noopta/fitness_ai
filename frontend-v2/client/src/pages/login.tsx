@@ -12,6 +12,7 @@ import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
 import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
+import { readOAuthReturn, BEARER_TOKEN_KEY } from '@/lib/oauthReturn';
 import { COPY as PT_COPY } from '@axiom/personal-training-core';
 
 const TRAINER_HOME = '/personal-training';
@@ -28,6 +29,8 @@ export function resolvePostAuthRedirect(dest: string, saved: string | null): str
   return dest === '/onboarding' ? dest : usable ?? dest;
 }
 
+export { readOAuthReturn };
+
 export default function Login() {
   const { login, googleLogin, refreshUser, user, features, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -42,8 +45,7 @@ export default function Login() {
 
   // Handle ?auth=success from Google OAuth redirect (including after Gmail verification)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const authParam = params.get('auth');
+    const { auth: authParam, token: urlToken } = readOAuthReturn(window.location);
 
     if (authParam === 'error') {
       toast.error('Google sign-in failed. Please try again.');
@@ -53,15 +55,15 @@ export default function Login() {
     }
 
     if (authParam === 'success') {
+      // Store the bearer token and scrub it from the address bar BEFORE any
+      // analytics capture, so PostHog never records a URL containing it.
+      // (lib/oauthReturn usually did this already at module load.)
+      if (urlToken) {
+        sessionStorage.setItem(BEARER_TOKEN_KEY, urlToken);
+      }
+      window.history.replaceState({}, '', '/login');
       WebAnalytics.login('google');
       setOauthPending(true);
-      // Store Bearer token from URL (cookie may be blocked by browser privacy features)
-      const urlToken = params.get('token');
-      if (urlToken) {
-        sessionStorage.setItem('liftoff_bearer_token', urlToken);
-      }
-      // Strip query params from URL immediately to prevent re-triggering
-      window.history.replaceState({}, '', '/login');
 
       // Retry refreshUser up to 3 times with a short delay — cookie may need a
       // brief moment to propagate after the OAuth redirect chain. refreshUser
@@ -208,6 +210,7 @@ export default function Login() {
               <Label>Email</Label>
               <Input
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -218,6 +221,7 @@ export default function Login() {
               <Label>Password</Label>
               <Input
                 type="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}

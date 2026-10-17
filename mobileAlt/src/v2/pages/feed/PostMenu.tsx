@@ -14,6 +14,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { qk } from '../../data';
 import { haptics } from '../../haptics';
 import { displayName } from './common';
+import { confirmBlock } from '../../../lib/moderation';
 import type { PostModel } from './Post';
 
 const REASONS: { key: string; label: string; sub?: string }[] = [
@@ -48,7 +49,7 @@ export function PostMenu({ post, onClose, onDeleted }: { post: PostModel | null;
   };
   const report = async (reason: string) => {
     setBusy(reason);
-    try { await socialApi.reportPost(post.id, reason); haptics.success(); Alert.alert('Reported', 'Thanks — someone will look at it. You won’t see it once it’s reviewed.'); close(); }
+    try { await socialApi.reportPost(post.id, reason, 'post'); haptics.success(); Alert.alert('Reported', 'Thanks — someone will look at it. You won’t see it once it’s reviewed.'); close(); }
     catch (e: any) { Alert.alert('Couldn’t report it', e?.message ?? ''); setBusy(null); }
   };
   const remove = () => {
@@ -69,7 +70,9 @@ export function PostMenu({ post, onClose, onDeleted }: { post: PostModel | null;
           <Row name="Forward to a friend" value="→" onPress={() => setStep('forward')} />
           <Row name="Share…" value="→" onPress={() => { void Share.share({ message: `${displayName(post.sharer)} on Axiom: ${String(post.caption ?? post.payload?.text ?? post.payload?.title ?? '').slice(0, 200)}` }).catch(() => {}); }} />
           <Row name={isSaved ? 'Saved' : 'Save'} value={isSaved ? '✓' : '→'} onPress={() => void toggleSave()} />
-          {!mine ? <Row name="Report" sub="Spam, harassment, unsafe advice" value="→" onPress={() => setStep('report')} last={!mine} /> : null}
+          {!mine ? <Row name="Report" sub="Spam, harassment, unsafe advice" value="→" onPress={() => setStep('report')} /> : null}
+          {!mine && post.sharer?.id ? <Row name={`Block ${displayName(post.sharer)}`} sub="You won’t see each other’s posts or messages" value="→" last
+            onPress={() => { const s = post.sharer!; close(); confirmBlock(s.id, displayName(s), () => { void qc.invalidateQueries({ queryKey: qk.feedPages }); }); }} /> : null}
           {mine ? <Row name="Delete post" sub="Only on your own posts" value="→" last onPress={remove} /> : null}
           <TextAction muted arrow={false} size={15} style={{ marginTop: 16 }} onPress={close}>Cancel</TextAction>
         </View>

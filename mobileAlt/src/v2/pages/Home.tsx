@@ -56,6 +56,7 @@ import { posthog } from '../../lib/analytics';
 import { haptics } from '../haptics';
 import { sessionTitle, sessionCaption } from '../format';
 import { usePausedDiagnostic } from './pushed/analyze';
+import { MedicalDisclaimer } from '../../components/ui/MedicalDisclaimer';
 
 const C = v2.color;
 const plain = (t: string) => t.replace(/[*_`#>]+/g, '').replace(/\s+/g, ' ').trim();
@@ -138,6 +139,12 @@ export function HomePage() {
   const invalidate = useInvalidate();
   const thread = useThread();
   const requirePro = useRequirePro();
+  // The server's Pro gate refused a turn the client thought was allowed (stale
+  // tier): open the paywall once for that failure. "Go Pro →" stays under it.
+  const proFailure = thread.failure?.pro ? thread.failure : null;
+  useEffect(() => {
+    if (proFailure) router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any);
+  }, [proFailure]); // eslint-disable-line react-hooks/exhaustive-deps
   const chat = shell.mode === 'chat';
   const [text, setText] = useState('');
   const [focus, setFocus] = useState(false);
@@ -453,6 +460,7 @@ export function HomePage() {
                   {suggestions.slice(0, 3).map((l) => (
                     <Pressable key={l} onPress={() => void send(l)} hitSlop={4} accessibilityRole="button"><Text style={styles.suggestion}>{l}</Text></Pressable>
                   ))}
+                  <MedicalDisclaimer color={C.muted} style={{ marginTop: 8 }} />
                 </Animated.View>
               ) : null}
               <CardHandlersProvider value={handlers}>

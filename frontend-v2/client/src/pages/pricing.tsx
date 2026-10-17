@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Zap, FlaskConical, ShieldCheck, BookOpen } from "lucide-react";
+import { ArrowRight, Check, Zap, FlaskConical, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +10,9 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 import { SEO } from "@/components/SEO";
 import { startProCheckout } from "@/lib/checkout";
+import { getStoredReferralCode } from "@/lib/referral";
+import { ReferralCodeField } from "@/components/ReferralCodeField";
+import { PRO_PRICE, AUTO_RENEW_DISCLOSURE } from "@/lib/pricing";
 
 const FREE_LIMIT = 2;
 
@@ -44,7 +47,7 @@ const tiers = [
   {
     id: "pro",
     name: "Pro",
-    price: "$12",
+    price: PRO_PRICE,
     period: "per month",
     description: "Your full AI performance stack: personalized programming, adaptive nutrition intelligence, strength optimization, and 24/7 coaching.",
     cta: "Upgrade to Pro",
@@ -69,6 +72,10 @@ const tiers = [
 export default function Pricing() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  // Affiliates give out codes (typed here) rather than links; a ?ref= link
+  // pre-fills it. Stored in localStorage so a signed-out visitor keeps it
+  // through sign-in / registration.
+  const [referralCode, setReferralCode] = useState<string | null>(() => getStoredReferralCode());
 
   useEffect(() => {
     WebAnalytics.pricingViewed();
@@ -85,7 +92,7 @@ export default function Pricing() {
     // lib/checkout.ts for the full reasoning. The old direct payment link
     // opened a new tab that mobile/in-app browsers silently blocked, AND
     // created duplicate Stripe customers on every use.
-    await startProCheckout();
+    await startProCheckout({ referralCode });
   }
 
   function handleFreeClick() {
@@ -180,8 +187,7 @@ export default function Pricing() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Built on science, not opinion</p>
                       <div className="space-y-1.5">
                         {[
-                          { icon: BookOpen, text: "10 CPT certifications — NASM, ACE, NSCA, ACSM + 6 more" },
-                          { icon: FlaskConical, text: "7,000+ pages of peer-reviewed training & nutrition research" },
+                          { icon: FlaskConical, text: "Built on established strength-training and nutrition science" },
                           { icon: ShieldCheck, text: "Biologically accurate: uses Mifflin-St Jeor, RPE/RIR, strength ratios" },
                         ].map(({ icon: Icon, text }) => (
                           <div key={text} className="flex items-start gap-2 text-[11px] text-muted-foreground">
@@ -222,6 +228,14 @@ export default function Pricing() {
                         {user ? tier.cta : "Sign in to Upgrade"}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
+                    )}
+                    {tier.id === "pro" && user?.tier !== "pro" && user?.tier !== "enterprise" && (
+                      <ReferralCodeField value={referralCode} onChange={setReferralCode} className="mt-3" />
+                    )}
+                    {tier.id === "pro" && (
+                      <p className="mt-2 text-center text-[11px] leading-snug text-muted-foreground" data-testid="auto-renew-disclosure">
+                        {AUTO_RENEW_DISCLOSURE}
+                      </p>
                     )}
                   </div>
                 </Card>
@@ -278,7 +292,7 @@ export default function Pricing() {
               },
               {
                 q: "Can I cancel Pro anytime?",
-                a: "Absolutely. Pro is month-to-month. Cancel anytime from the Stripe customer portal and you'll keep access through the end of your paid period.",
+                a: `Absolutely. Pro is month-to-month and renews automatically at ${PRO_PRICE}/month until cancelled. Cancel anytime in Settings → Billing (the secure Stripe customer portal) and you'll keep access through the end of your paid period.`,
               },
             ].map(({ q, a }) => (
               <Card key={q} className="card-min rounded-2xl p-5">

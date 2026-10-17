@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Zap } from 'lucide-react';
+import { useState } from 'react';
 import { startProCheckout } from '@/lib/checkout';
+import { getStoredReferralCode } from '@/lib/referral';
+import { ReferralCodeField } from '@/components/ReferralCodeField';
+import { AUTO_RENEW_DISCLOSURE } from '@/lib/pricing';
 
 interface UpgradePromptProps {
   /** Kept for backward compatibility with existing callsites; no longer needed. */
@@ -9,6 +13,7 @@ interface UpgradePromptProps {
 }
 
 export function UpgradePrompt(_props: UpgradePromptProps) {
+  const [referralCode, setReferralCode] = useState<string | null>(() => getStoredReferralCode());
   return (
     <Card className="p-6 border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800">
       <div className="flex items-start gap-4">
@@ -22,11 +27,13 @@ export function UpgradePrompt(_props: UpgradePromptProps) {
           </p>
           <Button
             className="mt-4 bg-amber-600 hover:bg-amber-700 text-white"
-            onClick={() => { void startProCheckout(); }}
+            onClick={() => { void startProCheckout({ referralCode }); }}
           >
             Upgrade to Pro
             <Zap className="ml-2 h-4 w-4" />
           </Button>
+          <ReferralCodeField value={referralCode} onChange={setReferralCode} className="mt-3 !text-left" />
+          <p className="mt-2 text-[11px] text-amber-700/80 dark:text-amber-300/80">{AUTO_RENEW_DISCLOSURE}</p>
         </div>
       </div>
     </Card>

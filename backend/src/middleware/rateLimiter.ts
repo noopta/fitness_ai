@@ -69,8 +69,44 @@ function createStore() {
   return store;
 }
 
+/**
+ * Normalise a client address into a rate-limit bucket. IPv6 clients are keyed
+ * by their /64: a single host routinely holds a whole /64, so per-address keys
+ * let one machine rotate through 2^64 buckets. IPv4-mapped IPv6 collapses to
+ * the plain IPv4 address. Exported for tests.
+ */
+export function ipBucket(ip: string | undefined | null): string {
+  if (!ip) return 'unknown';
+  let addr = ip.trim();
+  const zone = addr.indexOf('%');
+  if (zone !== -1) addr = addr.slice(0, zone);
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(addr);
+  if (mapped) return mapped[1];
+  if (!addr.includes(':')) return addr;
+
+  // Expand '::' and any trailing embedded IPv4 into 8 hextets.
+  let head = addr;
+  const v4 = /(\d{1,3}(?:\.\d{1,3}){3})$/.exec(head);
+  if (v4) {
+    const o = v4[1].split('.').map(Number);
+    head = head.slice(0, -v4[1].length) + ((o[0] << 8) | o[1]).toString(16) + ':' + ((o[2] << 8) | o[3]).toString(16);
+  }
+  const [l, r] = head.split('::');
+  const left = l ? l.split(':') : [];
+  const right = r !== undefined ? (r ? r.split(':') : []) : [];
+  const fill = r !== undefined ? Array(Math.max(0, 8 - left.length - right.length)).fill('0') : [];
+  const groups = [...left, ...fill, ...right];
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/i.test(g))) return addr.toLowerCase();
+  return groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(':') + '::/64';
+}
+
+/** `ip:<bucket>` for the request's client address. */
+export function ipKey(req: Request): string {
+  return `ip:${ipBucket(req.ip)}`;
+}
+
 function defaultKey(req: Request): string {
-  return req.user?.id ? `u:${req.user.id}` : `ip:${req.ip ?? 'unknown'}`;
+  return req.user?.id ? `u:${req.user.id}` : ipKey(req);
 }
 
 /**
@@ -165,8 +201,11 @@ export const globalLimiter = rateLimit({
 });
 
 /**
- * Credential endpoints. skipSuccessful means a user who genuinely logs in over
- * and over is unaffected, while failed attempts burn the budget fast.
+ * Password sign-in. skipSuccessful means a user who genuinely logs in over
+ * and over is unaffected, while failed attempts burn the budget fast. Use ONLY
+ * where success needs a secret the caller already has (password, a verified
+ * identity token) — never on a route that mints a session from a code or sends
+ * mail, because those answer 200 to attackers too (see otpLimiter).
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60_000,
@@ -176,13 +215,27 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * One-time-code routes: verify-email, forgot-password, reset-password. Every
+ * call counts, success or not. forgot-password always answers 200 (so it can't
+ * enumerate accounts) and a refunded slot made it an unthrottled mail cannon;
+ * a refunded verify/reset made each fresh code a fresh set of guesses. The
+ * per-email daily caps live in passwordResetService.
+ */
+export const otpLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: envInt('RATE_LIMIT_OTP_PER_15MIN', 10),
+  keyFn: ipKey,
+  message: 'Too many attempts. Please wait a few minutes and try again.',
+});
+
+/**
  * Account creation. Low and IP-keyed: each signup sends an SMS on our bill, so
  * this is a cost control as much as an abuse control.
  */
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60_000,
   max: envInt('RATE_LIMIT_REGISTER_PER_HOUR', 5),
-  keyFn: (req) => `ip:${req.ip ?? 'unknown'}`,
+  keyFn: ipKey,
   message: 'Too many accounts created from this network. Please try again later.',
 });
 
@@ -193,7 +246,7 @@ export const registerLimiter = rateLimit({
 export const outboundNotifyLimiter = rateLimit({
   windowMs: 60 * 60_000,
   max: envInt('RATE_LIMIT_OUTBOUND_PER_HOUR', 5),
-  keyFn: (req) => `ip:${req.ip ?? 'unknown'}`,
+  keyFn: ipKey,
   message: 'Too many requests from this network. Please try again later.',
 });
 
@@ -216,4 +269,16 @@ export const socialWriteLimiter = rateLimit({
   windowMs: 60_000,
   max: envInt('RATE_LIMIT_SOCIAL_WRITE_PER_MIN', 30),
   message: 'You are posting too quickly. Take a breath and try again.',
+});
+
+/**
+ * Public referral-code lookups (GET /api/affiliate/code/:code/validate).
+ * IP-keyed so a script can't enumerate the code space; a person typing and
+ * retyping a code at checkout never gets near it.
+ */
+export const codeLookupLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: envInt('RATE_LIMIT_CODE_LOOKUP_PER_15MIN', 30),
+  keyFn: ipKey,
+  message: 'Too many code checks. Please wait a few minutes and try again.',
 });

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../lib/openExternal';
 import type { MealSource } from '@axiom/agent-ui-core';
 import { v2, T } from '../theme';
 import { Pressable } from '../primitives/Pressable';
@@ -24,7 +24,7 @@ export function SourceLinks({ sources, style }: { sources: MealSource[]; style?:
         );
         return s.url ? (
           <Pressable key={`${s.site}-${i}`} hitSlop={8} accessibilityRole="link" accessibilityLabel={`Open ${s.site}`}
-            onPress={() => { haptics.select(); void WebBrowser.openBrowserAsync(s.url!).catch(() => {}); }}>
+            onPress={() => { haptics.select(); void openExternal(s.url); }}>
             {line}
           </Pressable>
         ) : <View key={`${s.site}-${i}`}>{line}</View>;

@@ -5,7 +5,8 @@ import { requestReset, resetPassword } from '../services/passwordResetService.js
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { z } from 'zod';
-import { requireAuth } from '../middleware/requireAuth.js';
+import { requireAuth, requireExportToken, EXPORT_TOKEN_TTL_SEC } from '../middleware/requireAuth.js';
+import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
 import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
@@ -28,7 +29,7 @@ import {
   validateDateOfBirth,
 } from '../validation/physiologicalBounds.js';
 import { moderateText, moderateImageBase64, checkReservedName } from '../services/moderationService.js';
-import { authLimiter, registerLimiter, outboundNotifyLimiter } from '../middleware/rateLimiter.js';
+import { authLimiter, otpLimiter, registerLimiter, outboundNotifyLimiter } from '../middleware/rateLimiter.js';
 import { buildUserDataExport } from '../services/dataExportService.js';
 
 const router = Router();
@@ -86,12 +87,73 @@ const COOKIE_OPTS = {
   maxAge: 30 * 24 * 60 * 60 * 1000
 };
 
-function issueToken(user: { id: string; email: string | null; tier: string }) {
+function issueToken(user: { id: string; email: string | null; tier: string; tokenVersion?: number | null }) {
+  // A token is issued when session state may just have changed (sign-in, tier
+  // upgrade, reset), so drop requireAuth's cached view of this user.
+  invalidateAuthCache(user.id);
   return jwt.sign(
-    { id: user.id, email: user.email, tier: user.tier },
+    // tv: User.tokenVersion at issue time; requireAuth rejects older tokens.
+    { id: user.id, email: user.email, tier: user.tier, tv: (user as any).tokenVersion ?? 0 },
     process.env.JWT_SECRET!,
     { expiresIn: (process.env.JWT_EXPIRES_IN || '30d') as any }
   );
+}
+
+/**
+ * Revoke every session this user holds (all devices). Tokens carry the
+ * tokenVersion they were issued under; requireAuth refuses older ones.
+ */
+async function bumpTokenVersion(userId: string): Promise<number> {
+  const u = await prisma.user.update({
+    where: { id: userId },
+    data: { tokenVersion: { increment: 1 } } as any,
+    select: { tokenVersion: true } as any,
+  }) as any;
+  invalidateAuthCache(userId);
+  return u?.tokenVersion ?? 0;
+}
+
+// ─── Consent ─────────────────────────────────────────────────────────────────
+// Version of the Terms/Privacy text a user accepts. Bump when the documents
+// change materially; clients compare consent.termsVersion with this.
+export const CURRENT_TERMS_VERSION = '2026-10';
+
+const consentSchema = z.object({
+  acceptedTerms: z.boolean().optional(),
+  healthConsent: z.boolean().optional(),
+  marketingConsent: z.boolean().optional(),
+});
+
+/** Prisma data for the consent fields a request supplied (absent = unchanged). */
+export function consentData(c: z.infer<typeof consentSchema>, now = new Date()): Record<string, unknown> {
+  const d: Record<string, unknown> = {};
+  // Accepting is recorded; "false" is not a withdrawal of the Terms (that is
+  // account deletion), so it changes nothing.
+  if (c.acceptedTerms === true) { d.acceptedTermsAt = now; d.termsVersion = CURRENT_TERMS_VERSION; }
+  // Health-data and marketing consent can be withdrawn at any time.
+  if (c.healthConsent !== undefined) d.healthConsentAt = c.healthConsent ? now : null;
+  if (c.marketingConsent !== undefined) d.marketingConsentAt = c.marketingConsent ? now : null;
+  return d;
+}
+
+function consentView(u: any) {
+  return {
+    acceptedTermsAt: u?.acceptedTermsAt ?? null,
+    termsVersion: u?.termsVersion ?? null,
+    currentTermsVersion: CURRENT_TERMS_VERSION,
+    healthConsentAt: u?.healthConsentAt ?? null,
+    marketingConsentAt: u?.marketingConsentAt ?? null,
+  };
+}
+
+/** Display names are fanned out to other users; same rules as /auth/profile. */
+export const DISPLAY_NAME_MAX = 60;
+
+/** Under 13 by a valid, non-future DOB (the COPPA line), as opposed to a typo. */
+function isUnderage(dobStr: string): boolean {
+  const dob = new Date(dobStr);
+  if (isNaN(dob.getTime()) || dob.getTime() > Date.now()) return false;
+  return (Date.now() - dob.getTime()) / (365.25 * 86400000) < 13;
 }
 
 // Age gate. Delegates to the shared validator, which additionally rejects
@@ -104,7 +166,7 @@ const validateAge = validateDateOfBirth;
 // POST /api/auth/forgot-password { email } — always 200 so it can't be used to
 // probe which emails have accounts. POST /api/auth/reset-password { email,
 // code, password } sets the new password and signs the user in.
-router.post('/auth/forgot-password', authLimiter, async (req, res) => {
+router.post('/auth/forgot-password', otpLimiter, async (req, res) => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
     const r = await requestReset(email);
@@ -116,7 +178,7 @@ router.post('/auth/forgot-password', authLimiter, async (req, res) => {
   }
 });
 
-router.post('/auth/reset-password', authLimiter, async (req, res) => {
+router.post('/auth/reset-password', otpLimiter, async (req, res) => {
   try {
     const { email, code, password } = z.object({ email: z.string().email(), code: z.string().regex(/^\d{6}$/), password: z.string().min(8).max(200) }).parse(req.body);
     const r = await resetPassword(email, code, password);
@@ -127,7 +189,10 @@ router.post('/auth/reset-password', authLimiter, async (req, res) => {
       };
       return res.status(400).json({ error: msg[r.reason], reason: r.reason });
     }
-    const user = await prisma.user.findUnique({ where: { id: r.userId }, select: { id: true, email: true, tier: true } });
+    // resetPassword bumped tokenVersion (every other session is now dead);
+    // this token carries the new version.
+    invalidateAuthCache(r.userId);
+    const user = await prisma.user.findUnique({ where: { id: r.userId }, select: { id: true, email: true, tier: true, tokenVersion: true } as any }) as any;
     const token = issueToken(user!);
     res.cookie('liftoff_jwt', token, COOKIE_OPTS);
     res.json({ ok: true, token });
@@ -140,7 +205,7 @@ router.post('/auth/reset-password', authLimiter, async (req, res) => {
 
 // POST /api/auth/register
 const registerSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(DISPLAY_NAME_MAX),
   email: z.string().email(),
   password: z.string().min(8),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
@@ -149,6 +214,11 @@ const registerSchema = z.object({
   // device locale's choice). When omitted we infer from the Accept-Language
   // header. 'metric' | 'imperial'.
   unitPreference: z.enum(['metric', 'imperial']).optional(),
+  // Consent captured on the signup screen. Optional so older builds still
+  // register; clients prompt via POST /auth/consent when it's missing.
+  acceptedTerms: z.boolean().optional(),
+  healthConsent: z.boolean().optional(),
+  marketingConsent: z.boolean().optional(),
 });
 
 // GET /api/auth/user-count — total registered users, used as social proof on
@@ -177,6 +247,12 @@ router.post('/auth/register', registerLimiter, async (req, res) => {
 
     const ageError = validateAge(data.dateOfBirth);
     if (ageError) return res.status(400).json({ error: ageError });
+
+    // Was unbounded and unmoderated — the one way past /auth/profile's rules.
+    const reservedName = checkReservedName(data.name);
+    if (reservedName) return res.status(400).json({ error: reservedName });
+    const nameVerdict = await moderateText(data.name, 'display_name', null);
+    if (!nameVerdict.allowed) return res.status(400).json({ error: nameVerdict.message });
 
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
@@ -215,7 +291,8 @@ router.post('/auth/register', registerLimiter, async (req, res) => {
         emailVerified: !EMAIL_VERIFICATION_ENABLED,
         emailVerifiedAt: EMAIL_VERIFICATION_ENABLED ? null : new Date(),
         ...(data.referralCode ? { referredByCode: data.referralCode.toUpperCase().trim() } : {}),
-      }
+        ...consentData({ acceptedTerms: data.acceptedTerms, healthConsent: data.healthConsent, marketingConsent: data.marketingConsent }),
+      } as any
     });
 
     // Fire-and-forget signup analytics — we still want to know they
@@ -275,7 +352,7 @@ const verifyEmailSchema = z.object({
   code: z.string().regex(/^\d{6}$/),
 });
 
-router.post('/auth/verify-email', authLimiter, async (req, res) => {
+router.post('/auth/verify-email', otpLimiter, async (req, res) => {
   try {
     const { email, code } = verifyEmailSchema.parse(req.body);
 
@@ -672,7 +749,8 @@ router.get('/auth/google/callback', async (req, res) => {
     const [, payload] = tokens.id_token.split('.');
     const profile = JSON.parse(Buffer.from(payload, 'base64url').toString());
 
-    const { sub: googleId, email, name, email_verified: emailVerifiedClaim } = profile;
+    const { sub: googleId, email, email_verified: emailVerifiedClaim } = profile;
+    const name: string | null = typeof profile.name === 'string' ? profile.name.trim().slice(0, DISPLAY_NAME_MAX) || null : null;
 
     // Upsert user. Matching an existing row by email is only safe when Google
     // vouches for the address; otherwise an attacker-controlled Google account
@@ -742,9 +820,12 @@ router.get('/auth/google/callback', async (req, res) => {
       const needsDob = isNewUser && !user.dateOfBirth ? '&needsDob=1' : '';
       redirectToApp(res, `${mobileRedirect}?token=${token}${needsDob}`);
     } else {
-      // Include token in URL so web frontend can use it as Bearer fallback
-      // (cross-domain cookies may be blocked by browser privacy features)
-      res.redirect(`${process.env.FRONTEND_URL}/login?auth=success&token=${token}`);
+      // The web frontend uses the token as a Bearer fallback (cross-domain
+      // cookies may be blocked). It rides in the URL FRAGMENT: fragments are
+      // never sent to a server, so the token stays out of access logs, Referer
+      // headers and analytics' $current_url. login.tsx reads location.hash.
+      res.set('Cache-Control', 'no-store');
+      res.redirect(`${process.env.FRONTEND_URL}/login#auth=success&token=${encodeURIComponent(token)}`);
     }
   } catch (err) {
     console.error('Google OAuth callback error:', err);
@@ -782,10 +863,17 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
     // Apple only sends email on first sign-in; may be null on subsequent logins
     const email: string | null = applePayload.email ?? null;
     // fullName is sent by the device only on first auth — use it if provided
-    const name: string | null =
-      fullName?.givenName || fullName?.familyName
-        ? [fullName.givenName, fullName.familyName].filter(Boolean).join(' ')
-        : null;
+    // Arrives in the request body, so it gets the display-name rules: capped,
+    // reserved names refused, moderated. A name that fails is dropped (the user
+    // can set one later) rather than failing the sign-in.
+    let name: string | null = null;
+    const given = typeof fullName?.givenName === 'string' ? fullName.givenName : '';
+    const family = typeof fullName?.familyName === 'string' ? fullName.familyName : '';
+    const rawName = [given, family].map((p) => p.trim()).filter(Boolean).join(' ').slice(0, DISPLAY_NAME_MAX).trim();
+    if (rawName && !checkReservedName(rawName)) {
+      const verdict = await moderateText(rawName, 'display_name', null);
+      if (verdict.allowed) name = rawName;
+    }
 
     // Upsert: find by appleId first, then by email — but only when Apple
     // vouches for the address (the claim arrives as true or the string "true").
@@ -861,7 +949,25 @@ router.post('/auth/set-dob', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'dateOfBirth required' });
     }
     const ageError = validateAge(dateOfBirth);
-    if (ageError) return res.status(400).json({ error: ageError });
+    if (ageError) {
+      // Under 13 (COPPA): we may not keep the account at all. This route is
+      // the age gate for OAuth sign-ups, which create the row before asking,
+      // so the row goes now. Only when no DOB is on file — an existing
+      // account's stored DOB is not overwritten by a single request.
+      if (isUnderage(dateOfBirth)) {
+        const current = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { dateOfBirth: true } });
+        if (current && !current.dateOfBirth) {
+          const r = await deleteUserAccount(req.user!.id, 'underage');
+          if (r.ok) {
+            res.clearCookie('liftoff_jwt', { httpOnly: true, secure: IS_PROD, sameSite: IS_PROD ? 'none' : 'lax' });
+            return res.status(400).json({ error: ageError, reason: 'underage', accountDeleted: true });
+          }
+          console.error(`[set-dob] underage account ${req.user!.id} could not be deleted: ${r.error}`);
+        }
+        return res.status(400).json({ error: ageError, reason: 'underage' });
+      }
+      return res.status(400).json({ error: ageError });
+    }
     await prisma.user.update({
       where: { id: req.user!.id },
       data: { dateOfBirth: new Date(dateOfBirth) },
@@ -877,6 +983,40 @@ router.post('/auth/set-dob', requireAuth, async (req, res) => {
 router.post('/auth/logout', (req, res) => {
   res.clearCookie('liftoff_jwt', { httpOnly: true, secure: IS_PROD, sameSite: IS_PROD ? 'none' : 'lax' });
   res.json({ success: true });
+});
+
+// POST /api/auth/logout-all — sign out every device, this one included.
+router.post('/auth/logout-all', requireAuth, async (req, res) => {
+  try {
+    await bumpTokenVersion(req.user!.id);
+    res.clearCookie('liftoff_jwt', { httpOnly: true, secure: IS_PROD, sameSite: IS_PROD ? 'none' : 'lax' });
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error('logout-all error:', err?.message ?? err);
+    res.status(500).json({ error: 'Couldn\'t sign out other devices. Try again.' });
+  }
+});
+
+// POST /api/auth/consent — record Terms / health-data / marketing consent for
+// an existing account (OAuth sign-ups never see the register form). Accepting
+// is timestamped with CURRENT_TERMS_VERSION; health and marketing consent can
+// be withdrawn by sending false.
+router.post('/auth/consent', requireAuth, async (req, res) => {
+  try {
+    const c = consentSchema.parse(req.body ?? {});
+    const data = consentData(c);
+    if (!Object.keys(data).length) return res.status(400).json({ error: 'Nothing to record.' });
+    const u = await prisma.user.update({
+      where: { id: req.user!.id },
+      data: data as any,
+      select: { acceptedTermsAt: true, termsVersion: true, healthConsentAt: true, marketingConsentAt: true } as any,
+    });
+    res.json({ consent: consentView(u) });
+  } catch (err: any) {
+    if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
+    console.error('consent error:', err?.message ?? err);
+    res.status(500).json({ error: 'Couldn\'t save that. Try again.' });
+  }
 });
 
 // GET /api/auth/me
@@ -913,19 +1053,24 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         avatarBase64: true,
         subtractWorkoutBurnFromCalories: true,
         referredByCode: true,
+        tokenVersion: true,
+        acceptedTermsAt: true,
+        termsVersion: true,
+        healthConsentAt: true,
+        marketingConsentAt: true,
         institutionMemberships: {
           where: { active: true },
           include: {
             institution: { select: { id: true, name: true, slug: true, logoUrl: true } },
           },
         },
-      }
-    });
+      } as any
+    }) as any;
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     // Re-issue JWT so tier changes (e.g. Stripe upgrades) take effect immediately
-    const freshToken = issueToken({ id: user.id, email: user.email, tier: user.tier });
+    const freshToken = issueToken({ id: user.id, email: user.email, tier: user.tier, tokenVersion: user.tokenVersion });
     res.cookie('liftoff_jwt', freshToken, COOKIE_OPTS);
 
     // Shape institution memberships for frontend consumption
@@ -935,14 +1080,22 @@ router.get('/auth/me', requireAuth, async (req, res) => {
       institution: m.institution,
     }));
 
-    const { institutionMemberships: _, ...userFields } = user as any;
+    const {
+      institutionMemberships: _, tokenVersion: _tv,
+      acceptedTermsAt: _a, termsVersion: _t, healthConsentAt: _h, marketingConsentAt: _m,
+      ...userFields
+    } = user as any;
+    // OAuth sign-ups have no DOB until the client asks; it must keep asking.
+    const needsDob = !user.dateOfBirth;
     // Server-owned feature flags the client must not guess at. The onboarding
     // form hook ships behind a kill switch, and without telling the client we
     // would still show the whole capture flow and only fail on upload — the
     // user films a set for nothing. Sent as a flag rather than inferred from
     // a probe so the decision has one owner.
     res.json({
-      user: { ...userFields, institutions, isAdmin: isAdminEmail(user.email) },
+      user: { ...userFields, institutions, isAdmin: isAdminEmail(user.email), needsDob },
+      needsDob,
+      consent: consentView(user),
       features: {
         onboardingFormHook: onboardingHookAvailableFor(user.id, user.email),
         diagnosticFirstOnboarding: diagnosticFirstAvailableFor(user.id, user.email),
@@ -1158,15 +1311,16 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
     if (!verdict.allowed) return res.status(400).json({ error: verdict.message });
 
     // Downscale to a thumbnail before storing. Avatars render at ~36px but were
-    // being stored at full camera resolution (~68KB base64) and embedded per
-    // user in every social-feed response. Resizing to 96px JPEG strips ~96% of
-    // that. If decoding fails (corrupt/unsupported image), fall back to the
-    // original so the upload still succeeds.
-    let toStore = avatarBase64;
+    // being stored at full camera resolution and embedded per user in every
+    // social-feed response. If the image can't be decoded (corrupt, oversized,
+    // decompression bomb) the upload is REJECTED — never store bytes we could
+    // not decode ourselves.
+    let toStore: string;
     try {
       toStore = await resizeAvatarBase64(avatarBase64);
-    } catch (e) {
-      console.error('[avatar] resize failed, storing original:', e);
+    } catch (e: any) {
+      console.warn('[avatar] rejected:', e?.message || e);
+      return res.status(typeof e?.status === 'number' ? e.status : 400).json({ error: 'That image could not be processed. Try a smaller JPEG or PNG.' });
     }
     await prisma.user.update({ where: { id: req.user!.id }, data: { avatarBase64: toStore } });
     res.json({ success: true });
@@ -1187,27 +1341,23 @@ router.put('/auth/avatar', requireAuth, async (req, res) => {
 // document touches ~20 tables.
 // A browser opening the export can't send the app's bearer token (the v2
 // "Download my data" row 401'd). /auth/export-link returns a URL carrying a
-// 10-minute, export-only token; /auth/export accepts it via ?t=.
+// 5-minute, single-use, export-only token; /auth/export accepts it via ?t=.
 const EXPORT_BASE = process.env.PUBLIC_API_URL || 'https://api.airthreads.ai';
 router.get('/auth/export-link', requireAuth, async (req, res) => {
-  const t = jwt.sign({ id: req.user!.id, purpose: 'export' }, process.env.JWT_SECRET!, { expiresIn: '10m' });
-  res.json({ url: `${EXPORT_BASE}/api/auth/export?t=${encodeURIComponent(t)}`, expiresInSec: 600 });
+  // Scoped (purpose:'export' — refused everywhere but /auth/export), short
+  // (5 min), single-use (jti, consumed by requireExportToken) and bound to the
+  // current tokenVersion, so it can't outlive a logout-all.
+  const v = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { tokenVersion: true } as any }).catch(() => null) as any;
+  const t = jwt.sign(
+    { id: req.user!.id, purpose: 'export', tv: v?.tokenVersion ?? 0, jti: crypto.randomUUID() },
+    process.env.JWT_SECRET!,
+    { expiresIn: EXPORT_TOKEN_TTL_SEC },
+  );
+  res.set('Cache-Control', 'no-store');
+  res.json({ url: `${EXPORT_BASE}/api/auth/export?t=${encodeURIComponent(t)}`, expiresInSec: EXPORT_TOKEN_TTL_SEC });
 });
 
-function exportAuth(req: any, res: any, next: any) {
-  const t = typeof req.query.t === 'string' ? req.query.t : null;
-  if (!t) return requireAuth(req, res, next);
-  try {
-    const p = jwt.verify(t, process.env.JWT_SECRET!) as any;
-    if (p?.purpose !== 'export' || !p?.id) throw new Error('bad purpose');
-    req.user = { id: p.id };
-    next();
-  } catch {
-    res.status(401).json({ error: 'This download link has expired. Ask again for a new one.' });
-  }
-}
-
-router.get('/auth/export', exportAuth, outboundNotifyLimiter, async (req, res) => {
+router.get('/auth/export', requireExportToken, outboundNotifyLimiter, async (req, res) => {
   try {
     const data = await buildUserDataExport(req.user!.id);
 
@@ -1255,166 +1405,233 @@ router.get('/auth/account/deletion-preview', requireAuth, async (req, res) => {
   }
 });
 
+// Account deletion, shared by DELETE /auth/account and the under-13 path of
+// /auth/set-dob. Manually cascades child records in dependency order since not
+// all relations have onDelete: Cascade defined in the schema.
+type DeleteResult = { ok: true; warnings: string[] } | { ok: false; status: number; error: string };
+async function deleteUserAccount(userId: string, reason: 'user_request' | 'underage'): Promise<DeleteResult> {
+  // Deleting a relation that doesn't exist in this build (a model added on a
+  // branch that hasn't been pushed to this DB yet) must not abort the whole
+  // transaction and strand the user with a half-deleted account. Each step is
+  // therefore best-effort; the final user.delete is the one that must succeed,
+  // and it will fail loudly if any FK is genuinely still pointing at the row.
+  // Every skipped step is logged at error level and returned as a warning:
+  // a silently skipped table is personal data we said we erased.
+  const warnings: string[] = [];
+  const tryDelete = async (label: string, fn: () => Promise<unknown>) => {
+    try { await fn(); } catch (e: any) {
+      warnings.push(label);
+      console.error(`[account-delete] step ${label} failed for ${userId}: ${e?.message ?? e}`);
+    }
+  };
+
+  const account = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, stripeCustomerId: true } });
+  if (!account) return { ok: false, status: 404, error: 'Account not found.' };
+  const email = account.email ?? null;
+
+  // Stop billing first. A web (Stripe) subscriber who deletes their account
+  // would otherwise keep being charged with no account left to cancel from.
+  // If Stripe can't be reached, nothing is deleted — they can try again.
+  // App Store / Google Play subscriptions can't be cancelled by us; the app
+  // tells those users to cancel in their store before deleting.
+  if (account.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const n = await cancelActiveSubscriptions(account.stripeCustomerId);
+      if (n) console.log(`[account-delete] cancelled ${n} Stripe subscription(s) for ${userId}`);
+    } catch (e: any) {
+      console.error(`[account-delete] Stripe cancel failed for ${userId}:`, e?.message ?? e);
+      return { ok: false, status: 502, error: 'We couldn\'t cancel your subscription, so nothing was deleted. Try again in a minute.' };
+    }
+  }
+
+  // Practices this user was the LAST active coach of. Once they go, nobody can
+  // see or manage what was imported there about prospects, so that data is
+  // orphaned personal data about third parties and goes with them. Computed
+  // before the transaction removes the memberships.
+  let solePractices: string[] = [];
+  try {
+    const coached = await prisma.institutionMember.findMany({ where: { userId, role: 'coach', active: true }, select: { institutionId: true } });
+    for (const { institutionId } of coached) {
+      const others = await prisma.institutionMember.count({ where: { institutionId, role: 'coach', active: true, NOT: { userId } } });
+      if (others === 0) solePractices.push(institutionId);
+    }
+  } catch (e: any) {
+    warnings.push('ptImported:solePractices');
+    console.error(`[account-delete] sole-practice lookup failed for ${userId}: ${e?.message ?? e}`);
+    solePractices = [];
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const t = tx as any;
+
+    // 1. Leaf records with no further children
+    await tryDelete('diagnosticMessage', () => t.diagnosticMessage.deleteMany({ where: { session: { userId } } }));
+    await tryDelete('exerciseSnapshot', () => t.exerciseSnapshot.deleteMany({ where: { session: { userId } } }));
+    await tryDelete('generatedPlan', () => t.generatedPlan.deleteMany({ where: { session: { userId } } }));
+    await tryDelete('mealEntry', () => t.mealEntry.deleteMany({ where: { userId } }));
+    await tryDelete('nutritionLog', () => t.nutritionLog.deleteMany({ where: { userId } }));
+    await tryDelete('nutritionPlan', () => t.nutritionPlan.deleteMany({ where: { userId } }));
+    await tryDelete('bodyWeightLog', () => t.bodyWeightLog.deleteMany({ where: { userId } }));
+    await tryDelete('wellnessCheckin', () => t.wellnessCheckin.deleteMany({ where: { userId } }));
+    await tryDelete('activityLog', () => t.activityLog.deleteMany({ where: { userId } }));
+    await tryDelete('savedFood', () => t.savedFood.deleteMany({ where: { userId } }));
+    await tryDelete('recipe', () => t.recipe.deleteMany({ where: { userId } }));
+    await tryDelete('workoutLog', () => t.workoutLog.deleteMany({ where: { userId } }));
+    await tryDelete('scheduleOverride', () => t.scheduleOverride.deleteMany({ where: { userId } }));
+    await tryDelete('completedProgram', () => t.completedProgram.deleteMany({ where: { userId } }));
+    await tryDelete('formAnalysis', () => t.formAnalysis.deleteMany({ where: { userId } }));
+    await tryDelete('featureUsage', () => t.featureUsage.deleteMany({ where: { userId } }));
+    await tryDelete('savedArticle', () => t.savedArticle.deleteMany({ where: { userId } }));
+    await tryDelete('userFeedView', () => t.userFeedView.deleteMany({ where: { userId } }));
+    await tryDelete('agentMemory', () => t.agentMemory.deleteMany({ where: { userId } }));
+    await tryDelete('agentConversation', () => t.agentConversation.deleteMany({ where: { userId } }));
+
+    // 2. Sessions (after their children are gone)
+    await tryDelete('session', () => t.session.deleteMany({ where: { userId } }));
+
+    // 3. Social / messaging — both directions of every relation
+    await tryDelete('postComment', () => t.postComment.deleteMany({ where: { authorId: userId } }));
+    await tryDelete('postReaction', () => t.postReaction.deleteMany({ where: { userId } }));
+    await tryDelete('message', () => t.message.deleteMany({
+      where: { OR: [{ senderId: userId }, { conversation: { OR: [{ participantAId: userId }, { participantBId: userId }] } }] },
+    }));
+    await tryDelete('directConversation', () => t.directConversation.deleteMany({
+      where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
+    }));
+    // Comments and reactions by *other* users on this user's posts have to go
+    // before the posts themselves, or the FK blocks the delete.
+    await tryDelete('postComment:onOwnPosts', () => t.postComment.deleteMany({ where: { post: { sharerId: userId } } }));
+    await tryDelete('postReaction:onOwnPosts', () => t.postReaction.deleteMany({ where: { post: { sharerId: userId } } }));
+    await tryDelete('sharedItem', () => t.sharedItem.deleteMany({
+      where: { OR: [{ sharerId: userId }, { recipientId: userId }] },
+    }));
+    await tryDelete('friendship', () => t.friendship.deleteMany({
+      where: { OR: [{ requesterId: userId }, { addresseeId: userId }] },
+    }));
+    await tryDelete('userInvite', () => t.userInvite.deleteMany({
+      where: { OR: [{ inviterId: userId }, { usedByUserId: userId }] },
+    }));
+
+    // 4. Groups, institutions, partner workouts
+    await tryDelete('groupMessage', () => t.groupMessage.deleteMany({ where: { senderId: userId } }));
+    await tryDelete('groupMember', () => t.groupMember.deleteMany({ where: { userId } }));
+    // GroupChat.createdById is RESTRICT, so chats this user created block
+    // the delete. Members and messages both cascade from GroupChat, so
+    // removing the chat is enough. This orphans the other members' history
+    // — the same outcome as the creator deleting the chat by hand.
+    // Reassigning ownership instead would be a product decision, not a
+    // deletion one.
+    await tryDelete('groupChat', () => t.groupChat.deleteMany({ where: { createdById: userId } }));
+    await tryDelete('institutionMember', () => t.institutionMember.deleteMany({ where: { userId } }));
+    await tryDelete('partnerWorkoutMember', () => t.partnerWorkoutMember.deleteMany({ where: { userId } }));
+    await tryDelete('partnerWorkout', () => t.partnerWorkout.deleteMany({ where: { creatorId: userId } }));
+
+    // 4b. Adaptive progression. AdaptationProposal.userId is RESTRICT, so a
+    //     user who was ever offered a progression change cannot be deleted
+    //     until these go. Missing this is what made account deletion fail
+    //     with an unnamed P2003 (SQLite reports constraint: null) for every
+    //     user who had one.
+    await tryDelete('adaptationProposal', () => t.adaptationProposal.deleteMany({ where: { userId } }));
+    // 4c. Personal-training dashboard. These tables hold plain ids rather
+    //     than FKs, so nothing cascades: what a trainer's dashboard stored
+    //     about this person as a CLIENT (check-in answers, drafted
+    //     messages, briefing cards, reports, notifications) has to be
+    //     removed here, and so does what they stored as a TRAINER.
+    await tryDelete('ptCheckIn', () => t.ptCheckIn.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptCheckInSchedule', () => t.ptCheckInSchedule.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptBriefingItem', () => t.ptBriefingItem.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptBriefing', () => t.ptBriefing.deleteMany({ where: { trainerId: userId } }));
+    await tryDelete('ptDraft', () => t.ptDraft.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
+    await tryDelete('ptReport', () => t.ptReport.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
+    await tryDelete('ptNotification', () => t.ptNotification.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
+    await tryDelete('ptNotificationSettings', () => t.ptNotificationSettings.deleteMany({ where: { trainerId: userId } }));
+    await tryDelete('ptAnakinThread', () => t.ptAnakinThread.deleteMany({ where: { trainerId: userId } }));
+    await tryDelete('ptScheduledQuestion', () => t.ptScheduledQuestion.deleteMany({ where: { trainerId: userId } }));
+    await tryDelete('ptNote', () => t.ptNote.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
+    // What a trainer imported about this person before they joined goes with them.
+    await tryDelete('ptImported', async () => {
+      const linked = await t.ptProspect.findMany({ where: { userId }, select: { id: true } });
+      const ids = linked.map((p: { id: string }) => p.id);
+      await t.ptImportedWorkout.deleteMany({ where: { prospectId: { in: ids } } });
+      await t.ptImportedWeight.deleteMany({ where: { prospectId: { in: ids } } });
+      await t.ptProspect.deleteMany({ where: { id: { in: ids } } });
+    });
+    // As a TRAINER: the prospects, workouts and weigh-ins they imported from
+    // spreadsheets would otherwise outlive both the trainer and the import
+    // row that explains them.
+    await tryDelete('ptImported:asTrainer', async () => {
+      const imports = await t.ptImport.findMany({ where: { trainerId: userId }, select: { id: true } });
+      const importIds = imports.map((i: { id: string }) => i.id);
+      if (!importIds.length) return;
+      const prospects = await t.ptProspect.findMany({ where: { importId: { in: importIds } }, select: { id: true } });
+      const prospectIds = prospects.map((p: { id: string }) => p.id);
+      const scope = { OR: [{ importId: { in: importIds } }, { prospectId: { in: prospectIds } }] };
+      await t.ptImportedWorkout.deleteMany({ where: scope });
+      await t.ptImportedWeight.deleteMany({ where: scope });
+      await t.ptProspect.deleteMany({ where: { id: { in: prospectIds } } });
+    });
+    await tryDelete('ptImport', () => t.ptImport.deleteMany({ where: { trainerId: userId } }));
+    if (solePractices.length) {
+      await tryDelete('ptImported:orphanPractice', async () => {
+        const where = { practiceId: { in: solePractices } };
+        await t.ptImportedWorkout.deleteMany({ where });
+        await t.ptImportedWeight.deleteMany({ where });
+        await t.ptProspect.deleteMany({ where });
+        await t.ptImport.deleteMany({ where });
+      });
+    }
+    // The coach-platform dossier: what a practice recorded about this person as a client.
+    await tryDelete('ptClientProfile', () => t.ptClientProfile.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptClientLink', () => t.ptClientLink.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptContraindication', () => t.ptContraindication.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptGoal', () => t.ptGoal.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptMeasurement', () => t.ptMeasurement.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptProgressPhoto', () => t.ptProgressPhoto.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptIntake', () => t.ptIntake.deleteMany({ where: { clientId: userId } }));
+    await tryDelete('ptNutritionTarget', () => t.ptNutritionTarget.deleteMany({ where: { clientId: userId } }));
+    // The audit trail keeps that an action happened, not what was written to or about this person.
+    await tryDelete('ptAuditLog', () => t.ptAuditLog.updateMany({ where: { clientId: userId }, data: { clientId: null, originalText: null, editedText: null } }));
+    // Keyed by email, not a user FK, so the cascade doesn't reach it.
+    if (email) await tryDelete('passwordResetCode', () => t.passwordResetCode.deleteMany({ where: { email: email.toLowerCase() } }));
+
+    // 5. Trust & safety. Reports filed BY this user, reports ABOUT them and
+    //    the classifier flags on their content all go: each holds an
+    //    excerpt of what they wrote, and a re-registration gets a new id
+    //    anyway, so keeping them by userId bought no abuse history — only
+    //    personal data we had promised to erase.
+    await tryDelete('contentReport', () => t.contentReport.deleteMany({ where: { reporterId: userId } }));
+    await tryDelete('contentReport:aboutUser', () => t.contentReport.deleteMany({ where: { reportedUserId: userId } }));
+    await tryDelete('contentFlag', () => t.contentFlag.deleteMany({ where: { userId } }));
+    await tryDelete('userSuspension', () => t.userSuspension.deleteMany({ where: { userId } }));
+    // Blog mailing list is keyed by email, not a user FK.
+    if (email) await tryDelete('blogSubscriber', () => t.blogSubscriber.deleteMany({ where: { email: email.trim().toLowerCase() } }));
+
+    // 6. Finally remove the user row itself
+    await tx.user.delete({ where: { id: userId } });
+  });
+
+  // Any token still in circulation now fails requireAuth's lookup (no row).
+  invalidateAuthCache(userId);
+
+  // posthog-node can't delete a person; scrub the identifying properties so
+  // the analytics profile no longer names them, then record the deletion.
+  try {
+    posthog.identify({ distinctId: userId, properties: { $set: { email: null, name: null, deleted: true } } });
+    posthog.capture({ distinctId: userId, event: 'user_account_deleted', properties: { reason, skipped_steps: warnings.length } });
+  } catch { /* analytics never blocks deletion */ }
+
+  if (warnings.length) console.error(`[account-delete] ${userId} deleted with ${warnings.length} skipped step(s): ${warnings.join(', ')}`);
+  return { ok: true, warnings };
+}
+
 router.delete('/auth/account', requireAuth, async (req, res) => {
   const userId = req.user!.id;
   try {
-    // Deleting a relation that doesn't exist in this build (a model added on a
-    // branch that hasn't been pushed to this DB yet) must not abort the whole
-    // transaction and strand the user with a half-deleted account. Each step is
-    // therefore best-effort; the final user.delete is the one that must succeed,
-    // and it will fail loudly if any FK is genuinely still pointing at the row.
-    const tryDelete = async (label: string, fn: () => Promise<unknown>) => {
-      try { await fn(); } catch (e: any) {
-        console.warn(`[account-delete] skipped ${label}: ${e?.message ?? e}`);
-      }
-    };
-
-    const email = (await prisma.user.findUnique({ where: { id: userId }, select: { email: true } }))?.email ?? null;
-
-    // Stop billing first. A web (Stripe) subscriber who deletes their account
-    // would otherwise keep being charged with no account left to cancel from.
-    // If Stripe can't be reached, nothing is deleted — they can try again.
-    // App Store / Google Play subscriptions can't be cancelled by us; the app
-    // tells those users to cancel in their store before deleting.
-    const billing = await prisma.user.findUnique({ where: { id: userId }, select: { stripeCustomerId: true } });
-    if (billing?.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
-      try {
-        const n = await cancelActiveSubscriptions(billing.stripeCustomerId);
-        if (n) console.log(`[account-delete] cancelled ${n} Stripe subscription(s) for ${userId}`);
-      } catch (e: any) {
-        console.error(`[account-delete] Stripe cancel failed for ${userId}:`, e?.message ?? e);
-        return res.status(502).json({ error: 'We couldn\'t cancel your subscription, so nothing was deleted. Try again in a minute.' });
-      }
-    }
-
-    await prisma.$transaction(async (tx) => {
-      const t = tx as any;
-
-      // 1. Leaf records with no further children
-      await tryDelete('diagnosticMessage', () => t.diagnosticMessage.deleteMany({ where: { session: { userId } } }));
-      await tryDelete('exerciseSnapshot', () => t.exerciseSnapshot.deleteMany({ where: { session: { userId } } }));
-      await tryDelete('generatedPlan', () => t.generatedPlan.deleteMany({ where: { session: { userId } } }));
-      await tryDelete('mealEntry', () => t.mealEntry.deleteMany({ where: { userId } }));
-      await tryDelete('nutritionLog', () => t.nutritionLog.deleteMany({ where: { userId } }));
-      await tryDelete('nutritionPlan', () => t.nutritionPlan.deleteMany({ where: { userId } }));
-      await tryDelete('bodyWeightLog', () => t.bodyWeightLog.deleteMany({ where: { userId } }));
-      await tryDelete('wellnessCheckin', () => t.wellnessCheckin.deleteMany({ where: { userId } }));
-      await tryDelete('activityLog', () => t.activityLog.deleteMany({ where: { userId } }));
-      await tryDelete('savedFood', () => t.savedFood.deleteMany({ where: { userId } }));
-      await tryDelete('recipe', () => t.recipe.deleteMany({ where: { userId } }));
-      await tryDelete('workoutLog', () => t.workoutLog.deleteMany({ where: { userId } }));
-      await tryDelete('scheduleOverride', () => t.scheduleOverride.deleteMany({ where: { userId } }));
-      await tryDelete('completedProgram', () => t.completedProgram.deleteMany({ where: { userId } }));
-      await tryDelete('formAnalysis', () => t.formAnalysis.deleteMany({ where: { userId } }));
-      await tryDelete('featureUsage', () => t.featureUsage.deleteMany({ where: { userId } }));
-      await tryDelete('savedArticle', () => t.savedArticle.deleteMany({ where: { userId } }));
-      await tryDelete('userFeedView', () => t.userFeedView.deleteMany({ where: { userId } }));
-      await tryDelete('agentMemory', () => t.agentMemory.deleteMany({ where: { userId } }));
-      await tryDelete('agentConversation', () => t.agentConversation.deleteMany({ where: { userId } }));
-
-      // 2. Sessions (after their children are gone)
-      await tryDelete('session', () => t.session.deleteMany({ where: { userId } }));
-
-      // 3. Social / messaging — both directions of every relation
-      await tryDelete('postComment', () => t.postComment.deleteMany({ where: { authorId: userId } }));
-      await tryDelete('postReaction', () => t.postReaction.deleteMany({ where: { userId } }));
-      await tryDelete('message', () => t.message.deleteMany({
-        where: { OR: [{ senderId: userId }, { conversation: { OR: [{ participantAId: userId }, { participantBId: userId }] } }] },
-      }));
-      await tryDelete('directConversation', () => t.directConversation.deleteMany({
-        where: { OR: [{ participantAId: userId }, { participantBId: userId }] },
-      }));
-      // Comments and reactions by *other* users on this user's posts have to go
-      // before the posts themselves, or the FK blocks the delete.
-      await tryDelete('postComment:onOwnPosts', () => t.postComment.deleteMany({ where: { post: { sharerId: userId } } }));
-      await tryDelete('postReaction:onOwnPosts', () => t.postReaction.deleteMany({ where: { post: { sharerId: userId } } }));
-      await tryDelete('sharedItem', () => t.sharedItem.deleteMany({
-        where: { OR: [{ sharerId: userId }, { recipientId: userId }] },
-      }));
-      await tryDelete('friendship', () => t.friendship.deleteMany({
-        where: { OR: [{ requesterId: userId }, { addresseeId: userId }] },
-      }));
-      await tryDelete('userInvite', () => t.userInvite.deleteMany({
-        where: { OR: [{ inviterId: userId }, { usedByUserId: userId }] },
-      }));
-
-      // 4. Groups, institutions, partner workouts
-      await tryDelete('groupMessage', () => t.groupMessage.deleteMany({ where: { senderId: userId } }));
-      await tryDelete('groupMember', () => t.groupMember.deleteMany({ where: { userId } }));
-      // GroupChat.createdById is RESTRICT, so chats this user created block
-      // the delete. Members and messages both cascade from GroupChat, so
-      // removing the chat is enough. This orphans the other members' history
-      // — the same outcome as the creator deleting the chat by hand.
-      // Reassigning ownership instead would be a product decision, not a
-      // deletion one.
-      await tryDelete('groupChat', () => t.groupChat.deleteMany({ where: { createdById: userId } }));
-      await tryDelete('institutionMember', () => t.institutionMember.deleteMany({ where: { userId } }));
-      await tryDelete('partnerWorkoutMember', () => t.partnerWorkoutMember.deleteMany({ where: { userId } }));
-      await tryDelete('partnerWorkout', () => t.partnerWorkout.deleteMany({ where: { creatorId: userId } }));
-
-      // 4b. Adaptive progression. AdaptationProposal.userId is RESTRICT, so a
-      //     user who was ever offered a progression change cannot be deleted
-      //     until these go. Missing this is what made account deletion fail
-      //     with an unnamed P2003 (SQLite reports constraint: null) for every
-      //     user who had one.
-      await tryDelete('adaptationProposal', () => t.adaptationProposal.deleteMany({ where: { userId } }));
-      // 4c. Personal-training dashboard. These tables hold plain ids rather
-      //     than FKs, so nothing cascades: what a trainer's dashboard stored
-      //     about this person as a CLIENT (check-in answers, drafted
-      //     messages, briefing cards, reports, notifications) has to be
-      //     removed here, and so does what they stored as a TRAINER.
-      await tryDelete('ptCheckIn', () => t.ptCheckIn.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptCheckInSchedule', () => t.ptCheckInSchedule.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptBriefingItem', () => t.ptBriefingItem.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptBriefing', () => t.ptBriefing.deleteMany({ where: { trainerId: userId } }));
-      await tryDelete('ptDraft', () => t.ptDraft.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
-      await tryDelete('ptReport', () => t.ptReport.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
-      await tryDelete('ptNotification', () => t.ptNotification.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
-      await tryDelete('ptNotificationSettings', () => t.ptNotificationSettings.deleteMany({ where: { trainerId: userId } }));
-      await tryDelete('ptAnakinThread', () => t.ptAnakinThread.deleteMany({ where: { trainerId: userId } }));
-      await tryDelete('ptScheduledQuestion', () => t.ptScheduledQuestion.deleteMany({ where: { trainerId: userId } }));
-      await tryDelete('ptNote', () => t.ptNote.deleteMany({ where: { OR: [{ clientId: userId }, { trainerId: userId }] } }));
-      // What a trainer imported about this person before they joined goes with them.
-      await tryDelete('ptImported', async () => {
-        const linked = await t.ptProspect.findMany({ where: { userId }, select: { id: true } });
-        const ids = linked.map((p: { id: string }) => p.id);
-        await t.ptImportedWorkout.deleteMany({ where: { prospectId: { in: ids } } });
-        await t.ptImportedWeight.deleteMany({ where: { prospectId: { in: ids } } });
-        await t.ptProspect.deleteMany({ where: { id: { in: ids } } });
-      });
-      await tryDelete('ptImport', () => t.ptImport.deleteMany({ where: { trainerId: userId } }));
-      // The coach-platform dossier: what a practice recorded about this person as a client.
-      await tryDelete('ptClientProfile', () => t.ptClientProfile.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptClientLink', () => t.ptClientLink.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptContraindication', () => t.ptContraindication.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptGoal', () => t.ptGoal.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptMeasurement', () => t.ptMeasurement.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptProgressPhoto', () => t.ptProgressPhoto.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptIntake', () => t.ptIntake.deleteMany({ where: { clientId: userId } }));
-      await tryDelete('ptNutritionTarget', () => t.ptNutritionTarget.deleteMany({ where: { clientId: userId } }));
-      // The audit trail keeps that an action happened, not what was written to or about this person.
-      await tryDelete('ptAuditLog', () => t.ptAuditLog.updateMany({ where: { clientId: userId }, data: { clientId: null, originalText: null, editedText: null } }));
-      // Keyed by email, not a user FK, so the cascade doesn't reach it.
-      if (email) await tryDelete('passwordResetCode', () => t.passwordResetCode.deleteMany({ where: { email: email.toLowerCase() } }));
-
-      // 5. Trust & safety. Reports filed BY this user go; ContentFlag rows are
-      //    deliberately retained (userId is not an FK) — an abuse history that
-      //    a serial abuser can erase by deleting and re-registering is not an
-      //    abuse history. They carry no PII beyond a truncated excerpt.
-      await tryDelete('contentReport', () => t.contentReport.deleteMany({ where: { reporterId: userId } }));
-      await tryDelete('userSuspension', () => t.userSuspension.deleteMany({ where: { userId } }));
-
-      // 6. Finally remove the user row itself
-      await tx.user.delete({ where: { id: userId } });
-    });
-
-    posthog.capture({
-      distinctId: userId,
-      event: 'user_account_deleted',
-    });
+    const r = await deleteUserAccount(userId, 'user_request');
+    if (!r.ok) return res.status(r.status).json({ error: r.error });
     // Clear the auth cookie
     res.clearCookie('liftoff_jwt', { httpOnly: true, sameSite: 'none', secure: true });
-    res.json({ success: true });
+    res.json({ success: true, warnings: r.warnings });
   } catch (err) {
     posthog.captureException(err, userId);
     console.error('Account deletion error:', err);

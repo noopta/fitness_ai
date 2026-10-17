@@ -25,7 +25,7 @@ import { ExercisePage } from './exercise';
 import { FullProgramPage, ProgramDayPage, ProgramReviewPage } from './program';
 import { GuidedFreestylePage, SuggestionsPage } from './freestyle';
 import { StrengthProfilePage, LiftTrendPage, PatternsPage } from './strength';
-import { manageSubscription } from '../../billing';
+import { manageSubscription, isStripeSubscriber, STORE_MANAGE_TEXT } from '../../billing';
 import { nutritionApi, socialApi, paymentsApi, apiFetch } from '../../../lib/api';
 import { useShellOptional } from '../../shell/ShellContext';
 import { exName } from '../../format';
@@ -39,6 +39,7 @@ import { GroupsList } from '../feed/lists';
 import { FriendsPage, GroupPage, LeaderboardPage, TrainTogetherPage } from '../feed/People';
 import { ComposePage } from '../feed/Compose';
 import { AnalyzePage } from './analyze';
+import { userSafetyMenu } from '../../../lib/moderation';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -402,16 +403,23 @@ function BillingPage() {
   const router = useRouter();
   const pro = user?.tier === 'pro' || user?.tier === 'enterprise';
   const [busy, setBusy] = React.useState(false);
-  // Stripe subscribers get the portal; App Store / Google Play subscribers go straight to their store page.
+  // Only Stripe (web) subscribers get a link (the portal); App Store / Google
+  // Play subscribers get plain text — store policy, no external billing links.
+  const [stripe, setStripe] = React.useState(false);
+  React.useEffect(() => {
+    let live = true;
+    if (pro) void isStripeSubscriber().then((v) => { if (live) setStripe(v); });
+    return () => { live = false; };
+  }, [pro]);
   const portal = async () => {
     setBusy(true);
     try { await manageSubscription(); } finally { setBusy(false); }
   };
   return (
     <PushedPage back="You" title={pro ? 'Pro' : 'Free'} lead={pro ? 'Anakin, unlimited.' : 'Diagnosis is free. Pro is the coach that runs the plan with you.'}
-      cta={pro ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : { label: 'See Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) }}>
+      cta={pro ? (stripe ? { label: 'Manage subscription', onPress: () => void portal(), loading: busy } : null) : { label: 'See Pro', onPress: () => router.push({ pathname: '/(v2)/paywall', params: { gate: '1' } } as any) }}>
       <Row name="Plan" value={pro ? 'Pro' : 'Free'} />
-      <Row name="Payment" sub="Managed by the store" last />
+      <Row name="Payment" sub={!pro ? 'No subscription' : stripe ? 'Billed by card' : STORE_MANAGE_TEXT} last />
     </PushedPage>
   );
 }
@@ -452,7 +460,11 @@ function PersonPage({ id, params }: { id: string; params: Record<string, string>
   return (
     <PushedPage back="Feed" title={params.name || 'Person'} meta={params.goal || null} lead={params.did ? `Latest — ${params.did}${params.whenAt ? `, ${params.whenAt} ago` : ''}` : null}
       cta={id ? { label: 'Follow', onPress: () => void follow(), loading: busy } : null}
-      foot={id ? [{ label: 'Full profile', onPress: () => router.push({ pathname: '/social/profile', params: { userId: id } } as any) }] : undefined}>
+      foot={id ? [
+        { label: 'Full profile', onPress: () => router.push({ pathname: '/social/profile', params: { userId: id } } as any) },
+        // Guideline 1.2: report or block, reachable from every profile.
+        { label: 'Report or block', onPress: () => userSafetyMenu({ userId: id, name: params.name, onBlockChange: (b) => { if (b && router.canGoBack()) router.back(); } }) },
+      ] : undefined}>
       {params.did ? <Row name="Latest" sub={params.did} value={params.whenAt} last /> : null}
     </PushedPage>
   );

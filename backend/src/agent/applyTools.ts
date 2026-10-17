@@ -15,6 +15,7 @@ import { join as pathJoin, dirname } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { cacheDelete, cacheClearByPrefix } from '../services/cacheService.js';
 import { parseJsonObjectColumn } from '../services/jsonColumn.js';
+import { clampDailyCalories, floorProfileFromRow, FLOOR_SELECT } from '../services/nutritionSafety.js';
 
 // A corrupt savedProgram must surface as something the agent can say out loud,
 // not a raw SyntaxError. Everything here already throws domain errors for the
@@ -48,8 +49,22 @@ export interface MacroChange {
  * the (possibly new) calories vs. stored TDEE, and syncs dailyCalorieTarget so
  * the Nutrition tab reflects it.
  */
-export async function applyMacroChange(userId: string, change: MacroChange) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+export async function applyMacroChange(userId: string, change: MacroChange): Promise<{ macros: any; expectedOutcomes: any; floorNote?: string }> {
+  // Hard calorie floor (nutritionSafety.ts): a target below it is raised to it
+  // and the note travels back to the card / reply. Applies to every caller —
+  // chat proposals, the Fuel targets editor and undo restores alike.
+  let floorNote: string | undefined;
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, ...FLOOR_SELECT } });
+  for (const key of ['calories', 'proteinG', 'carbsG', 'fatG'] as const) {
+    const v = change[key];
+    if (v != null && (typeof v !== 'number' || !Number.isFinite(v) || v > 12000 || (key !== 'calories' && v < 0))) {
+      throw new Error(`Invalid ${key}: ${v}`);
+    }
+  }
+  if (change.calories != null) {
+    const c = clampDailyCalories(change.calories, floorProfileFromRow(user));
+    if (c.clamped) { change = { ...change, calories: c.calories }; floorNote = c.note ?? undefined; }
+  }
   const program = user?.savedProgram ? requireProgram(user.savedProgram, 'adjusted') : null;
   const macros = program?.nutritionPlan?.macros;
   // No program nutrition plan (freestyle, or none yet): the targets are the
@@ -59,7 +74,7 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
     const { setOwnTargets } = await import('../services/nutritionTargets.js');
     const own = await setOwnTargets(userId, change);
     invalidateProgramCaches(userId);
-    return { macros: own, expectedOutcomes: null };
+    return { macros: own, expectedOutcomes: null, ...(floorNote ? { floorNote } : {}) };
   }
 
   // Apply only provided fields; guard against nonsense values.
@@ -91,7 +106,7 @@ export async function applyMacroChange(userId: string, change: MacroChange) {
   // The user chose these: a newly generated program keeps them instead of its own numbers.
   try { const { rememberUserTargets } = await import('../services/nutritionTargets.js'); await rememberUserTargets(userId, Object.fromEntries(Object.entries(change).filter(([, v]) => typeof v === 'number')) as Record<string, number>); } catch { /* the plan change stands */ }
   invalidateProgramCaches(userId);
-  return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null };
+  return { macros, expectedOutcomes: program?.nutritionPlan?.expectedOutcomes ?? null, ...(floorNote ? { floorNote } : {}) };
 }
 
 /**
@@ -395,7 +410,7 @@ export async function applyExerciseSwap(
   reason?: string,
   opts?: { scope?: 'day' | 'program'; day?: string },
 ) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, ...FLOOR_SELECT } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
   const program = requireProgram(user.savedProgram, 'updated');
 
@@ -493,14 +508,19 @@ export async function applyProgramUpdate(userId: string, proposed: any, opts: { 
     proposed = body;
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, ...FLOOR_SELECT } });
   if (!user?.savedProgram) throw new Error('No saved program to update. Generate a program first.');
   const current = requireProgram(user.savedProgram, 'updated');
 
   const updatedProgram = validateProgram(proposed, current?.goal ?? null, !!opts.allowGoalChange);
 
-  // Sync calorie target if the updated program carries nutrition macros.
-  const programCalories = updatedProgram?.nutritionPlan?.macros?.calories ?? null;
+  // Sync calorie target if the updated program carries nutrition macros —
+  // never below the calorie floor (nutritionSafety.ts).
+  let programCalories = updatedProgram?.nutritionPlan?.macros?.calories ?? null;
+  if (typeof programCalories === 'number') {
+    const c = clampDailyCalories(programCalories, floorProfileFromRow(user));
+    if (c.clamped) { programCalories = c.calories; updatedProgram.nutritionPlan.macros.calories = c.calories; }
+  }
 
   await prisma.user.update({
     where: { id: userId },

@@ -3,7 +3,9 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Alert, AppState, Platform } from 'react-native';
-import { authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVerifyPending } from '../lib/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE, authApi, getToken, setToken, clearToken, isVerifyPending, type AuthVerifyPending } from '../lib/api';
+import { log } from '../lib/log';
 import { clearLocalOnboardingState } from '../onboarding/testAccountReset';
 import { setTrainerMode } from '../features/personal-training/mode';
 import { resetEntitlementSync, syncStoreEntitlement } from '../lib/entitlementSync';
@@ -20,6 +22,89 @@ WebBrowser.maybeCompleteAuthSession();
  * can span component remounts.
  */
 let handledToken: string | null = null;
+
+// ── OAuth "login in flight" gate ─────────────────────────────────────────────
+// `axiom://auth/callback?token=…` is a public URL scheme: any web page or app
+// can open it. Without a gate, a crafted link could silently sign the phone
+// into an attacker's account (login CSRF — everything the victim then logs,
+// incl. injuries and form video, lands in the attacker's account). A token
+// from a deep link is therefore only accepted while a Google sign-in that THIS
+// device started is in flight (≤10 min), and never over a signed-in user.
+// Persisted as well as in memory: on Android the OS can kill the app while
+// Google's 2FA prompt is foregrounded, and the token then arrives on a cold
+// start.
+const OAUTH_FLIGHT_KEY = 'axiom_oauth_inflight_at';
+const OAUTH_FLIGHT_MS = 10 * 60 * 1000;
+let oauthStartedAt: number | null = null;
+
+async function markOAuthStart(): Promise<void> {
+  oauthStartedAt = Date.now();
+  try { await AsyncStorage.setItem(OAUTH_FLIGHT_KEY, String(oauthStartedAt)); } catch { /* memory flag still holds */ }
+}
+
+async function clearOAuthFlight(): Promise<void> {
+  oauthStartedAt = null;
+  try { await AsyncStorage.removeItem(OAUTH_FLIGHT_KEY); } catch { /* ignore */ }
+}
+
+async function oauthInFlight(): Promise<boolean> {
+  let at = oauthStartedAt;
+  if (at == null) {
+    try { const v = await AsyncStorage.getItem(OAUTH_FLIGHT_KEY); at = v ? Number(v) : null; } catch { at = null; }
+  }
+  if (at == null || !Number.isFinite(at)) return false;
+  if (Date.now() - at > OAUTH_FLIGHT_MS) { await clearOAuthFlight(); return false; }
+  return true;
+}
+
+// Device-local data that belongs to the signed-in person and must not survive
+// a sign-out on a shared phone: offline caches (incl. DMs), the in-flight
+// diagnostic draft (injuries are in `axiom_constraints`) and logger drafts.
+const USER_DATA_KEYS = [
+  'axiom_session_id', 'axiom_selected_lift', 'axiom_target_weight', 'axiom_target_sets', 'axiom_target_reps',
+  'axiom_height_ft', 'axiom_height_in', 'axiom_weight_lbs', 'axiom_training_age', 'axiom_equipment', 'axiom_constraints',
+  'v2.loggerDraft.v1', 'v2.sessionDraft.v1', 'v2:feedsearch:recent', OAUTH_FLIGHT_KEY,
+];
+const USER_DATA_PREFIXES = ['mcache:v1:', 'chat-cache:v1:'];
+
+async function purgeLocalUserData(): Promise<void> {
+  invalidateCache('');
+  try {
+    const all = await AsyncStorage.getAllKeys();
+    const swept = all.filter((k) => USER_DATA_PREFIXES.some((p) => k.startsWith(p)));
+    await AsyncStorage.multiRemove([...USER_DATA_KEYS, ...swept]);
+  } catch { /* best effort */ }
+}
+
+/** Consent timestamps from /auth/me (null = not given). */
+export interface ConsentState {
+  acceptedTermsAt: string | null;
+  healthConsentAt: string | null;
+  marketingConsentAt?: string | null;
+}
+
+/** `consent` from an /auth/me payload; undefined when the backend predates it. */
+function readConsent(data: any): ConsentState | undefined {
+  const c = data?.consent ?? data?.user?.consent;
+  if (!c || typeof c !== 'object') return undefined;
+  return {
+    acceptedTermsAt: c.acceptedTermsAt ?? null,
+    healthConsentAt: c.healthConsentAt ?? null,
+    marketingConsentAt: c.marketingConsentAt ?? null,
+  };
+}
+
+/**
+ * Whether the age gate must show, derived from the /auth/me payload on EVERY
+ * load — so force-quitting on the age-check screen can't skip it. Missing DOB
+ * only counts when the field is actually present in the payload (an older
+ * server that omits it must not lock everyone out).
+ */
+function deriveNeedsDob(data: any): boolean {
+  if (data?.needsDob === true || data?.user?.needsDob === true) return true;
+  const u = data?.user;
+  return !!u && Object.prototype.hasOwnProperty.call(u, 'dateOfBirth') && !u.dateOfBirth;
+}
 
 /** Pull the OAuth result out of an `axiom://auth/callback?...` deep link. */
 export function parseAuthCallbackUrl(url: string): { token?: string; needsDob: boolean; error: boolean } | null {
@@ -84,11 +169,16 @@ export interface AuthUser {
   referredByCode?: string | null;
 }
 
+/** Outcome of a token that arrived on a deep link. */
+export type OAuthCallbackResult = 'ok' | 'ignored' | 'failed';
+
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   needsDobCheck: boolean;
   clearDobCheck: () => void;
+  /** Consent timestamps; undefined when /auth/me doesn't send them (older backend). */
+  consent: ConsentState | undefined;
   // login + register may resolve to a "verification pending" sentinel when
   // the user signed up with email+password and hasn't entered their 6-digit
   // OTP yet — the caller routes to /(auth)/verify-email in that case.
@@ -122,6 +212,12 @@ interface AuthContextType {
    * true on success, false on any failure (caller decides where to route).
    */
   completeAuthCallback: (token: string, opts?: { needsDob?: boolean }) => Promise<boolean>;
+  /**
+   * The gated entry for a token that arrived on an `axiom://auth/callback`
+   * deep link: 'ignored' unless a Google sign-in started on this device is in
+   * flight and nobody is signed in; otherwise verified like completeAuthCallback.
+   */
+  acceptOAuthCallback: (token: string, opts?: { needsDob?: boolean }) => Promise<OAuthCallbackResult>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -194,14 +290,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   const [loading, setLoading] = useState(true);
   const [needsDobCheck, setNeedsDobCheck] = useState(false);
+  const [consent, setConsent] = useState<ConsentState | undefined>(undefined);
 
   function clearDobCheck() { setNeedsDobCheck(false); }
+
+  /** Commit everything an /auth/me payload carries. */
+  function applyMe(data: any) {
+    commitUser(data?.user ?? null);
+    commitFeatures(data?.features);
+    setConsent(readConsent(data));
+    if (data?.user) setNeedsDobCheck(deriveNeedsDob(data));
+  }
+
+  // Resolves once the cold-start session restore has finished, so the deep-link
+  // gate sees whether someone is already signed in.
+  const initDone = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
+  if (!initDone.current) {
+    let resolve: () => void = () => {};
+    const promise = new Promise<void>((r) => { resolve = r; });
+    initDone.current = { promise, resolve };
+  }
 
   async function refreshUser() {
     try {
       const data = await authApi.getMe();
-      commitUser(data.user);
-      commitFeatures(data.features);
+      applyMe(data);
     } catch (err: any) {
       // Only clear user on explicit auth rejection (401/403), not network errors
       if (err?.status === 401 || err?.status === 403) {
@@ -218,8 +331,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const data = await authApi.getMe();
-          commitUser(data.user);
-          commitFeatures(data.features);
+          applyMe(data);
         } catch (err: any) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
@@ -229,6 +341,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       setLoading(false);
+      initDone.current?.resolve();
     };
     init();
   }, []);
@@ -285,10 +398,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!parsed) return;
 
       if (parsed.token) {
+        const result = await acceptOAuthCallback(parsed.token, { needsDob: parsed.needsDob });
+        if (result === 'ignored') return; // not ours — logged, nothing shown
         // The tab may still be sitting open behind us after a handoff.
         try { WebBrowser.dismissBrowser(); } catch { /* nothing open */ }
-        const ok = await completeAuthCallback(parsed.token, { needsDob: parsed.needsDob });
-        if (!ok) Alert.alert('Sign In Failed', 'We could not verify your sign-in. Please try again.');
+        if (result === 'failed') Alert.alert('Sign In Failed', 'We could not verify your sign-in. Please try again.');
       } else if (parsed.error) {
         Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
       }
@@ -341,9 +455,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    try { await authApi.logout(); } catch { /* ignore */ }
+    // Revoke every session server-side (a stolen copy of this token dies too),
+    // falling back to the single-session logout on an older backend.
+    try { await authApi.logoutAll(); } catch {
+      try { await authApi.logout(); } catch { /* ignore */ }
+    }
     resetEntitlementSync();
+    // The next person on this phone must not inherit cached data or drafts.
+    await purgeLocalUserData();
     await clearToken();
+    await clearOAuthFlight();
+    handledToken = null;
+    setConsent(undefined);
+    setNeedsDobCheck(false);
     // The next person to sign in on this device is not assumed to be a trainer.
     await setTrainerMode(false);
     commitUser(null);
@@ -367,21 +491,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token === handledToken) return true;
     handledToken = token;
 
-    await setToken(token);
     try {
-      const res = await fetch('https://api.airthreads.ai/api/auth/me', {
+      // Verify BEFORE persisting: a token that /auth/me rejects never touches storage.
+      const res = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
+      if (!res.ok || !data?.user) {
         await clearToken();
         handledToken = null; // release the guard so a retry can run
         return false;
       }
-      commitUser(data.user);
+      await setToken(token);
+      await clearOAuthFlight();
       // This IS the /auth/me payload — commit the features it carries, or
       // post-auth routing runs on the all-off defaults.
-      commitFeatures(data.features);
+      applyMe(data);
       await applyTestAccountReset();
       if (opts?.needsDob) setNeedsDobCheck(true);
       return true;
@@ -395,50 +520,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function acceptOAuthCallback(token: string, opts?: { needsDob?: boolean }): Promise<OAuthCallbackResult> {
+    if (token === handledToken) return 'ok'; // the same sign-in, delivered twice
+    // Wait for the cold-start session restore, so "already signed in" is known.
+    await initDone.current?.promise;
+    if (userRef.current) {
+      log.warn('[Auth] ignored OAuth callback: a user is already signed in');
+      return 'ignored';
+    }
+    if (!(await oauthInFlight())) {
+      log.warn('[Auth] ignored OAuth callback: no Google sign-in in flight on this device');
+      return 'ignored';
+    }
+    return (await completeAuthCallback(token, opts)) ? 'ok' : 'failed';
+  }
+
   async function googleLogin(): Promise<boolean> {
     try {
       const redirectUri = Linking.createURL('/auth/callback');
-      console.log('[Auth] Google OAuth redirect URI:', redirectUri);
-      const authUrl = `https://api.airthreads.ai/api/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const authUrl = `${API_BASE}/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
+      // Opens the deep-link gate (see oauthInFlight) for this sign-in only.
+      await markOAuthStart();
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-      console.log('[Auth] OAuth result type:', result.type);
+      log.debug('[Auth] OAuth result type:', result.type);
 
       if (result.type === 'success' && result.url) {
         const url = result.url;
-        console.log('[Auth] OAuth success URL (first 100):', url.slice(0, 100));
-        const tokenMatch = url.match(/[?&]token=([^&#]+)/);
+        const tokenMatch = url.match(/[?&#]token=([^&#]+)/);
         const authMatch = url.match(/[?&]auth=([^&#]+)/);
         const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
         const authParam = authMatch ? authMatch[1] : null;
-        console.log('[Auth] Token present:', !!token, 'authParam:', authParam);
+        log.debug('[Auth] Token present:', !!token, 'authParam:', authParam);
 
         if (token) {
-          await setToken(token);
-          const dobRequired = /[?&]needsDob=1/.test(url);
-          // Verify by calling /auth/me with the token directly (avoids SecureStore async race)
-          try {
-            const res = await fetch('https://api.airthreads.ai/api/auth/me', {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            const data = await res.json().catch(() => ({}));
-            console.log('[Auth] /auth/me status:', res.status, 'user:', data?.user?.email);
-            if (!res.ok) {
-              await clearToken();
-              Alert.alert('Sign In Failed', `Verification failed (${res.status}: ${data.error ?? 'unknown'}). Please try again.`);
-            } else {
-              commitUser(data.user);
-              // Same /auth/me payload — features must land before routing.
-              commitFeatures(data.features);
-              await applyTestAccountReset();
-              if (dobRequired) setNeedsDobCheck(true);
-              return true;
-            }
-          } catch (err: any) {
-            // Network error — still store token, let user proceed
-            console.log('[Auth] /auth/me network error, attempting to continue:', err?.message);
-            Alert.alert('Sign In Failed', `Network error during verification. Please check connection and try again.`);
-            await clearToken();
-          }
+          // This browser session was opened by us a moment ago, so it is our
+          // own sign-in — no gate needed. Verified via /auth/me before it is stored.
+          const ok = await completeAuthCallback(token, { needsDob: /[?&]needsDob=1/.test(url) });
+          if (ok) return true;
+          Alert.alert('Sign In Failed', 'We could not verify your sign-in. Please check your connection and try again.');
         } else if (authParam === 'error') {
           Alert.alert('Sign In Failed', 'Google sign-in failed. Please try again.');
         } else {
@@ -454,10 +573,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // So: give the deep link a chance to land, and only report failure if
         // nothing showed up. Silence here is what left users staring at the
         // login screen with no idea anything had gone wrong.
-        console.log('[Auth] browser dismissed — waiting briefly for the deep link');
+        log.debug('[Auth] browser dismissed — waiting briefly for the deep link');
         await new Promise(r => setTimeout(r, 2500));
         if (!handledToken) {
-          console.log('[Auth] no deep link arrived after dismiss — treating as cancelled');
+          log.debug('[Auth] no deep link arrived after dismiss — treating as cancelled');
           return false;
         }
         // The deep link landed while we waited — completeAuthCallback owns the
@@ -467,7 +586,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         Alert.alert('Sign In Failed', `Unexpected result: ${result.type}. Please try again.`);
       }
     } catch (err: any) {
-      console.log('[Auth] Google OAuth error:', err?.message);
+      log.warn('[Auth] Google OAuth error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Google sign-in.');
     }
     return false;
@@ -482,7 +601,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ],
       });
 
-      const res = await fetch('https://api.airthreads.ai/api/auth/apple', {
+      const res = await fetch(`${API_BASE}/auth/apple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -507,14 +626,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (err: any) {
       if (err?.code === 'ERR_REQUEST_CANCELED') return false; // user dismissed sheet
-      console.log('[Auth] Apple sign-in error:', err?.message);
+      log.warn('[Auth] Apple sign-in error:', err?.message);
       Alert.alert('Sign In Failed', err?.message || 'Could not complete Apple sign-in.');
       return false;
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, getFeatures, completeAuthCallback }}>
+    <AuthContext.Provider value={{ user, loading, needsDobCheck, clearDobCheck, consent, acceptOAuthCallback, login, register, verifyEmail, resendVerification, logout, googleLogin, appleLogin, refreshUser, getLatestUser, getFeatures, completeAuthCallback }}>
       {children}
     </AuthContext.Provider>
   );
