@@ -23,6 +23,7 @@
 // client address rather than nginx's.
 
 import { Request, Response, NextFunction } from 'express';
+import { createHash } from 'node:crypto';
 
 interface Hit {
   /** Timestamps (ms) of requests inside the current window, oldest first. */
@@ -281,4 +282,23 @@ export const codeLookupLimiter = rateLimit({
   max: envInt('RATE_LIMIT_CODE_LOOKUP_PER_15MIN', 30),
   keyFn: ipKey,
   message: 'Too many code checks. Please wait a few minutes and try again.',
+});
+
+/**
+ * Affiliate dashboard writes (self-reported referrals). Affiliates aren't app
+ * users, so this keys on a hash of their dashboard token (never the raw
+ * credential) and falls back to IP when no token is sent.
+ */
+export function affiliateTokenKey(req: Request): string {
+  const header = req.get('x-affiliate-token');
+  const body = (req.body as any)?.token;
+  const token = (typeof header === 'string' && header.trim()) || (typeof body === 'string' && body.trim()) || '';
+  return token ? `aff:${createHash('sha256').update(token).digest('hex').slice(0, 32)}` : ipKey(req);
+}
+
+export const affiliateWriteLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: envInt('RATE_LIMIT_AFFILIATE_WRITE_PER_15MIN', 60),
+  keyFn: affiliateTokenKey,
+  message: 'You are saving changes too quickly. Please wait a few minutes and try again.',
 });

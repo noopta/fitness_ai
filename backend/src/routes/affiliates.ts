@@ -20,7 +20,12 @@ import {
 } from '../services/affiliateExtras.js';
 import { signLink, verifyLink } from '../services/signedLinks.js';
 import { createReadStream, statSync } from 'node:fs';
-import { codeLookupLimiter } from '../middleware/rateLimiter.js';
+import { codeLookupLimiter, affiliateWriteLimiter } from '../middleware/rateLimiter.js';
+import {
+  selfReportCreateSchema, selfReportUpdateSchema, selfReportAdminUpdateSchema, selfReportToggleSchema,
+  isSelfReportEnabled, setSelfReportEnabled, listForAffiliate, createForAffiliate, updateForAffiliate,
+  deleteForAffiliate, listForAdmin, updateForAdmin, matchedUserExists,
+} from '../services/affiliateSelfReports.js';
 import { normaliseReferralCode, REFERRAL_DISCOUNT_PERCENT, REFERRAL_TRIAL_DAYS } from '../services/referralOffer.js';
 
 const router = Router();
@@ -126,8 +131,12 @@ router.get('/affiliate/me', async (req, res) => {
     // Refresh onboarding status from Stripe
     await checkAndUpdateOnboardingStatus(affiliate.id);
 
-    const dashboard = await getAffiliateDashboard(affiliate.id);
-    res.json(dashboard);
+    const [dashboard, selfReportEnabled] = await Promise.all([
+      getAffiliateDashboard(affiliate.id),
+      isSelfReportEnabled(affiliate as any),
+    ]);
+    // The card needs an active affiliate too (the routes 403 otherwise).
+    res.json({ ...dashboard, selfReportEnabled: !!affiliate.active && selfReportEnabled });
   } catch (err: any) {
     console.error('[affiliates] me error:', err);
     res.status(500).json({ error: 'Failed to fetch affiliate data' });
@@ -323,6 +332,85 @@ router.get('/affiliate/manual-payouts', async (req, res) => {
   }
 });
 
+// ─── Self-reported referrals (people referred before the affiliate had a code)
+// Per-affiliate opt-in. The affiliate sees and edits only their own rows, and
+// only while 'submitted'; review fields (matchedUserId, adminNote) stay with
+// the Axiom team. Approving never changes attribution — see the service.
+
+async function selfReportAffiliate(req: Request, res: Response) {
+  const affiliate = await affiliateByToken(req);
+  if (!affiliate) {
+    res.status(401).json({ error: 'Open your personal affiliate link to continue.' });
+    return null;
+  }
+  if (!affiliate.active || !(await isSelfReportEnabled(affiliate as any))) {
+    res.status(403).json({ error: 'not_enabled' });
+    return null;
+  }
+  return affiliate;
+}
+
+// GET /api/affiliate/self-referrals — own rows, newest first
+router.get('/affiliate/self-referrals', async (req, res) => {
+  try {
+    const affiliate = await selfReportAffiliate(req, res);
+    if (!affiliate) return;
+    res.set('Cache-Control', 'private, no-store');
+    res.json({ referrals: await listForAffiliate(affiliate.id) });
+  } catch (err: any) {
+    console.error('[affiliates] self-referrals list error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load your entries' });
+  }
+});
+
+// POST /api/affiliate/self-referrals
+router.post('/affiliate/self-referrals', affiliateWriteLimiter, async (req, res) => {
+  try {
+    const affiliate = await selfReportAffiliate(req, res);
+    if (!affiliate) return;
+    const { token: _token, ...body } = (req.body ?? {}) as Record<string, unknown>;
+    const parsed = selfReportCreateSchema.safeParse(body);
+    if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+    const result = await createForAffiliate(affiliate.id, parsed.data);
+    if (!result.ok) return res.status(result.status).json({ error: result.error });
+    res.status(201).json(result.value);
+  } catch (err: any) {
+    console.error('[affiliates] self-referral create error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to save that entry' });
+  }
+});
+
+// PUT /api/affiliate/self-referrals/:id — only while 'submitted'
+router.put('/affiliate/self-referrals/:id', affiliateWriteLimiter, async (req, res) => {
+  try {
+    const affiliate = await selfReportAffiliate(req, res);
+    if (!affiliate) return;
+    const { token: _token, ...body } = (req.body ?? {}) as Record<string, unknown>;
+    const parsed = selfReportUpdateSchema.safeParse(body);
+    if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+    const result = await updateForAffiliate(affiliate.id, String(req.params.id), parsed.data);
+    if (!result.ok) return res.status(result.status).json({ error: result.error });
+    res.json(result.value);
+  } catch (err: any) {
+    console.error('[affiliates] self-referral update error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update that entry' });
+  }
+});
+
+// DELETE /api/affiliate/self-referrals/:id — only while 'submitted'
+router.delete('/affiliate/self-referrals/:id', affiliateWriteLimiter, async (req, res) => {
+  try {
+    const affiliate = await selfReportAffiliate(req, res);
+    if (!affiliate) return;
+    const result = await deleteForAffiliate(affiliate.id, String(req.params.id));
+    if (!result.ok) return res.status(result.status).json({ error: result.error });
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error('[affiliates] self-referral delete error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to delete that entry' });
+  }
+});
+
 // ─── Admin routes ─────────────────────────────────────────────────────────────
 
 async function affiliateExists(id: string): Promise<boolean> {
@@ -344,6 +432,53 @@ router.get('/affiliates/:id/extras', requireAuth, requireAdmin, async (req, res)
   } catch (err: any) {
     console.error('[affiliates] extras error:', err?.message ?? err);
     res.status(500).json({ error: 'Failed to load affiliate details' });
+  }
+});
+
+// GET /api/affiliates/:id/self-referrals — all fields + email match suggestion
+router.get('/affiliates/:id/self-referrals', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const affiliate = await prisma.affiliate.findUnique({ where: { id: req.params.id } });
+    if (!affiliate) return res.status(404).json({ error: 'Affiliate not found' });
+    const [selfReportEnabled, referrals] = await Promise.all([
+      isSelfReportEnabled(affiliate as any),
+      listForAdmin(affiliate.id),
+    ]);
+    res.json({ selfReportEnabled, referrals });
+  } catch (err: any) {
+    console.error('[affiliates] admin self-referrals error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to load self-reported referrals' });
+  }
+});
+
+// PUT /api/affiliates/:id/self-referrals/:refId — { status?, adminNote?, matchedUserId? }
+// Records the review only; User.referredByCode is never changed here.
+router.put('/affiliates/:id/self-referrals/:refId', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = selfReportAdminUpdateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    if (parsed.data.matchedUserId && !(await matchedUserExists(parsed.data.matchedUserId))) {
+      return res.status(400).json({ error: 'matchedUserId: no user with that id' });
+    }
+    const row = await updateForAdmin(req.params.id, req.params.refId, parsed.data);
+    if (!row) return res.status(404).json({ error: 'Entry not found' });
+    res.json(row);
+  } catch (err: any) {
+    console.error('[affiliates] admin self-referral update error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update entry' });
+  }
+});
+
+// PUT /api/affiliates/:id/self-report — { enabled: boolean }
+router.put('/affiliates/:id/self-report', requireAuth, requireAdmin, async (req, res) => {
+  const parsed = selfReportToggleSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: zodMessage(parsed.error) });
+  try {
+    if (!(await setSelfReportEnabled(req.params.id, parsed.data.enabled))) return res.status(404).json({ error: 'Affiliate not found' });
+    res.json({ selfReportEnabled: parsed.data.enabled });
+  } catch (err: any) {
+    console.error('[affiliates] self-report toggle error:', err?.message ?? err);
+    res.status(500).json({ error: 'Failed to update setting' });
   }
 });
 

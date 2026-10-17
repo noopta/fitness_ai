@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { AffiliateResources } from '@/components/AffiliateResources';
 import { AffiliateTerms, AffiliateTrainerReferrals, AffiliateManualPayouts } from '@/components/AffiliateExtras';
+import { AffiliateSelfReferrals } from '@/components/AffiliateSelfReferrals';
 import {
   affiliateFetch, consumeAffiliateTokenFromUrl, clearAffiliateToken,
 } from '@/lib/affiliateToken';
@@ -47,6 +48,8 @@ interface Dashboard {
   discountRate: number;
   /** Payouts recorded by the Axiom team outside Stripe (UGC, bonuses). */
   manualPayoutTotals?: { paidCents: number; pendingCents: number };
+  /** Opt-in: may log people referred before they had a code. */
+  selfReportEnabled?: boolean;
   recentCommissions: Commission[];
   payouts: Payout[];
 }
@@ -283,6 +286,13 @@ export default function AffiliatePage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <AffiliateTrainerReferrals token={token} />
         </motion.div>
+
+        {/* People referred before the affiliate had a code (opt-in) */}
+        {dashboard.selfReportEnabled && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <AffiliateSelfReferrals token={token} />
+          </motion.div>
+        )}
 
         {/* UGC & other payouts */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
