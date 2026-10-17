@@ -31,7 +31,7 @@ const ROWS: SeedRow[] = [
     email: 'saeed.abiissa@gmail.com', reference: 'AXM-2026-10-17-BONUS', kind: 'discretionary',
     description: 'Discretionary bonus', amountCents: 0, status: 'pending', note: 'Discretionary bonus — amount to confirm',
   },
-  { email: 'amara.preview@example.com', reference: 'AXM-2026-10-17-UGC', kind: 'ugc', description: DESCRIPTION, amountCents: 7500, status: 'paid' },
+  { email: 'amarachiokorafor18@gmail.com', reference: 'AXM-2026-10-17-UGC', kind: 'ugc', description: DESCRIPTION, amountCents: 7500, status: 'paid' },
 ];
 
 async function main() {
