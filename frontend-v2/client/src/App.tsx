@@ -31,6 +31,7 @@ import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
 import CoachesPage from "./pages/coaches";
+const COACH_BETA_ENABLED = import.meta.env.VITE_COACH_BETA_ENABLED === "1";
 import Terms from "./pages/terms";
 import HealthDataPolicy from "./pages/health-data";
 import TrainerTerms from "./pages/trainer-terms";
@@ -255,8 +256,9 @@ function Router() {
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />
-      <Route path="/coaches" component={CoachesPage} />
-      <Route path="/for-coaches" component={ForCoachesRedirect} />
+      {/* Coach beta: hidden until VITE_COACH_BETA_ENABLED=1 (no nav links, no sitemap entry). */}
+      {COACH_BETA_ENABLED && <Route path="/coaches" component={CoachesPage} />}
+      {COACH_BETA_ENABLED && <Route path="/for-coaches" component={ForCoachesRedirect} />}
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       {/* Legal pages (2026-10 audit) */}

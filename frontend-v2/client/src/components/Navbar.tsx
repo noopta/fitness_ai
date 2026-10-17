@@ -66,7 +66,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/pricing" onClick={closeMobile}>Pricing</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
-        <Link href="/coaches" onClick={closeMobile}>For coaches</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/history" onClick={closeMobile}>My Analyses</Link>
@@ -105,7 +104,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
         <Link href="/pricing" onClick={closeMobile}>Pricing</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
-        <Link href="/coaches" onClick={closeMobile}>For coaches</Link>
       </Button>
       <Button variant="ghost" size="sm" className="rounded-xl w-full justify-start" asChild>
         <Link href="/blog" onClick={closeMobile}>Blog</Link>
@@ -188,7 +186,6 @@ export function Navbar({ variant = 'full', title, subtitle, stepLabel, rightSlot
                 <Link href="/pricing">Pricing</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
-                <Link href="/coaches">For coaches</Link>
               </Button>
               <Button variant="ghost" size="sm" className="rounded-xl" asChild>
                 <Link href="/blog">Blog</Link>

@@ -38,9 +38,10 @@ async function fillRequired(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('coaches page', () => {
-  it('links For coaches from the site footer', () => {
+  it('is not linked from the site footer while the beta is hidden', () => {
+    // Hidden until VITE_COACH_BETA_ENABLED=1: no nav/footer links, no sitemap entry.
     renderPage();
-    expect(screen.getByTestId('link-footer-coaches').getAttribute('href')).toBe('/coaches');
+    expect(screen.queryByTestId('link-footer-coaches')).toBeNull();
   });
 
   it('renders the hero, comparison (labelled approximate), FAQ and the signup form', () => {

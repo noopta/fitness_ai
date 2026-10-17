@@ -33,6 +33,12 @@ import { escapeHtml, coachBetaConfirmationEmail, SUPPORT_EMAIL } from '../servic
 import { coachBetaUnsubscribeUrl, verifyCoachBetaUnsubscribeToken, FRONTEND_URL } from '../services/emailUnsubscribe.js';
 
 const router = Router();
+
+// Hidden until launch: every coach-beta endpoint 404s unless COACH_BETA_ENABLED=1.
+router.use('/coach-beta', (_req, res, next) => {
+  if (process.env.COACH_BETA_ENABLED === '1') return next();
+  res.status(404).json({ error: 'Not found' });
+});
 const prisma = new PrismaClient();
 const db = () => (prisma as any).coachBetaSignup;
 

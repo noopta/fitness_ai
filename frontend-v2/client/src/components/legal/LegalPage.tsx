@@ -74,7 +74,6 @@ export function LegalPage({ title, intro, children }: { title: string; intro?: R
               <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
               <Link href="/accessibility" className="hover:text-foreground">Accessibility</Link>
               <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
-              <Link href="/coaches" className="hover:text-foreground">For coaches</Link>
             </div>
           </div>
         </footer>

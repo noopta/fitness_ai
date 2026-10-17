@@ -41,6 +41,7 @@ vi.mock('../middleware/requireAuth.js', () => ({
   },
 }));
 
+process.env.COACH_BETA_ENABLED = "1";
 process.env.JWT_SECRET = 'test-secret';
 delete process.env.EMAIL_UNSUB_SECRET;
 process.env.ADMIN_EMAILS = 'inquiries@axiomtraining.io';
