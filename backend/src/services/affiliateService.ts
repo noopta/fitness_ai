@@ -9,6 +9,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
 // ─── Invite ───────────────────────────────────────────────────────────────────
 
+/** The affiliate's setup link; it doubles as their permanent dashboard link. The token is a credential. */
+export function affiliateSetupLink(inviteToken: string): string {
+  return `${FRONTEND_URL}/affiliate/setup?token=${inviteToken}`;
+}
+
 export async function inviteAffiliate(
   name: string,
   email: string,
@@ -27,7 +32,7 @@ export async function inviteAffiliate(
     },
   });
 
-  const setupLink = `${FRONTEND_URL}/affiliate/setup?token=${inviteToken}`;
+  const setupLink = affiliateSetupLink(inviteToken);
   // Never log the setup link: its token is the affiliate's credential.
   console.log(`[affiliates] Invited affiliate ${affiliate.id} — code: ${referralCode}`);
   return { affiliate, setupLink };

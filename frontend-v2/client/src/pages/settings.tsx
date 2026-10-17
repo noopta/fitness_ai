@@ -19,6 +19,8 @@ import { Switch } from '@/components/ui/switch';
 import { PRO_PRICE, PRO_PRICE_MONTHLY, AUTO_RENEW_DISCLOSURE } from '@/lib/pricing';
 
 import { startProCheckout } from '@/lib/checkout';
+import { getStoredReferralCode } from '@/lib/referral';
+import { ReferralCodeField } from '@/components/ReferralCodeField';
 import { authFetch } from '@/lib/api';
 import { useUnits, type UnitPreference } from '@/lib/units';
 
@@ -147,9 +149,11 @@ export default function SettingsPage() {
   const fmtConsent = (iso: string | null | undefined) =>
     iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Not given';
 
+  const [referralCode, setReferralCode] = useState<string | null>(() => getStoredReferralCode());
+
   async function handleUpgrade() {
     if (!user) return;
-    await startProCheckout();
+    await startProCheckout({ referralCode });
   }
 
   const joinDate = (user as any)?.createdAt
@@ -340,6 +344,7 @@ export default function SettingsPage() {
                   >
                     Upgrade to Pro <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
+                  <ReferralCodeField value={referralCode} onChange={setReferralCode} />
                   <p className="text-[10px] text-muted-foreground text-center">{AUTO_RENEW_DISCLOSURE}</p>
                 </div>
               </div>

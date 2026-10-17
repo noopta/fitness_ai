@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Zap, FlaskConical, ShieldCheck } from "lucide-react";
@@ -10,6 +10,8 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { WebAnalytics, trackPageTime } from "@/lib/analytics";
 import { SEO } from "@/components/SEO";
 import { startProCheckout } from "@/lib/checkout";
+import { getStoredReferralCode } from "@/lib/referral";
+import { ReferralCodeField } from "@/components/ReferralCodeField";
 import { PRO_PRICE, AUTO_RENEW_DISCLOSURE } from "@/lib/pricing";
 
 const FREE_LIMIT = 2;
@@ -70,6 +72,10 @@ const tiers = [
 export default function Pricing() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  // Affiliates give out codes (typed here) rather than links; a ?ref= link
+  // pre-fills it. Stored in localStorage so a signed-out visitor keeps it
+  // through sign-in / registration.
+  const [referralCode, setReferralCode] = useState<string | null>(() => getStoredReferralCode());
 
   useEffect(() => {
     WebAnalytics.pricingViewed();
@@ -86,7 +92,7 @@ export default function Pricing() {
     // lib/checkout.ts for the full reasoning. The old direct payment link
     // opened a new tab that mobile/in-app browsers silently blocked, AND
     // created duplicate Stripe customers on every use.
-    await startProCheckout();
+    await startProCheckout({ referralCode });
   }
 
   function handleFreeClick() {
@@ -222,6 +228,9 @@ export default function Pricing() {
                         {user ? tier.cta : "Sign in to Upgrade"}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
+                    )}
+                    {tier.id === "pro" && user?.tier !== "pro" && user?.tier !== "enterprise" && (
+                      <ReferralCodeField value={referralCode} onChange={setReferralCode} className="mt-3" />
                     )}
                     {tier.id === "pro" && (
                       <p className="mt-2 text-center text-[11px] leading-snug text-muted-foreground" data-testid="auto-renew-disclosure">

@@ -12,6 +12,15 @@ import { toast } from 'sonner';
 import { WebAnalytics } from '@/lib/analytics';
 import { SEO } from '@/components/SEO';
 import { InAppBrowserWarning } from '@/components/InAppBrowserWarning';
+import { ReferralCodeField } from '@/components/ReferralCodeField';
+import { getStoredReferralCode, normaliseReferralCode, storeReferralCode } from '@/lib/referral';
+
+/** ?ref= wins over a stored code (and replaces it); otherwise the stored one. */
+function initialReferralCode(): string | null {
+  const urlRef = normaliseReferralCode(new URLSearchParams(window.location.search).get('ref'));
+  if (urlRef) { storeReferralCode(urlRef); return urlRef; }
+  return getStoredReferralCode();
+}
 
 export default function Register() {
   const { register, googleLogin, refreshUser, user, features, loading } = useAuth();
@@ -23,7 +32,7 @@ export default function Register() {
   const [consents, setConsents] = useState<ConsentChoices>(EMPTY_CONSENT);
   const [submitting, setSubmitting] = useState(false);
   const redirected = useRef(false);
-  const referralCode = useRef<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(initialReferralCode);
 
   // Already logged in on arrival — redirect out
   useEffect(() => {
@@ -31,10 +40,6 @@ export default function Register() {
       redirected.current = true;
       setLocation(postAuthDestination(user, features ?? DEFAULT_FEATURES));
     }
-    // Capture ?ref= or stored referral code
-    const urlRef = new URLSearchParams(window.location.search).get('ref');
-    const storedRef = localStorage.getItem('axiom_referral');
-    referralCode.current = urlRef || storedRef || null;
   }, [user, features, loading]);
 
   async function handleRegister(e: React.FormEvent) {
@@ -65,8 +70,9 @@ export default function Register() {
     }
     setSubmitting(true);
     try {
-      const pending = await register(name, email, password, dateOfBirth, referralCode.current || undefined, consents);
-      if (referralCode.current) localStorage.removeItem('axiom_referral');
+      // Sent as `referralCode` (stored as User.referredByCode). The code stays
+      // in localStorage so it also reaches create-checkout when they upgrade.
+      const pending = await register(name, email, password, dateOfBirth, referralCode || undefined, consents);
       WebAnalytics.register('email');
       redirected.current = true; // prevent useEffect double-fire
       if (pending) {
@@ -189,6 +195,7 @@ export default function Register() {
               {submitting ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
+          <ReferralCodeField value={referralCode} onChange={setReferralCode} />
         </Card>
       </motion.div>
       </div>

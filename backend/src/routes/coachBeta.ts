@@ -19,10 +19,9 @@
 // Repeat signup (same email) → fields are updated, `alreadyOnList: true`, and
 // the confirmation is re-sent only when the last one went out over 24h ago.
 //
-// NOTE: `(prisma as any).coachBetaSignup` until the Prisma client is
-// regenerated on deploy (the model is new on this branch).
+// Storage goes through services/coachBetaRepo.ts (parameterised raw SQL), so
+// the route works on any installed Prisma client, generated or not.
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import twilio from 'twilio';
 import { outboundNotifyLimiter } from '../middleware/rateLimiter.js';
@@ -30,6 +29,7 @@ import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { sendEmail } from '../services/mailService.js';
 import { escapeHtml, coachBetaConfirmationEmail, SUPPORT_EMAIL } from '../services/emailTemplates.js';
+import { findSignupByEmail, findSignupById, upsertSignupByEmail, updateSignup, listSignupRows, markUnsubscribed } from '../services/coachBetaRepo.js';
 import { coachBetaUnsubscribeUrl, verifyCoachBetaUnsubscribeToken, FRONTEND_URL } from '../services/emailUnsubscribe.js';
 
 const router = Router();
@@ -39,8 +39,6 @@ router.use('/coach-beta', (_req, res, next) => {
   if (process.env.COACH_BETA_ENABLED === '1') return next();
   res.status(404).json({ error: 'Not found' });
 });
-const prisma = new PrismaClient();
-const db = () => (prisma as any).coachBetaSignup;
 
 const FOUNDER_EMAIL = process.env.WAITLIST_NOTIFY_EMAIL || 'anuptaislam33@gmail.com';
 export const RESEND_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -202,14 +200,14 @@ router.post('/coach-beta/signup', outboundNotifyLimiter, async (req, res) => {
   let row: any;
   let existing: any;
   try {
-    existing = await db().findUnique({ where: { email: d.email } });
-    row = await db().upsert({
-      where: { email: d.email },
+    existing = await findSignupByEmail(d.email);
+    row = await upsertSignupByEmail(
+      d.email,
+      { ...fields, source: d.source ?? null },
       // A fresh tick of the consent box is a fresh opt-in, so it clears an
       // earlier unsubscribe. Source keeps the first attribution.
-      update: { ...fields, unsubscribedAt: null, ...(existing?.source ? {} : { source: d.source ?? null }) },
-      create: { email: d.email, ...fields, source: d.source ?? null },
-    });
+      { ...fields, unsubscribedAt: null, ...(existing?.source ? {} : { source: d.source ?? null }) },
+    );
   } catch (err: any) {
     console.error('[coach-beta] store failed:', err?.message || err);
     return res.status(500).json({ error: 'Something went wrong. Please try again in a minute.' });
@@ -231,7 +229,7 @@ router.post('/coach-beta/signup', outboundNotifyLimiter, async (req, res) => {
           to: d.email, subject: msg.subject, html: msg.html, text: msg.text, replyTo: SUPPORT_EMAIL,
           headers: { 'List-Unsubscribe': `<${unsub}>, <mailto:${SUPPORT_EMAIL}?subject=unsubscribe>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
         });
-        await db().update({ where: { id: row.id }, data: { notifiedAt: new Date() } });
+        await updateSignup(row.id, { notifiedAt: new Date() });
       } catch (err: any) {
         console.error('[coach-beta] confirmation email failed:', err?.message || err);
       }
@@ -271,7 +269,7 @@ router.post('/coach-beta/signup', outboundNotifyLimiter, async (req, res) => {
 });
 
 async function listSignups() {
-  return db().findMany({ orderBy: { createdAt: 'desc' }, take: 10_000 });
+  return listSignupRows(10_000);
 }
 
 router.get('/coach-beta/signups', requireAuth, requireAdmin, async (_req, res) => {
@@ -309,9 +307,8 @@ function page(title: string, body: string): string {
 
 /** Returns 'done' | 'missing'. Idempotent: an already-unsubscribed row is 'done'. */
 async function optOut(id: string): Promise<'done' | 'missing'> {
-  const r = await db().updateMany({ where: { id, unsubscribedAt: null }, data: { unsubscribedAt: new Date() } });
-  if (r.count > 0) return 'done';
-  return (await db().findUnique({ where: { id } })) ? 'done' : 'missing';
+  if ((await markUnsubscribed(id)) > 0) return 'done';
+  return (await findSignupById(id)) ? 'done' : 'missing';
 }
 
 router.get('/coach-beta/unsubscribe', async (req, res) => {

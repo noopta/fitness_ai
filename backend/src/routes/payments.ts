@@ -6,6 +6,7 @@ import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import { recordCommission, getOrCreateAffiliateCoupon, renewalCommissionBaseCents } from '../services/affiliateService.js';
 import posthog from '../services/posthogClient.js';
 import { safeReturnPath } from '../services/checkoutReturn.js';
+import { REFERRAL_TRIAL_DAYS } from '../services/referralOffer.js';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://axiomtraining.io';
 
@@ -507,7 +508,7 @@ router.post('/payments/create-checkout', requireAuth, async (req, res) => {
       // combining `discounts` with user-typed promo codes, so the trial is
       // set server-side instead of asking the user to also enter AXIOMTRIAL.
       ...(discounts
-        ? { discounts, subscription_data: { trial_period_days: 30 } }
+        ? { discounts, subscription_data: { trial_period_days: REFERRAL_TRIAL_DAYS } }
         : { allow_promotion_codes: true }),
     });
 

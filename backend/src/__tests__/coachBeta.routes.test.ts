@@ -8,27 +8,43 @@ const store = vi.hoisted(() => ({ rows: [] as any[], seq: 0 }));
 const mail = vi.hoisted(() => ({ sendEmail: vi.fn(async (_m: any) => ({ sent: true, provider: 'sendgrid' as const })) }));
 const sms = vi.hoisted(() => ({ create: vi.fn(async (_m: any) => ({ sid: 'SM1' })) }));
 
+const raw = vi.hoisted(() => ({
+  query: vi.fn(async (..._a: any[]): Promise<any[]> => []),
+  exec: vi.fn(async (..._a: any[]): Promise<number> => 1),
+}));
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn(function (this: any) {
-    const match = (r: any, where: any) => Object.entries(where ?? {}).every(([k, v]) => (r[k] ?? null) === v);
-    this.coachBetaSignup = {
-      findUnique: vi.fn(async (a: any) => store.rows.find((r) => match(r, a.where)) ?? null),
-      findMany: vi.fn(async () => store.rows.slice().sort((x, y) => y.createdAt.getTime() - x.createdAt.getTime())),
-      upsert: vi.fn(async (a: any) => {
-        const r = store.rows.find((x) => x.email === a.where.email);
-        if (r) { Object.assign(r, a.update); return { ...r }; }
-        const row = { id: `cb-${++store.seq}`, createdAt: new Date(), notifiedAt: null, unsubscribedAt: null, invitedAt: null, ...a.create };
-        store.rows.push(row); return { ...row };
-      }),
-      update: vi.fn(async (a: any) => { const r = store.rows.find((x) => x.id === a.where.id); Object.assign(r, a.data); return r; }),
-      updateMany: vi.fn(async (a: any) => {
-        const rows = store.rows.filter((r) => match(r, a.where));
-        rows.forEach((r) => Object.assign(r, a.data));
-        return { count: rows.length };
-      }),
-    };
+    this.$queryRawUnsafe = raw.query;
+    this.$executeRawUnsafe = raw.exec;
   }),
 }));
+
+// The route stores through coachBetaRepo (raw SQL); an in-memory stand-in here.
+vi.mock('../services/coachBetaRepo.js', () => {
+  const byEmail = (email: string) => store.rows.find((r) => r.email === email) ?? null;
+  const byId = (id: string) => store.rows.find((r) => r.id === id) ?? null;
+  const update = async (id: string, patch: any) => {
+    const r = byId(id); if (!r) return 0;
+    for (const [k, v] of Object.entries(patch)) if (v !== undefined) r[k] = v;
+    return 1;
+  };
+  return {
+    findSignupByEmail: vi.fn(async (email: string) => (byEmail(email) ? { ...byEmail(email) } : null)),
+    findSignupById: vi.fn(async (id: string) => (byId(id) ? { ...byId(id) } : null)),
+    updateSignup: vi.fn(update),
+    upsertSignupByEmail: vi.fn(async (email: string, create: any, patch: any) => {
+      const r = byEmail(email);
+      if (r) { await update(r.id, patch); return { ...r }; }
+      const row = { id: `cb-${++store.seq}`, email, createdAt: new Date(), notifiedAt: null, unsubscribedAt: null, invitedAt: null, ...create };
+      store.rows.push(row); return { ...row };
+    }),
+    listSignupRows: vi.fn(async () => store.rows.slice().sort((x, y) => y.createdAt.getTime() - x.createdAt.getTime())),
+    markUnsubscribed: vi.fn(async (id: string) => {
+      const r = byId(id); if (!r || r.unsubscribedAt) return 0;
+      r.unsubscribedAt = new Date(); return 1;
+    }),
+  };
+});
 vi.mock('../services/mailService.js', () => mail);
 vi.mock('twilio', () => ({ default: vi.fn(() => ({ messages: { create: sms.create } })) }));
 vi.mock('../middleware/rateLimiter.js', () => ({ outboundNotifyLimiter: (_q: any, _s: any, n: any) => n() }));
@@ -268,5 +284,35 @@ describe('unsubscribe', () => {
     store.rows[0].unsubscribedAt = new Date();
     await request(app).post('/api/coach-beta/signup').send(valid);
     expect(store.rows[0].unsubscribedAt).toBeNull();
+  });
+});
+
+describe('coachBetaRepo (raw SQL, works without a generated delegate)', () => {
+  it('inserts a new email with whitelisted columns only, then reads it back with Dates', async () => {
+    const repo = await vi.importActual<typeof import('../services/coachBetaRepo.js')>('../services/coachBetaRepo.js');
+    raw.query.mockReset(); raw.exec.mockReset(); raw.exec.mockResolvedValue(1);
+    raw.query
+      .mockResolvedValueOnce([]) // findSignupByEmail → none
+      .mockResolvedValueOnce([{ id: 'x', email: 'a@b.co', createdAt: 1760659200000, notifiedAt: null, marketingConsentAt: BigInt(1760659200000) }]);
+    const row = await repo.upsertSignupByEmail('a@b.co', { name: 'A', marketingConsentAt: new Date(), evil: 'x"; DROP TABLE' } as any, {});
+    const [sql, ...params] = raw.exec.mock.calls[0];
+    expect(sql).toContain('INSERT INTO "CoachBetaSignup"');
+    expect(sql).not.toContain('evil');
+    expect(params).toContain('a@b.co');
+    expect(params).not.toContain('x"; DROP TABLE');
+    expect(row.createdAt).toBeInstanceOf(Date);
+    expect(row.marketingConsentAt).toBeInstanceOf(Date);
+    expect(row.notifiedAt).toBeNull();
+  });
+
+  it('updates an existing email instead of inserting; unsubscribe only touches subscribed rows', async () => {
+    const repo = await vi.importActual<typeof import('../services/coachBetaRepo.js')>('../services/coachBetaRepo.js');
+    raw.query.mockReset(); raw.exec.mockReset(); raw.exec.mockResolvedValue(1);
+    raw.query.mockResolvedValue([{ id: 'x', email: 'a@b.co', createdAt: new Date() }]);
+    await repo.upsertSignupByEmail('a@b.co', { name: 'new' }, { name: 'upd', unsubscribedAt: null });
+    expect(raw.exec.mock.calls[0][0]).toMatch(/^UPDATE "CoachBetaSignup" SET "name" = \?, "unsubscribedAt" = \? WHERE "id" = \?$/);
+    expect(raw.exec.mock.calls[0].slice(1)).toEqual(['upd', null, 'x']);
+    await repo.markUnsubscribed('x');
+    expect(raw.exec.mock.calls[1][0]).toContain('"unsubscribedAt" IS NULL');
   });
 });

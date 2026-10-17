@@ -23,6 +23,13 @@ export const AFFILIATE_PAYMENT_STRUCTURE = {
   title: 'Axiom Affiliate Payment Structure',
   currency: 'CAD',
   proPriceMonthly: '$12.99/mo',
+  /** How a referral is credited to you (code-first since 2026-10). */
+  howYouGetPaid: [
+    'Give people your code (for example SAEED10). They enter it at checkout on axiomtraining.io.',
+    'Your code gives them 20% off Pro for life plus a 30-day free trial, and you earn 40% of every payment they make.',
+    'The code is what credits the sale to you. Your optional link only pre-fills the code; nobody needs to click it.',
+    'Codes only work on web checkout. Apple and Google in-app purchases cannot take a code and are not attributed.',
+  ],
   streams: [
     {
       key: 'consumer_pro',
@@ -86,6 +93,9 @@ export function renderPaymentStructureMarkdown(s = AFFILIATE_PAYMENT_STRUCTURE):
     `Axiom pays affiliates through four streams, all paid monthly in ${s.currency}.`,
     '',
   );
+  lines.push('## How you get paid', '');
+  for (const h of s.howYouGetPaid) lines.push(`- ${h}`);
+  lines.push('');
   lines.push('## The four streams', '');
   lines.push('| # | Stream | What you earn | How long |', '|---|---|---|---|');
   s.streams.forEach((st, i) => {

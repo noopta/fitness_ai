@@ -270,3 +270,15 @@ export const socialWriteLimiter = rateLimit({
   max: envInt('RATE_LIMIT_SOCIAL_WRITE_PER_MIN', 30),
   message: 'You are posting too quickly. Take a breath and try again.',
 });
+
+/**
+ * Public referral-code lookups (GET /api/affiliate/code/:code/validate).
+ * IP-keyed so a script can't enumerate the code space; a person typing and
+ * retyping a code at checkout never gets near it.
+ */
+export const codeLookupLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: envInt('RATE_LIMIT_CODE_LOOKUP_PER_15MIN', 30),
+  keyFn: ipKey,
+  message: 'Too many code checks. Please wait a few minutes and try again.',
+});

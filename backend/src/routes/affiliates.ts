@@ -20,9 +20,35 @@ import {
 } from '../services/affiliateExtras.js';
 import { signLink, verifyLink } from '../services/signedLinks.js';
 import { createReadStream, statSync } from 'node:fs';
+import { codeLookupLimiter } from '../middleware/rateLimiter.js';
+import { normaliseReferralCode, REFERRAL_DISCOUNT_PERCENT, REFERRAL_TRIAL_DAYS } from '../services/referralOffer.js';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// ─── Public: referral code check ──────────────────────────────────────────────
+// GET /api/affiliate/code/:code/validate — used by the web checkout / register
+// "Have a referral code?" field. Case-insensitive. Unknown, malformed or
+// inactive codes answer 200 { valid: false } (no 404, so the response shape
+// leaks nothing). Only the affiliate's first name is ever returned — never
+// email, id or rates. IP rate-limited against enumeration.
+router.get('/affiliate/code/:code/validate', codeLookupLimiter, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const code = normaliseReferralCode(req.params.code);
+  if (!code) return res.json({ valid: false });
+  try {
+    const affiliate = await prisma.affiliate.findUnique({
+      where: { referralCode: code },
+      select: { name: true, active: true },
+    });
+    if (!affiliate || !affiliate.active) return res.json({ valid: false });
+    const affiliateFirstName = String(affiliate.name ?? '').trim().split(/\s+/)[0] || null;
+    res.json({ valid: true, code, discountPercent: REFERRAL_DISCOUNT_PERCENT, trialDays: REFERRAL_TRIAL_DAYS, affiliateFirstName });
+  } catch (err: any) {
+    console.error('[affiliates] code validate failed:', err?.message || err);
+    res.status(500).json({ error: 'Could not check that code right now' });
+  }
+});
 
 // ─── Self-service routes ──────────────────────────────────────────────────────
 // Affiliates aren't app users; their invite token IS their credential — the

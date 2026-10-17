@@ -5,6 +5,9 @@ import { COPY } from '@axiom/diagnostic-core';
 import { authFetch } from '@/lib/api';
 import { WebAnalytics } from '@/lib/analytics';
 import { PRO_PRICE, AUTO_RENEW_DISCLOSURE } from '@/lib/pricing';
+import { checkoutBody } from '@/lib/checkout';
+import { getStoredReferralCode } from '@/lib/referral';
+import { ReferralCodeField } from '@/components/ReferralCodeField';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.airthreads.ai:4009/api';
 const PRICE = PRO_PRICE;
@@ -33,6 +36,7 @@ interface Props {
 export function DiagnosticPaywall({ open, source, onClose }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(() => getStoredReferralCode());
   const apple = applePayAvailable();
 
   useEffect(() => {
@@ -49,7 +53,7 @@ export function DiagnosticPaywall({ open, source, onClose }: Props) {
     try {
       const res = await authFetch(`${API_BASE}/payments/create-checkout`, {
         method: 'POST',
-        body: JSON.stringify({ returnPath: window.location.pathname }),
+        body: JSON.stringify(checkoutBody({ referralCode, returnPath: window.location.pathname })),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body.url) throw new Error(body.error || 'Could not start checkout');
@@ -101,6 +105,7 @@ export function DiagnosticPaywall({ open, source, onClose }: Props) {
             <CreditCard size={18} />
             {COPY.payByCard}
           </button>
+          <ReferralCodeField value={referralCode} onChange={setReferralCode} variant="light" />
           <p className="text-center text-[12px] leading-snug text-zinc-500" data-testid="auto-renew-disclosure">
             {AUTO_RENEW_DISCLOSURE}
           </p>

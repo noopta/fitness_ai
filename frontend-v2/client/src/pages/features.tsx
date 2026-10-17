@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { storeReferralCode } from '@/lib/referral';
 import { Link } from "wouter";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
@@ -1539,7 +1540,7 @@ export default function FeaturesPage() {
   useEffect(() => {
     // Store affiliate referral code from URL for use at registration
     const ref = new URLSearchParams(window.location.search).get('ref');
-    if (ref) localStorage.setItem('axiom_referral', ref.toUpperCase().trim());
+    if (ref) storeReferralCode(ref);
     return trackPageTime('features');
   }, []);
   return (
