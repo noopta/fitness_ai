@@ -30,6 +30,7 @@ import VerifyEmail from "./pages/verify-email";
 import AnalysisPage from "./pages/analysis";
 import Pricing from "./pages/pricing";
 import Privacy from "./pages/privacy";
+import CoachesPage from "./pages/coaches";
 import Terms from "./pages/terms";
 import HealthDataPolicy from "./pages/health-data";
 import TrainerTerms from "./pages/trainer-terms";
@@ -233,6 +234,13 @@ function AnalyticsProvider() {
   return null;
 }
 
+/** /for-coaches → /coaches, keeping ?ref= / utm tags for attribution. */
+function ForCoachesRedirect() {
+  const [, navigate] = useLocation();
+  useEffect(() => { navigate(`/coaches${window.location.search}`, { replace: true }); }, [navigate]);
+  return null;
+}
+
 function Router() {
   return (
     <>
@@ -247,6 +255,8 @@ function Router() {
       <Route path="/analysis/:sessionId" component={AnalysisPage} />
       <Route path="/features-v2" component={FeaturesV2Page} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/coaches" component={CoachesPage} />
+      <Route path="/for-coaches" component={ForCoachesRedirect} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       {/* Legal pages (2026-10 audit) */}

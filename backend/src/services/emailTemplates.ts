@@ -193,6 +193,42 @@ export function waitlistConfirmationEmail(w: WaitlistEmailInput): { subject: str
   return { subject, html, text };
 }
 
+// ─── Coach beta list confirmation ────────────────────────────────────────────
+
+export interface CoachBetaEmailInput {
+  name?: string | null;
+  /** One line, plain text: what they told us (escaped here). */
+  summary: string;
+  unsubscribeUrl: string;
+}
+
+export function coachBetaConfirmationEmail(c: CoachBetaEmailInput): { subject: string; html: string; text: string } {
+  const first = (c.name || '').trim().split(/\s+/)[0] || '';
+  const hiText = first ? `Hi ${first},` : 'Hi there,';
+  const subject = 'You’re on the Axiom coaching beta list';
+  const steps = [
+    'We invite coaches in small batches so each one gets a proper setup.',
+    'Keep an eye on this inbox: your invite will come from this address.',
+    'Questions in the meantime? Reply to this email; a person reads every reply.',
+  ];
+  const body = `
+<p style="margin:0 0 14px;font-size:20px;font-weight:700;">${escapeHtml(hiText)} you’re on the list</p>
+<p style="margin:0 0 14px;">Thanks for your interest in Axiom for coaches. Here’s what happens next:</p>
+<ul style="margin:0 0 14px;padding-left:20px;">${steps.map((t) => `<li style="margin:0 0 6px;">${escapeHtml(t)}</li>`).join('')}</ul>
+<p style="margin:0 0 14px;font-size:14px;color:#52525b;"><strong>You signed up as:</strong> ${escapeHtml(c.summary)}</p>
+<p style="margin:0 0 22px;">${button(`${SITE_URL}/coaches`, 'See what’s coming')}</p>`;
+  const html = layout({
+    preheader: 'We invite coaches in batches. Your invite will come to this inbox.',
+    body,
+    unsubscribeUrl: c.unsubscribeUrl,
+    footerNote: 'You’re receiving this because you joined the Axiom coaching beta list and asked for email about the beta and launch.',
+  });
+  const text = [`${hiText} you’re on the list.`, '', 'Thanks for your interest in Axiom for coaches. Here’s what happens next:',
+    ...steps.map((t) => `- ${t}`), '', `You signed up as: ${c.summary}`, '', `See what’s coming: ${SITE_URL}/coaches`, '',
+    `Unsubscribe: ${c.unsubscribeUrl}`, '', POSTAL_ADDRESS].join('\n');
+  return { subject, html, text };
+}
+
 // ─── Blog / update broadcast ─────────────────────────────────────────────────
 
 /**

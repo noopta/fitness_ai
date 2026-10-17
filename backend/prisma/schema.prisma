@@ -2126,3 +2126,38 @@ model PtLead {
 
   @@index([practiceId, status, createdAt])
 }
+
+// ─── Coach beta / launch list (public /coaches page) ─────────────────────────
+// A personal trainer who isn't on the personal-training allow-list asked to
+// hear about the coaching beta. Not an account. Every row is an explicit
+// opt-in (marketingConsentAt); unsubscribedAt stops all mail to it.
+model CoachBetaSignup {
+  id                 String    @id @default(uuid())
+  /// Stored lowercased + trimmed; unique.
+  email              String    @unique
+  name               String?
+  socialHandle       String?
+  /// instagram | tiktok | youtube | x | other
+  socialPlatform     String?
+  /// online | in_person | hybrid
+  coachingType       String?
+  /// Bucket: 0 | 1-10 | 11-30 | 31-100 | 100+
+  clientCount        String?
+  website            String?
+  /// Free text (<= 200): the tool they use today.
+  platformToday      String?
+  /// Free text (<= 1000).
+  message            String?
+  marketingConsentAt DateTime
+  /// Ref code / utm (<= 120).
+  source             String?
+  ip                 String?
+  userAgent          String?
+  createdAt          DateTime  @default(now())
+  /// Last time the confirmation email went out (throttles re-sends).
+  notifiedAt         DateTime?
+  unsubscribedAt     DateTime?
+  invitedAt          DateTime?
+
+  @@index([createdAt])
+}

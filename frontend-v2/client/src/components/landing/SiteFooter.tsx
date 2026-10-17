@@ -24,6 +24,7 @@ export function SiteFooter() {
               {l.label}
             </Link>
           ))}
+          <Link href="/coaches" className="hover:text-foreground" data-testid="link-footer-coaches">For coaches</Link>
           <a href="mailto:hello@axiomtraining.io" className="hover:text-foreground">Contact</a>
         </nav>
       </div>

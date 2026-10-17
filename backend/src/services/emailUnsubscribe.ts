@@ -85,4 +85,27 @@ export function confirmSubscriptionUrl(subscriberId: string): string {
   return `${API_PUBLIC_URL}/email/confirm?s=${encodeURIComponent(subscriberId)}&t=${encodeURIComponent(confirmToken(subscriberId))}`;
 }
 
+// ─── Coach beta list (CoachBetaSignup) ───────────────────────────────────────
+// Same key and HMAC as the account/blog unsubscribe link, but over a
+// namespaced id ("coach-beta:<id>") so a coach-list token can never be
+// replayed against a User or BlogSubscriber id (and vice versa). The token
+// carries the row id: "<id>.<sig>", so the link needs one query param.
+
+export function coachBetaUnsubscribeToken(signupId: string): string {
+  return `${signupId}.${sign(secret(), 'unsub', `coach-beta:${signupId}`)}`;
+}
+
+/** Returns the signup id when the token is genuine, else null. */
+export function verifyCoachBetaUnsubscribeToken(token: string): string | null {
+  if (!token || typeof token !== 'string') return null;
+  const dot = token.lastIndexOf('.');
+  if (dot <= 0) return null;
+  const id = token.slice(0, dot);
+  return safeEqual(coachBetaUnsubscribeToken(id), token) ? id : null;
+}
+
+export function coachBetaUnsubscribeUrl(signupId: string): string {
+  return `${API_PUBLIC_URL}/coach-beta/unsubscribe?token=${encodeURIComponent(coachBetaUnsubscribeToken(signupId))}`;
+}
+
 export { FRONTEND_URL };

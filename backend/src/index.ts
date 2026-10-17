@@ -16,6 +16,7 @@ import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import liftDiagnosticsRoutes from './routes/liftDiagnostics.js';
 import waitlistRoutes from './routes/waitlist.js';
+import coachBetaRoutes from './routes/coachBeta.js';
 import authRoutes from './routes/auth.js';
 import paymentsRoutes from './routes/payments.js';
 import appleIapRoutes from './routes/appleIap.js';
@@ -229,6 +230,8 @@ app.use('/api', sessionsRoutes);
 // Conversational lift diagnostic (single-thread flow, turn transcript).
 app.use('/api', liftDiagnosticsRoutes);
 app.use('/api', waitlistRoutes);
+// Public coach beta / launch list (/coaches page) + admin export.
+app.use('/api', coachBetaRoutes);
 app.use('/api', affiliatesRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', blogRoutes);

@@ -111,7 +111,7 @@ export default function Privacy() {
           <li><strong>Stripe:</strong> web subscription billing, and payouts to affiliates (Stripe Connect). Receives your email, name and account ID.</li>
           <li><strong>Apple (App Store) and Google (Google Play):</strong> in-app subscription billing; we receive transaction IDs and status. Also Sign in with Apple and Google sign-in.</li>
           <li><strong>SendGrid (Twilio):</strong> sends our emails. Receives your email address and the email content.</li>
-          <li><strong>Twilio (SMS):</strong> sends operational alerts to Axiom's founder, for example when an account is created or someone signs in, or a server error happens. Sign-up and sign-in alerts include the account holder's name and email address; they go only to Axiom staff and are not used for marketing. We do not send you marketing text messages.</li>
+          <li><strong>Twilio (SMS):</strong> sends operational alerts to Axiom's founder, for example when an account is created, someone signs in, a coach joins the coaching beta list, or a server error happens. Sign-up, sign-in and coach beta alerts include the person's name and email address (coach beta alerts also include the social handle, client count and coaching type they gave us); they go only to Axiom staff and are not used for marketing. We do not send you marketing text messages.</li>
           <li><strong>PostHog:</strong> product analytics, linked to your account ID. On the web, analytics cookies and session replay run only after you accept them in the cookie banner, and session replay masks what you type. Session replay is off in the mobile apps.</li>
           <li><strong>Sentry:</strong> crash and error reports from the apps and our servers, which may include device details and the part of a request that failed.</li>
           <li><strong>Expo:</strong> delivers push notifications and app updates. Receives your push token and the notification text.</li>
@@ -155,6 +155,7 @@ export default function Privacy() {
           <li><strong>Billing records:</strong> kept as long as tax law requires (up to 7 years). These are held mainly by Stripe, Apple and Google.</li>
           <li><strong>Server logs:</strong> web-server access logs are kept for 14 days; application logs are overwritten on a rolling basis once they reach a fixed size limit. Error reports in Sentry and analytics events in PostHog are kept for the retention period of our plan with those providers.</li>
           <li><strong>Blog subscriber list:</strong> until you unsubscribe; we keep your address on a do-not-email list after that so the unsubscribe sticks.</li>
+          <li><strong>Coaching beta list</strong> (the For coaches page): what you entered in the form, plus the time you gave consent and the IP address and browser it came from (kept as a record of that consent), until you unsubscribe or ask us to delete it. After you unsubscribe we keep your address marked as unsubscribed so we don't email it again.</li>
         </List>
       </Section>
 
@@ -212,6 +213,7 @@ export default function Privacy() {
           <li><strong>Account emails</strong> (verification codes, password resets, receipts, security notices, your welcome email) are part of the Service.</li>
           <li><strong>Marketing email</strong> (blog posts, product news, offers) is sent only if you opted in. Every one has an unsubscribe link that works in one click.</li>
           <li><strong>Blog subscribers</strong> who are not Axiom users are added only after confirming by email.</li>
+          <li><strong>Coaching beta list:</strong> trainers who sign up on the <Link href="/coaches" className="text-primary hover:underline">For coaches</Link> page, and tick the box asking for email about the beta and launch, get a confirmation email, their invite and launch news. Every one has an unsubscribe link.</li>
           <li>The <strong>weekly wins email</strong> is a summary of your own week; turn it off with the link in the email or in your notification settings.</li>
         </List>
       </Section>
