@@ -17,13 +17,16 @@ const prisma = new PrismaClient();
 const DISCOUNT_RATE = 0.2;
 const COMMISSION_RATE = 0.4;
 
-interface Managed { name: string; emailEnv: string; referralCode: string }
+interface Managed { name: string; emailEnv: string; defaultEmail?: string; referralCode: string }
 interface Checked { name: string; email: string; referralCode: string }
 
 /** Created or updated by this script. */
 const MANAGED: Managed[] = [
-  { name: 'Amara', emailEnv: 'AMARA_EMAIL', referralCode: 'AMARACHI' },
-  { name: 'Umar', emailEnv: 'UMAR_EMAIL', referralCode: 'UMAR10' },
+  // Emails confirmed 2026-10-17. Env vars still override if ever needed.
+  { name: 'Amarachi Okorafor', emailEnv: 'AMARA_EMAIL', defaultEmail: 'amarachiokorafor18@gmail.com', referralCode: 'AMARACHI' },
+  // Umar's existing affiliate row carries the placeholder name "Demby By" and
+  // code EXCLUSIVE26; this run renames it and moves it to UMAR10.
+  { name: 'Umar', emailEnv: 'UMAR_EMAIL', defaultEmail: 'faruqanjo@gmail.com', referralCode: 'UMAR10' },
 ];
 
 /** Already live: verify only, never modified. */
@@ -46,7 +49,7 @@ async function main() {
   let created = 0, updated = 0, unchanged = 0, skipped = 0, warnings = 0;
 
   for (const m of MANAGED) {
-    const email = (process.env[m.emailEnv] || '').trim().toLowerCase();
+    const email = (process.env[m.emailEnv] || m.defaultEmail || '').trim().toLowerCase();
     if (!email) {
       console.log(`skip   ${m.name} (${m.referralCode}): ${m.emailEnv} is not set`);
       skipped++;
@@ -77,7 +80,7 @@ async function main() {
     }
 
     // Name is only set on create; an existing (fuller) name is kept.
-    const want = { referralCode: m.referralCode, discountRate: DISCOUNT_RATE, commissionRate: COMMISSION_RATE, active: true };
+    const want = { name: m.name, referralCode: m.referralCode, discountRate: DISCOUNT_RATE, commissionRate: COMMISSION_RATE, active: true };
     const diff: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(want)) if ((existing as any)[k] !== v) diff[k] = v;
     // A setup link needs a token; mint one only when there is none.
