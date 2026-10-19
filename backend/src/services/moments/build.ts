@@ -221,6 +221,12 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     const now = inUnit(epley(main.top.kg, main.top.reps), u);
     const last = series[series.length - 1];
     if (last?.date === log.date) last.e1rm = now; else series.push({ date: log.date, e1rm: now });
+    // A share card is a climb: start the line at the lowest point before today. When today
+    // is the low point there's no climb to show, and the session card stands alone.
+    let lo = 0;
+    for (let k = 1; k < series.length - 1; k++) if (series[k].e1rm < series[lo].e1rm) lo = k;
+    if (series.length < 2 || now <= series[lo].e1rm) return finishSession(shareables);
+    series.splice(0, lo);
     const weeks = Math.max(1, spanWeeks(series));
     const step = u === 'lb' ? 25 : 10;
     const goalV = Math.ceil((Math.max(...series.map((p) => p.e1rm)) + 1) / step) * step;
@@ -238,6 +244,9 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     shareables.push({ kind: '3a', data: climb }, { kind: '3e', data: climb });
     if (series.length >= 3) shareables.push({ kind: '2f', data: lineFrom(main.e.name.trim(), u, series) });
   }
+  return finishSession(shareables);
+
+  function finishSession(shareables: ShareableData[]): BuiltMoment {
   const praise = [
     backfillLine,
     `${shape[0].toUpperCase()}${shape.slice(1)}. ${rhythm}`,
@@ -253,6 +262,7 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     type: 'session', label: `Session · ${when === 'today' || when === 'yesterday' ? when[0].toUpperCase() + when.slice(1) : when}`,
     title: `${name}, logged.`, praise, why, shareables, score: totalKg,
   };
+  }
 }
 
 function lineFrom(lift: string, unit: ShareUnit, series: { date: string; e1rm: number }[]): LineData {

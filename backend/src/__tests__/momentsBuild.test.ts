@@ -117,8 +117,17 @@ describe('a session that is not a PR still offers every workout card', () => {
     expect(m.shareables.map((s) => s.kind)).toEqual(['3g', '3a', '3e', '2f']);
     const c = m.shareables[1].data as any;
     expect(c.series[c.series.length - 1].e1rm).toBe(263); // 225×5 today, not the 260×2 best
+    expect(c.series[0].e1rm).toBeLessThan(263); // the line starts at the low point: a climb
+    expect(c.stats.gained).toBeGreaterThan(0);
     const row = (m.shareables[0].data as any).lifts.find((l: any) => l.name === 'T-bar row');
     expect(row.top).toBe('135 · 3 sets');
+  });
+});
+
+describe('no climb, no climb cards', () => {
+  it('when today is the low point the session card stands alone', () => {
+    const m = buildWorkoutMoment(base({ log: { id: 'L', date: '2026-10-19', title: 'Light', duration: null, exercises: [bench(135, 5)] } }));
+    expect(m.shareables.map((s) => s.kind)).toEqual(['3g']);
   });
 });
 
