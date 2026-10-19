@@ -46,12 +46,14 @@ export function simulate({ scenario, days, endDate, seed, hrvMethod = 'sdnn' }: 
     let hrvK = 1, rhrD = 0, sleepD = 0, stepsK = 1, temp = 0.1 * gauss(r), sessionK = 1;
     if (scenario === 'overreached' && last < 7) { const t = (7 - last) / 7; hrvK = 1 - 0.3 * t; rhrD = 6 * t; sleepD = -35 * t; training = training || dow === 2; sessionK = 1.3; }
     if (scenario === 'illness' && last < 3) { hrvK = 0.65; rhrD = 8 + r() * 2; temp = 0.6 + 0.2 * r(); stepsK = 0.35; training = false; sleepD = 40; }
-    if (scenario === 'poor_sleep' && last < 7) { sleepD = 315 - base.sleep + 20 * gauss(r); hrvK = 0.86; rhrD = 2.5; }
+    if (scenario === 'poor_sleep' && last < 7) { sleepD = 315 - base.sleep; hrvK = 0.86; rhrD = 2.5; }
     if (scenario === 'deload' && last < 7) { sessionK = 0.6; hrvK = 1.08 + 0.02 * (7 - last) / 7; rhrD = -1.5; }
     if (scenario === 'travel' && (last === 3 || last === 4)) { sleepD = -150; hrvK = 0.82; rhrD = 3; }
     if (scenario === 'travel' && last < 3) stepsK = 1.7;
 
-    const sleepMin = Math.max(180, Math.round(base.sleep + sleepD + 25 * gauss(r)));
+    // Short-night scenarios stay short: less night-to-night noise than a normal week.
+    const sleepNoise = scenario === 'poor_sleep' && last < 7 ? 8 : 25;
+    const sleepMin = Math.max(180, Math.round(base.sleep + sleepD + sleepNoise * gauss(r)));
     const start = new Date(`${shift(date, -1)}T23:${String(Math.floor(r() * 50)).padStart(2, '0')}:00Z`);
     const end = new Date(start.getTime() + (sleepMin + 15) * 60_000);
     const steps = Math.max(300, Math.round(base.steps * stepsK * (1 + 0.25 * gauss(r)) + (training ? 1500 : 0)));

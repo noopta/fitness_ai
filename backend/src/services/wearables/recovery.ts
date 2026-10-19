@@ -7,7 +7,9 @@
 //   HRV      vs the median of the previous 28 days (same method only — Apple
 //            reports SDNN, Fitbit RMSSD), needs 7+ nights
 //   RHR      vs the median of the previous 28 days, needs 7+ days
-//   Sleep    last night vs the mean of the previous 14 nights, needs 5+
+//   Sleep    last night, and the last 3 nights, vs the median of the 4 weeks
+//            before the last 7 (so a bad week can't become its own baseline),
+//            needs 5+ nights
 //   Load     sets in the last 7 days vs the weekly average of the 28 before
 
 import { PrismaClient } from '@prisma/client';
@@ -31,7 +33,7 @@ export interface Recovery {
   reasons: string[];
   hrv: { today: number; baseline: number; pct: number; method: string } | null;
   restingHr: { today: number; baseline: number; delta: number } | null;
-  sleep: { lastNight: number; baseline: number; delta: number } | null;
+  sleep: { lastNight: number; baseline: number; delta: number; recentAvg: number | null } | null;
   load: { acuteSets: number; chronicWeeklySets: number; ratio: number } | null;
   steps: number | null;
   activeKcal: number | null;
@@ -71,6 +73,8 @@ export function computeRecovery(date: string, rows: DayRow[], setsByDate: Map<st
   const today = days.get(date) ?? null;
   const prior = (n: number) => Array.from({ length: n }, (_, i) => days.get(shift(date, -(i + 1)))).filter((r): r is DayRow => !!r);
   const p28 = prior(28), p14 = prior(14);
+  // Nights 8–35 days back: the user's usual sleep, unaffected by the week in question.
+  const usualNights = Array.from({ length: 28 }, (_, i) => days.get(shift(date, -(i + 8)))).filter((r): r is DayRow => !!r && r.sleepMinutes != null);
   const reasons: string[] = [];
 
   let hrv: Recovery['hrv'] = null;
@@ -86,8 +90,12 @@ export function computeRecovery(date: string, rows: DayRow[], setsByDate: Map<st
   }
   let sleep: Recovery['sleep'] = null;
   if (today?.sleepMinutes != null) {
-    const base = p14.filter((r) => r.sleepMinutes != null).map((r) => r.sleepMinutes!);
-    if (base.length >= 5) { const b = mean(base); sleep = { lastNight: today.sleepMinutes, baseline: Math.round(b), delta: Math.round(today.sleepMinutes - b) }; }
+    const base = usualNights.length >= 5 ? usualNights.map((r) => r.sleepMinutes!) : p14.filter((r) => r.sleepMinutes != null).map((r) => r.sleepMinutes!);
+    if (base.length >= 5) {
+      const b = median(base);
+      const recent = [today, ...prior(2)].filter((r) => r.sleepMinutes != null).map((r) => r.sleepMinutes!);
+      sleep = { lastNight: today.sleepMinutes, baseline: Math.round(b), delta: Math.round(today.sleepMinutes - b), recentAvg: recent.length === 3 ? Math.round(mean(recent)) : null };
+    }
   }
   let load: Recovery['load'] = null;
   const acute = Array.from({ length: 7 }, (_, i) => setsByDate.get(shift(date, -i)) ?? 0).reduce((a, b) => a + b, 0);
@@ -106,8 +114,10 @@ export function computeRecovery(date: string, rows: DayRow[], setsByDate: Map<st
     else if (restingHr.delta >= 4) { weak++; reasons.push(`Resting HR ${restingHr.today}, ${restingHr.delta} over your usual ${restingHr.baseline}`); }
   }
   if (sleep) {
-    if (sleep.lastNight < 360 || sleep.delta <= -60) { weak++; reasons.push(`Slept ${hm(sleep.lastNight)}, ${hm(Math.abs(sleep.delta))} under your 2-week average`); }
-    else if (sleep.delta >= 30) reasons.push(`Slept ${hm(sleep.lastNight)}, ${hm(sleep.delta)} over your 2-week average`);
+    const recentShort = sleep.recentAvg != null && sleep.recentAvg <= sleep.baseline - 45;
+    if (sleep.lastNight < 360 || sleep.delta <= -60) { weak++; reasons.push(`Slept ${hm(sleep.lastNight)}, ${hm(Math.abs(sleep.delta))} under your usual ${hm(sleep.baseline)}`); }
+    else if (recentShort) { weak++; reasons.push(`Last 3 nights averaged ${hm(sleep.recentAvg!)}, ${hm(sleep.baseline - sleep.recentAvg!)} under your usual ${hm(sleep.baseline)}`); }
+    else if (sleep.delta >= 30) reasons.push(`Slept ${hm(sleep.lastNight)}, ${hm(sleep.delta)} over your usual ${hm(sleep.baseline)}`);
   }
   if (load && load.ratio >= 1.5) { weak++; reasons.push(`${load.acuteSets} sets this week, ${load.ratio}× your usual ${load.chronicWeeklySets}`); }
 

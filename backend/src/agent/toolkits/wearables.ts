@@ -35,7 +35,7 @@ export const WEARABLE_TOOLS = [
       const rows = [
         r.hrv ? { key: 'HRV', value: `${num(r.hrv.today, 0)} ms`, sub: `usual ${num(r.hrv.baseline, 0)} ms` } : null,
         r.restingHr ? { key: 'Resting HR', value: `${num(r.restingHr.today, 0)}`, sub: `usual ${num(r.restingHr.baseline, 0)}` } : null,
-        r.sleep ? { key: 'Sleep', value: hm(r.sleep.lastNight), sub: `2-week average ${hm(r.sleep.baseline)}` } : null,
+        r.sleep ? { key: 'Sleep', value: hm(r.sleep.lastNight), sub: `usual ${hm(r.sleep.baseline)}` } : null,
         r.load ? { key: 'Training load', value: `${r.load.acuteSets} sets`, sub: `usual ${num(r.load.chronicWeeklySets, 0)} a week` } : null,
       ].filter(Boolean) as any[];
       return { fn: 'WR-01', pattern: 'glance', rule: 'show', meta: { label: `Recovery · ${dayLabel(r.date)}` }, hero: { value: STATUS[r.status] ?? r.status }, rows };

@@ -70,6 +70,15 @@ describe('computeRecovery', () => {
     expect(r.hrv).toBeNull();
   });
 
+  it('a run of short nights still counts, even when the latest night is near usual', () => {
+    // 4 weeks of 7 h, then 6 nights of 5 h 20, then a 6 h 50 night.
+    const rows = base(35, (i) => ({ sleepMinutes: i >= 29 ? 320 : 420 }));
+    const r = computeRecovery(END, [...rows, { ...rows[0], date: END, sleepMinutes: 410 }]);
+    expect(r.sleep).toMatchObject({ baseline: 420, recentAvg: 350 });
+    expect(r.status).toBe('low');
+    expect(r.reasons).toContain('Last 3 nights averaged 5 h 50, 1 h 10 under your usual 7 h 00');
+  });
+
   it('counts training load from logged sets', () => {
     const sets = new Map<string, number>();
     for (let i = 7; i < 35; i++) { const t = new Date(`${END}T12:00:00Z`); t.setUTCDate(t.getUTCDate() - i); if (i % 2) sets.set(t.toISOString().slice(0, 10), 12); }
@@ -115,7 +124,7 @@ describe('simulator', () => {
     const seeds = ['a', 'b', 'c', 'd', 'e'];
     expect(seeds.every((s) => status('illness', s) === 'check_in')).toBe(true);
     expect(seeds.filter((s) => ['strained', 'check_in'].includes(status('overreached', s))).length).toBeGreaterThanOrEqual(4);
-    expect(seeds.filter((s) => ['low', 'strained'].includes(status('poor_sleep', s))).length).toBeGreaterThanOrEqual(4);
+    expect(seeds.every((s) => ['low', 'strained'].includes(status('poor_sleep', s)))).toBe(true);
     expect(seeds.filter((s) => ['normal', 'ready'].includes(status('normal', s))).length).toBeGreaterThanOrEqual(4);
     expect(seeds.filter((s) => ['normal', 'ready'].includes(status('deload', s))).length).toBeGreaterThanOrEqual(4);
   });
