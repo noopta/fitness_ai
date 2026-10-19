@@ -9,7 +9,7 @@ import { requireAuth, requireExportToken, EXPORT_TOKEN_TTL_SEC } from '../middle
 import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor, wearablesAvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import { cancelActiveSubscriptions, liveSubscriptionEnd } from '../services/stripeService.js';
@@ -1109,6 +1109,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         onboardingTestAccount: isOnboardingTestAccount(user.id, user.email),
         // Agent-first v2 mobile shell (app/(v2)/). Allow-listed dogfood first.
         uiV2: uiV2AvailableFor(user.id, user.email),
+        wearables: wearablesAvailableFor(user.id, user.email),
         // Personal-training (human trainer) dashboard at /personal-training.
         personalTraining: personalTrainingAvailableFor(user.id, user.email),
         // Freestyle release kill switches (services/featureFlags.ts).

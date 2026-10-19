@@ -127,6 +127,9 @@ model User {
   nutritionLogs            NutritionLog[]
   sessions                 Session[]
   wellnessCheckins         WellnessCheckin[]
+  wearableConnections      WearableConnection[]
+  wearableDays             WearableDay[]
+  wearableWorkouts         WearableWorkout[]
   workoutLogs              WorkoutLog[]
   adaptationProposals      AdaptationProposal[]
   scheduleOverrides        ScheduleOverride[]
@@ -2244,4 +2247,91 @@ model CoachBetaSignup {
   invitedAt          DateTime?
 
   @@index([createdAt])
+}
+
+// ── Wearables (Apple Health, Google Health / Fitbit, simulator) ─────────────
+// Every source is normalised into one day per source per local calendar day,
+// plus workouts, so recovery, burn and Anakin's tools never care which watch
+// it came from. Rows are deleted with the user (health data, audit wave A).
+
+/// A user's link to a wearable source.
+model WearableConnection {
+  id             String    @id @default(uuid())
+  userId         String
+  /// apple_health | google_health | simulator
+  provider       String
+  /// connected | revoked | error
+  status         String    @default("connected")
+  /// Cloud sources only: OAuth tokens, AES-GCM encrypted with WEARABLE_TOKEN_KEY.
+  tokensEnc      String?
+  externalUserId String?
+  scopes         String?
+  lastSyncAt     DateTime?
+  lastError      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+}
+
+/// One local day of watch data from one source.
+model WearableDay {
+  id              String    @id @default(uuid())
+  userId          String
+  /// YYYY-MM-DD in the user's local calendar
+  date            String
+  provider        String
+  steps           Int?
+  activeKcal      Int?
+  restingHr       Float?
+  /// Apple reports SDNN, Fitbit RMSSD — never compared across methods.
+  hrvMs           Float?
+  /// sdnn | rmssd
+  hrvMethod       String?
+  sleepMinutes    Int?
+  sleepDeepMin    Int?
+  sleepRemMin     Int?
+  sleepCoreMin    Int?
+  sleepAwakeMin   Int?
+  sleepStart      DateTime?
+  sleepEnd        DateTime?
+  vo2max          Float?
+  respiratoryRate Float?
+  wristTempDeltaC Float?
+  /// Minutes the watch was worn, when the source says; null = unknown
+  wornMinutes     Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, date])
+  @@index([userId, date])
+}
+
+/// A workout the watch recorded.
+model WearableWorkout {
+  id           String   @id @default(uuid())
+  userId       String
+  provider     String
+  /// The source's own id (HealthKit UUID, Google data point name)
+  externalId   String
+  startAt      DateTime
+  endAt        DateTime
+  /// Normalised: strength | run | walk | cycle | hiit | swim | yoga | other
+  activityType String
+  durationMin  Int
+  activeKcal   Int?
+  avgHr        Float?
+  maxHr        Float?
+  distanceM    Float?
+  /// The app or watch that recorded it
+  sourceName   String?
+  /// Set when the user turned it into a workout log
+  workoutLogId String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, externalId])
+  @@index([userId, startAt])
 }

@@ -214,3 +214,19 @@ export const mealPhotoV2AvailableFor = flagFor('MEAL_PHOTO_V2_ENABLED', 'MEAL_PH
 /** Web (Google Search–grounded) lookup for barcodes OpenFoodFacts and the
  *  community table don't have. WEB_FOOD_SEARCH_ENABLED=1 or _USERS allowlist. */
 export const webFoodSearchAvailableFor = flagFor('WEB_FOOD_SEARCH_ENABLED', 'WEB_FOOD_SEARCH_USERS');
+
+const list = (v: string | undefined) => new Set((v ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean));
+const inList = (set: Set<string>, userId: string, email?: string | null) => set.has(userId.toLowerCase()) || (!!email && set.has(email.toLowerCase()));
+
+/** Wearables (Apple Health, Google Health / Fitbit). Off unless WEARABLES_ENABLED=1 or the user is in WEARABLES_USERS. */
+const WEARABLES_ENABLED = process.env.WEARABLES_ENABLED === '1';
+const WEARABLES_ALLOWLIST = list(process.env.WEARABLES_USERS);
+export function wearablesAvailableFor(userId: string, email?: string | null): boolean {
+  return WEARABLES_ENABLED || inList(WEARABLES_ALLOWLIST, userId, email);
+}
+
+/** Who may generate simulated watch data — never public. */
+const WEARABLES_SIMULATOR_ALLOWLIST = list(process.env.WEARABLES_SIMULATOR_USERS);
+export function wearablesSimulatorFor(userId: string, email?: string | null): boolean {
+  return inList(WEARABLES_SIMULATOR_ALLOWLIST, userId, email);
+}

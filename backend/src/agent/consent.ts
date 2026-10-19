@@ -29,6 +29,7 @@ export async function readConsent(userId: string): Promise<Consent> {
 
 /** Read tools that surface a consent-gated source. */
 export const CONSENT_GATED: Record<string, ConsentKey> = {
+  read_recovery: 'health', read_watch_trends: 'health',
   read_recent_workouts: 'logs', read_exercise_history: 'logs', read_prs: 'logs',
   read_strength_profile: 'logs', read_lift_progress: 'logs', read_activity: 'logs', suggest_session: 'logs',
   read_nutrition_today: 'nutrition', read_nutrition_history: 'nutrition', read_micro_status: 'nutrition',
