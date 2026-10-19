@@ -61,6 +61,23 @@ const fmt = (n: number, dp = 0) => {
 const signed = (n: number, dp = 0) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${fmt(Math.abs(n), dp)}`;
 const upper = (s: string) => s.toUpperCase();
 
+/**
+ * Fit user text (lift names, session titles, meal names) into `max` pt,
+ * cutting at a word where it can and ending with "…". Names are typed by
+ * people — "Triceps Rope Pressdown" ran into the next column (19 Oct 2026).
+ */
+export function fit(m: Measure, s: string, max: number, size: number, weight: Weight, ls = 0): string {
+  if (max <= 0) return '';
+  if (m(s, size, weight, ls) <= max) return s;
+  let cut = s;
+  while (cut.length > 1 && m(`${cut}…`, size, weight, ls) > max) cut = cut.slice(0, -1);
+  const word = cut.lastIndexOf(' ');
+  if (word >= Math.max(3, cut.length * 0.6)) cut = cut.slice(0, word);
+  return `${cut.trimEnd().replace(/[\s·,–-]+$/, '')}…`;
+}
+/** Uppercase eyebrow text fitted to `max`. */
+const fitEyebrow = (m: Measure, s: string, max: number) => fit(m, upper(s), max, 10, 700, 0.14);
+
 /** Eyebrow: 10 pt / 700 / +0.14em, uppercase. */
 const eyebrow = (x: number, y: number, s: string, color: string, align: 'left' | 'right' | 'center' = 'left', extra: Partial<Op & { t: 'text' }> = {}): Op =>
   ({ t: 'text', x, y, s: upper(s), size: 10, weight: 700, color, align, ls: 0.14, ...extra } as Op);
@@ -111,12 +128,12 @@ export function scene3a(d: ClimbData, o: SceneOpts): Scene {
   const isPR = (d.badge ?? 'New PR') === 'New PR';
   cardFrame(ops, o, d.badge ?? 'New PR');
   const top = PAD + 18 + 22;
-  ops.push(eyebrow(PAD, top, isPR ? `${d.lift} · best ${repWord(d.repMax)}` : `${d.lift} · today`, C.muted));
+  ops.push(eyebrow(PAD, top, fitEyebrow(m, isPR ? `${d.lift} · best ${repWord(d.repMax)}` : `${d.lift} · today`, W - 2 * PAD), C.muted));
   const heroY = top + 12 + 6;
   hero(ops, m, PAD, heroY, d.repMax, 52, d.delta != null && d.delta !== 0 ? { s: signed(d.delta), color: C.accent, weight: 700, size: 15 } : undefined);
 
   const labY = heroY + 52 * LH + 22;
-  ops.push({ t: 'text', x: PAD, y: labY, s: `ESTIMATED MAX · ${upper(d.unit)}`, size: 9, weight: 700, color: C.muted, ls: 0.1 });
+  ops.push({ t: 'text', x: PAD, y: labY, s: `${upper(d.chartLabel ?? 'Estimated max')} · ${upper(d.unit)}`, size: 9, weight: 700, color: C.muted, ls: 0.1 });
   ops.push({ t: 'text', x: W - PAD, y: labY, s: `${d.stats.weeks} WEEKS`, size: 9, weight: 700, color: C.muted, ls: 0.1, align: 'right' });
 
   const ct = labY + 20; // chart box top
@@ -210,7 +227,7 @@ export function scene3b(d: DayData, o: SceneOpts): Scene {
   const m = o.measure;
   cardFrame(ops, o, 'Goal hit');
   const top = PAD + 18 + 22;
-  ops.push(eyebrow(PAD, top, `Protein · ${longDay(d.date)}`, C.muted));
+  ops.push(eyebrow(PAD, top, fitEyebrow(o.measure, `Protein · ${longDay(d.date)}`, W - 2 * PAD), C.muted));
   const heroY = top + 18;
   hero(ops, m, PAD, heroY, `${fmt(d.protein.total)} g`, 52, { s: `of ${fmt(d.protein.target)}`, color: C.muted, weight: 600, size: 15 });
 
@@ -228,7 +245,7 @@ export function scene3b(d: DayData, o: SceneOpts): Scene {
     ops.push({ t: 'rect', x, y: barY, w: Math.max(1, w - (last ? 0 : 1)), h: 22, fill: C.protein, opacity: last ? 1 : i % 2 ? 0.7 : 0.45 });
     const cx = x + w / 2;
     if (w >= 34) {
-      ops.push({ t: 'text', x: cx, y: barY + 27, s: meal.name, size: 9, weight: last ? 700 : 400, color: last ? C.ink : C.muted, align: 'center' });
+      ops.push({ t: 'text', x: cx, y: barY + 27, s: fit(m, meal.name, w - 4, 9, last ? 700 : 400), size: 9, weight: last ? 700 : 400, color: last ? C.ink : C.muted, align: 'center' });
       ops.push({ t: 'text', x: cx, y: barY + 38, s: `${fmt(meal.g)} g`, size: 9, weight: last ? 700 : 400, color: last ? C.ink : C.muted, align: 'center', tnum: true });
     } else {
       ops.push({ t: 'text', x: cx, y: barY + 27, s: `${fmt(meal.g)}`, size: 9, weight: last ? 700 : 400, color: last ? C.ink : C.muted, align: 'center', tnum: true });
@@ -279,7 +296,7 @@ export function scene3d(d: CutData, o: SceneOpts): Scene {
   const ops: Op[] = [];
   cardFrame(ops, o, `${d.weeks} weeks in`);
   const top = PAD + 18 + 22;
-  ops.push(eyebrow(PAD, top, `Change since ${d.since} · 7-day average`, C.muted));
+  ops.push(eyebrow(PAD, top, fitEyebrow(o.measure, `Change since ${d.since} · 7-day average`, W - 2 * PAD), C.muted));
   const heroY = top + 18;
   hero(ops, o.measure, PAD, heroY, `${signed(d.change, 1)} ${d.unit}`, 52);
 
@@ -327,7 +344,7 @@ export function scene3d(d: CutData, o: SceneOpts): Scene {
   d.lifts.slice(0, 3).forEach((l, i) => {
     if (i) ops.push({ t: 'line', x1: PAD, y1: ry - 5, x2: W - PAD, y2: ry - 5, color: C.surface, w: 1 });
     const nowX = W - PAD, arrowX = nowX - 46 - 4, startX = arrowX - 14;
-    ops.push({ t: 'text', x: PAD, y: ry, s: l.name, size: 12, weight: 600, color: C.ink });
+    ops.push({ t: 'text', x: PAD, y: ry, s: fit(o.measure, l.name, startX - o.measure(fmt(l.start), 12, 400) - 10 - PAD, 12, 600), size: 12, weight: 600, color: C.ink });
     ops.push({ t: 'text', x: startX, y: ry, s: fmt(l.start), size: 12, weight: 400, color: C.muted, align: 'right', tnum: true });
     ops.push({ t: 'text', x: arrowX - 2, y: ry, s: '→', size: 12, weight: 400, color: C.faint, align: 'right' });
     ops.push({ t: 'text', x: nowX, y: ry, s: fmt(l.now), size: 12, weight: 700, color: C.ink, align: 'right', tnum: true });
@@ -393,7 +410,7 @@ export function scene3e(d: ClimbData, o: SceneOpts): Scene {
   const end = pts[pts.length - 1];
   ops.push({ t: 'circle', x: end[0], y: end[1], r: 2.25, fill: C.accent, shadow: sh });
   ops.push({ t: 'text', x: pts[0][0], y: pts[0][1] - 13, s: fmt(vals[0]), size: 9, weight: 700, color: ink, shadow: sh, tnum: true });
-  ops.push({ t: 'text', x: R, y: Math.min(end[1], ct + 12) - 15, s: `${fmt(vals[vals.length - 1])} est. max`, size: 10, weight: 700, color: ink, align: 'right', shadow: sh, tnum: true });
+  ops.push({ t: 'text', x: R, y: Math.min(end[1], ct + 12) - 15, s: `${fmt(vals[vals.length - 1])} ${(d.chartLabel ?? 'est. max').toLowerCase()}`, size: 10, weight: 700, color: ink, align: 'right', shadow: sh, tnum: true });
 
   // Hero row and eyebrow above the chart.
   const heroY = ct - 20 - 56 * LH + 10;
@@ -401,7 +418,7 @@ export function scene3e(d: ClimbData, o: SceneOpts): Scene {
   if (d.delta) ops.push({ t: 'text', x: L + o.measure(d.repMax, 56, 700, -0.045) + 8, y: heroY + 56 * 0.98 - 15 * 1.05, s: `${signed(d.delta)} ${d.unit}`, size: 15, weight: 700, color: ink, shadow: sh, tnum: true });
   const eyY = heroY - 18;
   ops.push({ t: 'circle', x: L + 3, y: eyY + 6, r: 3, fill: C.accent, shadow: sh });
-  ops.push(eyebrow(L + 11, eyY, `${d.lift} · ${d.badge ?? 'New PR'}`, ink, 'left', { shadow: sh } as any));
+  ops.push(eyebrow(L + 11, eyY, fitEyebrow(o.measure, `${d.lift} · ${d.badge ?? 'New PR'}`, R - L - 11), ink, 'left', { shadow: sh } as any));
   return { kind: '3e', ops, background: null, label: `${d.lift}, ${(d.badge ?? 'New PR') === 'New PR' ? 'new best' : 'top set'}, ${d.repMax.replace('×', ' by ')}.` };
 }
 
@@ -460,7 +477,7 @@ export function scene3g(d: SessionData, o: SceneOpts): Scene {
   scrim(H - SAFE.bottom - Math.min(4, d.lifts.length) * 26 - 90, H, 0, 0.55);
   const L = SAFE.side, R = W - SAFE.side;
   const top = SAFE.top;
-  ops.push(eyebrow(L, top, `${d.name}${d.minutes ? ` · ${d.minutes} min` : ''}`, ink, 'left', { shadow: sh } as any));
+  ops.push(eyebrow(L, top, fitEyebrow(o.measure, `${d.name}${d.minutes ? ` · ${d.minutes} min` : ''}`, R - 12 - o.measure('Axiom', 10, 600) - 4 - 10 - L), ink, 'left', { shadow: sh } as any));
   ops.push({ t: 'image', id: 'mark', x: R - 12 - o.measure('Axiom', 10, 600) - 4, y: top - 1, w: 12, h: 12, ink: mark });
   ops.push({ t: 'text', x: R, y: top - 1, s: 'Axiom', size: 10, weight: 600, color: ink, align: 'right', shadow: sh });
   const vol = fmt(d.volume);
@@ -479,7 +496,10 @@ export function scene3g(d: SessionData, o: SceneOpts): Scene {
     const ty = y + 7;
     let nx = L;
     if (l.isPR) { ops.push({ t: 'circle', x: L + 3, y: ty + 7, r: 3, fill: C.accent, shadow: sh }); nx += 10; }
-    ops.push({ t: 'text', x: nx, y: ty, s: l.name, size: 12, weight: l.isPR ? 700 : 500, color: ink, shadow: sh });
+    // The name gets what the top-set column leaves, less a gap — never runs into it.
+    const w = l.isPR ? 700 : 500;
+    const topLeft = R - 92 - 8 - o.measure(l.top, 12, w);
+    ops.push({ t: 'text', x: nx, y: ty, s: fit(o.measure, l.name, topLeft - 10 - nx, 12, w), size: 12, weight: w, color: ink, shadow: sh });
     ops.push({ t: 'text', x: R - 92 - 8, y: ty, s: l.top, size: 12, weight: l.isPR ? 700 : 500, color: ink, align: 'right', shadow: sh, tnum: true });
     const bx = R - 92;
     ops.push({ t: 'rect', x: bx, y: ty + 5, w: 92, h: 5, fill: hair, r: 2.5 });
@@ -506,11 +526,11 @@ export function scene2f(d: LineData, o: SceneOpts): Scene {
   const end = pts[pts.length - 1];
   ops.push({ t: 'circle', x: end[0], y: end[1], r: 3, fill: C.accent, stroke: C.ink, sw: 1.5, shadow: sh });
   ops.push({ t: 'text', x: R, y: SAFE.top, s: fmt(d.now), size: 34, weight: 700, color: ink, ls: -0.03, align: 'right', shadow: sh, tnum: true });
-  ops.push({ t: 'text', x: R, y: SAFE.top + 40, s: `EST. MAX · ${upper(d.unit)}`, size: 10, weight: 700, color: ink, ls: 0.16, align: 'right', shadow: sh });
+  ops.push({ t: 'text', x: R, y: SAFE.top + 42, s: `${upper(d.label ?? 'Est. max')} · ${upper(d.unit)}`, size: 10, weight: 700, color: ink, ls: 0.16, align: 'right', shadow: sh });
   ops.push({ t: 'text', x: L, y: pts[0][1] + 16, s: `${upper(d.start.label)} · ${fmt(d.start.value)}`, size: 10, weight: 700, color: ink, ls: 0.16, shadow: sh, tnum: true });
   const fy = H - SAFE.bottom - 16;
   ops.push({ t: 'image', id: 'mark', x: L, y: fy, w: 16, h: 16, ink: mark });
-  ops.push({ t: 'text', x: L + 21, y: fy + 1, s: `${d.lift} · ${d.weeks} weeks`, size: 12, weight: 600, color: ink, shadow: sh });
+  ops.push({ t: 'text', x: L + 21, y: fy + 1, s: fit(o.measure, `${d.lift} · ${d.weeks} weeks`, R - L - 21, 12, 600), size: 12, weight: 600, color: ink, shadow: sh });
   return { kind: '2f', ops, background: null, label: `${d.lift}, estimated max ${fmt(d.now)} ${d.unit === 'lb' ? 'pounds' : 'kilograms'}, up from ${fmt(d.start.value)} over ${d.weeks} weeks.` };
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sceneFor, approxMeasure, W, H, type Op } from '../src/shareables/scene';
+import { sceneFor, approxMeasure, fit, W, H, type Op } from '../src/shareables/scene';
 import type { ClimbData, DayData, CutData, SessionData, LineData, ShareableData } from '../src/shareables/types';
 
 const m = approxMeasure;
@@ -93,6 +93,36 @@ describe('shareable scenes', () => {
     const without = sceneFor({ kind: '3g', data: session }, { measure: m, withPhoto: false });
     expect(withPhoto.ops.some((o) => o.t === 'image' && o.id === 'photo')).toBe(true);
     expect(without.ops.some((o) => o.t === 'image' && o.id === 'photo')).toBe(false);
+  });
+
+  it('long typed names never run into the next column (3g "Triceps Rope Pressdown", 19 Oct)', () => {
+    const long = 'Triceps Rope Pressdown With Single Arm Supination Hold';
+    const texts = (k: '3a' | '3d' | '3e' | '3g' | '2f') => {
+      const data: any = k === '3g' ? { ...session, name: 'Upper Body Hypertrophy Push Pull Superset Day', lifts: [{ name: long, top: '90×6', share: 0.6, isPR: true }, { name: long, top: '1,245×10', share: 0.4, isPR: false }] }
+        : k === '3d' ? { ...cut, lifts: [{ name: long, start: 1225, now: 1245 }] }
+        : k === '2f' ? { ...line, lift: long } : { ...climb, lift: long };
+      return sceneFor({ kind: k, data } as any, { measure: m }).ops.filter((o): o is Extract<Op, { t: 'text' }> => o.t === 'text');
+    };
+    const overlaps = (a: Extract<Op, { t: 'text' }>, b: Extract<Op, { t: 'text' }>) => {
+      const A = box(a)!, B = box(b)!;
+      return A.l < B.r - 0.5 && B.l < A.r - 0.5 && A.t < B.b - 0.5 && B.t < A.b - 0.5;
+    };
+    for (const k of ['3a', '3d', '3e', '3g', '2f'] as const) {
+      const t = texts(k);
+      for (let i = 0; i < t.length; i++) for (let j = i + 1; j < t.length; j++) {
+        if (overlaps(t[i], t[j])) throw new Error(`${k}: "${t[i].s}" overlaps "${t[j].s}"`);
+      }
+      for (const o of t) { const b = box(o)!; expect(b.r, `${k} ${o.s}`).toBeLessThanOrEqual(W - 22 + 0.5); }
+    }
+    const row = texts('3g').find((o) => o.s.startsWith('Triceps'))!;
+    expect(row.s.endsWith('…')).toBe(true);
+  });
+
+  it('fit() keeps short names and cuts long ones at a word', () => {
+    expect(fit(m, 'Bench press', 200, 12, 500)).toBe('Bench press');
+    const f = fit(m, 'Triceps Rope Pressdown', 80, 12, 500);
+    expect(f.endsWith('…')).toBe(true);
+    expect(m(f, 12, 500)).toBeLessThanOrEqual(80);
   });
 
   it('3a: the event label sits to one side of its marker, never across it', () => {

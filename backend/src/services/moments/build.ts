@@ -210,39 +210,52 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     };
   }
 
-  // ── A session: 3g, and for its main lift the climb (3a, 3e — "Top set", not "New PR") and the line (2f) ──
+  // ── A session: 3g, then a lift's climb (3a, 3e — "Top set", never "New PR") and line (2f) ──
   const shareables: ShareableData[] = [{ kind: '3g', data: session }];
-  // The main lift: the heaviest estimated max among today's loaded lifts.
-  const main = weighted.filter((x) => x.top && x.top.kg > 0).sort((a, b) => epley(b.top!.kg, b.top!.reps) - epley(a.top!.kg, a.top!.reps))[0];
-  if (main?.top) {
-    const key = i.keyFn(main.e.name);
-    // Session by session (today's own number at the end — a best-to-date line would hide it).
-    const series = liftSeries(all, key, i.keyFn, u, log.date);
-    const now = inUnit(epley(main.top.kg, main.top.reps), u);
-    const last = series[series.length - 1];
-    if (last?.date === log.date) last.e1rm = now; else series.push({ date: log.date, e1rm: now });
-    // A share card is a climb: start the line at the lowest point before today. When today
-    // is the low point there's no climb to show, and the session card stands alone.
-    let lo = 0;
-    for (let k = 1; k < series.length - 1; k++) if (series[k].e1rm < series[lo].e1rm) lo = k;
-    if (series.length < 2 || now <= series[lo].e1rm) return finishSession(shareables);
-    series.splice(0, lo);
-    const weeks = Math.max(1, spanWeeks(series));
+  const loaded = weighted.filter((x) => x.top && x.top.kg > 0).sort((a, b) => epley(b.top!.kg, b.top!.reps) - epley(a.top!.kg, a.top!.reps));
+  const climbOf = (x: typeof loaded[number], series: { date: string; e1rm: number }[], best: boolean): ClimbData => {
+    const now = series[series.length - 1].e1rm;
     const step = u === 'lb' ? 25 : 10;
     const goalV = Math.ceil((Math.max(...series.map((p) => p.e1rm)) + 1) / step) * step;
     const slope = weeklySlope(series);
-    const climb: ClimbData = {
-      lift: main.e.name.trim(), unit: u, repMax: `${inUnit(main.top.kg, u)}×${main.top.reps}`, delta: null, series, badge: 'Top set',
+    return {
+      lift: x.e.name.trim(), unit: u, repMax: `${inUnit(x.top!.kg, u)}×${x.top!.reps}`, delta: null, series, badge: 'Top set',
+      ...(best ? { chartLabel: 'Best est. max' } : {}),
       goal: { value: goalV, label: `Next · ${goalV}` }, events: [],
       stats: {
         gained: series.length > 1 ? now - series[0].e1rm : 0,
         bw: i.bodyweightKg ? Math.round((now / inUnit(i.bodyweightKg, u)) * 10) / 10 : null,
         weeksToGoal: slope > 0.2 && (goalV - now) / slope <= 26 ? Math.max(1, Math.ceil((goalV - now) / slope)) : null,
-        weeks,
+        weeks: Math.max(1, spanWeeks(series)),
       },
     };
+  };
+  const withToday = (x: typeof loaded[number]) => {
+    const series = liftSeries(all, i.keyFn(x.e.name), i.keyFn, u, log.date);
+    const now = inUnit(epley(x.top!.kg, x.top!.reps), u);
+    const last = series[series.length - 1];
+    if (last?.date === log.date) last.e1rm = now; else series.push({ date: log.date, e1rm: now });
+    return { series, now };
+  };
+  // 1) The first of today's lifts (heaviest first) that climbed: session by session, from its
+  //    lowest point before today, so today's own number closes the line.
+  let picked: { x: typeof loaded[number]; series: { date: string; e1rm: number }[]; best: boolean } | null = null;
+  for (const x of loaded) {
+    const { series, now } = withToday(x);
+    let lo = 0;
+    for (let k = 1; k < series.length - 1; k++) if (series[k].e1rm < series[lo].e1rm) lo = k;
+    if (series.length >= 2 && now > series[lo].e1rm) { picked = { x, series: series.slice(lo), best: false }; break; }
+  }
+  // 2) No lift climbed today: the lift with the most history, as its best-ever line (never dips —
+  //    a share card never shows a decline), labelled "Best est. max".
+  if (!picked) {
+    const most = loaded.map((x) => ({ x, ...withToday(x) })).sort((a, b) => b.series.length - a.series.length)[0];
+    if (most && most.series.length >= 2) picked = { x: most.x, series: bestToDate(most.series), best: true };
+  }
+  if (picked) {
+    const climb = climbOf(picked.x, picked.series, picked.best);
     shareables.push({ kind: '3a', data: climb }, { kind: '3e', data: climb });
-    if (series.length >= 3) shareables.push({ kind: '2f', data: lineFrom(main.e.name.trim(), u, series) });
+    if (picked.series.length >= 3) shareables.push({ kind: '2f', data: { ...lineFrom(picked.x.e.name.trim(), u, picked.series), ...(picked.best ? { label: 'Best est. max' } : {}) } });
   }
   return finishSession(shareables);
 

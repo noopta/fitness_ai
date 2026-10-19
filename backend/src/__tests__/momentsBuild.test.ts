@@ -124,9 +124,25 @@ describe('a session that is not a PR still offers every workout card', () => {
   });
 });
 
-describe('no climb, no climb cards', () => {
-  it('when today is the low point the session card stands alone', () => {
+describe('no lift climbed today', () => {
+  it('still offers every card, as the best-ever line — never a decline', () => {
     const m = buildWorkoutMoment(base({ log: { id: 'L', date: '2026-10-19', title: 'Light', duration: null, exercises: [bench(135, 5)] } }));
+    expect(m.shareables.map((s) => s.kind)).toEqual(['3g', '3a', '3e', '2f']);
+    const c = m.shareables[1].data as any;
+    expect(c.chartLabel).toBe('Best est. max');
+    const v = c.series.map((p: any) => p.e1rm);
+    expect(v).toEqual([...v].sort((a: number, b: number) => a - b));
+    expect((m.shareables[3].data as any).label).toBe('Best est. max');
+  });
+  it('tries the next lift when the heaviest one dipped', () => {
+    const hist = [...history(6), { id: 'r1', date: '2026-09-01', exercises: [{ name: 'Curl', sets: 3, reps: '8', weightKg: lbKg(50) }] }];
+    const m = buildWorkoutMoment(base({ history: hist, log: { id: 'L', date: '2026-10-19', title: 'Arms', duration: null, exercises: [bench(135, 5), { name: 'Curl', sets: 3, reps: '8', weightKg: lbKg(60) }] } }));
+    const c = m.shareables[1].data as any;
+    expect(c.lift).toBe('Curl');
+    expect(c.chartLabel).toBeUndefined();
+  });
+  it('a first-ever lift with no history: the session card alone', () => {
+    const m = buildWorkoutMoment(base({ history: [], log: { id: 'L', date: '2026-10-19', title: 'New', duration: null, exercises: [{ name: 'Curl', sets: 3, reps: '8', weightKg: lbKg(60) }] } }));
     expect(m.shareables.map((s) => s.kind)).toEqual(['3g']);
   });
 });

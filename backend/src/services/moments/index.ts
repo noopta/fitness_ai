@@ -38,13 +38,13 @@ async function canShare(userId: string) {
 }
 
 /**
- * Keep one moment per category per day. A workout replaces that day's moment
- * unless the day already has a PR and this one isn't (the PR is the better
- * story); a replaced moment starts fresh (not shared, not dismissed).
+ * Nutrition and cut: one moment per category per day. Workouts: one per
+ * workout (category `workout:<logId>`) — a later session the same day used to
+ * replace the morning's moment and its cards (19 Oct 2026). Re-running a log's
+ * moment rebuilds it in place, fresh (not shared, not dismissed).
  */
-async function save(userId: string, category: 'workout' | 'nutrition' | 'cut', date: string, m: BuiltMoment, workoutLogId: string | null): Promise<{ row: NonNullable<Row>; fresh: boolean }> {
+async function save(userId: string, category: string, date: string, m: BuiltMoment, workoutLogId: string | null): Promise<{ row: NonNullable<Row>; fresh: boolean }> {
   const existing = await prisma.progressMoment.findUnique({ where: { userId_category_date: { userId, category, date } } });
-  if (existing && category === 'workout' && existing.type === 'pr' && m.type !== 'pr' && existing.workoutLogId !== workoutLogId) return { row: existing, fresh: false };
   if (existing && category === 'nutrition') return { row: existing, fresh: false };
   const data = {
     type: m.type, label: m.label, title: m.title, praise: m.praise, whyJson: JSON.stringify(m.why), shareablesJson: JSON.stringify(m.shareables),
@@ -82,7 +82,7 @@ export async function momentForWorkout(userId: string, logId: string, opts: Work
       history, keyFn, unit: unitOf(user?.unitPreference), bodyweightKg: bodyWeightKg(bw) ?? user?.weightKg ?? null,
       prs: opts.prs ?? [], today: todayForTz(user?.timezone), batch: opts.batch,
     });
-    const { row } = await save(userId, 'workout', log.date, built, log.id);
+    const { row } = await save(userId, `workout:${log.id}`, log.date, built, log.id);
     return toMoment(row, parseUserPrefs(user?.prefsJson).shareCards !== false);
   } catch (err: any) {
     console.error('[moments] workout moment failed:', err?.message ?? err);
@@ -217,8 +217,8 @@ export async function momentToShare(userId: string, what: ShareWhat, date?: stri
   if (what === 'workout') {
     const log = await prisma.workoutLog.findFirst({ where: { userId, ...(day ? { date: day } : {}) }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }] });
     if (!log) return { none: day ? `No workout logged on ${day}.` : 'No workouts logged yet.' };
-    // The day already has its moment (the best of its sessions): share that one.
-    const existing = await prisma.progressMoment.findUnique({ where: { userId_category_date: { userId, category: 'workout', date: log.date } } });
+    // That workout already has its moment: share it.
+    const existing = await prisma.progressMoment.findFirst({ where: { userId, workoutLogId: log.id }, orderBy: { updatedAt: 'desc' } });
     if (existing) return { moment: toMoment(existing, share) };
     const { detectStrengthPRs } = await import('../progressService.js');
     const prs = await detectStrengthPRs(prisma, userId, log.id, parse<LoggedExercise[]>(log.exercises, []) as any, log.date).catch(() => []);

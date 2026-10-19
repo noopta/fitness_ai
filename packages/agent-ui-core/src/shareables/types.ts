@@ -14,6 +14,8 @@ export type ShareUnit = 'lb' | 'kg';
 export interface ClimbData {
   /** The card's badge (top right / overlay eyebrow): "New PR" by default; "Top set" for a session that wasn't one. */
   badge?: string;
+  /** The chart's label: "Estimated max" by default; "Best est. max" for a best-to-date line. */
+  chartLabel?: string;
   lift: string;
   unit: ShareUnit;
   /** "315 × 3" */
@@ -71,6 +73,8 @@ export interface SessionData {
 
 /** 2f (overlay): the line across the photo. */
 export interface LineData {
+  /** The number's label: "Est. max" by default; "Best est. max" for a best-to-date line. */
+  label?: string;
   lift: string;
   unit: ShareUnit;
   series: { date: string; e1rm: number }[];
