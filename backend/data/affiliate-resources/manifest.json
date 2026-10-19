@@ -25,5 +25,32 @@
     "category": "Payments",
     "updatedAt": "2026-10-17",
     "audience": "general"
+  },
+  {
+    "slug": "coaching-getting-started",
+    "title": "Axiom Coaching: Getting Started",
+    "description": "Step by step for trainers and their clients: set up a practice, invite a client with a link or code, join from the app, and exactly what the coach can see.",
+    "file": "coaching-getting-started.md",
+    "category": "Knowledge base",
+    "updatedAt": "2026-10-19",
+    "audience": "trainer-plan"
+  },
+  {
+    "slug": "trainer-feature-guide",
+    "title": "Axiom Coaching: Feature Guide for Trainers",
+    "description": "Every dashboard feature and how to start with it, a first-week checklist, and a 10-minute daily routine.",
+    "file": "trainer-feature-guide.md",
+    "category": "Knowledge base",
+    "updatedAt": "2026-10-19",
+    "audience": "trainer-plan"
+  },
+  {
+    "slug": "app-getting-started",
+    "title": "Getting Started with Axiom (for app users)",
+    "description": "The client-facing guide to the app: first 10 minutes, the five screens, logging food and training, talking to Anakin, Free vs Pro, and quick fixes.",
+    "file": "app-getting-started.md",
+    "category": "Knowledge base",
+    "updatedAt": "2026-10-19",
+    "audience": "general"
   }
 ]

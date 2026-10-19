@@ -70,7 +70,7 @@ describe('manifest validation', () => {
 
   it('the shipped manifest is valid and every file exists', () => {
     const items = loadManifest(REAL_DIR);
-    expect(items.map(i => i.slug).sort()).toEqual(['affiliate-playbook', 'outreach-guide', 'payment-structure']);
+    expect(items.map(i => i.slug).sort()).toEqual(['affiliate-playbook', 'app-getting-started', 'coaching-getting-started', 'outreach-guide', 'payment-structure', 'trainer-feature-guide']);
     for (const i of items) expect(i.sizeBytes).toBeGreaterThan(1000);
   });
 
@@ -100,7 +100,7 @@ describe('manifest validation', () => {
 
   it('listResources exposes metadata and size but no filesystem path', () => {
     const list = listResources();
-    expect(list.length).toBe(3);
+    expect(list.length).toBe(6);
     const json = JSON.stringify(list);
     expect(json).not.toContain(REAL_DIR);
     expect(json).not.toContain('absPath');
@@ -127,7 +127,7 @@ describe('GET /api/affiliate/resources', () => {
     expect((await request(app).get('/api/affiliate/resources').set('X-Affiliate-Token', 'tok-inactive')).status).toBe(403);
     const ok = await request(app).get('/api/affiliate/resources').set('X-Affiliate-Token', 'tok-active');
     expect(ok.status).toBe(200);
-    expect(ok.body.resources.map((r: any) => r.title)).toEqual(['Axiom Affiliate Outreach Guide', 'Axiom Affiliate Playbook', 'Axiom Affiliate Payment Structure']);
+    expect(ok.body.resources.map((r: any) => r.title)).toEqual(['Axiom Affiliate Outreach Guide', 'Axiom Affiliate Playbook', 'Axiom Affiliate Payment Structure', 'Axiom Coaching: Getting Started', 'Axiom Coaching: Feature Guide for Trainers', 'Getting Started with Axiom (for app users)']);
     expect(ok.body.resources[0]).toMatchObject({ slug: 'outreach-guide', category: 'Outreach', audience: 'trainer-plan' });
     expect(JSON.stringify(ok.body)).not.toContain('/data/');
   });
