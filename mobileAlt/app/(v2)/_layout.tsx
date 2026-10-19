@@ -14,6 +14,7 @@ import { ShellProvider } from '../../src/v2/shell/ShellContext';
 import { HomeVideoProvider } from '../../src/v2/home/HomeVideo';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { markV2Boot } from '../../src/v2/crashGuard';
+import { MomentPresenter } from '../../src/v2/moments/MomentPrompt';
 
 export default function V2Layout() {
   const ready = useV2Fonts();
@@ -42,7 +43,10 @@ export default function V2Layout() {
         <Stack.Screen name="diagnose" options={{ gestureEnabled: false }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="paywall" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="moment" options={{ animation: 'slide_from_bottom' }} />
       </Stack>
+      {/* A log anywhere in the shell that earns a moment raises the congratulation + share prompt. */}
+      <MomentPresenter />
     </HomeVideoProvider>
     </ShellProvider>
     </ErrorBoundary>

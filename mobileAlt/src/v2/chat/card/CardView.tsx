@@ -16,6 +16,7 @@ import {
 } from './primitives';
 import { Hero, Sparkline, Bars, WeekTiles, Media, Skeleton, CapturePlaceholder } from './charts';
 import { BatchView, type BatchPick } from './Batch';
+import { MomentPrompt, useOpenMoment } from '../../moments/MomentPrompt';
 
 const REVEAL_MS = 30_000;
 /** Acted-on cards fold to their meta line over 350 ms (signed-turns spec §4, "Old cards"). */
@@ -23,7 +24,10 @@ const COLLAPSE = LinearTransition.duration(350).easing(Easing.bezier(0.16, 1, 0.
 
 export function CardView({ card }: { card: Card }) {
   const h = useCardHandlers();
+  const openMoment = useOpenMoment();
   const live = isLive(card);
+  // A progress moment rides on MOM-01 (under a Logged card) or on a logged batch; gone once undone.
+  const moment = card.moment && card.state?.status !== 'undone' ? card.moment : null;
   const [busyId, setBusyId] = useState<string | null>(null);
   const [typed, setTyped] = useState('');
   const [choice, setChoice] = useState(card.choice?.value ?? 0);
@@ -100,7 +104,8 @@ export function CardView({ card }: { card: Card }) {
             onFocusField={(on) => { h.setTypedFocus(on); if (on) setTimeout(() => h.reveal(shellRef.current), 60); }} />
         ) : null}
         {card.why ? <Why text={card.why} /> : null}
-        {card.note ? <Note text={card.note} /> : null}
+        {moment ? <MomentPrompt moment={moment} compact hideLabel={card.meta?.label === moment.label} onShare={() => openMoment(moment)} /> : null}
+        {card.note && !moment ? <Note text={card.note} /> : null}
         {card.empty ? <EmptyLine text={card.empty} /> : null}
         {card.skeleton ? <Skeleton rows={card.skeleton} /> : null}
         {card.handoff && live ? <HandoffButton label={card.handoff.label} onPress={() => void run({ id: 'handoff', label: card.handoff!.label, kind: 'primary', client: { action: card.handoff!.action, args: card.handoff!.args } })} /> : null}

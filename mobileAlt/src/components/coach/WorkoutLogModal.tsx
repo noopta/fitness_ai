@@ -182,6 +182,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
   // local state so it survives this sheet closing (it's a separate full-screen
   // modal rendered as a sibling).
   const [celebration, setCelebration] = useState<ShareableWorkout | null>(null);
+  const [celebrationPraise, setCelebrationPraise] = useState<{ title: string; line: string } | null>(null);
   // Which day this is logged for: today unless opened from a program day or changed.
   const initialDate = (date ?? todayDateStr()).slice(0, 10);
   const [logDate, setLogDate] = useState(initialDate);
@@ -592,7 +593,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
         duration: durationVal && durationVal >= 1 ? durationVal : undefined,
         // The plan link only holds for the day it was opened for.
         programDayRef: !queue && logDate === initialDate ? (programDayRef ?? undefined) : undefined,
-      })) as { shareable?: ShareableWorkout; backdated?: boolean };
+      })) as { shareable?: ShareableWorkout; backdated?: boolean; moment?: { title: string; praise: string } | null };
       // Logged workout changes today's session, schedule (logged-flag), and the
       // social feed (auto-share + friends' shares). Drop those caches so the
       // next render fetches fresh.
@@ -630,19 +631,18 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
       // More sessions from the pasted notes: the next one replaces this one in
       // the form, and the sheet stays open (onSaved can close it) until the last.
       if (nextSession()) return;
-      const fromNotes = !!queue;
       onClose();
       onSaved(logDate);
 
-      // A session filled in after the fact, or one of several from notes, is
-      // not a moment to celebrate; one just finished is.
-      if (fromNotes || saveRes?.backdated) return;
-      // Celebrate + offer the shareable card. Delayed so the log sheet finishes
-      // sliding away before the full-screen celebration presents (avoids two
-      // modals transitioning at once on iOS).
+      // Every log is celebrated and offered as a card — a session just
+      // finished, one filled in for last Tuesday, and the last of several from
+      // pasted notes (one celebration for the batch, not one per session).
+      // Delayed so the log sheet finishes sliding away before the full-screen
+      // celebration presents (avoids two modals transitioning at once on iOS).
       if (saveRes?.shareable) {
         const shareable = saveRes.shareable;
-        setTimeout(() => setCelebration(shareable), 320);
+        const m = saveRes.moment;
+        setTimeout(() => { setCelebrationPraise(m ? { title: m.title, line: m.praise } : null); setCelebration(shareable); }, 320);
       }
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to save workout. Please try again.');
@@ -993,6 +993,7 @@ export function WorkoutLogModal({ visible, onClose, onSaved, todayExercises, dat
     <WorkoutCelebrationSheet
       visible={!!celebration}
       shareable={celebration}
+      praise={celebrationPraise}
       onClose={() => setCelebration(null)}
     />
     </>

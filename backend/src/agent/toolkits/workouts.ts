@@ -19,6 +19,7 @@ import { loadCanonicalResolver } from '../../services/liftCanonical.js';
 import { adaptationCard } from './adaptation.js';
 import { weight, toKg, kgTo, dayLabel, plural, num } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
+import type { ProgressMoment } from '../../services/moments/types.js';
 import type { ToolCtx } from '../types.js';
 
 type Unit = 'metric' | 'imperial';
@@ -58,7 +59,7 @@ defineOp({
   name: 'workout.create',
   run: async (userId, args) => {
     const r = await createWorkoutLog(userId, args.input as WorkoutLogInput, 'agent');
-    return { result: { id: r.log.id, prs: r.prs, adaptationIds: (r.adaptationProposals as any[]).map((p) => p.id), exercises: r.exercises, date: r.log.date }, inverse: { op: 'workout.remove', args: { id: r.log.id } }, summary: `Logged · ${r.log.title ?? 'Workout'} · ${plural(r.exercises.length, 'exercise')}` };
+    return { result: { id: r.log.id, prs: r.prs, adaptationIds: (r.adaptationProposals as any[]).map((p) => p.id), exercises: r.exercises, date: r.log.date, moment: r.moment }, inverse: { op: 'workout.remove', args: { id: r.log.id } }, summary: `Logged · ${r.log.title ?? 'Workout'} · ${plural(r.exercises.length, 'exercise')}` };
   },
 });
 defineOp({
@@ -89,7 +90,8 @@ defineOp({
         // For the card that ran this: "Logged 8 workouts" (the count after ticks) and the bests line.
         stateLine: `Logged ${plural(r.created.length, 'workout')}`,
         // Logged state (spec E): Open → history on the meta line, bests under the state line.
-        cardPatch: { meta: { open: { page: 'history' } }, ...(bests ? { batch: { bests } } : {}) },
+        // …and the batch's moment (its latest session), so the card itself offers the share cards.
+        cardPatch: { meta: { open: { page: 'history' } }, ...(bests ? { batch: { bests } } : {}), ...(r.moment ? { moment: r.moment } : {}) },
       },
       inverse: { op: 'workout.remove_many', args: { ids } },
       summary: `Logged · ${plural(r.created.length, 'past workout')} · ${dayLabel(dates[0])} to ${dayLabel(dates[dates.length - 1])}`,
@@ -223,10 +225,18 @@ function loggedCard(fn: string, logId: string, date: string, title: string | nul
   return { fn, pattern: 'logged', rule: 'log_undo', meta: { label: `Logged · ${title ?? 'Workout'} · ${date === ctx.today ? 'today' : dayLabel(date)}`, open: { page: 'history' } }, rows, note: `${plural(sets, 'set')}.`, pending: { edits }, undoLine: 'Undone — nothing logged', ...extra };
 }
 
+/** The progress moment under a Logged card (MOM-01). `note` carries the praise for clients that predate `moment`. */
+export function momentCard(m: ProgressMoment): CardDraft {
+  return { fn: 'MOM-01', pattern: 'glance', rule: 'show', meta: { label: m.label }, note: m.praise, moment: m, entity: `moment:${m.id}` };
+}
+/** What the model sees of a moment: enough to congratulate them in their own numbers. */
+const momentForModel = (m: ProgressMoment | null | undefined) => (m ? { title: m.title, praise: m.praise, why: m.why, shareCardShown: true } : null);
+const CONGRATULATE = ' After it saves, congratulate them warmly and specifically from `moment` (their numbers, one or two sentences, no generic hype); the card under it offers the share cards — don’t describe them.';
+
 export const WORKOUT_TOOLS = [
   tool({
     name: 'log_workout', kind: 'log', core: true, fn: 'WRK-02',
-    description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. Log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.',
+    description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. Log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
       exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
       date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' },
@@ -245,10 +255,11 @@ export const WORKOUT_TOOLS = [
       if (date === today) { try { programDayRef = ((await callApi<any>(userId, 'GET', '/coach/today')) ?? {}).programDayRef ?? null; } catch { /* ad-hoc */ } }
       const change = await executeOp(userId, 'workout.create', { input: { date, title: str(input.title) || null, exercises, notes: str(input.notes) || null, duration: numOr(input.durationMin) ? Math.round(numOr(input.durationMin)!) : null, programDayRef } });
       const r = change.result as any;
-      return { logged: change.summary, id: r.id, date, prs: r.prs.map((p: any) => p.displayName), adaptationIds: r.adaptationIds, _exercises: r.exercises, _change: change };
+      return { logged: change.summary, id: r.id, date, prs: r.prs.map((p: any) => p.displayName), adaptationIds: r.adaptationIds, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change };
     },
     card: async (input, r, ctx) => {
       const cards: CardDraft[] = [loggedCard(str(input.date) && str(input.date) !== ctx.today ? 'WRK-04' : 'WRK-02', r.id, r.date, str(input.title) || null, r._exercises, ctx, r.prs.length ? { why: `New best: ${r.prs.join(', ')}.` } : {})];
+      if (r._moment) cards.push(momentCard(r._moment));
       if (r.adaptationIds.length) {
         const { listPending } = await import('../../adaptation/proposalService.js');
         const p = (await listPending(ctx.userId)).find((x) => r.adaptationIds.includes(x.id));
@@ -259,7 +270,7 @@ export const WORKOUT_TOOLS = [
   }),
   tool({
     name: 'log_past_workouts', kind: 'log', core: true, fn: 'WRK-13',
-    description: 'Fill in workout history: several past sessions at once, any distance back (up to a year). Use when the user wants to log workouts they did on earlier days — pasted notes, a spreadsheet, a list, or a description in their own words, however messy. Two steps. 1) Preview: pass useMessage: true when the workouts are in the user\'s latest message (don\'t copy the text), or notes for text from earlier in the chat, or workouts [{ date, title?, exercises }] you already have. Nothing is saved yet; the result lists what will be logged, what has no date, what was left out. To drop part of a preview ("skip the week of 27 Jul", "not the 3rd"), call again with its previewId plus skipWeeksOf / skipDates — a fresh preview replaces the old one. 2) Only after they say yes in chat: call again with confirm: true and the previewId (the card, if shown, flips to Logged). For one session today use log_workout instead. If mode is "none", tell them nothing was found using the `say` line.',
+    description: 'Fill in workout history: several past sessions at once, any distance back (up to a year). Use when the user wants to log workouts they did on earlier days — pasted notes, a spreadsheet, a list, or a description in their own words, however messy. Two steps. 1) Preview: pass useMessage: true when the workouts are in the user\'s latest message (don\'t copy the text), or notes for text from earlier in the chat, or workouts [{ date, title?, exercises }] you already have. Nothing is saved yet; the result lists what will be logged, what has no date, what was left out. To drop part of a preview ("skip the week of 27 Jul", "not the 3rd"), call again with its previewId plus skipWeeksOf / skipDates — a fresh preview replaces the old one. 2) Only after they say yes in chat: call again with confirm: true and the previewId (the card, if shown, flips to Logged). After logging, congratulate them warmly from `moment` (its latest session) in a sentence or two. For one session today use log_workout instead. If mode is "none", tell them nothing was found using the `say` line.',
     input_schema: schema({
       useMessage: { type: 'boolean', description: 'Read the workouts from the user\'s latest message.' },
       notes: { type: 'string', description: 'Workout text from earlier in the conversation.' },
@@ -296,14 +307,14 @@ export const WORKOUT_TOOLS = [
           takePreview(userId, previewId);
           const card = await applyCardAction(userId, live.id, 'apply');
           const n = Number((card.state?.line ?? '').match(/\d+/)?.[0] ?? 0);
-          return { mode: 'logged', logged: card.state?.line, count: n, from: card.batch?.sessions.find((x) => x.date)?.date ?? today, to: [...(card.batch?.sessions ?? [])].reverse().find((x) => x.date)?.date ?? today, bests: card.batch?.bests ?? null, undoable: true, _cardUpdates: [card] };
+          return { mode: 'logged', logged: card.state?.line, count: n, from: card.batch?.sessions.find((x) => x.date)?.date ?? today, to: [...(card.batch?.sessions ?? [])].reverse().find((x) => x.date)?.date ?? today, bests: card.batch?.bests ?? null, moment: momentForModel(card.moment), undoable: true, _cardUpdates: [card] };
         }
         const p = takePreview(userId, previewId);
         if (!p) throw new Error('That preview has expired or was already logged. Read the workouts again with a fresh preview.');
         if (!p.ready.length) throw new Error('That preview had nothing with a date to log.');
         const change = await executeOp(userId, 'workout.create_many', { inputs: p.ready, unit });
         const r = change.result as any;
-        return { mode: 'logged', logged: change.summary, count: r.created.length, skippedAlreadyLogged: r.skipped, failed: r.failed, from: r.from, to: r.to, bests: r.bests ?? null, _created: r.created, _change: change };
+        return { mode: 'logged', logged: change.summary, count: r.created.length, skippedAlreadyLogged: r.skipped, failed: r.failed, from: r.from, to: r.to, bests: r.bests ?? null, moment: momentForModel(r.moment), _moment: r.moment ?? null, _created: r.created, _change: change };
       }
 
       let p: BackfillPreview;
@@ -346,7 +357,9 @@ export const WORKOUT_TOOLS = [
       };
     },
     card: (_input, r) => {
-      if (r.mode === 'none' || r.mode === 'logged') return null; // none: text only; logged: the preview card itself flips
+      // none: text only; logged: the preview card itself flips (and carries the moment) — unless there was no card to flip.
+      if (r.mode === 'logged' && r._moment) return momentCard(r._moment);
+      if (r.mode === 'none' || r.mode === 'logged') return null;
       const p = r._preview as BackfillPreview;
       if (!p.ready.length && !p.undated.length) {
         // Spec state H: everything was already in the log (or dated ahead).

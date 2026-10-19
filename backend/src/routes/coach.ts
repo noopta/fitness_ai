@@ -1810,8 +1810,8 @@ router.put('/coach/nutrition-adjustment', requireAuth, async (req, res) => {
 // POST /api/coach/body-weight - Log a body weight entry (one per date).
 router.post('/coach/body-weight', requireAuth, async (req, res) => {
   try {
-    const { entry, warnings } = await logBodyWeight(req.user!.id, req.body);
-    res.json({ ...entry, ...(warnings.length ? { warnings } : {}) });
+    const { entry, warnings, moment } = await logBodyWeight(req.user!.id, req.body);
+    res.json({ ...entry, ...(warnings.length ? { warnings } : {}), moment });
   } catch (err: any) {
     console.error('Body weight log error:', err);
     res.status(400).json({ error: err.message || 'Failed to save body weight' });

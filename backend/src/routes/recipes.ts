@@ -250,8 +250,10 @@ router.post('/nutrition/recipes/:id/log', requireAuth, async (req, res) => {
     cacheDelete(nutritionProfileCacheKey(userId));
     logActivity(userId, 'nutrition').catch(() => {});
     updateNutritionStreakInBackground(prisma, userId, data.date);
+    const m = await (await import('../services/moments/index.js')).momentForNutrition(userId, data.date);
     res.status(201).json({
       ...entry,
+      moment: m?.fresh ? m.moment : null,
       ingredients: items.map((i) => i.name),
       nutrients: normalizeMicronutrients(scaledMicros as Partial<Micronutrients>),
     });

@@ -1472,6 +1472,7 @@ async function deleteUserAccount(userId: string, reason: 'user_request' | 'under
     await tryDelete('nutritionLog', () => t.nutritionLog.deleteMany({ where: { userId } }));
     await tryDelete('nutritionPlan', () => t.nutritionPlan.deleteMany({ where: { userId } }));
     await tryDelete('bodyWeightLog', () => t.bodyWeightLog.deleteMany({ where: { userId } }));
+    await tryDelete('progressMoment', () => t.progressMoment.deleteMany({ where: { userId } }));
     await tryDelete('wellnessCheckin', () => t.wellnessCheckin.deleteMany({ where: { userId } }));
     await tryDelete('activityLog', () => t.activityLog.deleteMany({ where: { userId } }));
     await tryDelete('savedFood', () => t.savedFood.deleteMany({ where: { userId } }));

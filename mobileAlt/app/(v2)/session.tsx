@@ -16,7 +16,7 @@
 // saved as its own entry, linked to the planned day so progression can read it.
 
 import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Alert, AppState } from 'react-native';
+import { View, Text, StyleSheet, Alert, AppState, ScrollView } from 'react-native';
 import { Pressable } from '../../src/v2/primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,6 +43,9 @@ import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
 import { takeSessionSeed } from '../../src/v2/sessionSeed';
 import { ShareWorkoutSheet, type WorkoutShare } from '../../src/v2/share/ShareWorkoutSheet';
+import type { ProgressMoment } from '@axiom/agent-ui-core';
+import { MomentPrompt, useOpenMoment } from '../../src/v2/moments/MomentPrompt';
+import { claimMoments } from '../../src/v2/moments/store';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -67,6 +70,8 @@ function SessionScreenInner() {
   const [now, setNow] = useState(Date.now());
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  // What the session earned (spec "Progress Moments"): shown on the Done screen itself.
+  const [moment, setMoment] = useState<ProgressMoment | null>(null);
   const advRef = useRef(false);
   const title: string = session?.name ?? session?.day ?? 'Session';
   // Checked once before the plan is built: a same-day draft with sets in it wins.
@@ -170,7 +175,7 @@ function SessionScreenInner() {
     try {
       const body = toWorkoutLogBody(state, P, title, todayStr(), Date.now());
       const kg = (w: number | null | undefined) => (w ? toKg(w) : null);
-      await workoutsApi.logWorkout({
+      const res: any = await workoutsApi.logWorkout({
         date: body.date, title: body.title, duration: body.duration,
         // A freestyle seed is ad hoc — never scored against a program day.
         programDayRef: seed ? null : today.data?.programDayRef ?? null,
@@ -180,6 +185,7 @@ function SessionScreenInner() {
         })),
       } as any);
       clearDraft();
+      if (res?.moment) setMoment(res.moment);
       await invalidate.afterWorkout();
       setSaved(`${title} · ${sum.sets} sets · ${sum.minutes} min`);
       haptics.success();
@@ -192,6 +198,9 @@ function SessionScreenInner() {
     if (opts.thenAsk) { shell?.ask(summaryMsg()); router.back(); }
     return true;
   };
+  // On the Done screen the moment shows inline, so the shell's prompt sheet stays quiet.
+  // (Leave → "Save what I did" goes back to the shell first, which then raises it.)
+  useEffect(() => (state.step === 'done' ? claimMoments() : undefined), [state.step]);
   // Reaching Done saves at once — "Back to Anakin" only asks the summary.
   const autoSaved = useRef(false);
   useEffect(() => {
@@ -310,8 +319,10 @@ function SessionScreenInner() {
         ) : null}
 
         {plan && state.step === 'done' ? (
-          <Animated.View key="done" entering={FadeIn.duration(520)}>
-            <DoneView state={state} plan={P} now={now} title={title} unit={unit} saved={saved} saving={saving} onFinish={finish} toKg={toKg} />
+          <Animated.View key="done" entering={FadeIn.duration(520)} style={{ flex: 1 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
+              <DoneView state={state} plan={P} now={now} title={title} unit={unit} saved={saved} saving={saving} onFinish={finish} toKg={toKg} moment={moment} />
+            </ScrollView>
           </Animated.View>
         ) : null}
       </View>
@@ -319,8 +330,9 @@ function SessionScreenInner() {
   );
 }
 
-function DoneView({ state, plan, now, title, unit, saved, saving, onFinish, toKg }: { state: WorkoutState; plan: PlanExercise[]; now: number; title: string; unit: string; saved: string | null; saving: boolean; onFinish: () => void; toKg: (w: number) => number }) {
+function DoneView({ state, plan, now, title, unit, saved, saving, onFinish, toKg, moment }: { state: WorkoutState; plan: PlanExercise[]; now: number; title: string; unit: string; saved: string | null; saving: boolean; onFinish: () => void; toKg: (w: number) => number; moment: ProgressMoment | null }) {
   const s = summarize(state, plan, now);
+  const openMoment = useOpenMoment();
   // S-04: share it — optional, one tap to skip. Post to Friends attaches this workout.
   const [sharing, setSharing] = useState(false);
   const share: WorkoutShare = useMemo(() => {
@@ -344,10 +356,18 @@ function DoneView({ state, plan, now, title, unit, saved, saving, onFinish, toKg
         {[['Duration', `${s.minutes} min`], ['Sets', `${s.sets} of ${s.totalSets}`], ['Top set', s.topSet], ['Volume', `${s.volume.toLocaleString()} ${unit}`]].map(([k, v], i) => <Enter key={k} index={i + 2} exit={false}><Row name={k} value={v} last={i === 3} /></Enter>)}
       </View>
       <View style={{ marginTop: 24 }}><ReceiptList items={receipts} /></View>
+      {/* The congratulation and the share cards, once the save comes back with them. */}
+      {moment ? (
+        <Enter index={0} exit={false}>
+          <View style={{ marginTop: 28, paddingTop: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: v2.color.hairline }}>
+            <MomentPrompt moment={moment} onShare={() => openMoment(moment)} compact />
+          </View>
+        </Enter>
+      ) : null}
       <Enter index={7} exit={false}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28, marginTop: 28 }}>
-          <TextAction primary onPress={onFinish} loading={saving}>Back to Anakin</TextAction>
-          {saved ? <TextAction muted arrow={false} size={15} onPress={() => setSharing(true)}>Share it</TextAction> : null}
+          <TextAction primary={!moment} muted={!!moment} onPress={onFinish} loading={saving}>Back to Anakin</TextAction>
+          {saved && !moment ? <TextAction muted arrow={false} size={15} onPress={() => setSharing(true)}>Share it</TextAction> : null}
         </View>
       </Enter>
       <ShareWorkoutSheet visible={sharing} onClose={() => setSharing(false)} workout={share} />

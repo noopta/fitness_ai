@@ -93,6 +93,9 @@ export async function runToolCall(
     try {
       const built = await tool.card(input, raw, ctx);
       const drafts: CardDraft[] = !built ? [] : Array.isArray(built) ? built : [built];
+      // A log that earned a progress moment (PR, protein goal, cut) gets its Moment card under the tool's own.
+      const moment = (change?.result as any)?.moment;
+      if (moment?.id && drafts.length && !drafts.some((d) => d.moment)) drafts.push((await import('./toolkits/workouts.js')).momentCard(moment));
       for (let i = 0; i < drafts.length; i++) {
         const d = drafts[i];
         if (!d.fn) d.fn = tool.fn ?? tool.name;
@@ -113,6 +116,8 @@ export async function runToolCall(
     modelResult = {
       ...rest,
       ...(_change ? { changed: _change.summary, undoable: _change.reversible } : {}),
+      // What the log earned, in their numbers: congratulate from this (the card offers the share cards).
+      ...(!('moment' in (rest as any)) && _change?.result?.moment?.id ? { moment: { title: _change.result.moment.title, praise: _change.result.moment.praise, why: _change.result.moment.why, shareCardShown: true } } : {}),
       ...(cards.length ? { card_shown: cards.map((c) => c.meta?.label ?? c.pattern).join('; '), awaiting_tap: cards.some((c) => ['proposal', 'draft', 'confirm'].includes(c.pattern)) } : {}),
     };
   }

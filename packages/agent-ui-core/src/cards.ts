@@ -2,6 +2,8 @@
 // the server owns ids, state and what a tap does; the client renders the
 // payload from primitives and posts taps back by card id + action id.
 
+import type { ProgressMoment } from './shareables/types';
+
 export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff';
 export type CardRule = 'show' | 'log_undo' | 'change_undo' | 'propose' | 'draft_send' | 'confirm_delete' | 'handoff';
 export type ClientAction =
@@ -112,6 +114,8 @@ export interface Card {
   batch?: BatchBlock;
   /** A personal trainer's invite (fn coach_invite): who and which practice. The token never reaches the client. */
   invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
+  /** A progress moment (MOM-01, or a logged batch): the congratulation and its share cards. */
+  moment?: ProgressMoment;
   state?: CardState;
 }
 

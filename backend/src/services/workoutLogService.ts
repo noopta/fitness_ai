@@ -23,6 +23,8 @@ import { estimateWorkoutCalories } from './workoutCalories.js';
 import { todayForTz } from './localDate.js';
 import { runPostWorkout } from '../adaptation/proposalService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
+import { momentForWorkout, dropMomentsForWorkout } from './moments/index.js';
+import type { ProgressMoment } from './moments/types.js';
 
 const prisma = new PrismaClient();
 
@@ -144,9 +146,15 @@ export interface CreatedWorkout {
   exercises: WorkoutLogInput['exercises'];
   shareable: unknown;
   adaptationProposals: unknown[];
-  prs: { displayName: string; e1RMLbs: number }[];
+  prs: { key: string; displayName: string; e1RMLbs: number; prevLbs: number; deltaLbs: number }[];
   /** Logged for a day more than RECENT_DAYS ago. */
   backdated: boolean;
+  /**
+   * The congratulation and share cards this log earned (spec "Progress
+   * Moments"). Every log gets one, backdated ones included; null only when a
+   * quiet batch member (the batch gets one for its latest) or on failure.
+   */
+  moment: ProgressMoment | null;
 }
 
 export interface CreateOpts {
@@ -202,7 +210,7 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
   // PRs detected inline so the celebration gets an accurate PR object; pushes
   // still fire in the background. A failure here never loses the saved log.
   let shareable: unknown;
-  let prs: { displayName: string; e1RMLbs: number }[] = [];
+  let prs: CreatedWorkout['prs'] = [];
   try {
     prs = await detectStrengthPRs(prisma, userId, log.id, exercises, backdated ? date : undefined);
     if (!backdated && !quiet) {
@@ -216,6 +224,8 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
     console.error('[workouts] shareable build error:', err);
     shareable = buildShareableWorkout({ title, exercises, durationMin: duration, loggedAt: log.createdAt }, []);
   }
+
+  const moment = quiet ? null : await momentForWorkout(userId, log.id, { prs });
 
   // Adaptive progression — never mutates the program; that takes a decide() tap.
   let adaptationProposals: unknown[] = [];
@@ -264,12 +274,14 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
   if (!backdated && !quiet) logActivity(userId, 'workout').catch(() => {});
   posthog.capture({ distinctId: userId, event: 'workout_logged', properties: { exercise_count: exercises.length, duration_minutes: duration ?? null, workout_date: date, source, backdated, days_back: Math.max(0, Math.round((Date.parse(today) - Date.parse(date)) / 86_400_000)) } });
 
-  return { log, exercises, shareable, adaptationProposals, prs, backdated };
+  return { log, exercises, shareable, adaptationProposals, prs, backdated, moment };
 }
 
 export interface BulkResult {
   created: { id: string; date: string; title: string | null; exercises: number; prs: string[] }[];
   failed: { date: string; title: string | null; error: string }[];
+  /** One moment for the batch: its most recent session, saying how many came with it. */
+  moment?: ProgressMoment | null;
 }
 
 /**
@@ -282,9 +294,11 @@ export interface BulkResult {
 export async function createWorkoutLogsBulk(userId: string, inputs: WorkoutLogInput[], source: 'app' | 'agent' = 'agent'): Promise<BulkResult> {
   const sorted = [...inputs].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const out: BulkResult = { created: [], failed: [] };
+  let latest: { id: string; date: string; prs: CreatedWorkout['prs'] } | null = null;
   for (const input of sorted) {
     try {
       const r = await createWorkoutLog(userId, input, source, { quiet: true });
+      if (!latest || r.log.date >= latest.date) latest = { id: r.log.id, date: r.log.date, prs: r.prs };
       out.created.push({ id: r.log.id, date: r.log.date, title: r.log.title, exercises: r.exercises.length, prs: r.prs.map((p) => p.displayName) });
     } catch (err: any) {
       out.failed.push({ date: input?.date ?? '?', title: input?.title ?? null, error: String(err?.message ?? err).slice(0, 120) });
@@ -294,6 +308,7 @@ export async function createWorkoutLogsBulk(userId: string, inputs: WorkoutLogIn
     invalidate(userId);
     await settleStreakAfterBackfill(userId, [...new Set(out.created.map((c) => c.date))].sort());
   }
+  if (latest) out.moment = await momentForWorkout(userId, latest.id, { prs: latest.prs, batch: out.created.length });
   return out;
 }
 
@@ -345,6 +360,7 @@ export async function deleteWorkoutLog(userId: string, id: string) {
   const existing = await prisma.workoutLog.findUnique({ where: { id } });
   if (!existing || existing.userId !== userId) return null;
   await prisma.workoutLog.delete({ where: { id } });
+  await dropMomentsForWorkout(id);
   invalidate(userId);
   return existing;
 }

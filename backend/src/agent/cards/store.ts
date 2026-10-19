@@ -138,8 +138,10 @@ export async function applyCardAction(userId: string, cardId: string, actionId: 
   const undoMs = status === 'deleted' ? 30_000 : UNDO_LOG_MS;
   const change = await withWriteGuard('allow', `card:${card.fn}`, () => executeOp(userId, op.op, args, { cardId, undoMs }));
   const when = clockTime(new Date(), tz);
-  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card>; status?: CardState['status'] };
+  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card>; status?: CardState['status']; moment?: Card['moment'] | null };
   if (r.cardPatch) mergePatch(card, r.cardPatch);
+  // A tap that logged something worth celebrating: the card itself offers the share cards.
+  if (r.moment?.id && !card.moment) mergePatch(card, { moment: r.moment });
   // An op can settle its card differently from the plan: an invite that expired before the tap.
   if (r.status === 'expired') status = 'expired';
   card.state = {

@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { log } from './log';
+// Progress moments ride back on log responses; the v2 shell raises the share prompt.
+import { withMoment } from '../v2/moments/bus';
 
 let SecureStore: typeof import('expo-secure-store') | null = null;
 if (Platform.OS !== 'web') {
@@ -496,7 +498,7 @@ export const coachApi = {
     apiFetch('/coach/body-weight', {
       method: 'POST',
       body: JSON.stringify({ weightKg, date: date || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() }),
-    }),
+    }).then(withMoment),
   getBodyWeight: () => apiFetch('/coach/body-weight'),
 
   // Wellness
@@ -750,7 +752,7 @@ export const nutritionApi = {
     // ingredientNutrients today; `items` is forward-compatible (stripped by
     // servers that don't store it).
     items?: Array<Record<string, unknown>>;
-  }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }),
+  }) => apiFetch('/nutrition/meals', { method: 'POST', body: JSON.stringify(data) }).then(withMoment),
   deleteMeal: (id: string) =>
     apiFetch(`/nutrition/meals/${id}`, { method: 'DELETE' }),
 
@@ -1022,7 +1024,7 @@ export const workoutsApi = {
     // Which planned program day this log fulfils (from /coach/today). Lets the
     // adaptation engine score the session against the plan. Omit for ad-hoc.
     programDayRef?: { phaseIndex: number; dayIndex: number; weekNumber?: number; day?: string | null } | null;
-  }) => apiFetch('/workouts', { method: 'POST', body: JSON.stringify(data) }),
+  }) => apiFetch('/workouts', { method: 'POST', body: JSON.stringify(data) }).then(withMoment),
   deleteWorkout: (id: string) => apiFetch(`/workouts/${id}`, { method: 'DELETE' }),
   // "Last time" for a whole session's exercises in one round-trip: recent
   // exposures, the program target, and how the last session scored.
