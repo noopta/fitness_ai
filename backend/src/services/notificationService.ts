@@ -65,6 +65,8 @@ const TYPE_CATEGORY: Record<string, NotificationCategory> = {
   partner_workout_invite: 'partnerSessions', partner_workout_today: 'partnerSessions', partner_workout_cancelled: 'partnerSessions', partner_workout_changed: 'partnerSessions',
   partner_workout_declined: 'partnerSessions', partner_workout_accepted: 'partnerSessions', partner_workout_confirmed: 'partnerSessions', train_together_nudge: 'partnerSessions',
   program_rescued: 'programUpdates',
+  // A personal trainer invited this account (opens chat, where the invite card waits).
+  coach_invite: 'social',
 };
 export function categoryFor(data?: Record<string, unknown>, explicit?: NotificationCategory): NotificationCategory | null {
   if (explicit) return explicit;

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateInvite } from '../hooks';
+import { InviteCode } from './InviteCode';
 
 export function InvitePanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [email, setEmail] = useState('');
@@ -49,6 +50,7 @@ export function InvitePanel({ open, onOpenChange }: { open: boolean; onOpenChang
                 <span aria-live="polite">{copied ? COPY.invite.copied : COPY.invite.copy}</span>
               </Button>
             </div>
+            <InviteCode code={invite.data.shortCode} />
             <p className="text-xs text-axiom-zinc-500">
               {COPY.invite.expires(shortDate(new Date(invite.data.expiresAt)))}
               {invite.data.email ? ` ${invite.data.email}` : ''}

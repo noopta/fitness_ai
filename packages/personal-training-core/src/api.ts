@@ -4,7 +4,7 @@
 
 import type {
   AnakinFilter, AnakinMessage, AnakinScope, AnakinThreadSummary, BriefingItem, BriefingResponse, CheckInInbox, CheckInRequest,
-  CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, ImportPreview, ImportSummary, ImportUpload, InvitePreview, InviteResponse, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
+  CheckInSchedule, Client, ClientNote, ClientOverview, ClientProgramView, Draft, ImportPreview, ImportSummary, ImportUpload, InvitePreview, InviteResponse, InviteView, CoachingResponse, OpenInvite, LiftKey, MeResponse, NotificationFeed, NotificationSettings,
   NotificationSettingsPatch, Practice, ProgressResponse, Report, ResolveAction, RosterResponse, ScheduledQuestion, TimelineKind,
   SheetMapping, TimelinePage, ClientGoal, ClientLinkInfo, Contraindication, CreateLinkClientResponse, GuardrailReport, Measurement,
   MeasurementKind, PracticeProfile, ProgressPhoto, TagCount, ClientState,
@@ -37,6 +37,7 @@ export const queryKeys = {
   timeline: (id: string, kinds: TimelineKind[]) =>
     ['personal-training', 'clients', id, 'timeline', [...kinds].sort().join(',')] as const,
   invite: (token: string) => ['personal-training', 'invites', token] as const,
+  coaching: ['personal-training', 'coaching'] as const,
   briefing: ['personal-training', 'briefing'] as const,
   checkIns: ['personal-training', 'check-ins'] as const,
   schedules: ['personal-training', 'check-in-schedules'] as const,
@@ -169,7 +170,17 @@ export function createApi(fetcher: Fetcher) {
     invitePreview: (token: string) =>
       fetcher(`${API_PREFIX}/invites/${encodeURIComponent(token)}`) as Promise<InvitePreview>,
     acceptInvite: (token: string) =>
-      fetcher(`${API_PREFIX}/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) as Promise<{ practice: Practice }>,
+      fetcher(`${API_PREFIX}/invites/${encodeURIComponent(token)}/accept`, { method: 'POST' }) as Promise<{ practice: Practice; alreadyMember?: boolean }>,
+    /** A typed short code or a pasted link → the invite it points at. */
+    resolveInvite: (input: string) =>
+      fetcher(`${API_PREFIX}/invites/resolve`, { method: 'POST', body: JSON.stringify(/^\s*[a-z0-9 -]{8,10}\s*$/i.test(input) ? { code: input } : { link: input }) }) as Promise<{ invite: InviteView }>,
+    /** The client's own side: who coaches them, and invites waiting for their email. */
+    coaching: () => fetcher(`${API_PREFIX}/coaching`) as Promise<CoachingResponse>,
+    /** Stop sharing with a practice (deactivates only the caller's membership). */
+    leavePractice: (practiceId: string) =>
+      fetcher(`${API_PREFIX}/membership/leave`, { method: 'POST', body: JSON.stringify({ practiceId }) }) as Promise<{ ok: true; practiceId: string }>,
+    /** Trainer: the practice's open client invites with their links and codes. */
+    openInvites: () => fetcher(`${API_PREFIX}/invites`) as Promise<{ invites: OpenInvite[] }>,
 
     overview: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/overview`) as Promise<ClientOverview>,
     program: (id: string) => fetcher(`${API_PREFIX}/clients/${encodeURIComponent(id)}/program`) as Promise<{ program: ClientProgramView | null }>,

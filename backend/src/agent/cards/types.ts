@@ -114,6 +114,8 @@ export interface Card {
   handoff?: { label: string; action: ClientAction; args?: Record<string, unknown> };
   actions?: CardAction[];
   batch?: BatchBlock;
+  /** A personal trainer's invite (coach_invite): who, which practice, until when. The token stays server-side. */
+  invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
   state?: CardState;
 }
 
@@ -145,6 +147,8 @@ export interface PendingActions {
   changeId?: string;
   /** Apply takes a `selection` (ticks, dates for undated rows) over this action's `inputs` arg. */
   batch?: { action: string };
+  /** A tap on a card that has already settled returns it as it is (no 409): taps that land twice are harmless. */
+  idempotent?: boolean;
   /** What Apply ran, so Redo can run it again after an Undo. */
   applied?: { op: string; args: Record<string, unknown>; status?: CardStatus; line?: string };
 }

@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useCanUndo, useInviteProspect, useMessageClient, useNoteActions, useNotes, useOverview, useProgram, useUndoDraft } from '../hooks';
 import { SentRow } from './DraftReply';
+import { InviteCode } from './InviteCode';
 import { EvidenceList, Eyebrow, Notice, Pill, SkeletonBlock } from './primitives';
 
 const Loading = () => <div aria-busy="true" className="space-y-3"><SkeletonBlock className="h-28 w-full" /><SkeletonBlock className="h-40 w-full" /></div>;
@@ -324,6 +325,7 @@ export function ProspectInviteDialog({ clientId, clientName, email, open, onOpen
                 <span aria-live="polite">{copied ? COPY.invite.copied : COPY.invite.copy}</span>
               </Button>
             </div>
+            <InviteCode code={invite.data.shortCode} />
             <p className="text-xs text-axiom-zinc-500">{COPY.invite.expires(shortDate(new Date(invite.data.expiresAt)))} {invite.data.email}</p>
           </div>
         ) : (

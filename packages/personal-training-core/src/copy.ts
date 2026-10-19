@@ -73,6 +73,10 @@ export const COPY = {
     shareMessage: (practice: string, link: string) => `Join ${practice} on Axiom: ${link}`,
     expires: (when: string) => `Link expires ${when}.`,
     failed: 'Could not create the invite.',
+    codeLabel: 'Or give them this code',
+    codeHint: 'They can type it in the Axiom app under You → Coach, or send it to Anakin in chat.',
+    copyCode: 'Copy code',
+    shareMessageWithCode: (practice: string, link: string, code: string) => `Join ${practice} on Axiom: ${link} (or enter code ${code} in the app)`,
   },
   join: {
     title: (practice: string) => `Join ${practice}`,

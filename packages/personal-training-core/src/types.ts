@@ -125,8 +125,45 @@ export interface MeResponse {
 export interface InviteResponse {
   token: string;
   link: string;
+  /** "K7QM-3XPA": what the client can type under You → Coach or in chat. Null if it couldn't be made. */
+  shortCode?: string | null;
   email: string | null;
   expiresAt: string;
+}
+
+/** An open client invite as the trainer lists it (GET /personal-training/invites). */
+export interface OpenInvite {
+  token: string;
+  link: string;
+  shortCode: string | null;
+  email: string | null;
+  expiresAt: string;
+  createdAt: string;
+}
+
+/** A client invite from the invitee's side (resolve, You → Coach). The locked email is never included. */
+export interface InviteView {
+  inviteId: string;
+  token: string;
+  practice: Practice;
+  trainerName: string;
+  expiresAt: string;
+  state: 'open' | 'expired' | 'used' | 'joined' | 'revoked';
+  emailLocked: boolean;
+  /** False when the invite is locked to another email address. */
+  forViewer: boolean | null;
+}
+
+/** A practice the signed-in user shares their training with. */
+export interface CoachingMembership {
+  practice: Practice;
+  trainerName: string;
+  joinedAt: string;
+}
+
+export interface CoachingResponse {
+  coaching: CoachingMembership[];
+  pending: InviteView[];
 }
 
 export interface InvitePreview {

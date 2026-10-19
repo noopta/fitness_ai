@@ -141,7 +141,7 @@ describe('roster', () => {
   });
 
   it('creates an invite link from the dialog', async () => {
-    api.invite.mockResolvedValue({ token: 't', link: 'https://axiomtraining.io/personal-training/join/t', email: null, expiresAt: '2026-10-09T00:00:00.000Z' });
+    api.invite.mockResolvedValue({ token: 't', link: 'https://axiomtraining.io/personal-training/join/t', shortCode: 'K7QM-3XPA', email: null, expiresAt: '2026-10-09T00:00:00.000Z' });
     renderAt('/personal-training/clients', <RosterPage />);
     await screen.findByRole('table');
     await userEvent.click(screen.getByRole('button', { name: /add client/i }));
@@ -149,6 +149,9 @@ describe('roster', () => {
     await userEvent.click(await screen.findByRole('button', { name: /create invite link/i }));
     await waitFor(() => expect(api.invite).toHaveBeenCalledWith(undefined));
     expect(await screen.findByDisplayValue('https://axiomtraining.io/personal-training/join/t')).toBeInTheDocument();
+    // The short code sits beside the link, with its own Copy.
+    expect(screen.getByDisplayValue('K7QM-3XPA')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copy code/i })).toBeInTheDocument();
   });
 });
 

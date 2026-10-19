@@ -45,6 +45,9 @@ function resolveDeepLink(data?: Record<string, unknown>): string | null {
       case 'reaction':
       case 'comment':
         return '/(tabs)/social';
+      case 'coach_invite':
+        // A trainer invited this account: the invite card waits in chat (v2 Home; v1 tabs redirect there).
+        return '/(tabs)/coach';
       default:
         return null;
     }

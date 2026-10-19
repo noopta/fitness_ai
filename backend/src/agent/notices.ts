@@ -96,16 +96,37 @@ export function winsNotice(wins: Win[], celebrated: Set<string>): Notice | null 
   };
 }
 
+/**
+ * A trainer invited this user's email (personal training): "{trainer} invited
+ * you to train with {practice}." with the coach_invite card. Open invites only
+ * — not expired, not used, the practice still active — and not for a practice
+ * they're already a client of. Key coach_invite:<inviteId>, so once per invite.
+ */
+export async function coachInviteNotices(userId: string, email: string | null | undefined, tz: string | null | undefined): Promise<Notice[]> {
+  if (!email) return [];
+  const { openInvitesForEmail, describeInvite, coachInviteCard } = await import('../services/personalTraining/clientInvites.js');
+  const out: Notice[] = [];
+  for (const inv of await openInvitesForEmail(email)) {
+    const view = await describeInvite(inv.token, { id: userId, email });
+    if (!view || view.state !== 'open' || view.forViewer === false) continue;
+    const member = await prisma.institutionMember.findUnique({ where: { institutionId_userId: { institutionId: view.practice.id, userId } }, select: { active: true, role: true } }).catch(() => null);
+    if (member?.active) continue;
+    out.push({ key: `coach_invite:${view.inviteId}`, text: `${view.trainerName} invited you to train with ${view.practice.name}.`, cards: [coachInviteCard(view, tz || 'America/New_York')] });
+  }
+  return out;
+}
+
 /** Run the detectors and post each new notice once. Returns how many were posted. */
 export async function postPendingNotices(userId: string): Promise<number> {
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, timezone: true } }).catch(() => null);
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, timezone: true, email: true } }).catch(() => null);
   if (!u) return 0;
   const done = new Set<string>(Array.isArray(parseBlob(u.coachProfile).noticesPosted) ? parseBlob(u.coachProfile).noticesPosted : []);
   const logs = await prisma.workoutLog.findMany({
     where: { userId, createdAt: { gte: new Date(BUG_FROM), lt: new Date(BUG_TO) } },
     select: { id: true, date: true, title: true, exercises: true, createdAt: true },
   }).catch(() => [] as LogRow[]);
-  const notices = [weightlessNotice(weightlessSessions(logs))].filter((n): n is Notice => !!n && !done.has(n.key));
+  const invites = await coachInviteNotices(userId, u.email, u.timezone).catch((err) => { console.error('[notices] coach invites', err?.message ?? err); return [] as Notice[]; });
+  const notices = [weightlessNotice(weightlessSessions(logs)), ...invites].filter((n): n is Notice => !!n && !done.has(n.key));
   let posted = 0;
   for (const n of notices) {
     if (await postInitiatedTurn(userId, { text: n.text, cards: n.cards })) { done.add(n.key); posted++; }

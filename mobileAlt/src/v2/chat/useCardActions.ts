@@ -19,7 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { haptics } from '../haptics';
 import { manageSubscription, managedViaLabel } from '../billing';
 import { destinationFor } from './cardRoutes';
-import { captureBus } from './captureBus';
+import { captureBus, threadBus } from './captureBus';
 import type { Thread } from './useThread';
 
 const errText = (e: any) => (e?.message && !/^HTTP \d/.test(e.message) ? e.message : 'Couldn’t do that — try again.');
@@ -153,6 +153,8 @@ export function useCardActions(thread: Thread) {
       // Past workouts logged (or redone): "LOGGED 8 past workouts · 15 Jul – 5 Aug".
       if (card.batch && r.card.state?.status === 'applied') receiptOnCard(card.id, 'Logged', `${batchCount(r.card)} past workouts${batchRange(r.card)}`);
       if (r.card.state?.status !== 'live' && r.card.state?.status !== 'cancelled' && r.card.state?.status !== 'kept') { haptics.success(); void invalidate.all(); }
+      // Joined a trainer: Anakin's follow-up ("Check-ins come every Monday") was posted with the tap — pull it into the thread.
+      if (card.fn === 'coach_invite' && card.state?.status !== 'applied' && r.card.state?.status === 'applied') threadBus.rehydrate();
       void thread.refreshLive();
     } catch (e) { noteError(find(card.id) ?? card, e); }
   }, [undo, runClient, invalidate, thread, receiptOnCard]); // eslint-disable-line react-hooks/exhaustive-deps

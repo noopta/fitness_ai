@@ -13,7 +13,7 @@ import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { socialWriteLimiter } from '../middleware/rateLimiter.js';
 import { findPractice, requirePersonalTraining, requireTrainer } from '../middleware/requireTrainer.js';
-import { claimInvite, findUsableInvite, InviteError } from '../services/institutionInvites.js';
+import { findUsableInvite, InviteError } from '../services/institutionInvites.js';
 import { bodyWeightKg, normalizePreference } from '../services/weightUnits.js';
 import { countStatuses, displayNameOf, initialsOf, loadClients } from '../services/personalTraining/roster.js';
 import {
@@ -21,7 +21,11 @@ import {
   parseKinds, programEvent, workoutEvent,
 } from '../services/personalTraining/timeline.js';
 import type { ClientStatus, TimelineEvent } from '../services/personalTraining/types.js';
-import { PROSPECT_PREFIX, linkProspectsOnJoin } from '../services/personalTraining/imports.js';
+import { PROSPECT_PREFIX } from '../services/personalTraining/imports.js';
+import {
+  acceptClientInvite, describeInvite, finishClientInvite, joinLink, leavePractice, myCoaching, openInvitesForEmail,
+  parseInviteRef, shortCodesFor, tokenForRef,
+} from '../services/personalTraining/clientInvites.js';
 import surfaces from './personalTrainingSurfaces.js';
 import platform from './personalTrainingPlatform.js';
 import business from './personalTrainingBusiness.js';
@@ -81,20 +85,70 @@ router.get('/invites/:token', requireAuth, async (req, res) => {
   }
 });
 
-// POST /personal-training/invites/:token/accept — share training data with the trainer
+// POST /personal-training/invites/:token/accept — share training data with the trainer.
+// The same service the chat card's Accept runs: one place creates the membership.
 router.post('/invites/:token/accept', requireAuth, socialWriteLimiter, async (req, res) => {
   try {
-    const invite = await findUsableInvite(req.params.token);
-    if (invite.role !== 'athlete') return res.status(404).json({ error: 'Invite not found' });
-    const { institution } = await claimInvite(req.params.token, req.user!.id);
-    // If the trainer imported this person from a spreadsheet, their record now belongs to this account.
-    await linkProspectsOnJoin(institution.id, req.user!.id, req.params.token).catch((err) => console.error('[personal-training] link prospect', err));
+    const { practice, alreadyMember } = await acceptClientInvite(req.params.token, req.user!.id);
     return res.json({
-      practice: { id: institution.id, name: institution.name, slug: institution.slug, logoUrl: institution.logoUrl },
+      practice: { id: practice.id, name: practice.name, slug: practice.slug, logoUrl: practice.logoUrl },
+      ...(alreadyMember ? { alreadyMember: true } : {}),
     });
   } catch (err) {
     if (err instanceof InviteError) return res.status(err.status).json({ error: err.message });
     console.error('[personal-training] POST /invites/:token/accept', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /personal-training/invites/resolve {code|link} — a pasted link or a typed
+// short code → the invite preview (You → Coach → Join with an invite). The
+// locked email is never returned, only whether this account can use it.
+router.post('/invites/resolve', requireAuth, socialWriteLimiter, async (req, res) => {
+  try {
+    const raw = typeof req.body?.code === 'string' ? req.body.code : typeof req.body?.link === 'string' ? req.body.link : '';
+    const ref = parseInviteRef(raw);
+    if (!ref) return res.status(400).json({ error: 'Enter the invite code (like K7QM-3XPA) or paste the link.' });
+    const token = await tokenForRef(ref);
+    const view = token ? await describeInvite(token, { id: req.user!.id, email: req.user!.email }) : null;
+    if (!view) return res.status(404).json({ error: 'No invite matches that. Check the code with your trainer.' });
+    return res.json({ invite: view });
+  } catch (err) {
+    console.error('[personal-training] POST /invites/resolve', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /personal-training/coaching — the client's side: practices they share
+// with, and open invites addressed to their email.
+router.get('/coaching', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const me = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+    const coaching = await myCoaching(userId);
+    const joined = new Set(coaching.map((c) => c.practice.id));
+    const pending = [];
+    for (const inv of await openInvitesForEmail(me?.email)) {
+      const view = await describeInvite(inv.token, { id: userId, email: me?.email });
+      if (view && view.state === 'open' && view.forViewer !== false && !joined.has(view.practice.id)) pending.push(view);
+    }
+    return res.json({ coaching, pending });
+  } catch (err) {
+    console.error('[personal-training] GET /coaching', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /personal-training/membership/leave {practiceId} — stop sharing with a
+// practice. Deactivates only the caller's own client membership; deletes nothing.
+router.post('/membership/leave', requireAuth, socialWriteLimiter, async (req, res) => {
+  const practiceId = typeof req.body?.practiceId === 'string' ? req.body.practiceId.trim() : '';
+  if (!practiceId) return res.status(400).json({ error: 'practiceId is required' });
+  try {
+    return res.json({ ok: true, ...(await leavePractice(req.user!.id, practiceId)) });
+  } catch (err) {
+    if (err instanceof InviteError) return res.status(err.status).json({ error: err.message });
+    console.error('[personal-training] POST /membership/leave', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -201,14 +255,37 @@ router.post('/clients/invite', ...trainer, socialWriteLimiter, async (req, res) 
         expiresAt: new Date(Date.now() + INVITE_TTL_HOURS * 60 * 60 * 1000),
       },
     });
+    // Its short code, and a push if the email is already on Axiom. Never fails the invite.
+    const shortCode = await finishClientInvite(invite);
     return res.status(201).json({
       token: invite.token,
       link: `${FRONTEND_URL}/personal-training/join/${invite.token}`,
+      shortCode,
       email: invite.email,
       expiresAt: invite.expiresAt,
     });
   } catch (err) {
     console.error('[personal-training] POST /clients/invite', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /personal-training/invites — the practice's open client invites, each
+// with its link and short code (older invites get their code here).
+router.get('/invites', ...trainer, async (req, res) => {
+  try {
+    const invites = await prisma.institutionInvite.findMany({
+      where: { institutionId: req.practice!.id, role: 'athlete', usedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: { id: true, token: true, email: true, expiresAt: true, createdAt: true },
+    });
+    const codes = await shortCodesFor(invites.map((i) => i.id)).catch(() => new Map<string, string>());
+    return res.json({
+      invites: invites.map((i) => ({ token: i.token, link: joinLink(i.token), shortCode: codes.get(i.id) ?? null, email: i.email, expiresAt: i.expiresAt, createdAt: i.createdAt })),
+    });
+  } catch (err) {
+    console.error('[personal-training] GET /invites', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

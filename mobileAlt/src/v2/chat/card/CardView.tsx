@@ -12,7 +12,7 @@ import { K, S } from './tokens';
 import { useCardHandlers } from './context';
 import {
   MetaLine, Rows, ChangeValue, DiffRows, Why, Note, EmptyLine, AskBlock, Segmented, FlowProgress,
-  DraftBody, LoseList, TypedConfirm, HandoffButton, Actions, StateLine,
+  DraftBody, LoseList, TypedConfirm, HandoffButton, Actions, StateLine, CoachInvite,
 } from './primitives';
 import { Hero, Sparkline, Bars, WeekTiles, Media, Skeleton, CapturePlaceholder } from './charts';
 import { BatchView, type BatchPick } from './Batch';
@@ -76,6 +76,7 @@ export function CardView({ card }: { card: Card }) {
         {card.meta ? <MetaLine label={card.step ? `${card.meta.label} · ${card.step.i} of ${card.step.n}` : card.meta.label} onOpen={open} /> : null}
         {collapsed ? null : (<>
         {card.step?.done.length ? <FlowProgress done={card.step.done} /> : null}
+        {card.invite ? <CoachInvite invite={card.invite} /> : null}
         {card.hero ? (masked ? <Rows card={card} rows={[{ key: card.meta?.label ?? 'Value', value: card.hero.value }]} masked onReveal={reveal} /> : <Hero cardId={card.id} hero={card.hero} />) : null}
         {card.line?.length ? <Sparkline cardId={card.id} data={card.line} /> : null}
         {card.bars?.v.length ? <Bars cardId={card.id} bars={card.bars} /> : null}

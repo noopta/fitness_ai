@@ -39,6 +39,7 @@ import { GroupsList } from '../feed/lists';
 import { FriendsPage, GroupPage, LeaderboardPage, TrainTogetherPage } from '../feed/People';
 import { ComposePage } from '../feed/Compose';
 import { AnalyzePage } from './analyze';
+import { CoachPage } from './coach';
 import { userSafetyMenu } from '../../../lib/moderation';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
@@ -75,6 +76,8 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'body': return <BodyPage />;
     case 'streak': return <StreakPage />;
     case 'memory': return <MemoryPage />;
+    // You → Coach: join a personal trainer, or see and stop what they can see.
+    case 'coach': return <CoachPage params={params} />;
     case 'billing': return <BillingPage />;
     case 'prefs': return <PrefsPage />;
     case 'groups': return <GroupsPage />;
