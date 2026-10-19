@@ -106,6 +106,19 @@ describe('api', () => {
     expect(calls[0]).toEqual(['/personal-training/clients/invite', { method: 'POST', body: '{"mode":"app"}' }]);
     expect(JSON.parse((calls[1][1] as { body: string }).body)).toEqual({ mode: 'app', email: 'dami@example.com' });
   });
+
+  it('resolves a typed code or a pasted link, and leaves a practice', async () => {
+    const calls: Array<[string, unknown]> = [];
+    const api = createApi(async (path, init) => { calls.push([path, init]); return {}; });
+    await api.resolveInvite('k7qm 3xpa');
+    await api.resolveInvite('https://axiomtraining.io/personal-training/join/0f8fad5b-d9cb-469f-a165-70867728950e');
+    await api.leavePractice('p-1');
+    await api.coaching();
+    expect(calls[0]).toEqual(['/personal-training/invites/resolve', { method: 'POST', body: '{"code":"k7qm 3xpa"}' }]);
+    expect(JSON.parse((calls[1][1] as { body: string }).body)).toEqual({ link: 'https://axiomtraining.io/personal-training/join/0f8fad5b-d9cb-469f-a165-70867728950e' });
+    expect(calls[2]).toEqual(['/personal-training/membership/leave', { method: 'POST', body: '{"practiceId":"p-1"}' }]);
+    expect(calls[3][0]).toBe('/personal-training/coaching');
+  });
 });
 
 describe('copy', () => {

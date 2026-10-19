@@ -406,3 +406,22 @@ const st = StyleSheet.create({
   handoff: { alignSelf: 'flex-start', height: 44, paddingHorizontal: 20, borderRadius: 22, borderWidth: 1, borderColor: K.ink, flexDirection: 'row', alignItems: 'center' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 22 },
 });
+
+// ── CoachInvite (fn coach_invite) ───────────────────────────────────────────
+/** Who is asking: the trainer's initials, name and practice. The consent text follows as the card's `why`. */
+export function CoachInvite({ invite }: { invite: NonNullable<Card['invite']> }) {
+  const initials = invite.trainer.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?';
+  return (
+    <View style={inviteSt.row} accessible accessibilityLabel={`${invite.trainer}, ${invite.practice}`}>
+      <View style={inviteSt.mark}><Text style={S.rowValue}>{initials}</Text></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={S.rowKey} numberOfLines={1}>{invite.trainer}</Text>
+        <Text style={[S.rowSub, { marginTop: 2 }]} numberOfLines={1}>{invite.practice}</Text>
+      </View>
+    </View>
+  );
+}
+const inviteSt = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  mark: { width: 40, height: 40, borderRadius: 20, backgroundColor: K.surface, alignItems: 'center', justifyContent: 'center' },
+});

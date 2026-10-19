@@ -10,3 +10,4 @@ import './nutrition.js';
 import './health.js';
 import './social.js';
 import './suggest.js';
+import './coaching.js';

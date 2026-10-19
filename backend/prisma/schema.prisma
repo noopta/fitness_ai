@@ -1043,6 +1043,10 @@ model InstitutionInvite {
   email           String?
   role            String      @default("athlete")
   token           String      @unique @default(uuid())
+  // Personal-training client invites: a short code ("K7QM-3XPA") a trainer can
+  // read out or text, redeemed in chat or under You → Coach. Uppercase, no
+  // 0/O/1/I. Older invites get one when the trainer next lists them.
+  shortCode       String?     @unique
   expiresAt       DateTime
   usedAt          DateTime?
   usedByUserId    String?

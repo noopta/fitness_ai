@@ -106,7 +106,10 @@ export async function applyCardAction(userId: string, cardId: string, actionId: 
   if (actionId === 'undo') return undoCard(userId, cardId);
   if (actionId === 'redo') return redoCard(userId, cardId);
 
-  if (card.state?.status && card.state.status !== 'live') throw new CardError('This card has already been acted on.', 409);
+  if (card.state?.status && card.state.status !== 'live') {
+    if (pending.idempotent) return card;
+    throw new CardError('This card has already been acted on.', 409);
+  }
   const action = (card.actions ?? []).find((a) => a.id === actionId);
   const spec = pending.actions?.[actionId];
   if (!action || !spec) throw new CardError('Unknown action.', 400);
@@ -131,12 +134,14 @@ export async function applyCardAction(userId: string, cardId: string, actionId: 
     args.inputs = applyBatchSelection(args.inputs as any[], body.selection, todayIn(tz));
     if (!(args.inputs as any[]).length) throw new CardError('Tick at least one workout with a date.', 400);
   }
-  const status = op.status ?? 'applied';
+  let status = op.status ?? 'applied';
   const undoMs = status === 'deleted' ? 30_000 : UNDO_LOG_MS;
   const change = await withWriteGuard('allow', `card:${card.fn}`, () => executeOp(userId, op.op, args, { cardId, undoMs }));
   const when = clockTime(new Date(), tz);
-  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card> };
+  const r = (change.result ?? {}) as { stateLine?: string; cardPatch?: Partial<Card>; status?: CardState['status'] };
   if (r.cardPatch) mergePatch(card, r.cardPatch);
+  // An op can settle its card differently from the plan: an invite that expired before the tap.
+  if (r.status === 'expired') status = 'expired';
   card.state = {
     status,
     line: r.stateLine ?? op.line ?? `${DONE_LINE[status] ?? 'Done'} ${when}`,

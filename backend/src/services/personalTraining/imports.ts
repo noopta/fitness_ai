@@ -321,7 +321,10 @@ export async function inviteProspect(input: { prospectId: string; practiceId: st
     data: { institutionId: input.practiceId, invitedByUserId: input.trainerId, email, role: 'athlete', expiresAt: new Date(Date.now() + 14 * 86_400_000) },
   });
   await prisma.ptProspect.update({ where: { id: prospect.id }, data: { email, inviteToken: invite.token, invitedAt: new Date() } });
-  return { token: invite.token, link: `${FRONTEND_URL}/personal-training/join/${invite.token}`, email, expiresAt: invite.expiresAt };
+  // Its short code, and a push if they already have an account. Never fails the invite.
+  const { finishClientInvite } = await import('./clientInvites.js');
+  const shortCode = await finishClientInvite(invite);
+  return { token: invite.token, link: `${FRONTEND_URL}/personal-training/join/${invite.token}`, shortCode, email, expiresAt: invite.expiresAt };
 }
 
 /**

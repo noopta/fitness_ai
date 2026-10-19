@@ -1,5 +1,5 @@
 // You (index 4): name, body line, confidence; Anakin's strength read; then
-// Strength profile → Body → Streak → What Anakin knows → Billing → Preferences.
+// Strength profile → Body → Streak → What Anakin knows → Coach → Billing → Preferences.
 
 import React, { useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
@@ -12,6 +12,9 @@ import { Row } from '../primitives/Row';
 import { Enter } from '../primitives/Enter';
 import { useStrength, useStreak, useMemory, useWorkouts } from '../data';
 import { ShareWorkoutSheet, type WorkoutShare } from '../share/ShareWorkoutSheet';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@axiom/personal-training-core';
+import { ptApi } from '../../features/personal-training/api';
 
 /** "A", "A and B", "A, B and C". */
 function listOf(xs: string[]): string {
@@ -46,6 +49,11 @@ export function YouPage() {
   const streak = useStreak();
   const memory = useMemory();
   const memoryCount = (memory.data?.notes?.length ?? 0) + (memory.data?.profile?.length ?? 0);
+  // A personal trainer: who coaches them, or invites waiting for their email.
+  const coaching = useQuery({ queryKey: queryKeys.coaching, queryFn: ptApi.coaching, retry: 1, staleTime: 60_000 });
+  const coach = coaching.data?.coaching[0] ?? null;
+  const invitesWaiting = coaching.data?.pending.length ?? 0;
+  const coachSub = coach ? `${coach.trainerName} · ${coach.practice.name}` : invitesWaiting ? `${invitesWaiting} invite${invitesWaiting === 1 ? '' : 's'} waiting` : 'Work with a trainer';
   const s: any = strength.data;
   const conf = Math.round(((s?.athleteModel?.confidence ?? 0) as number) * 100);
   const out = (s?.athleteModel?.ratios ?? []).filter((r: any) => r.status === 'high' || r.status === 'low').length;
@@ -63,7 +71,7 @@ export function YouPage() {
   const share = useMemo<WorkoutShare | null>(() => (last ? workoutShareFrom(last, fromKg, unit) : null), [last, fromKg, unit]);
 
   return (
-    <TabPage refreshing={strength.isFetching} onRefresh={() => { void strength.refetch(); void streak.refetch(); void memory.refetch(); }}>
+    <TabPage refreshing={strength.isFetching} onRefresh={() => { void strength.refetch(); void streak.refetch(); void memory.refetch(); void coaching.refetch(); }}>
       <PageTitle title={user?.name || 'You'} caption={[bodyLine, conf ? `${conf}% confidence` : null].filter(Boolean).join(' · ') || null} />
       {read ? <View style={{ marginTop: 22 }}><AnakinRead text={read} /></View> : null}
       <View style={{ marginTop: 34 }}>
@@ -72,6 +80,7 @@ export function YouPage() {
         <Enter index={4} exit={false}><Row name="Check in" sub="Sleep, energy, mood, stress — only what you tap" onPress={() => go('checkin')} /></Enter>
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
+        <Enter index={6} exit={false}><Row name="Coach" sub={coachSub} onPress={() => go('coach')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>
         <Enter index={7} exit={false}><Row name="Preferences" onPress={() => go('prefs')} /></Enter>
         <Enter index={8} exit={false}><Row name="Share" sub={last ? `Your last workout · ${last.title || 'Workout'}` : 'Log a workout to share it'} onPress={last ? () => setSharing(true) : undefined} /></Enter>

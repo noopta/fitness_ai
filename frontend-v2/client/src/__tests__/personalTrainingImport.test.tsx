@@ -189,7 +189,7 @@ describe('a client who has not joined', () => {
   it('cannot be messaged; the profile offers an invite bound to their email instead', async () => {
     api.client.mockResolvedValue({ client: prospect });
     api.timeline.mockResolvedValue({ events: [], nextCursor: null });
-    api.inviteProspect.mockResolvedValue({ token: 'tok', link: 'https://axiomtraining.io/personal-training/join/tok', email: 'priya@example.com', expiresAt: '2026-10-16T09:00:00.000Z' });
+    api.inviteProspect.mockResolvedValue({ token: 'tok', link: 'https://axiomtraining.io/personal-training/join/tok', shortCode: 'K7QM-3XPA', email: 'priya@example.com', expiresAt: '2026-10-16T09:00:00.000Z' });
     renderAt('/personal-training/clients/prospect:abc/timeline', <TimelinePage />);
 
     expect(await screen.findByText('Priya has not joined Axiom yet. This is their imported history.')).toBeInTheDocument();
@@ -203,5 +203,6 @@ describe('a client who has not joined', () => {
     await userEvent.click(dialog.getByRole('button', { name: 'Create invite link' }));
     await waitFor(() => expect(api.inviteProspect).toHaveBeenCalledWith('prospect:abc', 'priya@example.com'));
     expect(await dialog.findByDisplayValue('https://axiomtraining.io/personal-training/join/tok')).toBeInTheDocument();
+    expect(dialog.getByDisplayValue('K7QM-3XPA')).toBeInTheDocument();
   });
 });

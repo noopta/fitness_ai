@@ -110,6 +110,8 @@ export interface Card {
   handoff?: { label: string; action: ClientAction; args?: Record<string, unknown> };
   actions?: CardAction[];
   batch?: BatchBlock;
+  /** A personal trainer's invite (fn coach_invite): who and which practice. The token never reaches the client. */
+  invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
   state?: CardState;
 }
 
