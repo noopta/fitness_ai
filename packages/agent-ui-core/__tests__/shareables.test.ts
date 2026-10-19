@@ -103,6 +103,16 @@ describe('shareable scenes', () => {
     expect(b.r <= marker.x1 || b.l >= marker.x1).toBe(true);
   });
 
+  it('a "Top set" climb never claims a PR', () => {
+    for (const k of ['3a', '3e'] as const) {
+      const sc = sceneFor({ kind: k, data: { ...climb, badge: 'Top set', delta: null } }, { measure: m });
+      const t = sc.ops.filter((o): o is Extract<Op, { t: 'text' }> => o.t === 'text').map((o) => o.s.toUpperCase()).join(' ');
+      expect(t).not.toMatch(/NEW PR|BEST TRIPLE/);
+      expect(t).toMatch(/TOP SET/);
+      expect(sc.label).not.toMatch(/new best/);
+    }
+  });
+
   it('3a: a series that has already passed the goal says so', () => {
     const scene = sceneFor({ kind: '3a', data: { ...climb, goal: { value: 240, label: '240' } } }, { measure: m });
     expect(scene.ops.some((o) => o.t === 'text' && o.s === 'Goal hit')).toBe(true);

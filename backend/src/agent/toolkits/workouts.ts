@@ -236,7 +236,7 @@ const CONGRATULATE = ' After it saves, congratulate them warmly and specifically
 export const WORKOUT_TOOLS = [
   tool({
     name: 'log_workout', kind: 'log', core: true, fn: 'WRK-02',
-    description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. Log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
+    description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. reps is always a number (or a range like "8-10"), never words like "varies": if they didn’t say the reps for a lift, ask for them in one short line before logging. Otherwise log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
       exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
       date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' },

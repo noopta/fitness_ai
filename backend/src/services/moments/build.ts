@@ -132,7 +132,7 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     .map((x) => ({
       name: x.e.name,
       // Reps the log couldn't read ("varies"): show the load alone rather than a dash.
-      top: x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : Number(x.e.weightKg) > 0 ? `${inUnit(Number(x.e.weightKg), u)} ${u}` : '—',
+      top: x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : Number(x.e.weightKg) > 0 ? `${inUnit(Number(x.e.weightKg), u)} · ${plural(Math.max(1, Number(x.e.sets) || 1), 'set')}` : '—',
       share: (byReps ? x.reps : x.vol) / denom,
       isPR: prNames.has(x.e.name.trim().toLowerCase()),
     }))
@@ -210,13 +210,33 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     };
   }
 
-  // ── A session (3g, plus 2f when its main lift has a climbing line) ──
+  // ── A session: 3g, and for its main lift the climb (3a, 3e — "Top set", not "New PR") and the line (2f) ──
   const shareables: ShareableData[] = [{ kind: '3g', data: session }];
-  const main = weighted.filter((x) => x.vol > 0).sort((a, b) => b.vol - a.vol)[0];
-  if (main) {
+  // The main lift: the heaviest estimated max among today's loaded lifts.
+  const main = weighted.filter((x) => x.top && x.top.kg > 0).sort((a, b) => epley(b.top!.kg, b.top!.reps) - epley(a.top!.kg, a.top!.reps))[0];
+  if (main?.top) {
     const key = i.keyFn(main.e.name);
-    const series = bestToDate(liftSeries(all, key, i.keyFn, u, log.date));
-    if (series.length >= 4 && series[series.length - 1].e1rm > series[0].e1rm) shareables.push({ kind: '2f', data: lineFrom(main.e.name, u, series) });
+    // Session by session (today's own number at the end — a best-to-date line would hide it).
+    const series = liftSeries(all, key, i.keyFn, u, log.date);
+    const now = inUnit(epley(main.top.kg, main.top.reps), u);
+    const last = series[series.length - 1];
+    if (last?.date === log.date) last.e1rm = now; else series.push({ date: log.date, e1rm: now });
+    const weeks = Math.max(1, spanWeeks(series));
+    const step = u === 'lb' ? 25 : 10;
+    const goalV = Math.ceil((Math.max(...series.map((p) => p.e1rm)) + 1) / step) * step;
+    const slope = weeklySlope(series);
+    const climb: ClimbData = {
+      lift: main.e.name.trim(), unit: u, repMax: `${inUnit(main.top.kg, u)}×${main.top.reps}`, delta: null, series, badge: 'Top set',
+      goal: { value: goalV, label: `Next · ${goalV}` }, events: [],
+      stats: {
+        gained: series.length > 1 ? now - series[0].e1rm : 0,
+        bw: i.bodyweightKg ? Math.round((now / inUnit(i.bodyweightKg, u)) * 10) / 10 : null,
+        weeksToGoal: slope > 0.2 && (goalV - now) / slope <= 26 ? Math.max(1, Math.ceil((goalV - now) / slope)) : null,
+        weeks,
+      },
+    };
+    shareables.push({ kind: '3a', data: climb }, { kind: '3e', data: climb });
+    if (series.length >= 3) shareables.push({ kind: '2f', data: lineFrom(main.e.name.trim(), u, series) });
   }
   const praise = [
     backfillLine,

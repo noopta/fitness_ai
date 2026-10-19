@@ -58,7 +58,11 @@ describe('buildWorkoutMoment', () => {
 
   it('a climbing main lift adds the 2f line to a plain session', () => {
     const m = buildWorkoutMoment(base({ log: { id: 'L', date: '2026-10-19', title: null, duration: null, exercises: [bench(230, 5)] } }));
-    expect(m.shareables.map((s) => s.kind)).toEqual(['3g', '2f']);
+    expect(m.shareables.map((s) => s.kind)).toEqual(['3g', '3a', '3e', '2f']);
+    const climb = m.shareables[1].data as any;
+    expect(climb.badge).toBe('Top set');
+    expect(climb.repMax).toBe('230×5');
+    expect(climb.series[climb.series.length - 1].date).toBe('2026-10-19');
     expect(m.title).toBe('Workout, logged.');
   });
 
@@ -102,6 +106,19 @@ describe('the climb is best-to-date', () => {
     const m = buildWorkoutMoment(base({ history: hist, prs: [{ key: 'bench press', displayName: 'Bench press', e1RMLbs: 247, prevLbs: 240, deltaLbs: 7 }] }));
     const s = (m.shareables[0].data as any).series.map((p: any) => p.e1rm);
     expect(s).toEqual([...s].sort((a: number, b: number) => a - b));
+  });
+});
+
+describe('a session that is not a PR still offers every workout card', () => {
+  it("today's number closes the line even when it's below the old best", () => {
+    const hist = [...history(6), { id: 'big', date: '2026-08-02', exercises: [bench(260, 2)] }];
+    const m = buildWorkoutMoment(base({ history: hist, log: { id: 'L', date: '2026-10-19', title: 'Back day', duration: null, exercises: [{ name: 'T-bar row', sets: 3, reps: 'varies', weightKg: lbKg(135) }, bench(225, 5)] } }));
+    expect(m.type).toBe('session');
+    expect(m.shareables.map((s) => s.kind)).toEqual(['3g', '3a', '3e', '2f']);
+    const c = m.shareables[1].data as any;
+    expect(c.series[c.series.length - 1].e1rm).toBe(263); // 225×5 today, not the 260×2 best
+    const row = (m.shareables[0].data as any).lifts.find((l: any) => l.name === 'T-bar row');
+    expect(row.top).toBe('135 · 3 sets');
   });
 });
 

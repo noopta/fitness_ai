@@ -12,6 +12,8 @@ export type ShareUnit = 'lb' | 'kg';
 
 /** 3a (card) and 3e (overlay): a lift's climb. */
 export interface ClimbData {
+  /** The card's badge (top right / overlay eyebrow): "New PR" by default; "Top set" for a session that wasn't one. */
+  badge?: string;
   lift: string;
   unit: ShareUnit;
   /** "315 × 3" */

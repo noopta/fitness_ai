@@ -108,9 +108,10 @@ const xLabels = (dates: string[]) => {
 export function scene3a(d: ClimbData, o: SceneOpts): Scene {
   const ops: Op[] = [];
   const m = o.measure;
-  cardFrame(ops, o, 'New PR');
+  const isPR = (d.badge ?? 'New PR') === 'New PR';
+  cardFrame(ops, o, d.badge ?? 'New PR');
   const top = PAD + 18 + 22;
-  ops.push(eyebrow(PAD, top, `${d.lift} · best ${repWord(d.repMax)}`, C.muted));
+  ops.push(eyebrow(PAD, top, isPR ? `${d.lift} · best ${repWord(d.repMax)}` : `${d.lift} · top set`, C.muted));
   const heroY = top + 12 + 6;
   hero(ops, m, PAD, heroY, d.repMax, 52, d.delta != null && d.delta !== 0 ? { s: signed(d.delta), color: C.accent, weight: 700, size: 15 } : undefined);
 
@@ -183,7 +184,7 @@ export function scene3a(d: ClimbData, o: SceneOpts): Scene {
     { v: d.stats.bw != null ? `${fmt(d.stats.bw, 1)}×` : '—', l: 'bodyweight' },
     !d.goal ? { v: `${d.series.length}`, l: 'sessions' } : goalHit ? { v: 'Goal hit', l: `goal ${fmt(d.goal.value)}` } : d.stats.weeksToGoal == null ? { v: fmt(d.goal.value), l: 'next milestone' } : { v: `${d.stats.weeksToGoal} wk`, l: `to ${fmt(d.goal.value)}` },
   ]);
-  return { kind: '3a', ops, background: C.white, label: `${d.lift}, new best ${repWord(d.repMax)}, ${d.repMax.replace('×', ' by ')}, estimated max ${signed(d.stats.gained)} ${d.unit === 'lb' ? 'pounds' : 'kilograms'} over ${d.stats.weeks} weeks.` };
+  return { kind: '3a', ops, background: C.white, label: `${d.lift}, ${isPR ? `new best ${repWord(d.repMax)}` : 'top set'}, ${d.repMax.replace('×', ' by ')}, estimated max ${signed(d.stats.gained)} ${d.unit === 'lb' ? 'pounds' : 'kilograms'} over ${d.stats.weeks} weeks.` };
 }
 
 const repWord = (repMax: string) => {
@@ -400,8 +401,8 @@ export function scene3e(d: ClimbData, o: SceneOpts): Scene {
   if (d.delta) ops.push({ t: 'text', x: L + o.measure(d.repMax, 56, 700, -0.045) + 8, y: heroY + 56 * 0.98 - 15 * 1.05, s: `${signed(d.delta)} ${d.unit}`, size: 15, weight: 700, color: ink, shadow: sh, tnum: true });
   const eyY = heroY - 18;
   ops.push({ t: 'circle', x: L + 3, y: eyY + 6, r: 3, fill: C.accent, shadow: sh });
-  ops.push(eyebrow(L + 11, eyY, `${d.lift} · New PR`, ink, 'left', { shadow: sh } as any));
-  return { kind: '3e', ops, background: null, label: `${d.lift}, new best, ${d.repMax.replace('×', ' by ')}.` };
+  ops.push(eyebrow(L + 11, eyY, `${d.lift} · ${d.badge ?? 'New PR'}`, ink, 'left', { shadow: sh } as any));
+  return { kind: '3e', ops, background: null, label: `${d.lift}, ${(d.badge ?? 'New PR') === 'New PR' ? 'new best' : 'top set'}, ${d.repMax.replace('×', ' by ')}.` };
 }
 
 /** 3f · Today's label (nutrition-facts style). */
