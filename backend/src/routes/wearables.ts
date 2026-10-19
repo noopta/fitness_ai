@@ -11,6 +11,7 @@ import { ingest, disconnect } from '../services/wearables/ingest.js';
 import { recoveryFor, watchDays } from '../services/wearables/recovery.js';
 import { runSimulation, SCENARIOS, SCENARIO_LABEL } from '../services/wearables/simulator.js';
 import { todayForTz } from '../services/localDate.js';
+import { freshen } from '../services/wearables/googleHealth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -52,6 +53,8 @@ router.post('/wearables/:provider/disconnect', requireAuth, gate, async (req, re
 // GET /api/wearables/recovery?date=YYYY-MM-DD
 router.get('/wearables/recovery', requireAuth, gate, async (req, res) => {
   const date = typeof req.query.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date) ? req.query.date : undefined;
+  const u = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { timezone: true } });
+  await freshen(req.user!.id, todayForTz(u?.timezone));
   res.json(await recoveryFor(req.user!.id, date));
 });
 

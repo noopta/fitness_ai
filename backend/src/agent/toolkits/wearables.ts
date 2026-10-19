@@ -6,6 +6,9 @@
 import { registerToolkit } from '../registry.js';
 import { tool, schema, numOr } from './kit.js';
 import { recoveryFor, watchDays } from '../../services/wearables/recovery.js';
+import { freshen } from '../../services/wearables/googleHealth.js';
+import { prisma } from './kit.js';
+import { todayForTz } from '../../services/localDate.js';
 import { dayLabel, num, plural } from '../cards/format.js';
 
 const STATUS: Record<string, string> = {
@@ -22,6 +25,8 @@ export const WEARABLE_TOOLS = [
     refine: (r) => (r?.status ? `Recovery — ${STATUS[r.status]?.toLowerCase() ?? r.status}` : null),
     execute: async (input, userId) => {
       const date = typeof input.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.date) ? input.date : undefined;
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } });
+      await freshen(userId, todayForTz(u?.timezone));
       const r = await recoveryFor(userId, date);
       return { ...r, connected: r.confidence > 0 || r.steps != null };
     },

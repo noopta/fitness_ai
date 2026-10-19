@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, Alert, Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as WebBrowser from 'expo-web-browser';
 import { PushedPage } from '../../shell/Page';
 import { Row } from '../../primitives/Row';
 import { T } from '../../theme';
@@ -36,6 +37,8 @@ export function WatchPage() {
   const conn = (p: string) => (status.data?.connections ?? []).find((c: any) => c.provider === p && c.status === 'connected');
   const apple = conn('apple_health');
   const sim = conn('simulator');
+  const fitbit = conn('google_health');
+  const fitbitBroken = (status.data?.connections ?? []).find((c: any) => c.provider === 'google_health' && c.status === 'error');
   const hkReady = Platform.OS === 'ios' && !!healthKit();
 
   const run = async (key: string, fn: () => Promise<unknown>) => {
@@ -50,6 +53,12 @@ export function WatchPage() {
     { text: 'Keep data', onPress: () => void run('off', async () => { await apiFetch(`/wearables/${provider}/disconnect`, { method: 'POST', body: JSON.stringify({ deleteData: false }) }); if (provider === 'apple_health') await forgetAppleSync(); }) },
     { text: 'Delete data', style: 'destructive', onPress: () => void run('off', async () => { await apiFetch(`/wearables/${provider}/disconnect`, { method: 'POST', body: JSON.stringify({ deleteData: true }) }); if (provider === 'apple_health') await forgetAppleSync(); }) },
   ]);
+  // Google's sign-in runs in the browser; when the user comes back, reload.
+  const connectFitbit = () => run('fitbit', async () => {
+    const r: any = await apiFetch('/wearables/google/connect');
+    if (r?.url) await WebBrowser.openBrowserAsync(r.url);
+  });
+  const syncFitbit = () => run('fitbitSync', () => apiFetch('/wearables/google/sync', { method: 'POST' }));
   const simulate = (scenario: string) => run(`sim:${scenario}`, () => apiFetch('/wearables/simulate', { method: 'POST', body: JSON.stringify({ scenario, days: 60 }) }));
 
   const r = recovery.data;
@@ -78,7 +87,12 @@ export function WatchPage() {
           <Row name="Apple Health" sub="Needs the next app update from the App Store" />
         )
       ) : null}
-      <Row name="Fitbit" sub="Coming soon" last />
+      {fitbit ? (<>
+        <Row name="Fitbit" sub={`Synced ${ago(fitbit.lastSyncAt)}`} value={busy === 'fitbitSync' ? 'Syncing…' : 'Sync now'} onPress={() => void syncFitbit()} />
+        <Row name="Disconnect Fitbit" sub="Also remove Axiom in your Google Account → Security → Third-party access" onPress={() => disconnect('google_health', 'Fitbit')} last />
+      </>) : (
+        <Row name={fitbitBroken ? 'Reconnect Fitbit' : 'Connect Fitbit'} sub={fitbitBroken ? 'Google stopped accepting our access — sign in again' : 'Fitbit and Pixel Watch, through your Google account'} value={busy === 'fitbit' ? 'Opening…' : undefined} onPress={() => void connectFitbit()} last />
+      )}
 
       {status.data?.simulator ? (<>
         <Text style={[T.eyebrow, { marginTop: 32, marginBottom: 8 }]}>Simulator · testers only</Text>
