@@ -1,6 +1,8 @@
 // A shareable drawn at any width (thumbnail, sheet, full preview). The scene
 // is built with the real measure, recorded once into a Picture, and redrawn
-// only when the data, ink, photo or width change.
+// only when the data, ink, photo or width change. Scenes come from
+// packages/agent-ui-core — changes there only reach phones via an OTA, which
+// fires on mobileAlt/** pushes, so ship them with a touch here.
 
 import React, { Component, useMemo, type ReactNode } from 'react';
 import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
