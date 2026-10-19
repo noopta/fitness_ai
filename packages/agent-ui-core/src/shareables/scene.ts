@@ -111,7 +111,7 @@ export function scene3a(d: ClimbData, o: SceneOpts): Scene {
   const isPR = (d.badge ?? 'New PR') === 'New PR';
   cardFrame(ops, o, d.badge ?? 'New PR');
   const top = PAD + 18 + 22;
-  ops.push(eyebrow(PAD, top, isPR ? `${d.lift} · best ${repWord(d.repMax)}` : `${d.lift} · top set`, C.muted));
+  ops.push(eyebrow(PAD, top, isPR ? `${d.lift} · best ${repWord(d.repMax)}` : `${d.lift} · today`, C.muted));
   const heroY = top + 12 + 6;
   hero(ops, m, PAD, heroY, d.repMax, 52, d.delta != null && d.delta !== 0 ? { s: signed(d.delta), color: C.accent, weight: 700, size: 15 } : undefined);
 

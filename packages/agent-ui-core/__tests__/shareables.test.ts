@@ -109,6 +109,7 @@ describe('shareable scenes', () => {
       const t = sc.ops.filter((o): o is Extract<Op, { t: 'text' }> => o.t === 'text').map((o) => o.s.toUpperCase()).join(' ');
       expect(t).not.toMatch(/NEW PR|BEST TRIPLE/);
       expect(t).toMatch(/TOP SET/);
+      if (k === '3a') expect(t).toMatch(/· TODAY/);
       expect(sc.label).not.toMatch(/new best/);
     }
   });
