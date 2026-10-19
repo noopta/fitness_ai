@@ -230,8 +230,8 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
       },
     };
   };
-  const withToday = (x: typeof loaded[number]) => {
-    const series = liftSeries(all, i.keyFn(x.e.name), i.keyFn, u, log.date);
+  const withToday = (x: typeof loaded[number], weeks = 16) => {
+    const series = liftSeries(all, i.keyFn(x.e.name), i.keyFn, u, log.date, weeks);
     const now = inUnit(epley(x.top!.kg, x.top!.reps), u);
     const last = series[series.length - 1];
     if (last?.date === log.date) last.e1rm = now; else series.push({ date: log.date, e1rm: now });
@@ -249,7 +249,7 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
   // 2) No lift climbed today: the lift with the most history, as its best-ever line (never dips —
   //    a share card never shows a decline), labelled "Best est. max".
   if (!picked) {
-    const most = loaded.map((x) => ({ x, ...withToday(x) })).sort((a, b) => b.series.length - a.series.length)[0];
+    const most = loaded.map((x) => ({ x, ...withToday(x, 52) })).sort((a, b) => b.series.length - a.series.length)[0];
     if (most && most.series.length >= 2) picked = { x: most.x, series: bestToDate(most.series), best: true };
   }
   if (picked) {

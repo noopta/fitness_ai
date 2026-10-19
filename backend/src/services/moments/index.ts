@@ -71,7 +71,7 @@ export async function momentForWorkout(userId: string, logId: string, opts: Work
     if (!log || log.userId !== userId) return null;
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, timezone: true, weightKg: true, prefsJson: true } });
     const exercises = parse<LoggedExercise[]>(log.exercises, []);
-    const from = addDays(log.date, -16 * 7);
+    const from = addDays(log.date, -52 * 7); // a year: the best-ever line needs the climb into the best
     const rows = await prisma.workoutLog.findMany({ where: { userId, date: { gte: from, lte: log.date } }, orderBy: { date: 'desc' }, take: 400, select: { id: true, date: true, exercises: true } });
     const history: HistoryLog[] = rows.map((r) => ({ id: r.id, date: r.date, exercises: parse<LoggedExercise[]>(r.exercises, []) }));
     const resolver = await loadCanonicalResolver(prisma, [...exercises, ...history.flatMap((h) => h.exercises)].map((e) => e?.name).filter(Boolean));

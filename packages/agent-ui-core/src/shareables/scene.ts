@@ -197,7 +197,7 @@ export function scene3a(d: ClimbData, o: SceneOpts): Scene {
 
   const goalHit = d.goal ? Math.max(...vals) >= d.goal.value : false;
   footerStats(ops, [
-    { v: signed(d.stats.gained), l: `${d.unit} on est. max` },
+    d.stats.gained > 0 || !d.chartLabel ? { v: signed(d.stats.gained), l: `${d.unit} on est. max` } : { v: fmt(Math.max(...vals)), l: (d.chartLabel ?? '').toLowerCase() },
     { v: d.stats.bw != null ? `${fmt(d.stats.bw, 1)}×` : '—', l: 'bodyweight' },
     !d.goal ? { v: `${d.series.length}`, l: 'sessions' } : goalHit ? { v: 'Goal hit', l: `goal ${fmt(d.goal.value)}` } : d.stats.weeksToGoal == null ? { v: fmt(d.goal.value), l: 'next milestone' } : { v: `${d.stats.weeksToGoal} wk`, l: `to ${fmt(d.goal.value)}` },
   ]);
