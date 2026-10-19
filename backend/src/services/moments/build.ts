@@ -131,7 +131,8 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
   const lifts = weighted
     .map((x) => ({
       name: x.e.name,
-      top: x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : '—',
+      // Reps the log couldn't read ("varies"): show the load alone rather than a dash.
+      top: x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : Number(x.e.weightKg) > 0 ? `${inUnit(Number(x.e.weightKg), u)} ${u}` : '—',
       share: (byReps ? x.reps : x.vol) / denom,
       isPR: prNames.has(x.e.name.trim().toLowerCase()),
     }))

@@ -12,13 +12,18 @@ import { Pressable } from '../primitives/Pressable';
 import { TextAction } from '../primitives/TextAction';
 import { Sheet } from '../primitives/Sheet';
 import { haptics } from '../haptics';
-import { ScenePreview } from './ScenePreview';
+import { ScenePreview, PreviewGuard } from './ScenePreview';
 import { useShareAssets } from './useShareAssets';
 import { onMoment, momentsApi, rememberMoment } from './store';
 
 const THUMB = 84;
 
-export function MomentPrompt({ moment, onShare, onDismiss, dismissLabel = 'Not now', compact, hideLabel }: {
+/** Guarded: whatever goes wrong in a moment hides the moment, never the screen around it (chat, Home, Done). */
+export function MomentPrompt(props: Parameters<typeof MomentPromptInner>[0]) {
+  return <PreviewGuard fallback={null}><MomentPromptInner {...props} /></PreviewGuard>;
+}
+
+function MomentPromptInner({ moment, onShare, onDismiss, dismissLabel = 'Not now', compact, hideLabel }: {
   moment: ProgressMoment;
   onShare: () => void;
   onDismiss?: () => void;

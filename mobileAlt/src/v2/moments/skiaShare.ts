@@ -23,7 +23,8 @@ function font(faces: Faces, size: number, weight: ShareWeight): SkFont {
   let m = fontCache.get(face);
   if (!m) { m = new Map(); fontCache.set(face, m); }
   let f = m.get(size);
-  if (!f) { f = Skia.Font(face, size); f.setSubpixel(true); m.set(size, f); }
+  // No setSubpixel: the native binding reads its argument as a number and throws on `true` (web accepts it).
+  if (!f) { f = Skia.Font(face, size); m.set(size, f); }
   return f;
 }
 const width = (faces: Faces, s: string, size: number, weight: ShareWeight) => {
