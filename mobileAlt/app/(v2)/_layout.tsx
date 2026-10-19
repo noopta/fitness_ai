@@ -14,11 +14,13 @@ import { ShellProvider } from '../../src/v2/shell/ShellContext';
 import { HomeVideoProvider } from '../../src/v2/home/HomeVideo';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { markV2Boot } from '../../src/v2/crashGuard';
+import { useAppleHealthAutoSync } from '../../src/health/useAppleHealthAutoSync';
 
 export default function V2Layout() {
   const ready = useV2Fonts();
   // Crash-loop breaker: if this boot dies, the next launch takes the classic app.
   useEffect(() => markV2Boot(), []);
+  useAppleHealthAutoSync();
   if (!ready) return <View style={{ flex: 1, backgroundColor: v2.color.darkGround }} />;
   return (
     <ErrorBoundary>

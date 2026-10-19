@@ -43,7 +43,7 @@ export function strengthRead(s: any): string | null {
 
 export function YouPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, getFeatures } = useAuth();
   const { fromKg, unit } = useUnits();
   const strength = useStrength();
   const streak = useStreak();
@@ -78,6 +78,7 @@ export function YouPage() {
         <Enter index={2} exit={false}><Row name="Strength profile" sub={total ? `${out} of ${total} ratios out of band` : 'Log sessions to unlock'} onPress={() => go('strength')} /></Enter>
         <Enter index={3} exit={false}><Row name="Body" value={kg ? `${fromKg(kg)} ${unit}` : undefined} arrow={!kg} onPress={() => go('body')} /></Enter>
         <Enter index={4} exit={false}><Row name="Check in" sub="Sleep, energy, mood, stress — only what you tap" onPress={() => go('checkin')} /></Enter>
+        {getFeatures().wearables ? <Enter index={4} exit={false}><Row name="Watch & health data" sub="Apple Health, recovery from your own baselines" onPress={() => go('watch')} /></Enter> : null}
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Coach" sub={coachSub} onPress={() => go('coach')} /></Enter>

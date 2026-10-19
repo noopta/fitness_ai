@@ -41,6 +41,7 @@ import { ComposePage } from '../feed/Compose';
 import { AnalyzePage } from './analyze';
 import { CoachPage } from './coach';
 import { userSafetyMenu } from '../../../lib/moderation';
+import { WatchPage } from './watch';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
@@ -76,6 +77,7 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'body': return <BodyPage />;
     case 'streak': return <StreakPage />;
     case 'memory': return <MemoryPage />;
+    case 'watch': return <WatchPage />;
     // You → Coach: join a personal trainer, or see and stop what they can see.
     case 'coach': return <CoachPage params={params} />;
     case 'billing': return <BillingPage />;

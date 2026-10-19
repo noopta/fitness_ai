@@ -56,6 +56,14 @@
       ],
       "expo-apple-authentication",
       [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Axiom reads your activity, heart rate, HRV, sleep and workouts from Apple Health so Anakin can fit your training and nutrition to how you're recovering.",
+          "NSHealthUpdateUsageDescription": "Axiom saves the workouts you log to Apple Health.",
+          "background": true
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
