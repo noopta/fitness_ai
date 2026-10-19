@@ -194,3 +194,44 @@ export async function markMoment(userId: string, id: string, what: 'shared' | 'd
   const r = await prisma.progressMoment.updateMany({ where: { id, userId }, data: what === 'shared' ? { sharedAt: new Date() } : { dismissedAt: new Date() } });
   return r.count > 0;
 }
+
+// ── On request: "can I share my workout?" ───────────────────────────────────
+
+export type ShareWhat = 'workout' | 'nutrition' | 'cut' | 'latest';
+
+/**
+ * The moment to share when the user asks for one after the fact (Anakin's
+ * share_progress): a workout's (built now if it never got one — logs from
+ * before moments existed, or from the classic app), the day's protein goal,
+ * the cut, or simply the latest. `none` says why there's nothing.
+ */
+export async function momentToShare(userId: string, what: ShareWhat, date?: string | null): Promise<{ moment: ProgressMoment } | { none: string }> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { timezone: true, prefsJson: true } });
+  const share = parseUserPrefs(user?.prefsJson).shareCards !== false;
+  const day = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+  if (what === 'latest') {
+    const row = await prisma.progressMoment.findFirst({ where: { userId, ...(day ? { date: day } : {}) }, orderBy: { updatedAt: 'desc' } });
+    if (row) return { moment: toMoment(row, share) };
+    what = 'workout';
+  }
+  if (what === 'workout') {
+    const log = await prisma.workoutLog.findFirst({ where: { userId, ...(day ? { date: day } : {}) }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }] });
+    if (!log) return { none: day ? `No workout logged on ${day}.` : 'No workouts logged yet.' };
+    // The day already has its moment (the best of its sessions): share that one.
+    const existing = await prisma.progressMoment.findUnique({ where: { userId_category_date: { userId, category: 'workout', date: log.date } } });
+    if (existing) return { moment: toMoment(existing, share) };
+    const { detectStrengthPRs } = await import('../progressService.js');
+    const prs = await detectStrengthPRs(prisma, userId, log.id, parse<LoggedExercise[]>(log.exercises, []) as any, log.date).catch(() => []);
+    const m = await momentForWorkout(userId, log.id, { prs });
+    return m ? { moment: m } : { none: 'I couldn’t build a card for that workout.' };
+  }
+  if (what === 'nutrition') {
+    const d = day ?? todayForTz(user?.timezone);
+    const r = await momentForNutrition(userId, d);
+    return r ? { moment: r.moment } : { none: `Protein isn’t at target for ${d} yet — the goal card unlocks when it is.` };
+  }
+  const row = await prisma.progressMoment.findFirst({ where: { userId, category: 'cut' }, orderBy: { updatedAt: 'desc' } });
+  if (row) return { moment: toMoment(row, share) };
+  const r = await momentForWeighIn(userId);
+  return r ? { moment: r.moment } : { none: 'The cut card needs about four weeks of weigh-ins trending down toward a goal weight below where you are.' };
+}

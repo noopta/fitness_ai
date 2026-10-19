@@ -2,7 +2,7 @@
 //
 // A-01 Account — You → Account. Everything that was chat-only gets a row:
 //   photo, name, username, email; food region and "add workout calories
-//   back"; terms and privacy, the version; switch to classic; and Delete
+//   back"; terms and privacy, the version; and Delete
 //   account, always the last row (App Store guideline 5.1.1(v): deletion is
 //   three taps from You).
 // A-02 Profile photo — the system picker with its square crop; the circle
@@ -11,8 +11,8 @@
 //   what happens to billing, an export first. Typing DELETE arms it; no Undo.
 //   Web (Stripe) subscriptions are cancelled by the server on delete; App
 //   Store / Google Play ones can't be, so the page says to cancel there.
-// A-04 Switch to classic — a sheet: same account, same data, only the
-//   layout changes. Per phone; classic's Settings has "Try the new Axiom".
+// A-04 Switch to classic — removed 19 Oct 2026 (founder: nobody sees the old
+//   app). The crash guard still covers a genuine crash loop.
 
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, Switch, StyleSheet, Alert } from 'react-native';
@@ -31,7 +31,6 @@ import { TextAction } from '../../primitives/TextAction';
 import { Sheet, PromptSheet } from '../../primitives/Sheet';
 import { useAuth } from '../../../context/AuthContext';
 import { authApi, apiFetch } from '../../../lib/api';
-import { setPreferClassic } from '../../crashGuard';
 import { haptics } from '../../haptics';
 import { contactSupport, SUPPORT_EMAIL } from '../../../lib/openExternal';
 
@@ -55,7 +54,6 @@ export function AccountPage() {
   const u: any = user ?? {};
   const [editing, setEditing] = useState<null | 'name' | 'username'>(null);
   const [regionOpen, setRegionOpen] = useState(false);
-  const [classicOpen, setClassicOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [burn, setBurn] = useState<boolean>(!!u.subtractWorkoutBurnFromCalories);
   const region = FOOD_REGIONS.find((r) => r.value === (u.foodRegion ?? 'global')) ?? FOOD_REGIONS[0];
@@ -110,11 +108,6 @@ export function AccountPage() {
     try { await authApi.updateProfile({ subtractWorkoutBurnFromCalories: on }); await refreshUser(); }
     catch (e: any) { setBurn(!on); Alert.alert('Couldn\'t change that', e?.message ?? ''); }
   };
-  const switchToClassic = async () => {
-    setClassicOpen(false);
-    await setPreferClassic(true);
-    router.replace('/(tabs)' as any);
-  };
 
   return (
     <PushedPage back="You" title="Account">
@@ -151,7 +144,6 @@ export function AccountPage() {
       <Row name="Version" value={versionLabel()} muted last />
 
       <View style={{ marginTop: 26 }}>
-        <Row name="Switch to classic Axiom" onPress={() => setClassicOpen(true)} />
         <Row name="Delete account" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'deleteaccount' } } as any)} last />
       </View>
 
@@ -162,14 +154,6 @@ export function AccountPage() {
         {FOOD_REGIONS.map((r, i) => <Row key={r.value} name={r.label} sub={r.sub} value={r.value === region.value ? '✓' : undefined} onPress={() => void setRegion(r.value)} last={i === FOOD_REGIONS.length - 1} />)}
       </Sheet>
 
-      <Sheet visible={classicOpen} onClose={() => setClassicOpen(false)} title="Switch to classic Axiom?" sub="Same account, same data. Anakin moves to the Coach tab. You can switch back from Settings any time.">
-        <Row name="Keeps" value="Program, logs, friends, Pro" muted />
-        <Row name="Changes" value="Layout and navigation" muted last />
-        <View style={styles.sheetActions}>
-          <TextAction primary onPress={() => void switchToClassic()}>Switch to classic</TextAction>
-          <TextAction muted arrow={false} onPress={() => setClassicOpen(false)}>Stay</TextAction>
-        </View>
-      </Sheet>
       <AvatarCrop picked={cropping} onCancel={() => setCropping(null)} onUse={usePhoto} />
     </PushedPage>
   );

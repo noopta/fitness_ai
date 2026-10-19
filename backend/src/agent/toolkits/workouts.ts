@@ -235,6 +235,19 @@ const CONGRATULATE = ' After it saves, congratulate them warmly and specifically
 
 export const WORKOUT_TOOLS = [
   tool({
+    name: 'share_progress', kind: 'read', core: true, fn: 'MOM-01',
+    description: 'Show a share card for something they already did, any time after: "can I share my workout?", "where’s the photo/card for today’s session", "post my PR", "share my protein day". what: workout (default — today’s or a date’s session; builds the card if it never got one, e.g. logged in the classic app), nutrition (the day’s protein goal hit), cut, or latest (their most recent moment). The Moment card opens the share studio (cards and photo overlays for stories). Never tell them sharing isn’t possible — call this.',
+    input_schema: schema({ what: { type: 'string', enum: ['workout', 'nutrition', 'cut', 'latest'] }, date: { type: 'string', description: 'YYYY-MM-DD; default the latest' } }),
+    receipt: (i) => ({ verb: 'Opened', text: `Share card · ${str(i.what) || 'workout'}` }),
+    execute: async (input, userId) => {
+      const { momentToShare } = await import('../../services/moments/index.js');
+      const r = await momentToShare(userId, (['workout', 'nutrition', 'cut', 'latest'].includes(str(input.what)) ? str(input.what) : 'workout') as any, str(input.date) || null);
+      if ('none' in r) return { shareCard: null, why: r.none };
+      return { moment: momentForModel(r.moment), canShare: r.moment.canShare, _moment: r.moment };
+    },
+    card: (_i, r) => (r?._moment ? momentCard(r._moment) : null),
+  }),
+  tool({
     name: 'log_workout', kind: 'log', core: true, fn: 'WRK-02',
     description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. reps is always a number (or a range like "8-10"), never words like "varies": if they didn’t say the reps for a lift, ask for them in one short line before logging. Otherwise log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
