@@ -636,6 +636,8 @@ export async function runPostWorkout(userId: string, loggedNames: string[]): Pro
   // Per-user switch (PRF-13, "stop suggesting weight increases").
   if (parseUserPrefs((user as any)?.prefsJson).adaptationEnabled === false) return [];
   const ctx = await loadContext(userId);
+  // A program from their own coach: we observe, never propose changes to it (Oct 2026).
+  if ((ctx.program as any)?.source === 'coach') return [];
   const created: ProposalRow[] = [];
   const covered = new Set<string>();
   if (legacyOn && ctx.program) {
@@ -674,6 +676,7 @@ export async function runWeeklyForUser(userId: string, now = new Date()): Promis
   if (!logOn && !phaseOn) return [];
   if (parseUserPrefs((user as any)?.prefsJson).adaptationEnabled === false) return [];
   const ctx = await loadContext(userId, now);
+  if ((ctx.program as any)?.source === 'coach') return [];
   const drafts: ProposalDraft[] = [];
   let phase: TrainingPhase = 'unknown';
   if (phaseOn) {

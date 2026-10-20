@@ -362,6 +362,39 @@ export function levelOf(v: unknown): typeof LEVELS[number] | null {
 
 export const PROGRAM_TOOLS = [
   tool({
+    name: 'import_coach_program', kind: 'propose', core: true, fn: 'PRG-20',
+    description: 'Save a program the user got from THEIR OWN coach (S&C coach, trainer, team) exactly as written — never rewritten, never "improved". Use whenever they paste or describe a coach’s program/split ("here’s my S&C program", a pasted sheet): pass useMessage: true when it is in their latest message (don’t copy it), or text for one pasted earlier, plus coach if they named them. It shows a faithful preview card; they tap to make it their program (the current one is archived, Undo brings it back). Anything unreadable comes back as unclear — ask about those; don’t guess. Photos/screenshots of a program: tell them to use Training → Import a program. Never use propose_new_program for a coach’s plan.',
+    input_schema: schema({ useMessage: { type: 'boolean' }, text: { type: 'string' }, coach: { type: 'string' } }),
+    receipt: (i) => ({ verb: 'Reading', text: `${str(i.coach) ? `${str(i.coach)}’s` : 'Your coach’s'} program` }),
+    refine: (r) => (r?.preview ? { verb: 'Read', text: `${r.name} · ${r.days} days a week` } : null),
+    execute: async (input, userId) => {
+      const { transcribeCoachProgram, toSavedProgram, previewLines } = await import('../../services/coachProgramImport.js');
+      const { turnMessage } = await import('../turnMessage.js');
+      const text = input.useMessage === true ? turnMessage(userId) : str(input.text);
+      if (!text.trim()) throw new Error('Paste the program (or use Training → Import a program for photos).');
+      const p = await transcribeCoachProgram({ text, coach: str(input.coach) || null });
+      if (!p.phases.length) return { preview: null, unclear: p.unclear, note: 'Couldn’t find a program in that — ask them to paste it again or use Training → Import a program.' };
+      // The source text travels with the program, so nothing the coach wrote can be lost.
+      const program = { ...toSavedProgram(p), sourceText: text.slice(0, 20_000) };
+      return {
+        preview: previewLines(p), name: p.name, coach: p.coach, phases: p.phases.length, weeks: program.durationWeeks, days: program.daysPerWeek,
+        exercises: p.phases.reduce((n, ph) => n + ph.trainingDays.reduce((m, d) => m + d.exercises.length, 0), 0),
+        coachNotes: p.notes, unclear: p.unclear,
+        howToAnswer: 'Say it’s transcribed exactly as their coach wrote it and is on the card to make it their program. If anything is unclear, ask about each in one short list. Don’t comment on or change the programming.',
+        _program: program,
+      };
+    },
+    card: (_i, r): CardDraft | null => (r?.preview ? {
+      fn: 'PRG-20', pattern: 'proposal', rule: 'propose', meta: { label: `${r.coach ? `${r.coach}’s` : 'Coach’s'} program · ${r.days} days`, open: { page: 'training' } },
+      rows: r.preview,
+      ...(r.unclear?.length ? { why: `Unclear: ${r.unclear.slice(0, 3).join('; ').slice(0, 200)}` } : { note: `Transcribed exactly — ${r.exercises} exercises over ${r.weeks} week${r.weeks === 1 ? '' : 's'}. Progression suggestions stay out of it.` }),
+      actions: [{ id: 'apply', label: 'Make it my program', kind: 'primary' }, { id: 'keep', label: 'Not now', kind: 'secondary' }],
+      entity: 'program:import',
+      undoLine: 'Undone — your previous program is back',
+      pending: { actions: { apply: { op: 'program.activate', args: { program: r._program, summary: `Coach program · ${r.name}` }, line: 'Your coach’s program is live' }, keep: { kind: 'keep', line: 'Not imported' } } },
+    } : null),
+  }),
+  tool({
     name: 'read_program', kind: 'read', core: true, fn: 'PRG-01',
     description: 'Read the user’s saved training program: goal, phases (name, weeks, rationale), each training day with its exercises (sets, reps, intensity, notes), and where they are in it. Use for "show my program", "what’s in phase 2", "what’s on upper day".',
     input_schema: schema({ phase: { type: 'number', description: 'Phase number to focus on (1-based). Omit for the current phase.' } }),

@@ -31,6 +31,7 @@ import wellnessRoutes from './routes/wellness.js';
 import wearablesRoutes from './routes/wearables.js';
 import wearablesGoogleRoutes from './routes/wearablesGoogle.js';
 import momentsRoutes from './routes/moments.js';
+import programImportRoutes from './routes/programImport.js';
 import workoutsRoutes from './routes/workouts.js';
 import adaptationRoutes from './routes/adaptation.js';
 import strengthRoutes from './routes/strength.js';
@@ -185,6 +186,8 @@ const LARGE_BODY_PATHS = [
   '/api/pt-portal/photos',
   '/api/pt-portal/transcribe',
   '/api/pt-portal/meals/estimate',
+  // Photos of a coach's program sheet (Training → Import a program).
+  '/api/programs/import-coach',
 ];
 // Paths with an id in the middle (a trainer uploading a client's progress photo).
 const LARGE_BODY_PATTERNS = [/^\/api\/personal-training\/clients\/[^/]+\/photos$/];
@@ -220,6 +223,7 @@ app.use('/api', googleIapRoutes);
 app.use('/api', coachRoutes);
 app.use('/api', nutritionRoutes);
 app.use('/api', momentsRoutes);
+app.use('/api', programImportRoutes);
 app.use('/api', nutritionGutRoutes);
 app.use('/api', recipesRoutes);
 app.use('/api', nutritionTargetsRoutes);
