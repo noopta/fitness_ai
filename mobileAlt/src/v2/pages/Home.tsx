@@ -214,8 +214,11 @@ export function HomePage() {
   //    classic app and the Fuel page keep their own KeyboardAvoider) ──
   const kc = useKeyboardController();
   const [screenFocused, setScreenFocused] = useState(true);
-  useFocusEffect(useCallback(() => { setScreenFocused(true); return () => setScreenFocused(false); }, []));
   const kbOn = screenFocused && shell.index === 0;
+  const kbOnRef = useRef(kbOn);
+  kbOnRef.current = shell.index === 0;
+  // Re-asserted on every focus: a pushed screen (the guided session's number sheet) may have switched it.
+  useFocusEffect(useCallback(() => { setScreenFocused(true); kc.setEnabled(kbOnRef.current); return () => setScreenFocused(false); }, [])); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { kc.setEnabled(kbOn); }, [kbOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // keyboard-controller's height is negative while the keyboard is up.

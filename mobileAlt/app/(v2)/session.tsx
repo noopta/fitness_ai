@@ -38,7 +38,7 @@ import { workoutsApi } from '../../src/lib/api';
 import { v2Api } from '../../src/v2/api';
 import { haptics } from '../../src/v2/haptics';
 import { Mark } from '../../src/v2/primitives/Mark';
-import { PromptSheet } from '../../src/v2/primitives/Sheet';
+import { NumberSheet } from '../../src/v2/primitives/NumberSheet';
 import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
@@ -278,9 +278,9 @@ function SessionScreenInner() {
             <Text style={[T.eyebrow, eyebrowTone]}>{cur.name} · set {state.set + 1} of {cur.sets}</Text>
             {/* Tap the weight or the reps to type what you actually did (Oct 2026 feedback: couldn't log heavier dips or extra reps). */}
             <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 14 }}>
-              <Pressable onPress={() => { haptics.select(); setEditing('load'); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Weight: ${load ? `${bodyweight ? 'bodyweight plus ' : ''}${load} ${unit}` : 'bodyweight'}. Tap to change.`}>
-                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <Text style={T.display}>{load != null ? `${bodyweight ? '+' : ''}${load}` : 'BW'}</Text>
+              <Pressable style={{ flexShrink: 1 }} onPress={() => { haptics.select(); setEditing('load'); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Weight: ${load ? `${bodyweight ? 'bodyweight plus ' : ''}${load} ${unit}` : 'bodyweight'}. Tap to change.`}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 }}>
+                  <Text style={[T.display, { flexShrink: 1 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{load != null ? `${bodyweight ? '+' : ''}${load}` : 'BW'}</Text>
                   {load != null ? <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{unit}</Text> : null}
                 </View>
               </Pressable>
@@ -295,13 +295,6 @@ function SessionScreenInner() {
               <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_reps', delta: -1, base: repsNow })}>− rep</TextAction>
               <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_reps', delta: 1, base: repsNow })}>+ rep</TextAction>
             </View>
-            <PromptSheet visible={editing === 'load'} title={bodyweight ? `Added weight (${unit})` : `Weight (${unit})`} sub={bodyweight ? 'Leave empty or 0 for bodyweight only.' : 'What’s on the bar for this set.'}
-              initial={load != null ? String(load) : ''} keyboardType="decimal-pad" unit={unit} saveLabel="Use this"
-              onSubmit={(v) => { const n = parseFloat(String(v).replace(',', '.')); dispatch({ type: 'set_load', load: Number.isFinite(n) ? n : 0 }); setEditing(null); }}
-              onClose={() => setEditing(null)} />
-            <PromptSheet visible={editing === 'reps'} title="Reps" sub="How many you did — or will do — this set." initial={String(parseInt(String(repsNow), 10) || '')} keyboardType="number-pad" saveLabel="Use this"
-              onSubmit={(v) => { const n = parseInt(String(v), 10); if (Number.isFinite(n) && n > 0) dispatch({ type: 'set_reps', reps: n }); setEditing(null); }}
-              onClose={() => setEditing(null)} />
             <View style={{ marginTop: 22 }}><ProgressHairline fraction={state.set / cur.sets} /></View>
             {cur.cue ? <Text style={[T.bodyMuted, { marginTop: 18 }]}>{cur.cue}</Text> : null}
             <View style={{ marginTop: 26 }}>
@@ -346,6 +339,14 @@ function SessionScreenInner() {
           </Animated.View>
         ) : null}
       </View>
+      {/* Weight and reps, typed — rides the keyboard (NumberSheet), rendered once over the whole screen. */}
+      <NumberSheet visible={editing === 'load'} title={bodyweight ? `Added weight (${unit})` : `Weight (${unit})`}
+        sub={bodyweight ? 'On top of bodyweight. 0 for bodyweight only.' : 'What’s on the bar for this set.'}
+        current={load != null ? String(load) : '0'} unit={unit} decimal min={0} max={unit === 'kg' ? 700 : 1500}
+        onSubmit={(n) => { dispatch({ type: 'set_load', load: n }); setEditing(null); }} onClose={() => setEditing(null)} />
+      <NumberSheet visible={editing === 'reps'} title="Reps" sub="How many you did — or will do — this set."
+        current={String(parseInt(String(repsNow), 10) || '')} min={1} max={100}
+        onSubmit={(n) => { dispatch({ type: 'set_reps', reps: n }); setEditing(null); }} onClose={() => setEditing(null)} />
     </View>
   );
 }
