@@ -100,6 +100,9 @@ export const v2Api = {
   /** Null when there's no plan yet (the endpoint 404s). */
   foodSearch: (q: string, scope: 'all' | 'mine' | 'recipes'): Promise<{ results: FoodResult[] }> =>
     apiFetch(`/nutrition/food-search?q=${encodeURIComponent(q)}&scope=${scope}`) as Promise<{ results: FoodResult[] }>,
+  /** Fuel with no plan yet: the gut and nutrition questions, put in the thread at the next unanswered one. */
+  nutritionQuestions: (): Promise<{ card: Card | null }> =>
+    apiFetch('/coach/agent/cards/nutrition-questions', { method: 'POST', body: '{}' }) as Promise<{ card: Card | null }>,
   /** A meal logged from search opened from chat → a Logged card in the thread. */
   loggedCard: (mealIds: string[]): Promise<{ card: Card }> =>
     apiFetch('/coach/agent/cards/logged', { method: 'POST', body: JSON.stringify({ mealIds }) }) as Promise<{ card: Card }>,

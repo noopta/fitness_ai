@@ -18,7 +18,7 @@ import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
 import { needsPlanCard, PLAN_CARD_NUDGE, needsIntakeLog, INTAKE_LOG_NUDGE, stripNudgeTalk } from './nutrientAdvice.js';
-import { claimsCaptureWithoutTool, CAPTURE_NUDGE } from './actionClaims.js';
+import { claimsCaptureWithoutTool, CAPTURE_NUDGE, claimsShownWithoutTool, SHOWN_NUDGE } from './actionClaims.js';
 import { SAFETY_BLOCK, UNTRUSTED_DATA_RULE } from '../prompts/safety.js';
 import { userRequestedWrite } from './untrusted.js';
 
@@ -281,6 +281,7 @@ export async function runAgentTurn(
   // Nutrient advice without a plan card gets one more step (nutrientAdvice.ts).
   let planNudged = false;
   let captureNudged = false;
+  let shownNudged = false;
   let intakeNudged = false;
   let nudgedReply = '';
 
@@ -313,6 +314,12 @@ export async function runAgentTurn(
         // The claim was false: drop that reply, let the model open the camera.
         captureNudged = true;
         messages.push({ role: 'user', content: CAPTURE_NUDGE });
+        continue;
+      }
+      if (opts.cardContract === 2 && !shownNudged && claimsShownWithoutTool(reply, toolsUsed)) {
+        // "It's already on your screen" with nothing shown: drop it, bring the card back.
+        shownNudged = true;
+        messages.push({ role: 'user', content: SHOWN_NUDGE });
         continue;
       }
       if (opts.cardContract === 2 && !intakeNudged && needsIntakeLog(userMessage, toolsUsed)) {
@@ -462,6 +469,7 @@ export async function streamAgentTurn(
   let truncationRetried = false;
   let planNudged = false;
   let captureNudged = false;
+  let shownNudged = false;
   let intakeNudged = false;
 
   const finish = async (reply: string): Promise<AgentTurnResult> => {
@@ -507,6 +515,13 @@ export async function streamAgentTurn(
         captureNudged = true;
         finalText = '';
         messages.push({ role: 'user', content: CAPTURE_NUDGE });
+        continue;
+      }
+      if (contract === 2 && !shownNudged && claimsShownWithoutTool(text, toolsUsed)) {
+        shownNudged = true;
+        finalText = '';
+        earlier.length = 0;
+        messages.push({ role: 'user', content: SHOWN_NUDGE });
         continue;
       }
       if (contract === 2 && !intakeNudged && needsIntakeLog(userMessage, toolsUsed)) {

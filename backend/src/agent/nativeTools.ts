@@ -20,12 +20,14 @@ export const NATIVE_TOOLS = new Set([
 ]);
 
 export const isNativeTool = (name: string) => NATIVE_TOOLS.has(name);
+// Run by their own routes (not the generic /cards/run): they save progress, so they aren't proposals.
+const ROUTED_TOOLS = new Set(['start_nutrition_assessment']);
 
 export class NativeToolError extends Error { constructor(message: string, public status = 400) { super(message); } }
 
 /** Run one allowed tool for a screen: its result (as the model would see it) and its cards. */
-export async function runNativeTool(userId: string, name: string, input: Record<string, unknown>): Promise<{ result: unknown; cards: Card[] }> {
-  if (!isNativeTool(name)) throw new NativeToolError('That isn’t available here.', 404);
+export async function runNativeTool(userId: string, name: string, input: Record<string, unknown>, opts: { allowSet?: boolean } = {}): Promise<{ result: unknown; cards: Card[] }> {
+  if (!isNativeTool(name) && !(opts.allowSet && ROUTED_TOOLS.has(name))) throw new NativeToolError('That isn’t available here.', 404);
   const tool = AGENT_TOOLS.find((t) => t.name === name);
   if (!tool) throw new NativeToolError('That isn’t available here.', 404);
   const ctx = await toolCtx(userId);

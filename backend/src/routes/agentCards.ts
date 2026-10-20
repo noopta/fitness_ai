@@ -81,6 +81,22 @@ router.post('/coach/agent/cards/logged', requireAuth, access, async (req, res) =
   } catch (e) { fail(res, e, 'add that to chat'); }
 });
 
+// Fuel → Nutrition plan with none yet: the gut and nutrition questions go
+// straight into the thread at the next unanswered one — no model turn, so
+// nothing can claim a card is "already on your screen" (20 Oct 2026).
+router.post('/coach/agent/cards/nutrition-questions', requireAuth, access, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { result, cards } = await runNativeTool(userId, 'start_nutrition_assessment', {}, { allowSet: true });
+    const r: any = result;
+    await appendInitiated(userId, r?.resumed ? `Picking up where you left off — ${r.answered} of ${r.of} done.` : 'Thirteen quick ones — they build your nutrition plan, and it lands on Fuel when you finish.', cards.map(cardRef));
+    res.json({ card: cards[0] ?? null });
+  } catch (e: any) {
+    if (e instanceof NativeToolError) return res.status(e.status).json({ error: e.message });
+    fail(res, e, 'start the questions');
+  }
+});
+
 // A native v2 screen asks for a proposal (Swap, Life happened, freestyle pick,
 // exercise swap). Only the tools in agent/nativeTools.ts; nothing changes
 // until the returned card's Apply is tapped.

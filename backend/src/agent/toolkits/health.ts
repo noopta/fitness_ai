@@ -148,36 +148,112 @@ const Q: Q[] = [
   { key: 'goals', q: 'What should food do for you most?', options: [{ label: 'More energy', value: ['energy'] }, { label: 'Calmer gut', value: ['gut_comfort'] }, { label: 'Better recovery', value: ['recovery'] }, { label: 'Better sleep', value: ['sleep'] }], set: (a, v) => { a.goals = v; } },
   { key: 'medicalFlags', q: 'Any diagnosed digestive condition?', options: [{ label: 'None', value: [] }, { label: 'IBS', value: ['ibs'] }, { label: 'Reflux', value: ['gerd'] }, { label: 'Coeliac or IBD', value: ['celiac_or_ibd'] }], typeInstead: true, set: (a, v) => { a.medicalFlags = Array.isArray(v) ? v : [String(v).slice(0, 120)]; } },
 ];
-function flowCard(step: number, answers: Record<string, any>, done: [string, string][]): CardDraft {
+// Progress lives on the server (coachProfile.nutritionDraft), not only in the
+// card: 20 Oct 2026 a user's question-1 card scrolled away, he asked again
+// twice, and Anakin said "it's already on your screen" with nothing to show.
+// Asking again now always brings the card back at the next unanswered question;
+// answers given in plain chat count too (answer_nutrition_questions); and the
+// last answer builds the plan and puts it on Fuel, with Undo.
+interface Draft { answers: Record<string, any>; answered: string[]; done: [string, string][] }
+
+/** Pure: the next question nobody has answered yet (-1 when all are). */
+export function nextQuestion(answered: string[]): number {
+  return Q.findIndex((q) => !answered.includes(q.key));
+}
+
+/** Pure: an answer in the user's words → the question's value (option label, or free text where allowed). */
+export function answerValue(q: Q, text: string): { value: unknown; label: string } | null {
+  const t = String(text ?? '').trim();
+  if (!t) return null;
+  const fold = (x: string) => x.toLowerCase().replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim();
+  const opt = q.options.find((o) => fold(o.label) === fold(t));
+  if (opt) return { value: opt.value, label: opt.label };
+  return q.typeInstead ? { value: t, label: t } : null;
+}
+
+export const ASSESSMENT_QUESTIONS = Q;
+
+function flowCard(step: number, d: Draft): CardDraft {
   const q = Q[step];
   return {
-    fn: 'NTP-04', pattern: 'flow', rule: 'change_undo', meta: { label: `Gut and nutrition · ${step + 1} of ${Q.length}` },
-    step: { i: step + 1, n: Q.length, done: done.slice(-3) },
+    fn: 'NTP-04', pattern: 'flow', rule: 'change_undo', meta: { label: 'Gut and nutrition' },
+    step: { i: d.answered.length + 1, n: Q.length, done: d.done.slice(-3) },
     ask: { q: q.q, options: q.options.map((o) => o.label), typeInstead: !!q.typeInstead },
     actions: [{ id: 'pause', label: 'Pause', kind: 'secondary' }],
-    pending: { answer: { op: 'assessment.answer', args: { step, answers, done }, valueKey: 'value' }, actions: { pause: { kind: 'dismiss', line: 'Paused — say “carry on with my gut questions” to resume' } } },
+    pending: { answer: { op: 'assessment.answer', args: { step, answers: d.answers, answered: d.answered, done: d.done }, valueKey: 'value' }, actions: { pause: { kind: 'dismiss', line: 'Paused — tap Nutrition plan on Fuel, or say “carry on with my gut questions”' } } },
   };
 }
+
+const emptyDraft = (): Draft => ({ answers: {}, answered: [], done: [] });
+
+async function loadDraft(userId: string): Promise<Draft> {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } });
+  const d = parseBlob(u?.coachProfile).nutritionDraft;
+  return d && typeof d === 'object' ? { answers: d.answers ?? {}, answered: Array.isArray(d.answered) ? d.answered : [], done: Array.isArray(d.done) ? d.done : [] } : emptyDraft();
+}
+
+/** Older question cards stop taking answers: one live question at a time. */
+async function retireQuestionCards(userId: string) {
+  const live = await prisma.agentCard.findMany({ where: { userId, fn: 'NTP-04', pattern: 'flow', status: 'live' }, select: { id: true, payloadJson: true } });
+  for (const c of live) {
+    const card = JSON.parse(c.payloadJson);
+    card.state = { status: 'replaced', line: 'Continued below', at: new Date().toISOString() };
+    await prisma.agentCard.update({ where: { id: c.id }, data: { status: 'replaced', payloadJson: JSON.stringify(card) } });
+  }
+}
+
+/** All answered: save the assessment, build the plan, put it on Fuel (Undo removes it). */
+async function finishAssessment(userId: string, d: Draft): Promise<{ result: any; inverse: any; summary: string }> {
+  await callApi(userId, 'POST', '/nutrition/assessment', d.answers);
+  await mergeBlobKeys(userId, { nutritionDraft: null });
+  const plan: any = await callApi(userId, 'POST', '/nutrition/plan/generate', {}).catch(() => null);
+  if (!plan?.planId) {
+    return { result: { nextCard: {
+      fn: 'NTP-04', pattern: 'setting', rule: 'change_undo', meta: { label: 'Gut and nutrition · done' },
+      rows: d.done.slice(-4).map(([k, v]) => ({ key: k, value: v })), note: 'Answers saved. The plan didn’t build just now — tap to try again.',
+      actions: [{ id: 'build', label: 'Build my nutrition plan', kind: 'primary', client: { action: 'send_message', args: { text: 'Build my nutrition plan from my answers.' } } }],
+    } as CardDraft }, inverse: null, summary: 'Gut assessment saved' };
+  }
+  const p = plan.plan ?? {};
+  const focus: any[] = Array.isArray(p.focusNutrients) ? p.focusNutrients : [];
+  const supps: any[] = Array.isArray(p.supplements) ? p.supplements : [];
+  const nextCard: CardDraft = {
+    fn: 'NTP-05', pattern: 'logged', rule: 'change_undo', meta: { label: 'Nutrition plan · on Fuel', open: { page: 'fuelplan' } },
+    rows: [
+      ...focus.slice(0, 4).map((f) => ({ key: String(f.label ?? f.key ?? 'Focus'), value: f.target != null ? `${f.target} ${f.unit ?? ''}`.trim() : '' })),
+      ...supps.slice(0, 3).map((x) => ({ key: String(x.name ?? 'Supplement'), value: String(x.doseRange ?? x.dose ?? ''), ...(x.when ? { sub: String(x.when) } : {}) })),
+    ],
+    note: 'Built from your 13 answers and what you log. The Micronutrients page tracks it daily.',
+    undoLine: 'Undone — plan removed',
+  };
+  return { result: { nextCard, nextOwnsChange: true, focus: focus.map((f) => f.label) }, inverse: { op: 'nutrition.remove_plan', args: { id: plan.planId } }, summary: 'Nutrition plan on Fuel' };
+}
+
 defineOp({
   name: 'assessment.answer',
   run: async (userId, args) => {
     const step = Number(args.step);
-    const answers = { ...(args.answers as Record<string, any>) };
     const q = Q[step];
+    const d: Draft = {
+      answers: { ...(args.answers as Record<string, any>) },
+      // Cards made before saved progress carry only the step.
+      answered: [...((args.answered as string[] | undefined) ?? Q.slice(0, step).map((x) => x.key))],
+      done: [...((args.done as [string, string][]) ?? [])],
+    };
     const idx = typeof args.optionIndex === 'number' ? args.optionIndex : -1;
     const value = idx >= 0 && q.options[idx] ? q.options[idx].value : args.value;
-    q.set(answers, value);
-    const done = [...(args.done as [string, string][]), [q.q.replace(/\?$/, ''), String(args.value)]] as [string, string][];
-    if (step + 1 < Q.length) return { result: { nextCard: flowCard(step + 1, answers, done) }, inverse: null, summary: `Answered · ${q.key}` };
-    await callApi(userId, 'POST', '/nutrition/assessment', answers);
-    const nextCard: CardDraft = {
-      fn: 'NTP-04', pattern: 'setting', rule: 'change_undo', meta: { label: 'Gut and nutrition · done' },
-      rows: done.slice(-4).map(([k, v]) => ({ key: k, value: v })), note: 'Saved. Your plan builds from these answers and what you log.',
-      actions: [{ id: 'build', label: 'Build my nutrition plan', kind: 'primary', client: { action: 'send_message', args: { text: 'Build my nutrition plan from my answers.' } } }],
-    };
-    return { result: { nextCard }, inverse: null, summary: 'Gut assessment saved' };
+    q.set(d.answers, value);
+    if (!d.answered.includes(q.key)) d.answered.push(q.key);
+    d.done.push([q.q.replace(/\?$/, ''), String(args.value)]);
+    const next = nextQuestion(d.answered);
+    if (next >= 0) {
+      await mergeBlobKeys(userId, { nutritionDraft: { ...d, at: new Date().toISOString() } });
+      return { result: { nextCard: flowCard(next, d) }, inverse: null, summary: `Answered · ${q.key}` };
+    }
+    return finishAssessment(userId, d);
   },
 });
+defineOp({ name: 'assessment.finish', run: async (userId, args) => finishAssessment(userId, args.draft as Draft) });
 
 defineOp({
   name: 'weight.log',
@@ -310,11 +386,46 @@ export const HEALTH_TOOLS = [
   }),
   tool({
     name: 'start_nutrition_assessment', kind: 'set', fn: 'NTP-04',
-    description: 'Start the 13-question gut and nutrition assessment (one question per card; answers save at the end and feed the nutrition plan).',
+    description: 'Start — or resume — the 13-question gut and nutrition assessment: one question per card, progress saved after every answer, and the last answer builds their nutrition plan and puts it on Fuel. Call it EVERY time they ask to start or carry on, even if a question card went up earlier — it brings the card back at the next unanswered question. Never say a card is already on their screen instead of calling it.',
     input_schema: schema({}),
     receipt: () => ({ verb: 'Started', text: 'Gut and nutrition questions' }),
-    execute: async () => ({ steps: Q.length }),
-    card: () => flowCard(0, {}, []),
+    execute: async (_i, userId) => {
+      const d = await loadDraft(userId);
+      await retireQuestionCards(userId);
+      const next = nextQuestion(d.answered);
+      return { resumed: d.answered.length > 0, answered: d.answered.length, of: Q.length, _step: next < 0 ? 0 : next, _draft: next < 0 ? emptyDraft() : d };
+    },
+    card: (_i, r) => flowCard(r._step, r._draft),
+  }),
+  tool({
+    name: 'answer_nutrition_questions', kind: 'set', fn: 'NTP-14',
+    description: `Record gut and nutrition assessment answers the user gave in plain chat, so they aren't asked again ("I eat 4 times a day, takeout twice a week, dairy bothers me"). answers: { key: their answer } — an option label where one fits, else their words (only intolerances and medicalFlags take free text). Keys and options: ${Q.map((q) => `${q.key} (${q.options.map((o) => o.label).join(' | ')})`).join('; ')}. Shows the next unanswered question; when all 13 are in, it builds their plan and puts it on Fuel.`,
+    input_schema: schema({ answers: { type: 'object', additionalProperties: { type: 'string' } } }, ['answers']),
+    receipt: () => ({ verb: 'Saved', text: 'Gut and nutrition answers' }),
+    execute: async (input, userId) => {
+      const d = await loadDraft(userId);
+      const given = (input.answers && typeof input.answers === 'object' ? input.answers : {}) as Record<string, unknown>;
+      const saved: string[] = [];
+      const unclear: string[] = [];
+      for (const [key, raw] of Object.entries(given)) {
+        const q = Q.find((x) => x.key === key);
+        const a = q ? answerValue(q, String(raw)) : null;
+        if (!q || !a) { unclear.push(key); continue; }
+        q.set(d.answers, a.value);
+        if (!d.answered.includes(q.key)) d.answered.push(q.key);
+        d.done.push([q.q.replace(/\?$/, ''), a.label]);
+        saved.push(q.key);
+      }
+      await retireQuestionCards(userId);
+      const next = nextQuestion(d.answered);
+      if (next < 0) {
+        const fin = await executeOp(userId, 'assessment.finish', { draft: d });
+        return { saved, unclear, done: true, planOnFuel: !!(fin.result as any)?.nextOwnsChange, _card: (fin.result as any)?.nextCard ?? null, _change: fin };
+      }
+      await mergeBlobKeys(userId, { nutritionDraft: { ...d, at: new Date().toISOString() } });
+      return { saved, unclear, answered: d.answered.length, of: Q.length, nextQuestion: Q[next].q, _step: next, _draft: d };
+    },
+    card: (_i, r) => (r.done ? (r._card ?? null) : flowCard(r._step, r._draft)),
   }),
   tool({
     name: 'propose_nutrition_plan', kind: 'propose', fn: 'NTP-05',

@@ -29,6 +29,8 @@ import { useRequirePro } from '../shell/proGate';
 import { focusList } from './pushed/nutritionPlan';
 import { useQuery } from '@tanstack/react-query';
 import { nutritionApi } from '../../lib/api';
+import { threadBus } from '../chat/captureBus';
+import { v2Api } from '../api';
 import { todayStr } from '../../lib/localDate';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
@@ -59,7 +61,8 @@ export function FuelPage() {
   const openPlan = () => {
     haptics.select();
     if (plan.data) router.push({ pathname: '/(v2)/p/[key]', params: { key: 'fuelplan' } } as any);
-    else shell.ask('Start my gut and nutrition questions.');
+    // Straight into the thread (no model turn), at the next unanswered question; Pro gating and errors fall back to asking.
+    else void v2Api.nutritionQuestions().then(() => { threadBus.rehydrate(); shell.setMode('chat'); shell.goTo(0); }).catch(() => shell.ask('Start my gut and nutrition questions.'));
   };
 
   const rows: any[] = meals.data?.meals ?? meals.data?.entries ?? (Array.isArray(meals.data) ? meals.data : []);
