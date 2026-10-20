@@ -42,6 +42,7 @@ import {
   type ProfileRange, type NutritionWindow,
 } from '../services/nutritionWindow.js';
 import { queryDateOrToday } from '../services/userTimezone.js';
+import { buildMicroDay } from '../services/microDay.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -292,6 +293,22 @@ router.get('/nutrition-profile/effect/:systemId', requireAuth, async (req, res) 
   } catch (err) {
     console.error('Effect detail error:', err);
     res.status(500).json({ error: 'Failed to load effect detail' });
+  }
+});
+
+// GET /nutrition-profile/micros?date= — every micronutrient for the day:
+// % of target, food vs supplements, top sources, over-the-upper-limit flags.
+router.get('/nutrition-profile/micros', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const date = await queryDateOrToday(req, isValidIsoDate(req.query.date) ? req.query.date : undefined);
+    const meals = await loadDayMeals(userId, date);
+    const win = await loadWindow(userId, date, 'today', meals);
+    const engine = runForWindow(win);
+    res.json({ date, ...buildMicroDay(meals.map((m) => ({ ...m, date })), engine.coverage) });
+  } catch (err) {
+    console.error('Micros day error:', err);
+    res.status(500).json({ error: 'Failed to build micronutrients' });
   }
 });
 

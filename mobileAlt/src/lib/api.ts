@@ -976,7 +976,16 @@ function npQuery(date?: string, range: NpRange = 'today'): string {
   return parts.length ? `?${parts.join('&')}` : '';
 }
 
+export interface MicroRow {
+  key: string; label: string; unit: string; amount: number; target: number; pct: number; ceiling: boolean;
+  fromSupplements: number; sources: { name: string; amount: number; supplement: boolean }[];
+  ul: number | null; overUl: boolean; ulNote?: string; hasDetail: boolean;
+}
+export interface MicroDay { date: string; mealsLogged: number; groups: { title: string; rows: MicroRow[] }[]; overUl: MicroRow[]; supplements: string[] }
+
 export const nutritionProfileApi = {
+  /** Every micronutrient for the day: % of target, food vs supplements, sources, upper-limit flags. */
+  getMicros: (date: string): Promise<MicroDay> => apiFetch(`/nutrition-profile/micros?date=${date}`),
   getDay: (date?: string, range: NpRange = 'today'): Promise<NpDayProfile> =>
     apiFetch(`/nutrition-profile${npQuery(date, range)}`),
   getEffect: (systemId: string, date?: string, range: NpRange = 'today'): Promise<NpEffectDetail> =>

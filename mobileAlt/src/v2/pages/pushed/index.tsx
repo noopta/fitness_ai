@@ -12,7 +12,7 @@ import { TextAction } from '../../primitives/TextAction';
 import { ReceiptList } from '../../primitives/Receipt';
 import { RatioBand, CoverageBar, WeekBars, Radar } from '../../charts';
 import { v2, T } from '../../theme';
-import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, useWorkouts, useAdaptationPending, qk } from '../../data';
+import { useProgram, useSchedule, useToday, useCompletedPrograms, useStrength, useNpDay, useNpEffect, useNpNutrient, useMicrosDay, useMeals, useMemory, useBodyWeight, useStreak, useDiagnostics, useInvalidate, useTrainingOverview, useWorkouts, useAdaptationPending, qk } from '../../data';
 import { programPhases, archiveHref, ArchiveRow } from '../Training';
 import { useUnits } from '../../../context/UnitsContext';
 import { useAuth } from '../../../context/AuthContext';
@@ -292,18 +292,50 @@ function SystemPage({ id }: { id: string }) {
   );
 }
 
+/** Fuel → Micronutrients: every vitamin and mineral today, or just the gaps (Oct 2026). */
 function MicrosPage() {
   const router = useRouter();
-  const np = useNpDay();
-  const systems: any[] = np.data?.systems ?? [];
-  // Gaps: every tracked driver under 100%, across systems, de-duplicated, worst first.
-  const seen = new Map<string, any>();
-  for (const s of systems) for (const d of s.drivers ?? []) if (d.tracked && d.pct < 100 && !seen.has(d.key)) seen.set(d.key, d);
-  const gaps = [...seen.values()].sort((a, b) => a.pct - b.pct);
+  const q = useMicrosDay();
+  const [gapsOnly, setGapsOnly] = React.useState(false);
+  const d = q.data;
+  const fmt = (v: number) => (v >= 100 ? Math.round(v).toLocaleString() : String(v));
+  const groups = (d?.groups ?? []).map((g) => ({ ...g, rows: gapsOnly ? g.rows.filter((r) => !r.ceiling && r.pct < 100) : g.rows })).filter((g) => g.rows.length);
+  const gapCount = (d?.groups ?? []).flatMap((g) => g.rows).filter((r) => !r.ceiling && r.pct < 100).length;
+  const lead = !d ? null
+    : !d.mealsLogged ? 'Nothing logged today yet — every vitamin and mineral shows here as you log.'
+    : d.overUl.length ? `Over the safe upper limit today: ${d.overUl.map((r) => r.label).join(', ')}. ${gapCount ? `${gapCount} under target.` : ''}`
+    : gapCount ? `${gapCount} under target today${d.supplements.length ? `, supplements counted` : ''}.` : 'Every tracked vitamin and mineral is at target today.';
   return (
-    <PushedPage back="Fuel" meta={np.data?.microCoveragePct != null ? `Coverage ${np.data.microCoveragePct}%` : null} title="Gaps" lead={gaps.length ? `${gaps.length} nutrient${gaps.length === 1 ? '' : 's'} under target today. Only what's short — nothing at 150% pretending to be a problem.` : 'Nothing under target today.'} loading={np.isLoading}>
-      {gaps.map((g, i) => <Row key={g.key} name={g.label} value={`${g.pct}%`} bigValue emphasis last={i === gaps.length - 1} below={<CoverageBar pct={g.pct} width={300} />}
-        onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `mic:${g.key}` } } as any)} />)}
+    <PushedPage back="Fuel" meta={d?.mealsLogged ? `${d.mealsLogged} logged today` : null} title="Micronutrients" lead={lead} loading={q.isLoading}
+      error={q.error ? 'Couldn\'t read today\'s micronutrients.' : null} onRetry={() => void q.refetch()}>
+      <View style={{ flexDirection: 'row', gap: 20, marginBottom: 8 }}>
+        {([false, true] as const).map((g) => (
+          <Text key={String(g)} onPress={() => setGapsOnly(g)} suppressHighlighting accessibilityRole="button" accessibilityState={{ selected: gapsOnly === g }}
+            style={[T.caption, { fontFamily: v2.font.semibold, fontSize: 14, color: gapsOnly === g ? v2.color.ink : v2.color.muted, borderBottomWidth: gapsOnly === g ? 1.5 : 0, borderBottomColor: v2.color.ink, paddingBottom: 2 }]}>
+            {g ? `Gaps only${gapCount ? ` · ${gapCount}` : ''}` : 'All'}
+          </Text>
+        ))}
+      </View>
+      {groups.map((g) => (
+        <View key={g.title} style={{ marginTop: 18 }}>
+          <Eyebrow>{g.title === 'Limits' ? 'Keep under' : g.title}</Eyebrow>
+          <View style={{ marginTop: 8 }}>
+            {g.rows.map((r, i) => {
+              const supp = r.fromSupplements > 0 ? ` · ${fmt(r.fromSupplements)} from supplements` : '';
+              const top = r.sources[0] ? ` · most from ${r.sources[0].name.length > 28 ? `${r.sources[0].name.slice(0, 27)}…` : r.sources[0].name}` : '';
+              const warn = r.overUl ? `Over the ${fmt(r.ul!)} ${r.unit} upper limit${r.ulNote ? ` (${r.ulNote})` : ''}` : null;
+              return (
+                <Row key={r.key} name={r.label} value={`${r.pct}%`} bigValue emphasis={!r.ceiling && r.pct < 100} last={i === g.rows.length - 1}
+                  sub={warn ?? `${fmt(r.amount)} of ${fmt(r.target)} ${r.unit}${supp}${top}`}
+                  valueStyle={r.overUl ? { color: v2.color.crimson } : undefined}
+                  below={<CoverageBar pct={Math.min(r.pct, 150)} covered={r.ceiling ? r.pct <= 100 : r.pct >= 100} width={300} />}
+                  onPress={r.hasDetail ? () => router.push({ pathname: '/(v2)/p/[key]', params: { key: `mic:${r.key}` } } as any) : undefined} />
+              );
+            })}
+          </View>
+        </View>
+      ))}
+      {d?.supplements.length ? <Text style={[T.caption, { marginTop: 22 }]}>Supplements today: {d.supplements.join(' · ')}</Text> : null}
     </PushedPage>
   );
 }
@@ -316,7 +348,7 @@ function NutrientPage({ nkey }: { nkey: string }) {
   const days = (d as any)?.days ?? (d as any)?.daily ?? null;
   const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   return (
-    <PushedPage back="Gaps" meta="7 days" eyebrow={d?.label} title={d?.label ?? 'Nutrient'} hero={d ? { value: d.current, unit: `of ${d.target}${d.unit ? ` ${d.unit}` : ''}` } : null} lead={d?.why ?? null} loading={q.isLoading} error={q.error ? 'Couldn\'t read this nutrient.' : null} onRetry={() => void q.refetch()}
+    <PushedPage back="Micronutrients" meta="7 days" eyebrow={d?.label} title={d?.label ?? 'Nutrient'} hero={d ? { value: d.current, unit: `of ${d.target}${d.unit ? ` ${d.unit}` : ''}` } : null} lead={d?.why ?? null} loading={q.isLoading} error={q.error ? 'Couldn\'t read this nutrient.' : null} onRetry={() => void q.refetch()}
       visual={Array.isArray(days) && days.length ? <WeekBars values={days.map((x: any) => Number(x.amount ?? x.value ?? 0))} max={Math.max(...days.map((x: any) => Number(x.amount ?? x.value ?? 0)), 1)} labels={days.map((x: any, i: number) => x.label ?? labels[i % 7])} todayIndex={days.length - 1} /> : null}
       proposed={d?.recommendation ? { text: d.recommendation } : null}
       cta={d?.recommendation ? { label: 'Add to meals', onPress: () => { shell?.ask(`Help me add this to my meals: ${d.recommendation}`); router.replace('/(v2)' as any); } } : null}>

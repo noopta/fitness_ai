@@ -5,6 +5,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { applySupplementDoses } from './supplementDoses.js';
 import { cacheMarkStale } from './cacheService.js';
 import type { Micronutrients } from './llmService.js';
 import { logActivity } from './activityService.js';
@@ -55,7 +56,7 @@ export const mealEntrySchema = z.object({
     cholesterolMg: clampedEstimate(5000),
     vitaminAIU: clampedEstimate(200000),
     vitaminCMg: clampedEstimate(5000),
-    vitaminDIU: clampedEstimate(10000),
+    vitaminDIU: clampedEstimate(60000), // a weekly 50,000 IU prescription is real
     vitaminEMg: clampedEstimate(2000),
     vitaminB12Mcg: clampedEstimate(5000),
     folateMcg: clampedEstimate(10000),
@@ -132,15 +133,20 @@ async function saveMealEntry(userId: string, input: MealEntryInput) {
       ? { ...(input as any), date: await todayForUser(userId) }
       : input;
     const data = mealEntrySchema.parse(dated);
-    const nutrients = normalizeMicronutrients(data.nutrients);
     const ingredients = data.ingredients.map(v => v.trim()).filter(Boolean);
     const tags = data.tags.map(v => v.trim().toLowerCase()).filter(Boolean);
     // Open nutrient channel: prefer what the client forwarded; otherwise
     // derive it from the structured micros so entries logged by older clients
     // (which don't send nutrientMap) still feed the effects engine.
-    const nutrientMap = data.nutrientMap && Object.keys(data.nutrientMap).length > 0
+    const baseNutrients = normalizeMicronutrients(data.nutrients);
+    const baseMap = data.nutrientMap && Object.keys(data.nutrientMap).length > 0
       ? data.nutrientMap
-      : deriveNutrientMap(nutrients, data);
+      : deriveNutrientMap(baseNutrients, data);
+    // Supplement doses in the text are label data: read them by rule, on every
+    // path (chat with explicit numbers used to save a supplement with zero micros).
+    const sup = applySupplementDoses(baseNutrients, baseMap, [data.name, ...ingredients, data.notes ?? ''].join(', '));
+    const nutrients = sup.nutrients;
+    const nutrientMap = sup.nutrientMap;
     const ingredientNutrients = (data.ingredientNutrients ?? [])
       .filter(i => i.name.trim() && Object.keys(i.nutrients).length > 0);
 

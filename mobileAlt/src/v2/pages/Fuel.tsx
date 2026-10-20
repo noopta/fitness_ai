@@ -208,7 +208,7 @@ export function FuelPage() {
         {systems.length ? (
           <View>
             <Row name="Body systems" sub={worst ? `${worst.name} ${worst.score} — the lowest · 7-day` : 'Five systems, 7-day average'} value={npWin?.profileScore != null ? String(npWin.profileScore) : undefined} bigValue onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'systems' } } as any)} />
-            <Row name="Gaps" sub="Only what's under 100%" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'micros' } } as any)} last />
+            <Row name="Micronutrients" sub="Every vitamin and mineral today, supplements included" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'micros' } } as any)} last />
           </View>
         ) : null}
 

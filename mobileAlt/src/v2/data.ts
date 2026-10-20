@@ -89,6 +89,7 @@ export const useStrength = () => useQuery({ queryKey: qk.strength, queryFn: () =
 // Always the phone's LOCAL day: without a date the server used to answer for its UTC day,
 // which hid the whole day's log every evening in the Americas (8 Oct 2026, Calgary).
 export const useMeals = (date: string = todayStr()) => useQuery({ queryKey: qk.meals(date), queryFn: () => nutritionApi.getMeals(date) as Promise<any>, staleTime: 30_000 });
+export const useMicrosDay = (date = todayStr()) => useQuery({ queryKey: ['v2', 'np', 'micros', date], queryFn: () => nutritionProfileApi.getMicros(date), staleTime: STALE });
 export const useNpDay = () => { const date = todayStr(); return useQuery({ queryKey: [...qk.npDay, date], queryFn: () => nutritionProfileApi.getDay(date), staleTime: STALE }); };
 export const useNpWeek = () => { const date = todayStr(); return useQuery({ queryKey: ['v2', 'np', 'week', date], queryFn: () => nutritionProfileApi.getDay(date, '7d'), staleTime: 5 * 60_000 }); };
 export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, todayStr(), '7d' as any), staleTime: STALE, enabled: !!id });
