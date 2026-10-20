@@ -235,6 +235,33 @@ const CONGRATULATE = ' After it saves, congratulate them warmly and specifically
 
 export const WORKOUT_TOOLS = [
   tool({
+    name: 'log_conditioning', kind: 'log', core: true, fn: 'WRK-15',
+    description: 'Log a sport or conditioning session: MMA, sparring, bag/pad work, BJJ/wrestling, running, cycling, swimming, classes — anything that isn’t sets and reps. activity (as they said it), minutes, intensity easy|moderate|hard (or rpe 1-10), date (default today). It counts toward their calorie burn, weekly training load and energy needs. One call per session; for a lifting session plus conditioning, log_workout the lifting and this the rest. Then congratulate them from `moment`.',
+    input_schema: schema({ activity: { type: 'string' }, minutes: { type: 'number' }, intensity: { type: 'string', enum: ['easy', 'moderate', 'hard'] }, rpe: { type: 'number' }, distance: { type: 'string', description: 'e.g. "5 km" — runs, rides, swims' }, date: { type: 'string' }, notes: { type: 'string' } }, ['activity', 'minutes']),
+    receipt: (i) => ({ verb: 'Logged', text: `${str(i.activity) || 'Session'} · ${numOr(i.minutes) ?? '?'} min` }),
+    execute: async (input, userId) => {
+      const { todayIn } = await import('../cards/format.js');
+      const { userTz } = await import('../cards/store.js');
+      const today = todayIn(await userTz(userId));
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : today;
+      const minutes = Math.round(numOr(input.minutes) ?? 0);
+      if (!(minutes > 0 && minutes <= 600)) throw new Error('How many minutes was it?');
+      const activity = str(input.activity).slice(0, 80) || 'Conditioning';
+      const intensity = ['easy', 'moderate', 'hard'].includes(str(input.intensity)) ? str(input.intensity) : numOr(input.rpe) ? (numOr(input.rpe)! >= 8 ? 'hard' : numOr(input.rpe)! >= 5 ? 'moderate' : 'easy') : 'moderate';
+      const rpe = numOr(input.rpe) ?? (intensity === 'hard' ? 8 : intensity === 'moderate' ? 6 : 4);
+      const exercises = [{ name: activity, sets: 1, reps: `${minutes} min`, weightKg: null, rpe, bodyweight: true, notes: `conditioning · ${intensity}${str(input.distance) ? ` · ${str(input.distance)}` : ''}${str(input.notes) ? ` · ${str(input.notes)}` : ''}`.slice(0, 500) }];
+      const change = await executeOp(userId, 'workout.create', { input: { date, title: `${activity} · ${minutes} min`, exercises, notes: str(input.notes) || null, duration: minutes, programDayRef: null } });
+      const r = change.result as any;
+      // sRPE load (Foster): minutes × RPE — what the weekly load reads.
+      return { logged: change.summary, id: r.id, date, minutes, intensity, load: minutes * rpe, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change };
+    },
+    card: (_i, r, ctx) => {
+      const cards: CardDraft[] = [{ fn: 'WRK-15', pattern: 'logged', rule: 'log_undo', meta: { label: `Logged · ${r._exercises?.[0]?.name ?? 'Session'} · ${r.date === ctx.today ? 'today' : dayLabel(r.date)}`, open: { page: 'history' } }, rows: [{ key: 'Time', value: `${r.minutes} min` }, { key: 'Effort', value: r.intensity }], undoLine: 'Undone — nothing logged' }];
+      if (r._moment) cards.push(momentCard(r._moment));
+      return cards;
+    },
+  }),
+  tool({
     name: 'share_progress', kind: 'read', core: true, fn: 'MOM-01',
     description: 'Show a share card for something they already did, any time after: "can I share my workout?", "where’s the photo/card for today’s session", "post my PR", "share my protein day". what: workout (default — today’s or a date’s session; builds the card if it never got one, e.g. logged in the classic app), nutrition (the day’s protein goal hit), cut, or latest (their most recent moment). The Moment card opens the share studio (cards and photo overlays for stories). Never tell them sharing isn’t possible — call this.',
     input_schema: schema({ what: { type: 'string', enum: ['workout', 'nutrition', 'cut', 'latest'] }, date: { type: 'string', description: 'YYYY-MM-DD; default the latest' } }),

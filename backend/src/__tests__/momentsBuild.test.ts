@@ -147,6 +147,22 @@ describe('no lift climbed today', () => {
   });
 });
 
+describe('conditioning sessions', () => {
+  it('MMA sparring is minutes, not reps — and no climb cards', () => {
+    const m = buildWorkoutMoment(base({ history: [], log: { id: 'L', date: '2026-10-19', title: 'MMA sparring · 60 min', duration: 60, exercises: [{ name: 'MMA sparring', sets: 1, reps: '60 min', bodyweight: true }] } }));
+    expect(m.shareables.map((s) => s.kind)).toEqual(['3g']);
+    const d = m.shareables[0].data as any;
+    expect(d).toMatchObject({ volume: 60, volumeUnit: 'min', minutes: 60 });
+    expect(d.lifts[0].top).toBe('60 min');
+    expect(m.praise).toMatch(/^60 minutes of mma sparring\./);
+  });
+  it('lifting plus a run: the lifts carry the card, the run is in the line', () => {
+    const m = buildWorkoutMoment(base({ log: { id: 'L', date: '2026-10-19', title: 'Push + run', duration: null, exercises: [bench(225, 5), { name: 'Run', sets: 1, reps: '20 min', bodyweight: true }] } }));
+    expect((m.shareables[0].data as any).lifts.map((l: any) => l.name)).toEqual(['Bench press']);
+    expect(m.praise).toMatch(/plus 20 minutes of run/);
+  });
+});
+
 describe('helpers', () => {
   it('topSet picks the best estimated max and rounds units', () => {
     expect(topSet({ name: 'x', setEntries: [{ weightKg: 100, reps: 3 }, { weightKg: 90, reps: 8 }] })).toEqual({ kg: 90, reps: 8 });

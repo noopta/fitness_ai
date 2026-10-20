@@ -50,6 +50,15 @@ interface MetRule {
 }
 
 const MET_RULES: MetRule[] = [
+  // ── Combat sports (Oct 2026: fighters log MMA and sparring daily) ─────────
+  // Ainsworth 2011: martial arts, moderate pace (15430) 10.3; boxing sparring
+  // (15100) 7.8; wrestling (15730) 6.0 — grappling sits a little above it.
+  { match: /\b(mma|mixed martial|kickbox(?:ing)?|muay thai)\b/i,
+    met: 10.3, secsPerSet: DEFAULT_SECONDS_PER_SET_CARDIO, kind: 'cardio' },
+  { match: /\b(sparring|boxing|bag work|heavy bag|pad work|pads|shadow ?box(?:ing)?)\b/i,
+    met: 7.8, secsPerSet: DEFAULT_SECONDS_PER_SET_CARDIO, kind: 'cardio' },
+  { match: /\b(bjj|jiu[- ]?jitsu|grappling|wrestling|judo|rolling)\b/i,
+    met: 7.0, secsPerSet: DEFAULT_SECONDS_PER_SET_CARDIO, kind: 'cardio' },
   // ── Cardio (time-dominant; sets here mean intervals) ─────────────────────
   { match: /\b(burpee|jumping jack|mountain climber|jump rope|skipping)\b/i,
     met: 8.0, secsPerSet: DEFAULT_SECONDS_PER_SET_CIRCUIT, kind: 'circuit' },
@@ -142,7 +151,12 @@ export function estimateWorkoutCalories(
     const sets = setCounts[i];
 
     let minutes: number;
-    if (hasUserDuration) {
+    // A timed block ("60 min", "5x3min rounds") is its own duration — a 60-minute
+    // sparring session logged as one set used to count as one minute.
+    const timed = String(ex?.reps ?? '').match(/(\d+(?:\.\d+)?)\s*(?:min|mins|minutes)\b/i);
+    if (timed && !hasUserDuration) {
+      minutes = Number(timed[1]) * sets;
+    } else if (hasUserDuration) {
       // Split the wall-clock duration by share of total sets — so a 60-min
       // workout with 2/3 of its sets on cardio doesn't get attributed at
       // strength MET.

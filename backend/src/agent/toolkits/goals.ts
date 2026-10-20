@@ -50,10 +50,15 @@ export async function goalInputs(userId: string) {
   if (!u) throw new Error('User not found');
   const today = todayForTz(u.timezone);
   const from = addDays(today, -35);
-  const [bw, meals] = await Promise.all([
+  const [bw, meals, logs] = await Promise.all([
     prisma.bodyWeightLog.findMany({ where: { userId, date: { gte: from, lte: today } }, orderBy: { date: 'asc' }, select: { date: true, weightKg: true, weightLbs: true } }),
     prisma.mealEntry.groupBy({ by: ['date'], where: { userId, date: { gte: from, lte: today } }, _sum: { calories: true } }),
+    prisma.workoutLog.findMany({ where: { userId, date: { gte: addDays(today, -13), lte: today } }, select: { date: true, exercises: true } }),
   ]);
+  // What they actually trained the last two weeks: timed sessions (MMA, runs…) vs lifting days.
+  const timed = (ex: any) => /\d+(?:\.\d+)?\s*(?:min|mins|minutes)\b/i.test(String(ex?.reps ?? '')) && !(Number(ex?.weightKg) > 0);
+  let condSessions = 0; const liftDays = new Set<string>();
+  for (const l of logs) { const ex: any[] = (() => { try { return JSON.parse(l.exercises); } catch { return []; } })(); if (ex.some(timed)) condSessions++; if (ex.some((e) => !timed(e))) liftDays.add(l.date); }
   const weighIns = bw.map((r) => ({ date: r.date, kg: bodyWeightKg(r) ?? 0 })).filter((r) => r.kg > 0);
   const last7 = weighIns.filter((w) => w.date > addDays(today, -7));
   const currentKg = last7.length ? last7.reduce((s, w) => s + w.kg, 0) / last7.length : weighIns.length ? weighIns[weighIns.length - 1].kg : u.weightKg ?? null;
@@ -62,7 +67,9 @@ export async function goalInputs(userId: string) {
   const maintenance = estimateMaintenance({
     weighIns, intake: meals.map((m) => ({ date: m.date, kcal: m._sum.calories ?? 0 })),
     bmr: mifflinBmr({ ...fp, weightKg: currentKg ?? fp.weightKg }), weightKg: currentKg,
-    liftingDays: Number(cp.daysPerWeek) || 3, conditioningDays: Number(cp.conditioningDays) || 0, activityLevel: cp.activityLevel ?? null, today,
+    liftingDays: Math.max(Number(cp.daysPerWeek) || 3, Math.round(liftDays.size / 2)),
+    conditioningDays: Math.max(Number(cp.conditioningDays) || 0, Math.round(condSessions / 2)),
+    activityLevel: cp.activityLevel ?? null, today,
   });
   const floor = calorieFloorFor({ ...fp, weightKg: currentKg ?? fp.weightKg });
   return { today, currentKg, unit: (u.unitPreference === 'metric' ? 'metric' : 'imperial') as 'metric' | 'imperial', event: readEvent(u.coachProfile), goalWeightKg: u.goalWeightKg, maintenance, floorKcal: floor.floor, weighInsLogged: weighIns.length };

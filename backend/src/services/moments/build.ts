@@ -123,7 +123,12 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
   const when = log.date === i.today ? 'today' : log.date === addDays(i.today, -1) ? 'yesterday' : dayLabel(log.date);
 
   // ── The session (3g) ──
-  const weighted = log.exercises.map((e) => ({ e, vol: volumeKg(e), reps: repsOf(e), top: topSet(e) }));
+  // Conditioning (MMA, sparring, runs…) is timed, not sets × reps: shown in minutes, never as "60 reps".
+  const timedMin = (e: LoggedExercise) => { const m = String(e.reps ?? '').match(/(\d+(?:\.\d+)?)\s*(?:min|mins|minutes)\b/i); return m && !(Number(e.weightKg) > 0) ? Number(m[1]) * Math.max(1, Number(e.sets) || 1) : 0; };
+  const conditioning = log.exercises.filter((e) => timedMin(e) > 0);
+  const condMinutes = conditioning.reduce((n, e) => n + timedMin(e), 0);
+  const allConditioning = conditioning.length === log.exercises.length && condMinutes > 0;
+  const weighted = log.exercises.filter((e) => allConditioning || timedMin(e) === 0).map((e) => ({ e, vol: volumeKg(e), reps: allConditioning ? timedMin(e) : repsOf(e), top: allConditioning ? null : topSet(e) }));
   const totalKg = weighted.reduce((s, x) => s + x.vol, 0);
   const byReps = totalKg <= 0;
   const denom = byReps ? Math.max(1, weighted.reduce((s, x) => s + x.reps, 0)) : totalKg;
@@ -132,13 +137,13 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
     .map((x) => ({
       name: x.e.name,
       // Reps the log couldn't read ("varies"): show the load alone rather than a dash.
-      top: x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : Number(x.e.weightKg) > 0 ? `${inUnit(Number(x.e.weightKg), u)} · ${plural(Math.max(1, Number(x.e.sets) || 1), 'set')}` : '—',
+      top: allConditioning ? `${n0(x.reps)} min` : x.top ? (x.top.kg > 0 ? `${inUnit(x.top.kg, u)}×${x.top.reps}` : `${x.top.reps} reps`) : Number(x.e.weightKg) > 0 ? `${inUnit(Number(x.e.weightKg), u)} · ${plural(Math.max(1, Number(x.e.sets) || 1), 'set')}` : '—',
       share: (byReps ? x.reps : x.vol) / denom,
       isPR: prNames.has(x.e.name.trim().toLowerCase()),
     }))
     .sort((a, b) => b.share - a.share);
   const volume = byReps ? Math.round(denom) : inUnit(totalKg, u);
-  const session: SessionData = { name, minutes: log.duration || null, unit: u, volume, ...(byReps ? { volumeUnit: 'reps' } : {}), lifts };
+  const session: SessionData = { name, minutes: log.duration || (allConditioning ? condMinutes : null), unit: u, volume, ...(byReps ? { volumeUnit: allConditioning ? 'min' : 'reps' } : {}), lifts };
 
   // Training days in the 7 days ending on the log's date (a warm-up and the session after it are one day).
   const weekStart = addDays(log.date, -6);
@@ -146,8 +151,11 @@ export function buildWorkoutMoment(i: WorkoutInput): BuiltMoment {
   const prevDate = all.filter((h) => h.id !== log.id && h.date < log.date).map((h) => h.date).sort().pop() ?? null;
   const gapDays = prevDate ? Math.round((t(log.date) - t(prevDate)) / DAY) : null;
 
-  const moved = byReps ? `${plural(volume, 'rep')}` : `${n0(volume)} ${u} moved`;
-  const shape = `${moved} across ${plural(log.exercises.length, 'lift')}${log.duration ? ` in ${log.duration} minutes` : ''}`;
+  const condNames = [...new Set(conditioning.map((e) => e.name.trim()))].join(' and ').toLowerCase();
+  const moved = allConditioning ? `${n0(condMinutes)} minutes of ${condNames}` : byReps ? `${plural(volume, 'rep')}` : `${n0(volume)} ${u} moved`;
+  const lifted = log.exercises.length - conditioning.length;
+  const shape = allConditioning ? moved
+    : `${moved} across ${plural(lifted, 'lift')}${conditioning.length ? `, plus ${n0(condMinutes)} minutes of ${condNames}` : ''}${log.duration ? ` in ${log.duration} minutes` : ''}`;
   const rhythm = weekCount >= 3 ? `That's ${weekCount} training days out of the last seven — this is what consistency looks like.`
     : weekCount === 2 ? 'Second training day this week. The rhythm is building.'
     : gapDays == null ? 'Your first one logged — everything from here gets measured against it.'
