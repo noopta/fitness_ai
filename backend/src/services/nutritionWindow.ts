@@ -130,7 +130,8 @@ export async function loadWindow(
   userId: string,
   endDate: string,
   range: ProfileRange,
-  preloadedRows?: WindowMealRow[],
+  // Single-day preloads may omit `date`: every row is attributed to endDate.
+  preloadedRows?: (Omit<WindowMealRow, 'date'> & { date?: string })[],
 ): Promise<NutritionWindow> {
   const windowDays = daysForRange(range);
   const startDate = addDaysStr(endDate, -(windowDays - 1));
