@@ -65,7 +65,11 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       : null))
     .catch(() => null);
 
-  const [user, meals, bwLogs, wellness, memory, pendingAdaptation, trainingSummary, conversationSummary, goalEvent] = await Promise.all([
+  // Asked about allergies in the last dozen messages? Then don't again (20 Oct 2026: asked on every turn).
+  const allergyAskedP = prisma.agentConversation.findUnique({ where: { userId }, select: { messagesJson: true } })
+    .then((r) => { try { return (JSON.parse(r?.messagesJson ?? '[]') as any[]).slice(-12).some((m) => m.role === 'assistant' && /allerg/i.test(String(m.text ?? ''))); } catch { return false; } })
+    .catch(() => false);
+  const [user, meals, bwLogs, wellness, memory, pendingAdaptation, trainingSummary, conversationSummary, goalEvent, allergyAsked] = await Promise.all([
     userP,
     prisma.mealEntry.findMany({
       where: { userId, date },
@@ -85,6 +89,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     summaryP,
     loadSummary(userId).catch(() => null),
     import('./toolkits/goals.js').then((m) => m.goalContextLine(userId)).catch(() => null),
+    allergyAskedP,
   ]);
 
   if (!user) throw new Error('User not found');
@@ -143,7 +148,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       constraints: consent.health ? user.constraintsText : null,
       goal: user.coachGoal,
       budget: user.coachBudget,
-      ...intakeDietAndInjuries(user.coachProfile, consent.health),
+      ...intakeDietAndInjuries(user.coachProfile, consent.health, allergyAsked),
     },
     todayNutrition,
     bodyWeight,
@@ -187,18 +192,18 @@ function nutritionQuestionsLine(coachProfile: string | null): string | null {
   try { cp = coachProfile ? JSON.parse(coachProfile) : {}; } catch { cp = {}; }
   const n = Array.isArray(cp.nutritionDraft?.answered) ? cp.nutritionDraft.answered.length : 0;
   if (!n) return null;
-  return `Gut and nutrition questions IN PROGRESS: ${n} of 13 answered (${cp.nutritionDraft.answered.join(', ')}). Anything they say that answers the rest → answer_nutrition_questions (it shows the next question, and builds their plan onto Fuel when all 13 are in). "Start/carry on with my gut questions" → start_nutrition_assessment, every time.`;
+  return `Gut and nutrition questions IN PROGRESS: ${n} of 13 answered (keys: ${cp.nutritionDraft.answered.join(', ')}). Anything they say that answers the rest → answer_nutrition_questions (it shows the next question, and builds their plan onto Fuel when all 13 are in). "Start/carry on with my gut questions" → start_nutrition_assessment, every time. Talk about questions in plain words, never their keys.`;
 }
 
 /** Diet restrictions, named allergies and intake injuries — the gaps a coach must never guess past. */
-function intakeDietAndInjuries(coachProfile: string | null, health: boolean) {
+function intakeDietAndInjuries(coachProfile: string | null, health: boolean, allergyAsked = false) {
   let cp: any = {};
   try { cp = coachProfile ? JSON.parse(coachProfile) : {}; } catch { cp = {}; }
   const restrictions: string[] = Array.isArray(cp.dietaryRestrictions) ? cp.dietaryRestrictions.filter((x: unknown) => typeof x === 'string' && x !== 'none') : [];
   const named = typeof cp.allergyNotes === 'string' && cp.allergyNotes.trim() ? cp.allergyNotes.trim() : null;
   const injuries = health ? [cp.injuries, Array.isArray(cp.medicalConditions) ? cp.medicalConditions.filter((x: unknown) => x && x !== 'none').join(', ') : '', cp.medicalNotes]
     .filter((x) => typeof x === 'string' && x.trim()).join('; ') || null : null;
-  return { diet: restrictions.length || named ? { restrictions, allergies: named } : null, injuries };
+  return { diet: restrictions.length || named ? { restrictions, allergies: named, allergyAsked } : null, injuries };
 }
 
 export function renderContext(ctx: UserContext): string {
@@ -221,7 +226,11 @@ export function renderContext(ctx: UserContext): string {
   if (p.diet) {
     const r = p.diet.restrictions.filter((x) => x !== 'allergies').map((x) => x.replace(/_/g, ' '));
     const allergyLine = p.diet.allergies ? `allergies: ${p.diet.allergies}`
-      : p.diet.restrictions.includes('allergies') ? 'allergies: ticked at intake but never named — ask which ONCE when food suggestions come up (then save it pinned with remember and update_coaching_profile); if you already asked in recent messages, don\'t ask again and don\'t hold other help back — just avoid common allergens in suggestions' : '';
+      : p.diet.restrictions.includes('allergies')
+        ? (p.diet.allergyAsked
+          ? 'allergies: ticked at intake but never named; you ALREADY ASKED recently — do not ask again; avoid common allergens (nuts, shellfish, dairy, eggs, gluten, soy) in suggestions until they say'
+          : 'allergies: ticked at intake but never named — ask which once, when food suggestions come up (then save it pinned with remember and update_coaching_profile)')
+        : '';
     lines.push(`Diet — ${[r.length ? r.join(', ') : '', allergyLine].filter(Boolean).join('; ')}. Never suggest food that breaks these.`);
   }
 

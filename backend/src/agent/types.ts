@@ -79,7 +79,7 @@ export interface UserContext {
     goal: string | null;
     budget: string | null;
     /** Intake diet: restrictions, and the allergies named (null = ticked but never named). */
-    diet?: { restrictions: string[]; allergies: string | null } | null;
+    diet?: { restrictions: string[]; allergies: string | null; allergyAsked?: boolean } | null;
     /** Injuries / medical conditions from the intake (health consent only). */
     injuries?: string | null;
   };
