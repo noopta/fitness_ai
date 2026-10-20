@@ -221,7 +221,7 @@ defineOp({
   name: 'memory.add',
   run: async (userId, args) => {
     const before = await readMemory(userId);
-    await appendMemory(userId, String(args.note));
+    await appendMemory(userId, String(args.note), { pinned: args.pinned === true });
     return { inverse: { op: 'memory.set', args: { notes: before } }, summary: `Noted · ${String(args.note).slice(0, 80)}` };
   },
 });
@@ -571,18 +571,30 @@ export const HEALTH_TOOLS = [
   }),
   tool({
     name: 'remember', kind: 'log', core: true, fn: 'MEM-02',
-    description: 'Save a durable fact about the user (a goal, preference, constraint, schedule) in one short third-person sentence. Not for transient details.',
-    input_schema: schema({ note: { type: 'string' } }, ['note']),
+    description: 'Save a durable fact about the user (a goal, preference, constraint, schedule) in third person — complete, with every number, date and dose they gave (up to ~2,000 characters; longer is split, never cut). pinned: true for things that must never be forgotten: event / weigh-in dates and weight classes, injuries and surgeries, allergies, medical constraints, an outside coach’s plan. Not for transient details.',
+    input_schema: schema({ note: { type: 'string' }, pinned: { type: 'boolean' } }, ['note']),
     receipt: (i) => ({ verb: 'Noted', text: str(i.note).slice(0, 60) }),
     execute: async (input, userId) => {
-      const note = str(input.note).slice(0, 240);
+      const note = str(input.note).slice(0, 12_000);
       if (!note) throw new Error('Nothing to remember.');
-      const change = await executeOp(userId, 'memory.add', { note });
+      const change = await executeOp(userId, 'memory.add', { note, pinned: input.pinned === true });
       // Instruction-like notes are kept for the user to see but never enter the prompt (memory.ts).
       if (looksLikeInstruction(note)) return { saved: note, flagged: true, note: 'Saved for the user to review only. Notes are facts, not instructions — it will not be used in future prompts.', _change: change };
       return { saved: note, _change: change };
     },
     card: (_i, r) => ({ fn: 'MEM-02', pattern: 'logged', rule: 'log_undo', meta: { label: 'Noted', open: { page: 'memory' } }, rows: [{ key: r.saved }], undoLine: 'Undone — forgotten' }),
+  }),
+  tool({
+    name: 'search_chat_history', kind: 'read', core: true, fn: 'MEM-06',
+    description: 'Look up what was said in your chats with the user, any day back (about 90 days): their exact words, numbers, a plan or program they pasted, what you agreed. words: what to look for (all must appear); from / to: YYYY-MM-DD. Use it before saying you don’t know something they told you earlier, or when the running notes are too short.',
+    input_schema: schema({ words: { type: 'string' }, from: { type: 'string' }, to: { type: 'string' }, limit: { type: 'number' } }),
+    receipt: (i) => ({ verb: 'Searched', text: `Our chats${str(i.words) ? ` · “${str(i.words).slice(0, 40)}”` : ''}` }),
+    execute: async (input, userId) => {
+      const { loadStoredMessages, searchMessages } = await import('../conversation.js');
+      const day = (v: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(str(v)) ? str(v) : null);
+      const hits = searchMessages(await loadStoredMessages(userId), str(input.words), day(input.from), day(input.to), Math.min(30, Math.max(1, numOr(input.limit) ?? 12)));
+      return hits.length ? { found: hits.length, messages: hits.map((h) => ({ at: h.at, who: h.role === 'user' ? 'them' : 'you', text: h.text })) } : { found: 0, note: 'Nothing matched — try fewer or different words, or a wider date range.' };
+    },
   }),
   tool({
     name: 'forget', kind: 'log', fn: 'MEM-03',

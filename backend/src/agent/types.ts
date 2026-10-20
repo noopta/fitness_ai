@@ -108,6 +108,8 @@ export interface UserContext {
   // ("knee hurts on squats"). This is what turns a chatbot into an agent
   // that knows you. Free-form notes the agent itself maintains.
   memory: string[];
+  /** Rolling summary of the chat older than the verbatim window (conversation.ts). */
+  conversationSummary?: string | null;
 }
 
 /** Structured proposal returned by a non-persisting tool (e.g.

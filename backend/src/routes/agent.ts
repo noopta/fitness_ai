@@ -141,7 +141,9 @@ router.get('/coach/agent/status', requireAuth, (req, res) => {
 // the agent), keeping history consistent with whichever coach answered.
 router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, res) => {
   try {
-    const stored = await loadStoredMessages(req.user!.id);
+    // The store now keeps months of chat; the screen shows the recent part (?limit=, default 100, max 500).
+    const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 100));
+    const stored = (await loadStoredMessages(req.user!.id)).slice(-limit);
     // The client gets the card ids and fetches the cards (GET /coach/agent/cards?ids=).
     const messages = stored.map((m) => {
       const { text: content, cards } = m.role === 'assistant' ? splitStored(m) : { text: m.text, cards: [] };

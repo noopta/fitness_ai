@@ -1130,6 +1130,11 @@ model AgentConversation {
   id           String   @id @default(uuid())
   userId       String   @unique
   messagesJson String   @default("[]")
+  // Rolling summary of everything older than the verbatim window the model
+  // reads each turn (agent/conversation.ts), and the `at` of the last message
+  // it covers. Lets Anakin use what was said days ago (Oct 2026).
+  summary           String?
+  summarizedThrough String?
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)

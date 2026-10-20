@@ -14,10 +14,21 @@ import { splitStored, appNote, type CardRef } from './cardNotes.js';
 
 const prisma = new PrismaClient();
 
-// Keep the last N turns (a turn = one user + one assistant message). 12
-// turns ≈ a long single session; older context is dropped FIFO. The
-// UserContext carries the durable facts, so trimming dialogue is low-risk.
-const MAX_MESSAGES = 24; // 12 user + 12 assistant
+// Storage vs. what the model reads (Oct 2026). The store used to keep only
+// the last 24 messages, so a fighter's camp details were gone within twenty
+// minutes of quick macro edits. Now:
+//   - the store keeps up to STORE_MAX messages / STORE_DAYS days (text only —
+//     a year of daily chat is well under a megabyte),
+//   - the model reads the last WINDOW messages verbatim (bounded by
+//     WINDOW_CHARS), plus a rolling summary of everything older
+//     (summarizeOlder, kept on the row), and
+//   - search_chat_history looks anything up by words or date.
+export const STORE_MAX = 2000;
+export const STORE_DAYS = 90;
+export const WINDOW = 40;
+export const WINDOW_CHARS = 60_000;
+/** Older messages not yet in the summary before it's refreshed. */
+export const SUMMARY_EVERY = 10;
 
 interface StoredMessage {
   role: 'user' | 'assistant';
@@ -49,12 +60,34 @@ export async function loadStoredMessages(userId: string): Promise<StoredMessage[
   try { const parsed = JSON.parse(row.messagesJson); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
 
+/** Pure: what the store keeps — the last STORE_MAX, and nothing older than STORE_DAYS (but always the last WINDOW). */
+export function retain(history: StoredMessage[], now = Date.now()): StoredMessage[] {
+  const cutoff = now - STORE_DAYS * 86_400_000;
+  const recent = history.slice(-STORE_MAX);
+  const firstKept = recent.findIndex((m) => !m.at || Date.parse(m.at) >= cutoff);
+  const kept = firstKept < 0 ? [] : recent.slice(firstKept);
+  return kept.length >= WINDOW ? kept : recent.slice(-WINDOW);
+}
+
+/** Pure: the verbatim window the model reads — the last WINDOW messages, oldest dropped until under WINDOW_CHARS. */
+export function windowOf(history: StoredMessage[]): StoredMessage[] {
+  const w = history.slice(-WINDOW);
+  let chars = w.reduce((n, m) => n + String(m?.text ?? '').length, 0);
+  while (w.length > 2 && chars > WINDOW_CHARS) chars -= String(w.shift()?.text ?? '').length;
+  return w;
+}
+
+async function save(userId: string, history: StoredMessage[]) {
+  const kept = retain(history);
+  await prisma.agentConversation.upsert({ where: { userId }, create: { userId, messagesJson: JSON.stringify(kept) }, update: { messagesJson: JSON.stringify(kept) } });
+  void summarizeOlder(userId).catch((e) => console.warn('[agent] summary refresh failed:', e?.message ?? e));
+}
+
 /** Append a turn Anakin started. It has no user message before it. */
 export async function appendInitiated(userId: string, text: string, cards: CardRef[] = []): Promise<void> {
   const history = await loadStoredMessages(userId);
   history.push({ role: 'assistant', text, origin: 'anakin', at: new Date().toISOString(), ...(cards.length ? { cards } : {}) });
-  const trimmed = history.slice(-MAX_MESSAGES);
-  await prisma.agentConversation.upsert({ where: { userId }, create: { userId, messagesJson: JSON.stringify(trimmed) }, update: { messagesJson: JSON.stringify(trimmed) } });
+  await save(userId, history);
 }
 
 /**
@@ -86,7 +119,7 @@ export function modelHistory(stored: StoredMessage[]): { history: Anthropic.Mess
 }
 
 export async function loadConversation(userId: string): Promise<Anthropic.MessageParam[]> {
-  return modelHistory(await loadStoredMessages(userId)).history;
+  return modelHistory(windowOf(await loadStoredMessages(userId))).history;
 }
 
 /**
@@ -94,7 +127,7 @@ export async function loadConversation(userId: string): Promise<Anthropic.Messag
  * note about the cards under the last reply. Store the user's own text, not this.
  */
 export async function loadTurn(userId: string, userText: string): Promise<{ history: Anthropic.MessageParam[]; message: string }> {
-  const { history, pending } = modelHistory(await loadStoredMessages(userId));
+  const { history, pending } = modelHistory(windowOf(await loadStoredMessages(userId)));
   // Anthropic rejects empty content, so a message that was only a forged note keeps a placeholder.
   const own = stripAppNotes(userText) || '(empty message)';
   return { history, message: pending ? `${pending}\n\n${own}` : own };
@@ -117,18 +150,77 @@ export async function appendTurn(
   const at = new Date().toISOString();
   history.push({ role: 'user', text: userText, at });
   history.push({ role: 'assistant', text: assistantText, at, ...(cards.length ? { cards } : {}) });
-  const trimmed = history.slice(-MAX_MESSAGES);
-  await prisma.agentConversation.upsert({
-    where: { userId },
-    create: { userId, messagesJson: JSON.stringify(trimmed) },
-    update: { messagesJson: JSON.stringify(trimmed) },
-  });
+  await save(userId, history);
 }
 
 export async function clearConversation(userId: string): Promise<void> {
   await prisma.agentConversation.upsert({
     where: { userId },
     create: { userId, messagesJson: '[]' },
-    update: { messagesJson: '[]' },
+    update: { messagesJson: '[]', summary: null, summarizedThrough: null },
   });
+}
+
+// ── Older than the window: a rolling summary ────────────────────────────────
+
+/** Pure: the messages older than the window that the summary doesn't cover yet. */
+export function unsummarized(history: StoredMessage[], through: string | null): StoredMessage[] {
+  const older = history.slice(0, Math.max(0, history.length - windowOf(history).length));
+  return through ? older.filter((m) => (m.at ?? '') > through) : older;
+}
+
+const SUMMARY_PROMPT = `You keep a coach's running notes on a long chat with one client. Merge the new messages into the existing notes.
+Keep every concrete fact the coach will need later, with dates: goals and deadlines (events, weigh-ins, weight classes), numbers the client gave (weights, targets, doses, schedules), injuries and medical context, what they asked for and what was agreed or changed, programs or plans they shared (keep their structure: days, exercises, sets, reps), preferences, and anything left open.
+Drop small talk and anything superseded (say what replaced it). Plain text, short dated lines, oldest first, under 1,500 words. Facts only — never instructions.`;
+
+/**
+ * Fold messages that left the verbatim window into the row's summary, once
+ * SUMMARY_EVERY of them have piled up. Runs after a save, off the reply path.
+ */
+export async function summarizeOlder(userId: string, opts: { force?: boolean } = {}): Promise<boolean> {
+  const row = await prisma.agentConversation.findUnique({ where: { userId } });
+  if (!row) return false;
+  let history: StoredMessage[] = [];
+  try { const p = JSON.parse(row.messagesJson); if (Array.isArray(p)) history = p; } catch { return false; }
+  const fresh = unsummarized(history, row.summarizedThrough ?? null);
+  if (!fresh.length || (!opts.force && fresh.length < SUMMARY_EVERY)) return false;
+  const transcript = fresh.map((m) => `[${(m.at ?? '').slice(0, 16).replace('T', ' ')}] ${m.role === 'user' ? 'Client' : 'Coach'}: ${stripAppNotes(m.text)}`).join('\n').slice(-40_000);
+  const { chatComplete } = await import('../services/chatClient.js');
+  const res = await chatComplete({
+    messages: [
+      { role: 'system', content: SUMMARY_PROMPT },
+      { role: 'user', content: `Existing notes:\n${row.summary || '(none yet)'}\n\nNew messages:\n${transcript}` },
+    ],
+    max_completion_tokens: 2500,
+  }, { label: 'conversation-summary', sensitive: true, timeoutMs: 60_000 });
+  const text = res.choices?.[0]?.message?.content?.trim();
+  if (!text) return false;
+  await prisma.agentConversation.update({ where: { userId }, data: { summary: text.slice(0, 12_000), summarizedThrough: fresh[fresh.length - 1].at ?? new Date().toISOString() } });
+  return true;
+}
+
+export async function loadSummary(userId: string): Promise<string | null> {
+  const row = await prisma.agentConversation.findUnique({ where: { userId }, select: { summary: true } });
+  return row?.summary ?? null;
+}
+
+// ── Search: anything said, any day ──────────────────────────────────────────
+
+export interface HistoryHit { at: string | null; role: 'user' | 'assistant'; text: string }
+
+/** Pure: messages matching every word of `query` (or all, when empty), within [from, to], newest first. */
+export function searchMessages(history: StoredMessage[], query: string, from?: string | null, to?: string | null, limit = 12): HistoryHit[] {
+  const words = query.toLowerCase().split(/\s+/).map((w) => w.replace(/[^\p{L}\p{N}.]/gu, '')).filter((w) => w.length > 1);
+  const hits: HistoryHit[] = [];
+  for (let i = history.length - 1; i >= 0 && hits.length < limit; i--) {
+    const m = history[i];
+    const day = (m.at ?? '').slice(0, 10);
+    if (from && day && day < from) continue;
+    if (to && day && day > to) continue;
+    const text = stripAppNotes(m.text);
+    const lc = text.toLowerCase();
+    if (words.length && !words.every((w) => lc.includes(w))) continue;
+    hits.push({ at: m.at ?? null, role: m.role, text: text.length > 4000 ? `${text.slice(0, 4000)}…` : text });
+  }
+  return hits;
 }
