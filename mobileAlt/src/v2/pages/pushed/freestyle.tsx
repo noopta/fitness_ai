@@ -86,6 +86,7 @@ export function FreestyleHome({ onLog }: { onLog: () => void }) {
       <View style={styles.actions}>
         <TextAction primary onPress={() => (s ? router.push({ pathname: '/(v2)/p/[key]', params: { key: 'freestyle' } } as any) : onLog())}>Start a session</TextAction>
         <TextAction muted arrow={false} size={15} onPress={() => router.push('/(v2)/onboarding' as any)}>Build a program</TextAction>
+        <TextAction muted arrow={false} size={15} onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'importprogram' } } as any)}>Import my coach’s program</TextAction>
         {setAside ? <TextAction muted arrow={false} size={15} onPress={restore}>Go back to {setAside.goal ? `“${String(setAside.goal).slice(0, 24)}”` : 'my program'}</TextAction> : null}
       </View>
     </View>

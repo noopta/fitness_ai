@@ -19,6 +19,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { PromptSheet } from '../../primitives/Sheet';
 import { AccountPage, DeleteAccountPage } from './account';
 import { MealEditPage } from './mealEdit';
+import { ImportProgramPage } from './importProgram';
 import { CheckinPage } from './checkin';
 import { TodayPage } from './today';
 import { ExercisePage } from './exercise';
@@ -67,6 +68,7 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'progday': return <ProgramDayPage arg={arg} params={params} />;
     case 'programreview': return <ProgramReviewPage cardId={arg || undefined} />;
     case 'freestyle': return <GuidedFreestylePage />;
+    case 'importprogram': return <ImportProgramPage />;
     case 'suggestions': return <SuggestionsPage />;
     case 'meal': return <MealEditPage id={arg} date={typeof params?.date === 'string' ? params.date : undefined} />;
     // T-11 – T-13: tier explainer + every lift, a lift's trend + log a set, movement patterns.

@@ -149,6 +149,7 @@ export function TrainingPage() {
   }, [router, shell]);
   // T-08: the whole program, every week, outside chat.
   const onOpenProgram = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'program' } } as any); }, [router]);
+  const onImport = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'importprogram' } } as any); }, [router]);
   // Freestyle where the program lives: set it aside (archived, not deleted); the freestyle home brings it back.
   const invalidate = useInvalidate();
   const onFreestyle = useCallback(() => {
@@ -196,7 +197,7 @@ export function TrainingPage() {
             open={band === b} summary={summaries[b]} onPress={open}>
             {data?.program ? (
               b === 'goal' ? <GoalContent goal={data.goal} week={data.program.week} totalWeeks={data.program.totalWeeks} onLift={onLift} />
-              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} onOpen={onOpenProgram} onFreestyle={onFreestyle} />
+              : b === 'program' ? <ProgramContent program={data.program} sel={phaseSel} onSel={onPhase} onLong={onPhaseLong} onOpen={onOpenProgram} onFreestyle={onFreestyle} onImport={onImport} />
               : b === 'week' ? <WeekContent days={data.week.days} sel={daySel} onDay={onDay} onAction={onDayAction} height={contentH} reduced={!!reduced} />
               : <ArchiveContent archive={data.archive} onItem={onArchive} onAll={onArchiveAll} />
             ) : null}
@@ -324,8 +325,8 @@ const GoalContent = memo(function GoalContent({ goal, week, totalWeeks, onLift }
 
 // ─── PROGRAM ─────────────────────────────────────────────────────────────────
 
-const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong, onOpen, onFreestyle }: {
-  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void; onOpen: () => void; onFreestyle: () => void;
+const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLong, onOpen, onFreestyle, onImport }: {
+  program: NonNullable<TrainingOverview['program']>; sel: number; onSel: (i: number) => void; onLong: (name: string) => void; onOpen: () => void; onFreestyle: () => void; onImport: () => void;
 }) {
   const ph = program.phases[sel] ?? program.phases[0];
   return (
@@ -355,6 +356,9 @@ const ProgramContent = memo(function ProgramContent({ program, sel, onSel, onLon
           <Text style={[styles.action, { color: C.muted }]}>Train freestyle instead</Text>
         </Pressable>
       </View>
+      <Pressable onPress={onImport} hitSlop={8} accessibilityRole="button" accessibilityLabel="Import your coach's program" style={{ marginTop: 12 }}>
+        <Text style={[styles.action, { color: C.muted }]}>Import my coach’s program</Text>
+      </Pressable>
     </View>
   );
 });
