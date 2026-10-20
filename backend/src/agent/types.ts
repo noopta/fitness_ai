@@ -78,6 +78,10 @@ export interface UserContext {
     constraints: string | null;
     goal: string | null;
     budget: string | null;
+    /** Intake diet: restrictions, and the allergies named (null = ticked but never named). */
+    diet?: { restrictions: string[]; allergies: string | null } | null;
+    /** Injuries / medical conditions from the intake (health consent only). */
+    injuries?: string | null;
   };
   // Compact snapshots — full detail is available on demand via tools. The
   // context is the "what's probably relevant" layer; tools are the "go get

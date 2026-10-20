@@ -8,7 +8,9 @@
 const NUTRIENT = /\b(vitamin\s?[a-k]\d?|d3|zinc|omega[- ]?3|epa|dha|magnesium|iron|calcium|potassium|folate|b12|collagen|fib(?:er|re)|creatine|protein|electrolytes?|sodium)\b/i;
 const AMOUNT = /\b\d[\d,.]*\s?(?:[-–]|to)?\s?\d*[\d,.]*\s?(?:mg|mcg|µg|iu|g)\b/i;
 const PRESCRIPTIVE = /\b(per day|a day|\/day|daily|each day|aim|target|take|add|push|bump|raise|hit|get to|keep .* (near|at|around))\b/i;
-const PLAN_TOOLS = ['propose_nutrition_plan_change', 'propose_nutrition_plan'];
+// Any nutrition-targets card counts — a macro card IS the plan card for "protein 170, carbs 250"
+// (20 Oct: the check fired after propose_macro_change and its meta-reply reached the user).
+const PLAN_TOOLS = ['propose_nutrition_plan_change', 'propose_nutrition_plan', 'propose_macro_change', 'set_macro_targets', 'adjust_macros', 'set_nutrition_targets', 'log_supplement_plan'];
 
 /** Did the reply recommend nutrient amounts without putting up a plan card? Pure. */
 export function needsPlanCard(reply: string, toolsUsed: string[]): boolean {
@@ -20,3 +22,16 @@ export function needsPlanCard(reply: string, toolsUsed: string[]): boolean {
 
 export const PLAN_CARD_NUDGE =
   '(Server check: your reply recommends nutrient amounts but no plan card went up. If you meant them as targets for the user, call propose_nutrition_plan_change now with all of them — focus nutrients, a target for each, supplements with dose and when, and any calorie/macro change — then add ONE short line saying it\'s on the card to apply. If you were only answering a factual question and not recommending targets, reply with nothing.)';
+
+/**
+ * Pure: drop the model's talk about the server check itself ("I'm disregarding
+ * that check…", "Server check: …") from the reply that follows the nudge. That
+ * reply is meant to be one short line about the card, or nothing.
+ */
+export function stripNudgeTalk(text: string): string {
+  return text
+    .split(/(?<=[.!?\n])\s+/)
+    .filter((s) => !/\b(server check|that check|the check|disregard(?:ing)?|nudge|no further (?:card|proposal)|nothing further to propose|reply with nothing)\b/i.test(s))
+    .join(' ')
+    .trim();
+}

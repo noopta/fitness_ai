@@ -17,7 +17,7 @@ import type { Card } from './cards/types.js';
 import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
-import { needsPlanCard, PLAN_CARD_NUDGE } from './nutrientAdvice.js';
+import { needsPlanCard, PLAN_CARD_NUDGE, stripNudgeTalk } from './nutrientAdvice.js';
 import { claimsCaptureWithoutTool, CAPTURE_NUDGE } from './actionClaims.js';
 import { SAFETY_BLOCK, UNTRUSTED_DATA_RULE } from '../prompts/safety.js';
 import { userRequestedWrite } from './untrusted.js';
@@ -317,7 +317,7 @@ export async function runAgentTurn(
         continue;
       }
       if (!reply) console.warn(`[agent] empty reply (stop_reason=${res.stop_reason}) user=${userId.slice(0, 8)}`);
-      const full = nudgedReply ? [nudgedReply, reply].filter(Boolean).join('\n\n') : reply;
+      const full = nudgedReply ? [nudgedReply, stripNudgeTalk(reply)].filter(Boolean).join('\n\n') : reply;
       return {
         reply: full || "I lost my train of thought there — mind asking that again?",
         toolsUsed,
@@ -478,7 +478,8 @@ export async function streamAgentTurn(
       const last = res.content
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text).join('').trim() || finalText.trim();
-      const text = stripCardNotes(joinSteps([...earlier, last]));
+      // After a plan-card nudge, the model's reply to the check is for us, not the user.
+      const text = stripCardNotes(joinSteps(planNudged ? [...earlier, stripNudgeTalk(last)] : [...earlier, last]));
       if (!text && res.stop_reason === 'max_tokens' && !truncationRetried) {
         truncationRetried = true;
         messages.pop(); // drop the truncated turn (may hold a partial tool_use)

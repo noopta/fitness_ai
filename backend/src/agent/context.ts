@@ -141,6 +141,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       constraints: consent.health ? user.constraintsText : null,
       goal: user.coachGoal,
       budget: user.coachBudget,
+      ...intakeDietAndInjuries(user.coachProfile, consent.health),
     },
     todayNutrition,
     bodyWeight,
@@ -166,6 +167,17 @@ export async function assembleContext(userId: string): Promise<UserContext> {
  * token here is paid on every turn. Nulls are omitted so the model isn't fed
  * a wall of "unknown".
  */
+/** Diet restrictions, named allergies and intake injuries — the gaps a coach must never guess past. */
+function intakeDietAndInjuries(coachProfile: string | null, health: boolean) {
+  let cp: any = {};
+  try { cp = coachProfile ? JSON.parse(coachProfile) : {}; } catch { cp = {}; }
+  const restrictions: string[] = Array.isArray(cp.dietaryRestrictions) ? cp.dietaryRestrictions.filter((x: unknown) => typeof x === 'string' && x !== 'none') : [];
+  const named = typeof cp.allergyNotes === 'string' && cp.allergyNotes.trim() ? cp.allergyNotes.trim() : null;
+  const injuries = health ? [cp.injuries, Array.isArray(cp.medicalConditions) ? cp.medicalConditions.filter((x: unknown) => x && x !== 'none').join(', ') : '', cp.medicalNotes]
+    .filter((x) => typeof x === 'string' && x.trim()).join('; ') || null : null;
+  return { diet: restrictions.length || named ? { restrictions, allergies: named } : null, injuries };
+}
+
 export function renderContext(ctx: UserContext): string {
   const p = ctx.profile;
   const lines: string[] = ['## What you know about this user'];
@@ -181,7 +193,14 @@ export function renderContext(ctx: UserContext): string {
   if (p.heightCm) profileBits.push(`height: ${p.heightCm}cm`);
   if (p.weightKg) profileBits.push(`weight: ${displayWeight(p.weightKg, p.unitPreference, 1)} ${unitLabel(p.unitPreference)}`);
   if (p.constraints) profileBits.push(`constraints: ${p.constraints}`);
+  if (p.injuries) profileBits.push(`intake injuries/medical: ${p.injuries}`);
   lines.push(`Profile — ${profileBits.join(', ')}`);
+  if (p.diet) {
+    const r = p.diet.restrictions.filter((x) => x !== 'allergies').map((x) => x.replace(/_/g, ' '));
+    const allergyLine = p.diet.allergies ? `allergies: ${p.diet.allergies}`
+      : p.diet.restrictions.includes('allergies') ? 'allergies: ticked at intake but NEVER NAMED — before suggesting or estimating any food, ask which (then save it pinned with remember and update_coaching_profile)' : '';
+    lines.push(`Diet — ${[r.length ? r.join(', ') : '', allergyLine].filter(Boolean).join('; ')}. Never suggest food that breaks these.`);
+  }
 
   if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {
     lines.push(`Adaptive progression — ${ctx.adaptation.pendingCount} proposal(s) PENDING the user's decision${ctx.adaptation.latestTitle ? ` (latest: "${ctx.adaptation.latestTitle}")` : ''}. If the user mentions targets, suggestions, or "the card", call read_adaptation for the details before answering.`);

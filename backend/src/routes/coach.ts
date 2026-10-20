@@ -2052,7 +2052,10 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
     const cachedDate = profile.welcomeMessageDate ? new Date(profile.welcomeMessageDate) : null;
     const cacheAgeHours = cachedDate ? (now.getTime() - cachedDate.getTime()) / 3600000 : Infinity;
 
-    if (profile.welcomeMessage && cacheAgeHours < 6) {
+    // The line is about their program: one set aside or replaced makes it stale
+    // ("Week 4 of Foundation" after going freestyle, 20 Oct 2026).
+    const programKey = `${user.savedProgram ? user.savedProgram.length : 0}:${(user as any).programStartDate ? new Date((user as any).programStartDate).toISOString().slice(0, 10) : ''}`;
+    if (profile.welcomeMessage && cacheAgeHours < 6 && (profile.welcomeProgramKey ?? programKey) === programKey) {
       return res.json({ message: profile.welcomeMessage, dismissed: false });
     }
 
@@ -2104,7 +2107,7 @@ router.get('/coach/welcome', requireAuth, async (req, res) => {
 
     await prisma.user.update({
       where: { id: userId },
-      data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message, welcomeMessageDate: now.toISOString() }) },
+      data: { coachProfile: JSON.stringify({ ...profile, welcomeMessage: message, welcomeMessageDate: now.toISOString(), welcomeProgramKey: programKey }) },
     });
 
     res.json({ message, dismissed: false });
