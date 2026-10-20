@@ -38,6 +38,7 @@ import { workoutsApi } from '../../src/lib/api';
 import { v2Api } from '../../src/v2/api';
 import { haptics } from '../../src/v2/haptics';
 import { Mark } from '../../src/v2/primitives/Mark';
+import { PromptSheet } from '../../src/v2/primitives/Sheet';
 import { exName, sessionTitle, sessionDescriptor, estimateMinutes, phaseShort } from '../../src/v2/format';
 import { trackScreen } from '../../src/lib/analytics';
 import { useProScreen } from '../../src/v2/shell/proGate';
@@ -141,6 +142,10 @@ function SessionScreenInner() {
   const P = plan ?? [];
   const cur = P[state.ex];
   const load = state.loads[state.ex];
+  // What they're about to do (editable) — and whether the lift is bodyweight, where weight means added weight.
+  const repsNow = state.reps?.[state.ex] ?? cur?.reps;
+  const bodyweight = !!cur && !cur.load;
+  const [editing, setEditing] = useState<null | 'load' | 'reps'>(null);
   const progress = exerciseProgress(state, P);
 
   const back = () => {
@@ -271,17 +276,32 @@ function SessionScreenInner() {
         {plan && cur && state.step === 'set' ? (
           <Animated.View key={`set-${state.ex}-${state.set}`} entering={FadeIn.duration(520)} exiting={FadeOut.duration(280)}>
             <Text style={[T.eyebrow, eyebrowTone]}>{cur.name} · set {state.set + 1} of {cur.sets}</Text>
+            {/* Tap the weight or the reps to type what you actually did (Oct 2026 feedback: couldn't log heavier dips or extra reps). */}
             <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 14 }}>
-              <Text style={T.display}>{load ?? 'BW'}</Text>
-              {load != null ? <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{unit}</Text> : null}
-              <Text style={[T.read, { color: v2.color.muted, marginLeft: 14 }]}>× {cur.reps}</Text>
+              <Pressable onPress={() => { haptics.select(); setEditing('load'); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Weight: ${load ? `${bodyweight ? 'bodyweight plus ' : ''}${load} ${unit}` : 'bodyweight'}. Tap to change.`}>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                  <Text style={T.display}>{load != null ? `${bodyweight ? '+' : ''}${load}` : 'BW'}</Text>
+                  {load != null ? <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{unit}</Text> : null}
+                </View>
+              </Pressable>
+              <Pressable onPress={() => { haptics.select(); setEditing('reps'); }} hitSlop={10} accessibilityRole="button" accessibilityLabel={`${repsNow} reps. Tap to change.`}>
+                <Text style={[T.read, { color: v2.color.muted, marginLeft: 14, textDecorationLine: 'underline', textDecorationStyle: 'dotted' }]}>× {repsNow}</Text>
+              </Pressable>
             </View>
-            {load != null ? (
-              <View style={{ flexDirection: 'row', gap: 28, marginTop: 8 }}>
-                <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: -rules.step })}>− {rules.step} {unit}</TextAction>
-                <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: rules.step })}>+ {rules.step} {unit}</TextAction>
-              </View>
-            ) : null}
+            {bodyweight && load != null ? <Text style={[T.caption, { marginTop: 4 }]}>Bodyweight + {load} {unit}</Text> : null}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 22, rowGap: 6, marginTop: 8 }}>
+              {load != null ? <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: -rules.step })}>− {rules.step} {unit}</TextAction> : null}
+              <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: rules.step })}>+ {rules.step} {unit}{bodyweight && load == null ? ' added' : ''}</TextAction>
+              <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_reps', delta: -1, base: repsNow })}>− rep</TextAction>
+              <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_reps', delta: 1, base: repsNow })}>+ rep</TextAction>
+            </View>
+            <PromptSheet visible={editing === 'load'} title={bodyweight ? `Added weight (${unit})` : `Weight (${unit})`} sub={bodyweight ? 'Leave empty or 0 for bodyweight only.' : 'What’s on the bar for this set.'}
+              initial={load != null ? String(load) : ''} keyboardType="decimal-pad" unit={unit} saveLabel="Use this"
+              onSubmit={(v) => { const n = parseFloat(String(v).replace(',', '.')); dispatch({ type: 'set_load', load: Number.isFinite(n) ? n : 0 }); setEditing(null); }}
+              onClose={() => setEditing(null)} />
+            <PromptSheet visible={editing === 'reps'} title="Reps" sub="How many you did — or will do — this set." initial={String(parseInt(String(repsNow), 10) || '')} keyboardType="number-pad" saveLabel="Use this"
+              onSubmit={(v) => { const n = parseInt(String(v), 10); if (Number.isFinite(n) && n > 0) dispatch({ type: 'set_reps', reps: n }); setEditing(null); }}
+              onClose={() => setEditing(null)} />
             <View style={{ marginTop: 22 }}><ProgressHairline fraction={state.set / cur.sets} /></View>
             {cur.cue ? <Text style={[T.bodyMuted, { marginTop: 18 }]}>{cur.cue}</Text> : null}
             <View style={{ marginTop: 26 }}>
@@ -309,7 +329,7 @@ function SessionScreenInner() {
             ) : null}
             <View style={{ marginTop: 26 }}>
               <Eyebrow>Up next</Eyebrow>
-              <Row name={`${P[state.ex]?.name}${state.set ? ` · set ${state.set + 1}` : ''}`} value={P[state.ex]?.load != null && state.loads[state.ex] != null ? `${state.loads[state.ex]} × ${P[state.ex].reps}` : `${P[state.ex]?.reps} reps`} last />
+              <Row name={`${P[state.ex]?.name}${state.set ? ` · set ${state.set + 1}` : ''}`} value={state.loads[state.ex] != null ? `${P[state.ex]?.load ? '' : 'BW +'}${state.loads[state.ex]} × ${state.reps?.[state.ex] ?? P[state.ex]?.reps}` : `${state.reps?.[state.ex] ?? P[state.ex]?.reps} reps`} last />
             </View>
             <View style={{ marginTop: 20 }}>
               <Row name="Add 30 s" onPress={() => dispatch({ type: 'rest_add', seconds: 30 })} arrow />

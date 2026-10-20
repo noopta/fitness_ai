@@ -150,6 +150,39 @@ describe('workout machine', () => {
     // Once a set is logged, a late plan doesn't overwrite what's been done.
     expect(workoutReducer(s, { type: 'load_plan', plan: plan.map((p) => ({ ...p, load: 1 })) }).loads[0]).toBe(285);
   });
+  it('what they actually did is saved: heavier, more reps, and weighted bodyweight lifts', () => {
+    const bw: PlanExercise[] = [{ name: 'Dips', sets: 3, reps: 8, load: null, rest: 90, cue: null }];
+    let s = workoutReducer(initialWorkout(bw), { type: 'begin', now: 0 });
+    // Set 1 as written.
+    s = workoutReducer(s, { type: 'rate', rating: 'easy', now: 1000, plan: bw, rules });
+    s = workoutReducer(s, { type: 'rest_skip' });
+    // Set 2: added a 10 lb plate and got 10 reps.
+    s = workoutReducer(s, { type: 'adjust_load', delta: 5 });
+    s = workoutReducer(s, { type: 'adjust_load', delta: 5 });
+    s = workoutReducer(s, { type: 'set_reps', reps: 10 });
+    expect(s.loads[0]).toBe(10);
+    s = workoutReducer(s, { type: 'rate', rating: 'hard', now: 2000, plan: bw, rules });
+    expect(s.lastReceipt?.text ?? '').not.toMatch(/8 reps/);
+    s = workoutReducer(s, { type: 'rest_skip' });
+    // Set 3: typed 12.5, one rep fewer, then back to bodyweight.
+    s = workoutReducer(s, { type: 'set_load', load: 12.5 });
+    s = workoutReducer(s, { type: 'adjust_reps', delta: -1 });
+    s = workoutReducer(s, { type: 'set_load', load: 0 });
+    expect(s.loads[0]).toBeNull();
+    s = workoutReducer(s, { type: 'rate', rating: 'easy', now: 3000, plan: bw, rules });
+    const e = toWorkoutLogBody(s, bw, 'Push', '2026-10-21', 60_000).exercises[0];
+    expect(e.setEntries.map((x) => [x.weight, x.reps])).toEqual([[null, 8], [10, 10], [null, 9]]);
+    expect(e.weight).toBe(10);
+  });
+  it('reps stay within sense', () => {
+    let s = workoutReducer(initialWorkout(plan), { type: 'begin', now: 0 });
+    expect(workoutReducer(s, { type: 'set_reps', reps: 0 })).toBe(s);
+    s = workoutReducer(s, { type: 'adjust_reps', delta: 2 });
+    expect(s.reps?.[0]).toBe(5);
+    // A draft from before per-set reps: the screen passes what it shows.
+    const old = { ...s, reps: undefined };
+    expect(workoutReducer(old, { type: 'adjust_reps', delta: 1, base: 3 }).reps?.[0]).toBe(4);
+  });
   it('miss on a non-last set drops the load by two steps with a revert', () => {
     let s = workoutReducer(initialWorkout(plan), { type: 'begin', now: 0 });
     s = workoutReducer(s, { type: 'rate', rating: 'miss', now: 1000, plan, rules });
