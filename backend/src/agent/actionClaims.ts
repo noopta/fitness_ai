@@ -22,7 +22,7 @@ export const CAPTURE_NUDGE =
 // calling anything. The card had scrolled away; he had nothing to tap. A claim
 // that something is already showing, with no tool this turn, gets one more
 // step: call the tool that brings it back.
-const SHOWN_CLAIM = /\b(card|cards|question|questions|it|that|this)(['’]s| is| are)?\s+(already|still)\s+(open|up|running|showing|live|on (?:your|the) screen|in (?:the|our) chat)\b|\balready (?:open|showing|up) on your screen\b|\bon your screen (?:now|already)\b/i;
+const SHOWN_CLAIM = /\b(card|cards|question|questions|it|that|this)(['’]s| is| are)?\s+(already|still)\s+(open|up|running|showing|live|on (?:your|the) screen|in (?:the|our) chat)\b|\b(?:right |up )?(?:there |up )?on (?:your|the) screen\b/i;
 
 /** Did the reply say a card is already on screen when no tool ran this turn? Pure. */
 export function claimsShownWithoutTool(reply: string, toolsUsed: string[]): boolean {

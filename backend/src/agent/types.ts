@@ -118,6 +118,8 @@ export interface UserContext {
   goalEvent?: string | null;
   /** An open red flag from sign-up: follow-up, clearance check and training rules (services/safetyScreen.ts). */
   safety?: string | null;
+  /** The gut and nutrition questions, when started and not finished. */
+  nutritionQuestions?: string | null;
 }
 
 /** Structured proposal returned by a non-persisting tool (e.g.

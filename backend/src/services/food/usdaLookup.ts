@@ -136,6 +136,10 @@ export function tokens(q: string): string[] {
 }
 
 const RAW_PREP = new Set(['raw', 'fresh', 'uncooked']);
+// How a dish was recorded, not what it is: "Broccoli, cooked, as ingredient",
+// "…, from restaurant", "…, no added fat". They don't count against precision,
+// or a variety ("Broccoli raab, cooked") outranks the plain food.
+const DESCRIPTOR = new Set(['ingredient', 'restaurant', 'no', 'added', 'fat', 'without', 'salt', 'drained', 'boiled', 'prepared', 'plain', 'regular', 'form', 'fresh', 'home', 'recipe', 'commercial', 'all', 'variety', 'types']);
 
 /**
  * Match quality 0..1+ for a candidate against the item's query.
@@ -154,8 +158,13 @@ export function scoreUsdaMatch(query: string, preparation: string | null, cand: 
   if (!d.has(q[0])) return -1;
   const hit = q.filter((t) => d.has(t)).length;
   const recall = hit / q.length;
-  const precision = hit / d.size;
+  const meaningful = [...d].filter((t) => !DESCRIPTOR.has(t) || q.includes(t)).length || d.size;
+  const precision = Math.min(1, hit / meaningful);
   let score = recall * 0.75 + precision * 0.25;
+  // The food itself leads the description ("Broccoli, cooked…"), not a variety
+  // or a different food that mentions it ("Broccoli raab", "Pepper, banana").
+  const head = tokens(cand.description.split(',')[0]);
+  if (head.length === 1 && head[0] === q[0]) score += 0.08;
   const prep = preparation ? singular(foldQuery(preparation)) : null;
   const isRaw = !prep || RAW_PREP.has(prep);
   if (prep && !isRaw && d.has(prep)) score += 0.05;

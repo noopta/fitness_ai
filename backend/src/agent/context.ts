@@ -160,6 +160,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     conversationSummary,
     goalEvent,
     safety: safetyLineFor(user.coachProfile, consent.health),
+    nutritionQuestions: nutritionQuestionsLine(user.coachProfile),
     consentOff: (Object.keys(consent) as ConsentKey[]).filter((k) => !consent[k]),
     adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
     trainingSummary,
@@ -178,6 +179,15 @@ function safetyLineFor(coachProfile: string | null, health: boolean): string | n
   if (!cp.safety || cp.safety.status === 'cleared' && !cp.safety.screen?.notes && cp.safety.screen) return null;
   if (!health) return 'SAFETY: a red flag was raised at sign-up and health-data consent is off — keep any training light and supported, and recommend they see a clinician before loading.';
   return safetyContextLine(cp.safety);
+}
+
+/** Gut and nutrition questions started and not finished: chat answers count, and asking again resumes. */
+function nutritionQuestionsLine(coachProfile: string | null): string | null {
+  let cp: any = {};
+  try { cp = coachProfile ? JSON.parse(coachProfile) : {}; } catch { cp = {}; }
+  const n = Array.isArray(cp.nutritionDraft?.answered) ? cp.nutritionDraft.answered.length : 0;
+  if (!n) return null;
+  return `Gut and nutrition questions IN PROGRESS: ${n} of 13 answered (${cp.nutritionDraft.answered.join(', ')}). Anything they say that answers the rest → answer_nutrition_questions (it shows the next question, and builds their plan onto Fuel when all 13 are in). "Start/carry on with my gut questions" → start_nutrition_assessment, every time.`;
 }
 
 /** Diet restrictions, named allergies and intake injuries — the gaps a coach must never guess past. */
@@ -211,11 +221,12 @@ export function renderContext(ctx: UserContext): string {
   if (p.diet) {
     const r = p.diet.restrictions.filter((x) => x !== 'allergies').map((x) => x.replace(/_/g, ' '));
     const allergyLine = p.diet.allergies ? `allergies: ${p.diet.allergies}`
-      : p.diet.restrictions.includes('allergies') ? 'allergies: ticked at intake but NEVER NAMED — before suggesting or estimating any food, ask which (then save it pinned with remember and update_coaching_profile)' : '';
+      : p.diet.restrictions.includes('allergies') ? 'allergies: ticked at intake but never named — ask which ONCE when food suggestions come up (then save it pinned with remember and update_coaching_profile); if you already asked in recent messages, don\'t ask again and don\'t hold other help back — just avoid common allergens in suggestions' : '';
     lines.push(`Diet — ${[r.length ? r.join(', ') : '', allergyLine].filter(Boolean).join('; ')}. Never suggest food that breaks these.`);
   }
 
   if (ctx.safety) lines.push(ctx.safety);
+  if (ctx.nutritionQuestions) lines.push(ctx.nutritionQuestions);
   if (ctx.goalEvent) lines.push(ctx.goalEvent);
 
   if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {

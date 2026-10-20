@@ -43,6 +43,21 @@ export function toolParams(tools: AgentTool[]): Anthropic.Tool[] {
   return defs as Anthropic.Tool[];
 }
 
+/**
+ * Tools loaded for this user's turn only: a flow they're in the middle of
+ * keeps its tools in hand (20 Oct 2026: plain-chat answers to the gut
+ * questions went unrecorded because the tool was deferred and never searched).
+ */
+export async function promoteTools(userId: string, tools: AgentTool[]): Promise<AgentTool[]> {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } }).catch(() => null);
+  let cp: any = {};
+  try { cp = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { cp = {}; }
+  const names = new Set<string>();
+  if (Array.isArray(cp.nutritionDraft?.answered) && cp.nutritionDraft.answered.length) ['answer_nutrition_questions', 'start_nutrition_assessment'].forEach((n) => names.add(n));
+  if (!names.size) return tools;
+  return tools.map((t) => (names.has(t.name) && !t.core ? { ...t, core: true } : t));
+}
+
 // ── Per-turn context for card builders ──────────────────────────────────────
 export async function toolCtx(userId: string): Promise<ToolCtx> {
   const [u, tz] = await Promise.all([

@@ -15,7 +15,7 @@ import type { AgentTool, AgentTurnResult, AgentProposal, ToolCtx } from './types
 import { receiptForCall, summarizeResult, cardForResult, type AgentCard, type ReceiptVerb } from './receipts.js';
 import type { Card } from './cards/types.js';
 import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
-import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
+import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection, promoteTools } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
 import { needsPlanCard, PLAN_CARD_NUDGE, needsIntakeLog, INTAKE_LOG_NUDGE, stripNudgeTalk } from './nutrientAdvice.js';
 import { claimsCaptureWithoutTool, CAPTURE_NUDGE, claimsShownWithoutTool, SHOWN_NUDGE } from './actionClaims.js';
@@ -259,7 +259,7 @@ export async function runAgentTurn(
   }] : [];
 
   // Per-call tool set = standard registry + delegate (if allowed) + any extras.
-  const tools = [...toolsFor(opts.cardContract === 2 ? 2 : 1), ...delegateTools, ...(opts.extraTools ?? []).map((t) => ({ core: true, ...t }))];
+  const tools = [...await promoteTools(userId, toolsFor(opts.cardContract === 2 ? 2 : 1)), ...delegateTools, ...(opts.extraTools ?? []).map((t) => ({ core: true, ...t }))];
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
@@ -441,7 +441,7 @@ export async function streamAgentTurn(
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
   const baseSystem = contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`;
   const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
-  const tools = toolsFor(contract);
+  const tools = await promoteTools(userId, toolsFor(contract));
   const guard = newTurnGuard(userMessage);
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
