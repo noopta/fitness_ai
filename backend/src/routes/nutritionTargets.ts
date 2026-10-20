@@ -10,6 +10,7 @@ import { cacheMarkStale } from '../services/cacheService.js';
 import { nutritionProfileCacheKey } from '../services/nutritionShared.js';
 import { resolveTargets, quickTargets, summarizeRange, setOwnTargets, type TargetEdit } from '../services/nutritionTargets.js';
 import { queryDateOrToday } from '../services/userTimezone.js';
+import { applyCarbCycling, readCarbCycling, isTrainingDay } from '../services/carbCycling.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -55,14 +56,18 @@ router.get('/nutrition/day-targets', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
     const date = await queryDateOrToday(req, req.query.date);
-    const [u, logs] = await Promise.all([
+    const [u, logs, recent] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true, subtractWorkoutBurnFromCalories: true } }),
       prisma.workoutLog.findMany({ where: { userId, date }, select: { title: true, caloriesBurnedKcal: true } }),
+      prisma.workoutLog.findMany({ where: { userId, date: { gte: new Date(Date.parse(`${date}T12:00:00Z`) - 14 * 86_400_000).toISOString().slice(0, 10), lte: date } }, select: { date: true } }),
     ]);
     if (!u) return res.status(404).json({ error: 'User not found' });
     const burnKcal = Math.round(logs.reduce((s, l) => s + (l.caloriesBurnedKcal ?? 0), 0));
+    // Carb cycling: training-day vs rest-day carbs (services/carbCycling.ts).
+    const base = resolveTargets(u);
+    const targets = base ? applyCarbCycling(base, readCarbCycling(u.coachProfile), isTrainingDay(date, recent.map((r) => r.date))) : base;
     res.json({
-      targets: resolveTargets(u),
+      targets,
       // The workout's burn is its own line on today's target (N-07); the Account toggle turns it off.
       burn: { kcal: burnKcal, label: logs.find((l) => (l.caloriesBurnedKcal ?? 0) > 0)?.title ?? null, addToTarget: u.subtractWorkoutBurnFromCalories !== false },
     });

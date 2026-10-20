@@ -46,7 +46,7 @@ export function readEvent(coachProfile: string | null): GoalEvent | null {
 
 /** Everything a weight plan needs for one user, measured where possible. */
 export async function goalInputs(userId: string) {
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, heightCm: true, dateOfBirth: true, coachProfile: true, goalWeightKg: true, unitPreference: true, timezone: true } });
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true, heightCm: true, dateOfBirth: true, coachProfile: true, goalWeightKg: true, unitPreference: true, timezone: true, subtractWorkoutBurnFromCalories: true } });
   if (!u) throw new Error('User not found');
   const today = todayForTz(u.timezone);
   const from = addDays(today, -35);
@@ -72,7 +72,7 @@ export async function goalInputs(userId: string) {
     activityLevel: cp.activityLevel ?? null, today,
   });
   const floor = calorieFloorFor({ ...fp, weightKg: currentKg ?? fp.weightKg });
-  return { today, currentKg, unit: (u.unitPreference === 'metric' ? 'metric' : 'imperial') as 'metric' | 'imperial', event: readEvent(u.coachProfile), goalWeightKg: u.goalWeightKg, maintenance, floorKcal: floor.floor, weighInsLogged: weighIns.length };
+  return { today, currentKg, unit: (u.unitPreference === 'metric' ? 'metric' : 'imperial') as 'metric' | 'imperial', event: readEvent(u.coachProfile), goalWeightKg: u.goalWeightKg, maintenance, floorKcal: floor.floor, weighInsLogged: weighIns.length, addsBurnBack: u.subtractWorkoutBurnFromCalories !== false };
 }
 
 /** For a weigh-in: the date the walk-around weight must be reached (the acute protocol's start). */
@@ -115,7 +115,12 @@ export async function goalContextLine(userId: string): Promise<string | null> {
   if (g.currentKg) parts.push(`now ${kgIn(g.currentKg, g.unit)} (7-day average, ${g.weighInsLogged} weigh-ins in 5 weeks)`);
   parts.push(`maintenance ~${g.maintenance.kcal} kcal (${g.maintenance.detail})`);
   if (e.acutePlan) parts.push(`their acute protocol (theirs and their team's — support it, never script it): ${e.acutePlan}`);
-  return `Event — ${parts.join('; ')}. For any calorie, macro or pace question call plan_weight_goal; re-check the plan against their weigh-in trend every ~2 weeks and when they ask; never say targets stay the same all the way to the event.`;
+  // Re-check due: targets unchanged for 2+ weeks while a dated goal runs.
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } }).catch(() => null);
+  const setAt = parse(u?.coachProfile ?? null)?.nutritionTargets?.setAt;
+  const sinceSet = setAt ? Math.floor((Date.now() - Date.parse(setAt)) / 86_400_000) : null;
+  const due = sinceSet != null && sinceSet >= 14 ? ` RE-CHECK DUE: their targets were set ${sinceSet} days ago — call plan_weight_goal, compare the projection with their weigh-in trend, and if they've drifted off pace, propose the adjustment (they confirm).` : '';
+  return `Event — ${parts.join('; ')}. For any calorie, macro or pace question call plan_weight_goal; re-check the plan against their weigh-in trend every ~2 weeks and when they ask; never say targets stay the same all the way to the event.${due}`;
 }
 
 defineOp({
@@ -127,6 +132,18 @@ defineOp({
     const next = args.event ? { ...(args.event as GoalEvent), setAt: new Date().toISOString() } : null;
     await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify({ ...cp, goalEvent: next }) } });
     return { result: { event: next }, inverse: { op: 'goal.set_event', args: { event: before } }, summary: next ? `Event · ${next.name ?? next.kind} · ${next.weighInDate ?? next.date}` : 'Event cleared' };
+  },
+});
+
+defineOp({
+  name: 'goal.set_carb_cycling',
+  run: async (userId, args) => {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true } });
+    const cp = parse(u?.coachProfile);
+    const before = cp.carbCycling ?? null;
+    const next = args.cycling ? { ...(args.cycling as object), setAt: new Date().toISOString() } : null;
+    await prisma.user.update({ where: { id: userId }, data: { coachProfile: JSON.stringify({ ...cp, carbCycling: next }) } });
+    return { result: { cycling: next }, inverse: { op: 'goal.set_carb_cycling', args: { cycling: before } }, summary: next ? `Carbs · ${(next as any).trainingDayCarbs} g training days, ${(next as any).restDayCarbs} g rest days` : 'Carb cycling off' };
   },
 });
 
@@ -193,10 +210,35 @@ export const GOAL_TOOLS = [
         required: { pace: `${perWeek(plan.required.kgPerWeek, g.unit)} (${Math.round(Math.abs(plan.required.pctPerWeek) * 1000) / 10}%/wk)`, band: plan.required.band },
         maintenance: `${g.maintenance.kcal} kcal (${g.maintenance.detail})`,
         recommended: fmt(plan.recommended), safeOptions: plan.options.map(fmt),
-        unreachableSafely: plan.unreachableSafely, earliestSafeDate: plan.earliestSafeDate, notes: plan.notes,
+        unreachableSafely: plan.unreachableSafely, earliestSafeDate: plan.earliestSafeDate,
+        notes: [...plan.notes,
+          // Maintenance here already counts their training; adding each session's burn back on top would erase the deficit.
+          ...(g.addsBurnBack && plan.direction === 'loss' ? ['Their app adds each workout’s calories back to the day’s target. This plan’s maintenance already counts their training, so that double-counts and can wipe out the deficit — suggest switching “Count workout calories” off (update_preferences: subtractWorkoutBurnFromCalories false) and say why.'] : []),
+          ...(g.weighInsLogged < 6 ? ['Few weigh-ins logged: ask them to weigh in most mornings — after ~2 weeks maintenance becomes measured instead of estimated, and the plan gets accurate.'] : []),
+        ],
         howToAnswer: 'Lead with the recommended route, its daily calories and the date it lands. If they want a faster listed option, give its cost in one sentence (strength/power, recovery, hunger) and then do it. Never offer anything faster than the listed options. For a weigh-in, keep the acute cut at or under ~5% and remind them the acute protocol is theirs and their team’s.',
       };
     },
+  }),
+  tool({
+    name: 'set_carb_cycling', kind: 'propose', fn: 'GOL-03',
+    description: 'Match carbs to training: a training-day carb target and a rest-day one (grams), calories moving with them, the weekly total about the same. Training days are the weekdays they’ve trained in the last two weeks, plus any day they log training. Suggest it for athletes training most days on a cut (fighters, two-a-days): hard days fuelled (~4–7 g/kg), rest days lower. off: true turns it off.',
+    input_schema: schema({ trainingDayCarbs: { type: 'number' }, restDayCarbs: { type: 'number' }, off: { type: 'boolean' }, why: { type: 'string' } }),
+    receipt: () => ({ verb: 'Proposed', text: 'Carbs by training day' }),
+    execute: async (input) => {
+      if (input.off === true) return { cycling: null };
+      const tr = Math.round(numOr(input.trainingDayCarbs) ?? 0), rs = Math.round(numOr(input.restDayCarbs) ?? 0);
+      if (!(tr > 0 && rs > 0 && tr >= rs && tr <= 900)) throw new Error('Give training-day and rest-day carbs in grams (training ≥ rest).');
+      return { cycling: { trainingDayCarbs: tr, restDayCarbs: rs }, why: str(input.why) };
+    },
+    card: (_i, r): CardDraft => ({
+      fn: 'GOL-03', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · carbs by training day', open: { page: 'fuelplan' } },
+      ...(r.cycling ? { rows: [{ key: 'Training days', value: `${r.cycling.trainingDayCarbs} g carbs` }, { key: 'Rest days', value: `${r.cycling.restDayCarbs} g carbs` }] } : { empty: 'Same carbs every day.' }),
+      ...(r.why ? { why: String(r.why).slice(0, 160) } : {}),
+      actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
+      entity: 'nutrition:carbcycling',
+      pending: { actions: { apply: { op: 'goal.set_carb_cycling', args: { cycling: r.cycling } }, keep: { kind: 'keep' } } },
+    }),
   }),
 ];
 registerToolkit(GOAL_TOOLS);

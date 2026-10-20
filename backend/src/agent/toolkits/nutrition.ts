@@ -11,7 +11,7 @@ import { createMealEntry, updateMealEntry, deleteMealEntry, restoreMealEntry } f
 import { withBrandedLookups } from '../../services/llmService.js';
 import { estimateTypedMeal, parseTypedMeal } from '../../services/food/typedMeal.js';
 import { asksForLookup } from '../../services/food/foodResolver.js';
-import { dayLabel, num, plural, clockTime } from '../cards/format.js';
+import { dayLabel, num, plural, clockTime, shiftDate } from '../cards/format.js';
 import type { CardAction, CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import type { ItemLookupResult } from '../../services/food/brandedLookup.js';
@@ -30,18 +30,24 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ── Day totals vs targets (the program's macros are the app's source of truth) ─
 export async function dayNutrition(userId: string, date: string) {
-  const [meals, u, workouts] = await Promise.all([
+  const [meals, u, workouts, recent] = await Promise.all([
     prisma.mealEntry.findMany({ where: { userId, date }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, mealType: true, calories: true, proteinG: true, carbsG: true, fatG: true, createdAt: true, servings: true, nutrientsJson: true } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, subtractWorkoutBurnFromCalories: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, coachProfile: true, dailyCalorieTarget: true, subtractWorkoutBurnFromCalories: true } }),
     prisma.workoutLog.findMany({ where: { userId, date }, select: { caloriesBurnedKcal: true } }),
+    prisma.workoutLog.findMany({ where: { userId, date: { gte: shiftDate(date, -14), lte: date } }, select: { date: true } }),
   ]);
-  const plan = parseJson<any>(u?.savedProgram, null)?.nutritionPlan;
-  const macros = plan?.macros ?? null;
+  // The same targets Fuel shows: the program's plan, else their own (freestyle users had none here
+  // before Oct 2026), adjusted for carb cycling on training vs rest days.
+  const { resolveTargets } = await import('../../services/nutritionTargets.js');
+  const { applyCarbCycling, readCarbCycling, isTrainingDay } = await import('../../services/carbCycling.js');
+  const resolved = u ? resolveTargets(u) : null;
+  const macros = resolved ? applyCarbCycling({ ...resolved, carbsG: resolved.carbsG ?? null }, readCarbCycling(u?.coachProfile ?? null), isTrainingDay(date, recent.map((r) => r.date))) : null;
   const burn = workouts.reduce((n, w) => n + (w.caloriesBurnedKcal ?? 0), 0);
   const addBurn = u?.subtractWorkoutBurnFromCalories !== false;
   const target = macros ? {
     calories: Math.round((Number(macros.calories) || 0) + (addBurn ? burn : 0)), baseCalories: Math.round(Number(macros.calories) || 0),
     proteinG: Math.round(Number(macros.proteinG) || 0), carbsG: Math.round(Number(macros.carbsG) || 0), fatG: Math.round(Number(macros.fatG) || 0),
+    ...((macros as any).dayType ? { dayType: (macros as any).dayType } : {}),
   } : null;
   const totals = meals.reduce((a, m) => ({ calories: a.calories + m.calories, proteinG: a.proteinG + m.proteinG, carbsG: a.carbsG + m.carbsG, fatG: a.fatG + m.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
   return { date, meals, totals, target, burn: addBurn ? burn : 0 };
