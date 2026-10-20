@@ -17,7 +17,7 @@ import type { Card } from './cards/types.js';
 import { CardNoteFilter, stripCardNotes } from './cardNotes.js';
 import { toolParams, toolCtx, runToolCall, capCards, disableToolSearch, isToolSearchRejection } from './turn.js';
 import { setTurnMessage } from './turnMessage.js';
-import { needsPlanCard, PLAN_CARD_NUDGE, stripNudgeTalk } from './nutrientAdvice.js';
+import { needsPlanCard, PLAN_CARD_NUDGE, needsIntakeLog, INTAKE_LOG_NUDGE, stripNudgeTalk } from './nutrientAdvice.js';
 import { claimsCaptureWithoutTool, CAPTURE_NUDGE } from './actionClaims.js';
 import { SAFETY_BLOCK, UNTRUSTED_DATA_RULE } from '../prompts/safety.js';
 import { userRequestedWrite } from './untrusted.js';
@@ -70,6 +70,7 @@ How changes work — the app enforces these, so follow them:
 - PROPOSE tools (program edits, swaps, schedule moves, targets, macros, new programs, restores) never apply anything: they put a card up and the user taps Apply. After proposing, say in one line what you put up for them to review — never claim it is already done. Don't ask "want me to apply it?" — the card is the question.
 - When they ask whether they can do something one of your propose tools does ("can I just freestyle?", "can we make Thursday shorter?"), the answer is the card: put it up in that same turn — don't describe the option and wait for a second "yes".
 - Writing a program takes about 20–30 seconds and the app shows its steps live — don't narrate them or apologise for the wait, and never write a second one in the same turn.
+- REQUIRED: when the user says they ate, drank or took something — supplements included ("took magnesium 400 mg and D3 5000 IU", "had my vitamin C") — log it with log_meal in THIS turn, each dose exactly as they wrote it. A comment about the dose is not a log; unlogged, it's missing from their day and their micronutrients.
 - REQUIRED: if your reply recommends a nutrient amount, a target or a supplement dose (vitamin C 500 mg, zinc 15 mg, vitamin D 1000 IU, omega-3 2 g, protein 180 g, collagen before physio…), call propose_nutrition_plan_change in THIS turn, before you reply, with all of it in one card: focus → the nutrients you named, a raised target for each, each supplement with dose and when, and any calorie/macro change too (not a separate propose_macro_change). Then the reply says in one line what's on the card. Never end with "want me to set that?" — the card is the question. The Fuel plan tracks focus nutrients and targets daily; never say the app can't track micronutrients.
 - Don't narrate an action before its tool result ("I'll swap that…"); say what happened after. If the tool says there's nothing to change, say that plainly and nothing else.
 - Calorie and macro targets never depend on a program: change them whenever asked, program or not (freestyle included). Never tell someone a target will be set "after" something else.
@@ -280,6 +281,7 @@ export async function runAgentTurn(
   // Nutrient advice without a plan card gets one more step (nutrientAdvice.ts).
   let planNudged = false;
   let captureNudged = false;
+  let intakeNudged = false;
   let nudgedReply = '';
 
   while (iterations < MAX_ITERATIONS && guard.modelCalls < MAX_MODEL_CALLS_PER_TURN) {
@@ -313,9 +315,16 @@ export async function runAgentTurn(
         messages.push({ role: 'user', content: CAPTURE_NUDGE });
         continue;
       }
+      if (opts.cardContract === 2 && !intakeNudged && needsIntakeLog(userMessage, toolsUsed)) {
+        // Something they had went unlogged: one more step to log it (nutrientAdvice.ts).
+        intakeNudged = true;
+        nudgedReply = [nudgedReply, planNudged ? stripNudgeTalk(reply) : reply].filter(Boolean).join('\n\n');
+        messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
+        continue;
+      }
       if (opts.cardContract === 2 && !planNudged && needsPlanCard(reply, toolsUsed)) {
         planNudged = true;
-        nudgedReply = reply;
+        nudgedReply = [nudgedReply, intakeNudged ? stripNudgeTalk(reply) : reply].filter(Boolean).join('\n\n');
         messages.push({ role: 'user', content: PLAN_CARD_NUDGE });
         continue;
       }
@@ -453,6 +462,7 @@ export async function streamAgentTurn(
   let truncationRetried = false;
   let planNudged = false;
   let captureNudged = false;
+  let intakeNudged = false;
 
   const finish = async (reply: string): Promise<AgentTurnResult> => {
     if (contract === 2) {
@@ -482,7 +492,7 @@ export async function streamAgentTurn(
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text).join('').trim() || finalText.trim();
       // After a plan-card nudge, the model's reply to the check is for us, not the user.
-      const text = stripCardNotes(joinSteps(planNudged ? [...earlier, stripNudgeTalk(last)] : [...earlier, last]));
+      const text = stripCardNotes(joinSteps(planNudged || intakeNudged ? [...earlier, stripNudgeTalk(last)] : [...earlier, last]));
       if (!text && res.stop_reason === 'max_tokens' && !truncationRetried) {
         truncationRetried = true;
         messages.pop(); // drop the truncated turn (may hold a partial tool_use)
@@ -497,6 +507,14 @@ export async function streamAgentTurn(
         captureNudged = true;
         finalText = '';
         messages.push({ role: 'user', content: CAPTURE_NUDGE });
+        continue;
+      }
+      if (contract === 2 && !intakeNudged && needsIntakeLog(userMessage, toolsUsed)) {
+        // Keep what streamed; ask for the log it skipped.
+        intakeNudged = true;
+        if (finalText.trim()) { earlier.push(planNudged ? stripNudgeTalk(finalText.trim()) : finalText.trim()); emitText(' '); }
+        finalText = '';
+        messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
         continue;
       }
       if (contract === 2 && !planNudged && needsPlanCard(text, toolsUsed)) {

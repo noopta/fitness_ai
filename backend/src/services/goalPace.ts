@@ -49,6 +49,8 @@ export interface PaceInput {
   floorKcal: number;
   /** Weigh-in sports: the limit, so the acute cut each route leaves can be shown. */
   weighIn?: { limitKg: number; date: string } | null;
+  /** The pace the user asked for (kg/week, either sign — taken in the goal's direction). */
+  requestedKgPerWeek?: number | null;
 }
 
 export interface PaceOption {
@@ -81,6 +83,8 @@ export interface PacePlan {
   unreachableSafely: boolean;
   /** Earliest date the target is reached at the acceptable pace (the honest timeline when it isn't safe by the date). */
   earliestSafeDate: string;
+  /** The pace the user asked for: its option when safe (null when not), and its band. */
+  requested: { option: PaceOption | null; band: PaceBand } | null;
   /** One-line verdicts the agent words for the user. */
   notes: string[];
 }
@@ -125,6 +129,22 @@ export function planPace(i: PaceInput): PacePlan {
     const exact = option(reqBand, 'Exactly on time', reqPct);
     if (!options.some((o) => Math.abs(o.pctPerWeek - exact.pctPerWeek) < 0.0005)) options.push(exact);
   }
+  // The pace the user asked for is its own option when it's safe — "2 lb a week"
+  // at 1.2%/wk got "not one of the listed paces" on 20 Oct when it sat between them.
+  let requested: PacePlan['requested'] = null;
+  const reqUser = Math.abs(Number(i.requestedKgPerWeek) || 0);
+  if (reqUser > 0 && direction !== 'hold') {
+    const pct = (sign * reqUser) / i.currentKg;
+    const band: PaceBand = direction === 'gain' ? (Math.abs(pct) <= 0.005 ? 'recommended' : Math.abs(pct) <= 0.0075 ? 'acceptable' : 'unsafe') : bandFor(pct);
+    if (band === 'unsafe') requested = { option: null, band };
+    else {
+      const mine = option(band, 'Their pace', pct);
+      const same = options.findIndex((o) => Math.abs(o.pctPerWeek - mine.pctPerWeek) < 0.0005);
+      if (same >= 0) options[same] = { ...options[same], label: `Their pace — ${options[same].label}` };
+      else options.push(mine);
+      requested = { option: same >= 0 ? options[same] : mine, band };
+    }
+  }
   options.sort((a, b) => Math.abs(a.pctPerWeek) - Math.abs(b.pctPerWeek));
 
   const meets = (o: PaceOption) => Math.abs(o.kgOnDate - i.targetKg) < 0.3;
@@ -144,7 +164,19 @@ export function planPace(i: PaceInput): PacePlan {
     if (a > ACUTE.warn) notes.push(`That leaves a ${r1(a * 100)}% acute cut for the weigh-in — over the ~8% limit; lose more before fight week or move up a class.`);
     else if (a > ACUTE.ok) notes.push(`That leaves a ${r1(a * 100)}% acute cut — above the ~5% that's manageable with a day-before weigh-in. Losing a little more beforehand makes fight week safer.`);
   }
-  return { direction, weeks: r1(weeks), required: { pctPerWeek: Math.round(reqPct * 10000) / 10000, kgPerWeek: r1(reqKgWk), band: reqBand }, recommended, options, unreachableSafely, earliestSafeDate, notes };
+  if (requested) {
+    const pctTxt = `${r1(Math.abs((sign * reqUser) / i.currentKg) * 100)}%/wk`;
+    const o = requested.option;
+    if (!o) notes.push(`Their pace (${pctTxt}) is over the ${direction === 'gain' ? '0.75' : '1.5'}% a week safe ceiling — not offered. Offer the fastest listed option instead.`);
+    else {
+      notes.push(o.band === 'aggressive'
+        ? `Their pace (${pctTxt}) is aggressive but safe against this deadline: warn once (some strength/power, recovery and hunger cost; protein high, keep lifting heavy), then go with it.`
+        : `Their pace (${pctTxt}) is within safe limits — go with it.`);
+      if (o.floored) notes.push('Their pace needs less than the safe calorie floor, so it is planned at the floor and runs a little slower.');
+      if (direction !== 'hold' && o.reachesOn < i.byDate) notes.push(`At their pace they reach the target around ${o.reachesOn}, before ${i.byDate} — then hold at maintenance until then.`);
+    }
+  }
+  return { direction, weeks: r1(weeks), requested, required: { pctPerWeek: Math.round(reqPct * 10000) / 10000, kgPerWeek: r1(reqKgWk), band: reqBand }, recommended, options, unreachableSafely, earliestSafeDate, notes };
 }
 
 /** Pure: where a daily intake lands by a date (kg), given maintenance. */

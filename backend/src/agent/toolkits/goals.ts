@@ -187,8 +187,8 @@ export const GOAL_TOOLS = [
   }),
   tool({
     name: 'plan_weight_goal', kind: 'read', core: true, fn: 'GOL-02',
-    description: 'Plan a weight goal for ANY user: where they are (7-day average), their maintenance (measured from weigh-ins + logged intake when there is enough, else estimated with all their training counted), and every SAFE pace with its daily calories, the date it gets there and — for weigh-ins — the acute cut it leaves. targetWeight + unit + byDate, or leave them out to use their saved event. Give the recommended route first with its timeline and why; if they want faster and it is listed, warn once with the real cost, then go with their choice; anything not listed is unsafe — never offer it, give the earliest safe date instead.',
-    input_schema: schema({ targetWeight: { type: 'number' }, unit: UNIT_FIELD, byDate: { type: 'string' } }),
+    description: 'Plan a weight goal for ANY user: where they are (7-day average), their maintenance (measured from weigh-ins + logged intake when there is enough, else estimated with all their training counted), and every SAFE pace with its daily calories, the date it gets there and — for weigh-ins — the acute cut it leaves. targetWeight + unit + byDate, or leave them out to use their saved event. Give the recommended route first with its timeline and why; if they want faster and it is listed, warn once with the real cost, then go with their choice; anything not listed is unsafe — never offer it, give the earliest safe date instead. wantsPerWeek: the pace they asked for (in unit, e.g. 2 for "2 lb a week") — theirPace then says whether it is safe and what it costs.',
+    input_schema: schema({ targetWeight: { type: 'number' }, unit: UNIT_FIELD, byDate: { type: 'string' }, wantsPerWeek: { type: 'number' } }),
     receipt: () => ({ verb: 'Computed', text: 'Weight-goal plan' }),
     execute: async (input, userId) => {
       const g = await goalInputs(userId);
@@ -199,24 +199,26 @@ export const GOAL_TOOLS = [
         : e?.walkAroundKg ?? (e?.limitKg ? e.limitKg * 1.035 : g.goalWeightKg);
       const byDate = /^\d{4}-\d{2}-\d{2}$/.test(str(input.byDate)) ? str(input.byDate) : e ? dietDeadline(e) : null;
       if (!targetKg || !byDate) return { needs: 'A target weight and a date (or save their event with set_goal_event).' };
-      const plan = planPace({ today: g.today, currentKg: g.currentKg, targetKg, byDate, tdee: g.maintenance.kcal, floorKcal: g.floorKcal, weighIn: e?.limitKg ? { limitKg: e.limitKg, date: e.weighInDate ?? e.date } : null });
+      const plan = planPace({ today: g.today, currentKg: g.currentKg, targetKg, byDate, tdee: g.maintenance.kcal, floorKcal: g.floorKcal, weighIn: e?.limitKg ? { limitKg: e.limitKg, date: e.weighInDate ?? e.date } : null,
+        requestedKgPerWeek: numOr(input.wantsPerWeek) ? (unit === 'metric' ? numOr(input.wantsPerWeek)! : numOr(input.wantsPerWeek)! / LB) : null });
       const fmt = (o: typeof plan.recommended) => ({
         route: o.label, pace: `${perWeek(o.kgPerWeek, g.unit)} (${Math.round(Math.abs(o.pctPerWeek) * 1000) / 10}% of body weight)`, band: o.band,
         dailyCalories: o.kcal, ...(o.floored ? { flooredAt: 'the safe minimum — slower than the label' } : {}),
-        weightOnDate: kgIn(o.kgOnDate, g.unit), reachesTarget: o.reachesOn, ...(o.acuteFraction != null ? { acuteCutLeft: `${Math.round(o.acuteFraction * 1000) / 10}%` } : {}),
+        weightOnDate: kgIn(o.kgOnDate, g.unit), reachesTarget: o.reachesOn, ...(o.acuteFraction != null ? { acuteCutLeft: `${Math.round(o.acuteFraction * 1000) / 10}% of body weight for fight week to take off (≤5% ceiling; smaller is safer)` } : {}),
       });
       return {
         now: kgIn(g.currentKg, g.unit), target: kgIn(targetKg, g.unit), byDate, weeks: plan.weeks,
         required: { pace: `${perWeek(plan.required.kgPerWeek, g.unit)} (${Math.round(Math.abs(plan.required.pctPerWeek) * 1000) / 10}%/wk)`, band: plan.required.band },
         maintenance: `${g.maintenance.kcal} kcal (${g.maintenance.detail})`,
         recommended: fmt(plan.recommended), safeOptions: plan.options.map(fmt),
+        ...(plan.requested ? { theirPace: plan.requested.option ? { ...fmt(plan.requested.option), safe: true } : { safe: false, band: 'unsafe' } } : {}),
         unreachableSafely: plan.unreachableSafely, earliestSafeDate: plan.earliestSafeDate,
         notes: [...plan.notes,
           // Maintenance here already counts their training; adding each session's burn back on top would erase the deficit.
           ...(g.addsBurnBack && plan.direction === 'loss' ? ['Their app adds each workout’s calories back to the day’s target. This plan’s maintenance already counts their training, so that double-counts and can wipe out the deficit — suggest switching “Count workout calories” off (update_preferences: subtractWorkoutBurnFromCalories false) and say why.'] : []),
           ...(g.weighInsLogged < 6 ? ['Few weigh-ins logged: ask them to weigh in most mornings — after ~2 weeks maintenance becomes measured instead of estimated, and the plan gets accurate.'] : []),
         ],
-        howToAnswer: 'Lead with the recommended route, its daily calories and the date it lands. If they want a faster listed option, give its cost in one sentence (strength/power, recovery, hunger) and then do it. Never offer anything faster than the listed options. For a weigh-in, keep the acute cut at or under ~5% and remind them the acute protocol is theirs and their team’s.',
+        howToAnswer: 'Lead with the recommended route, its daily calories and the date it lands. If they want a faster listed option — or theirPace is safe — give its cost in one sentence (strength/power, recovery, hunger) and then do it: propose_macro_change at that option\'s dailyCalories in the same turn. A pace in safeOptions or a safe theirPace is allowed; never call it unlisted. A proposed card isn\'t applied until they tap it — never say it is. Never offer anything faster than the listed options. For a weigh-in, acuteCutLeft is how much fight week has to take off: SMALLER IS SAFER — ~5% is a ceiling, never a target or a "buffer" to keep; under 5% is good news. Keep it at or under ~5% and remind them the acute protocol is theirs and their team’s.',
       };
     },
     card: () => null, // the numbers go in the reply; the targets card comes from propose_macro_change

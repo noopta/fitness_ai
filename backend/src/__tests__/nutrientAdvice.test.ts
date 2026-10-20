@@ -2,7 +2,7 @@
 // without one (11 Oct 2026: post-surgery advice that never became trackable).
 
 import { describe, it, expect } from 'vitest';
-import { needsPlanCard } from '../agent/nutrientAdvice.js';
+import { needsPlanCard, needsIntakeLog } from '../agent/nutrientAdvice.js';
 
 describe('needsPlanCard', () => {
   it('catches recommended amounts with no card', () => {
@@ -19,3 +19,20 @@ describe('needsPlanCard', () => {
     expect(needsPlanCard('Lean on citrus, peppers and berries at meals.', [])).toBe(false);
   });
 });
+
+describe('needsIntakeLog', () => {
+  it('a supplement report with no log needs one (20 Oct: magnesium + D3 went unlogged)', () => {
+    expect(needsIntakeLog('Took magnesium glycinate 400mg and vitamin D3 5000 IU', [])).toBe(true);
+    expect(needsIntakeLog('just had my vitamin c', ['read_nutrition_today'])).toBe(true);
+    expect(needsIntakeLog('I ate a chicken wrap and fries', [])).toBe(true);
+    expect(needsIntakeLog('had a protein shake after sparring', [])).toBe(true);
+  });
+  it('logged, asked about, or not food: no', () => {
+    expect(needsIntakeLog('Took magnesium 400mg', ['log_meal'])).toBe(false);
+    expect(needsIntakeLog('Should I take vitamin D 5000 IU?', [])).toBe(false);
+    expect(needsIntakeLog('how much magnesium can I take', [])).toBe(false);
+    expect(needsIntakeLog('I had a hard sparring session today', [])).toBe(false);
+    expect(needsIntakeLog('<app_note>\n- logged: Ate oats\n</app_note>\nwhat should my next session be?', [])).toBe(false);
+  });
+});
+

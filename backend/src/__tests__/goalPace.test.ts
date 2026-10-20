@@ -47,4 +47,20 @@ describe('planPace', () => {
     expect(p.direction).toBe('gain');
     expect(p.recommended.kcal).toBeGreaterThan(2600);
   });
+  it('his own 2 lb/week is a safe option with a warning, reaching 151 early', () => {
+    const p = planPace({ ...saeed, requestedKgPerWeek: lb(2) });
+    expect(p.requested?.band).toBe('aggressive');
+    const o = p.requested!.option!;
+    expect(o.label).toMatch(/Their pace/);
+    expect(p.options).toContain(o);
+    expect(o.reachesOn < '2027-01-04').toBe(true);
+    expect(p.notes.join(' ')).toMatch(/aggressive but safe.*warn once/);
+    expect(p.notes.join(' ')).toMatch(/hold at maintenance/);
+  });
+  it('a pace over the ceiling is never an option', () => {
+    const p = planPace({ ...saeed, requestedKgPerWeek: lb(4) });
+    expect(p.requested).toEqual({ option: null, band: 'unsafe' });
+    expect(p.options.every((o) => o.band !== 'unsafe')).toBe(true);
+    expect(p.notes.join(' ')).toMatch(/not offered/);
+  });
 });
