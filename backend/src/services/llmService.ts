@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { coerceTypedFoods } from './food/typedMicros.js';
 import { describeCheckin } from './checkinText.js';
 import { parseModelJson } from './modelJson.js';
 import { GoogleGenAI, type MediaResolution } from '@google/genai';
@@ -2145,6 +2146,10 @@ export interface ParsedMealDetail extends ParsedMealMacros {
   brandedItems?: BrandedItem[];
   /** Questions chat should ask before logging (a vague brand, an unnamed restaurant). */
   clarify?: string[];
+  /** The generic foods in the meal with grams + the calories counted for each — USDA micros come from these (typedMicros.ts). */
+  foods?: import('./food/typedMicros.js').TypedFood[];
+  /** Where the micros came from, when USDA supplied part of them. */
+  microSource?: { usdaShare: number; matched: number; total: number; sources: { food: string; usda: string }[] };
 }
 
 // Pull every finite numeric value out of a raw nutrients object into an open
@@ -2258,6 +2263,7 @@ function coerceParsedMealDetail(raw: any): ParsedMealDetail {
           .filter((d: { name: string }) => d.name)
           .slice(0, 30)
       : undefined,
+    ...(Array.isArray(raw?.foods) ? { foods: coerceTypedFoods(raw.foods) } : {}),
   };
 }
 
@@ -2273,6 +2279,8 @@ export interface ParseMealOptions {
   explicit?: boolean;
   /** Tests: replace the resolver. */
   resolveFn?: typeof resolveAll;
+  /** Tests: replace the USDA food lookup for typed-meal micros. */
+  usdaLookup?: import('./food/typedMicros.js').FoodLookup;
 }
 
 export async function parseMealMacros(
@@ -2338,10 +2346,15 @@ OUTPUT FORMAT (JSON only, no explanation):
   "ingredientDetails": [
     { "name": "chicken shawarma", "nutrients": { "proteinG": 34, "cholineMg": 95, "zincMg": 2.1, "ironMg": 1.2 } },
     { "name": "rice", "nutrients": { "carbsG": 45, "magnesiumMg": 19, "fiberG": 1 } }
+  ],
+  "foods": [
+    { "name": "chicken shawarma", "usdaQuery": "chicken thigh roasted", "preparation": "roasted", "grams": 150, "calories": 290 },
+    { "name": "rice", "usdaQuery": "rice white cooked", "preparation": "cooked", "grams": 200, "calories": 260 }
   ]
 }
 
 - The "nutrients" object is OPEN: include every nutrient you can reasonably estimate for the full meal. Beyond the keys shown, ADD keys when the food is notably rich in them — e.g. cholineMg, leucineG, tryptophanG, seleniumMcg, iodineMcg, vitaminKMcg, vitaminB6Mg, addedSugarG. Use the same "<name><Unit>" key style (e.g. mg → Mg, mcg → Mcg, g → G). Do NOT force a value where you have no basis; omit rather than guess wildly.
+- "foods" (required, may be empty): every GENERIC food in the meal — home cooking, produce, plain dishes, sauces, oils — NOT the named-brand/chain items listed in "branded". Each: "name" as the user would say it; "usdaQuery" a plain USDA-style generic name (main food word first, e.g. "noodles egg cooked", "chicken breast grilled", "olive oil", "broccoli steamed"); "preparation" (raw, cooked, grilled, fried…) or null; "grams" your portion estimate; "calories" what you counted for that food in the totals above. Their calories plus the branded items' should add up to the meal's calories.
 - "ingredientDetails": break the meal into its component foods and, for each, give the nutrients THAT ingredient contributes (same open key style). This is what lets us show what each food carries. Keep it to the meaningful ingredients.
 
 digestiveSpeed: "fast" = rapidly digested (white rice, candy, juice), "medium" = moderate digestion (whole grains, lean proteins), "slow" = slow digesting (legumes, high-fat, fibrous veg).
@@ -2366,7 +2379,7 @@ ${regionPromptBlock(region, 'text')}`;
     ? await geminiJsonText(MEAL_PARSE_MODEL, prompt)
     : (await chatComplete({
       messages: [{ role: 'user', content: prompt }],
-      max_completion_tokens: 2400,
+      max_completion_tokens: 3200,
       response_format: { type: 'json_object' },
     })).choices[0].message.content || '{}';
   const json = parseModelJson(raw);

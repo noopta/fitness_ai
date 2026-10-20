@@ -10,6 +10,11 @@ import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry, restoreMealEntry } from '../../services/mealLogService.js';
 import { withBrandedLookups } from '../../services/llmService.js';
 import { estimateTypedMeal, parseTypedMeal } from '../../services/food/typedMeal.js';
+import { scaleMicros } from '../../services/food/typedMicros.js';
+import { looksLikeSupplement } from '../../services/supplementDoses.js';
+
+/** The open nutrient map minus macros (the user's own macros win). */
+const withoutMacros = (m: Record<string, number> | undefined) => Object.fromEntries(Object.entries(m ?? {}).filter(([k]) => !['calories', 'proteinG', 'carbsG', 'fatG'].includes(k)));
 import { asksForLookup } from '../../services/food/foodResolver.js';
 import { dayLabel, num, plural, clockTime, shiftDate } from '../cards/format.js';
 import type { CardAction, CardDraft, CardRow } from '../cards/types.js';
@@ -289,6 +294,19 @@ export const NUTRITION_TOOLS = [
         // Numbers the user gave: clamp only (a partial set, like calories alone, is normal).
         const safe = sanitizeMealMacros({ calories: numOr(input.calories, 0), proteinG: numOr(input.proteinG, 0), carbsG: numOr(input.carbsG, 0), fatG: numOr(input.fatG, 0) }, { atwater: false });
         meal = { date, name: str(input.name) || str(input.description) || 'Meal', mealType: slotOf(input.mealType, ctx.tz), calories: safe.calories, proteinG: safe.proteinG, carbsG: safe.carbsG, fatG: safe.fatG, source: 'agent-manual' };
+        // Their macros, but still the food's micronutrients (20 Oct: "homemade noodles…" with
+        // the user's own numbers saved every micro as 0). Scaled to their calories.
+        const food = str(input.description) || str(input.name);
+        if (food && !(safe.calories === 0 && looksLikeSupplement(food))) {
+          const est = await estimateTypedMeal(food, 'global', { tz: ctx.tz, userId, surface: 'chat' }).then((x) => x.detail).catch(() => null);
+          if (est && est.calories > 0) {
+            const to = safe.calories > 0 ? safe.calories : est.calories;
+            Object.assign(meal, {
+              ingredients: est.ingredients, tags: est.tags, plants: est.plants, fermentedFoods: est.fermentedFoods, ultraProcessed: est.ultraProcessed,
+              nutrients: scaleMicros(est.nutrients as any, est.calories, to), nutrientMap: scaleMicros(withoutMacros(est.nutrientMap), est.calories, to),
+            });
+          }
+        }
       }
       const change = await executeOp(userId, 'meal.create', { input: meal });
       return { logged: change.summary, mealId: (change.result as any).id, ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
