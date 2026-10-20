@@ -180,10 +180,11 @@ function OnboardingScreenInner() {
             <View style={{ marginTop: 22 }}><ReceiptList items={[{ verb: 'Noted', text: `${s.redFlag?.answer} — flagged` }, { verb: 'Noted', text: `Your goal and ${Object.keys(s.answers).length} answers, saved` }]} /></View>
             <View style={{ marginTop: 28 }}>
               <Row name="Find a physio near me" onPress={() => { dispatch({ type: 'redflag_choice', choice: 'clinician' }); void Linking.openURL('https://www.google.com/maps/search/physiotherapist+near+me'); }} />
-              <Row name="It's been checked — I'm cleared" onPress={() => dispatch({ type: 'redflag_choice', choice: 'cleared' })} />
-              <Row name="Start a gentle plan meanwhile" onPress={() => dispatch({ type: 'redflag_choice', choice: 'gentle' })} last />
+              {/* The sub lines are the acknowledgement saved with the choice (backend safetyScreen.ts ACK_TEXT) — keep them identical. */}
+              <Row name="It's been checked — I'm cleared" sub="I rely on what you tell me and can’t verify a clearance. Terms §4." onPress={() => dispatch({ type: 'redflag_choice', choice: 'cleared' })} />
+              <Row name="Start a gentle plan meanwhile" sub="Training before a clinician has checked this is your decision, at your own risk. I’ll keep it gentle and ask a few follow-ups first. Terms §4." onPress={() => dispatch({ type: 'redflag_choice', choice: 'gentle' })} last />
             </View>
-            <Text style={[T.caption, { marginTop: 24 }]}>If you lose bladder control or feel numbness in the groin, go to urgent care now.</Text>
+            <Text style={[T.caption, { marginTop: 24 }]}>If you lose bladder or bowel control, feel numbness in the groin or inner thighs, or the weakness is getting worse, go to urgent care now.</Text>
           </View>
         ) : null}
 

@@ -9,6 +9,7 @@ import './workouts.js';
 import './nutrition.js';
 import './health.js';
 import './goals.js';
+import './safety.js';
 import './wearables.js';
 import './social.js';
 import './suggest.js';

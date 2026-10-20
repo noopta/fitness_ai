@@ -13,6 +13,7 @@ import type { CardDraft } from './cards/types.js';
 import { postInitiatedTurn } from './initiated.js';
 import { parseBlob, mergeBlobKeys } from './profile/coachProfile.js';
 import { dayLabel } from './cards/format.js';
+import { followUpText, clearanceCheckDue, clearanceCheckText, type Safety } from '../services/safetyScreen.js';
 import { buildWeekReport, loadWeekInput, localDate, type Win } from '../services/weeklyWins.js';
 
 const prisma = new PrismaClient();
@@ -116,6 +117,22 @@ export async function coachInviteNotices(userId: string, email: string | null | 
   return out;
 }
 
+/**
+ * Pure: a red flag from sign-up gets Anakin's follow-up questions once, before
+ * anything else, then a "have you been cleared?" check every two weeks while
+ * the plan is gentle. Not without health-data consent.
+ */
+export function safetyNotice(s: Safety | null | undefined, done: Set<string>, healthConsent: boolean, now = Date.now()): Notice | null {
+  if (!s || !healthConsent) return null;
+  const follow = followUpText(s);
+  if (follow && !done.has('safety-followup')) return { key: 'safety-followup', text: follow, cards: [] };
+  if (clearanceCheckDue(s, now)) {
+    const key = `safety-clearance-${(s.lastCheckAt ?? s.since).slice(0, 10)}`;
+    if (!done.has(key)) return { key, text: clearanceCheckText(s), cards: [] };
+  }
+  return null;
+}
+
 /** Run the detectors and post each new notice once. Returns how many were posted. */
 export async function postPendingNotices(userId: string): Promise<number> {
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { coachProfile: true, timezone: true, email: true } }).catch(() => null);
@@ -126,7 +143,9 @@ export async function postPendingNotices(userId: string): Promise<number> {
     select: { id: true, date: true, title: true, exercises: true, createdAt: true },
   }).catch(() => [] as LogRow[]);
   const invites = await coachInviteNotices(userId, u.email, u.timezone).catch((err) => { console.error('[notices] coach invites', err?.message ?? err); return [] as Notice[]; });
-  const notices = [weightlessNotice(weightlessSessions(logs)), ...invites].filter((n): n is Notice => !!n && !done.has(n.key));
+  const cp = parseBlob(u.coachProfile);
+  const safety = safetyNotice(cp.safety, done, cp.consent?.health !== false);
+  const notices = [safety, weightlessNotice(weightlessSessions(logs)), ...invites].filter((n): n is Notice => !!n && !done.has(n.key));
   let posted = 0;
   for (const n of notices) {
     if (await postInitiatedTurn(userId, { text: n.text, cards: n.cards })) { done.add(n.key); posted++; }
@@ -146,6 +165,8 @@ export async function postPendingNotices(userId: string): Promise<number> {
       posted++;
     }
   }
-  if (posted) await mergeBlobKeys(userId, { noticesPosted: [...done], ...winsPatch });
+  // A clearance check asked resets the two-week clock.
+  const safetyPatch = safety?.key.startsWith('safety-clearance-') && done.has(safety.key) ? { safety: { ...cp.safety, lastCheckAt: new Date().toISOString() } } : {};
+  if (posted) await mergeBlobKeys(userId, { noticesPosted: [...done], ...winsPatch, ...safetyPatch });
   return posted;
 }

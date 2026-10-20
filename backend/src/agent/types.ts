@@ -116,6 +116,8 @@ export interface UserContext {
   conversationSummary?: string | null;
   /** A dated goal (fight weigh-in, race…) with its countdown and pace (toolkits/goals.ts). */
   goalEvent?: string | null;
+  /** An open red flag from sign-up: follow-up, clearance check and training rules (services/safetyScreen.ts). */
+  safety?: string | null;
 }
 
 /** Structured proposal returned by a non-persisting tool (e.g.

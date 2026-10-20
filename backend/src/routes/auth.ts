@@ -116,7 +116,8 @@ async function bumpTokenVersion(userId: string): Promise<number> {
 // ─── Consent ─────────────────────────────────────────────────────────────────
 // Version of the Terms/Privacy text a user accepts. Bump when the documents
 // change materially; clients compare consent.termsVersion with this.
-export const CURRENT_TERMS_VERSION = '2026-10';
+export { CURRENT_TERMS_VERSION } from '../services/termsVersion.js';
+import { CURRENT_TERMS_VERSION } from '../services/termsVersion.js';
 
 const consentSchema = z.object({
   acceptedTerms: z.boolean().optional(),

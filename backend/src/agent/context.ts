@@ -3,6 +3,7 @@
 // "go fetch specifics" layer. Token-budgeted on purpose: compact summaries,
 // not full history. The agent pulls detail via tools when it needs it.
 
+import { safetyContextLine } from '../services/safetyScreen.js';
 import { describeCheckin } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
 import { readMemory, promptMemory } from './memory.js';
@@ -158,6 +159,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     memory: promptMemory(memory),
     conversationSummary,
     goalEvent,
+    safety: safetyLineFor(user.coachProfile, consent.health),
     consentOff: (Object.keys(consent) as ConsentKey[]).filter((k) => !consent[k]),
     adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
     trainingSummary,
@@ -169,6 +171,15 @@ export async function assembleContext(userId: string): Promise<UserContext> {
  * token here is paid on every turn. Nulls are omitted so the model isn't fed
  * a wall of "unknown".
  */
+/** The open red flag, if any. Without health consent only the fact of it — never the details. */
+function safetyLineFor(coachProfile: string | null, health: boolean): string | null {
+  let cp: any = {};
+  try { cp = coachProfile ? JSON.parse(coachProfile) : {}; } catch { cp = {}; }
+  if (!cp.safety || cp.safety.status === 'cleared' && !cp.safety.screen?.notes && cp.safety.screen) return null;
+  if (!health) return 'SAFETY: a red flag was raised at sign-up and health-data consent is off — keep any training light and supported, and recommend they see a clinician before loading.';
+  return safetyContextLine(cp.safety);
+}
+
 /** Diet restrictions, named allergies and intake injuries — the gaps a coach must never guess past. */
 function intakeDietAndInjuries(coachProfile: string | null, health: boolean) {
   let cp: any = {};
@@ -204,6 +215,7 @@ export function renderContext(ctx: UserContext): string {
     lines.push(`Diet — ${[r.length ? r.join(', ') : '', allergyLine].filter(Boolean).join('; ')}. Never suggest food that breaks these.`);
   }
 
+  if (ctx.safety) lines.push(ctx.safety);
   if (ctx.goalEvent) lines.push(ctx.goalEvent);
 
   if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {

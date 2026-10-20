@@ -1,6 +1,6 @@
 /*
  * ============================================================================
- *  <!-- Draft for counsel review --> 16 October 2026  (terms version "2026-10")
+ *  <!-- Draft for counsel review --> 20 October 2026  (terms version "2026-10-20": §4 health screening, red flags, weight cutting)
  *  Updated per audit legal-report H1/C4/H3/M1: age 13+ with guardian
  *  permission, store-managed in-app subscriptions vs Stripe on the web,
  *  in-app/web deletion, minors carved out of arbitration and liability caps,
@@ -59,6 +59,14 @@ export default function Terms() {
           follow any suggestion, use proper technique and equipment, train within your limits, and stop if something hurts. To the extent the law allows,
           you accept these inherent risks. Nothing in these Terms limits liability that cannot legally be limited (Section 8).
         </p>
+        <p className="mt-3"><strong>Health screening and red flags.</strong></p>
+        <List>
+          <li>When you join, and later in chat, Axiom asks about pain, injuries, symptoms and conditions. Some answers (for example pain or numbness down an arm or leg, an injury not yet cleared, or a heart or blood-pressure condition) are red flags: we recommend you see a doctor or physiotherapist before training, and we will not build heavy training around them.</li>
+          <li>If you choose to train anyway (for example by starting a "gentle plan" before a clinician has checked you), or you tell us a clinician has cleared you, that is your decision and you make it at your own risk. We rely on what you tell us; we cannot examine you or verify a clearance. We keep a dated record of these choices (see the Privacy Policy).</li>
+          <li>Stop and get medical help straight away if symptoms spread or get worse, or if you notice weakness, numbness in the groin or inner thighs, or changes in bladder or bowel control. These can be emergencies.</li>
+        </List>
+        <p className="mt-3"><strong>Weight cutting and making weight.</strong> If you compete in a weight class, Axiom can plan gradual fat loss toward a weigh-in, keeps planned loss within limits it considers safe, and will warn you when a pace carries more risk. Acute weight-cut methods (water loading, fluid, sodium or food restriction before a weigh-in, sweating or saunas) are your and your team's decisions, made under the supervision of your coach and a qualified professional. Axiom does not supervise or prescribe them, and rapid dehydration can cause serious harm.</p>
+        <p className="mt-3"><strong>What you tell us.</strong> Plans are only as safe as the information behind them. Keep your injuries, conditions, medications and body weight up to date, and tell the coach when something changes. If what you tell us is wrong or incomplete, the advice may not suit you.</p>
       </Section>
 
       <Section title="5. AI-generated content">

@@ -19,9 +19,14 @@ import { colors, fontSize, fontWeight, radius, spacing } from '../constants/them
 
 const SITE = 'https://axiomtraining.io';
 
-/** True when the backend reports consent and a required piece is missing. */
+/** Accepted Terms older than the current ones (Oct 2026: §4 health screening, red flags, weight cutting). */
+export function termsOutdated(consent: ConsentState | undefined): boolean {
+  return !!consent?.acceptedTermsAt && !!consent.currentTermsVersion && consent.termsVersion !== consent.currentTermsVersion;
+}
+
+/** True when the backend reports consent and a required piece is missing — or the Terms changed since they agreed. */
 export function consentPending(consent: ConsentState | undefined): boolean {
-  return !!consent && (!consent.acceptedTermsAt || !consent.healthConsentAt);
+  return !!consent && (!consent.acceptedTermsAt || !consent.healthConsentAt || termsOutdated(consent));
 }
 
 function Check({ on, onPress, label, children }: { on: boolean; onPress: () => void; label: string; children: React.ReactNode }) {
@@ -50,10 +55,10 @@ export function ConsentSheet() {
   if (!visible) return null;
 
   const submit = async () => {
-    if (!terms || !health || busy) return;
+    if (!terms || !(health || healthDone) || busy) return;
     setBusy(true);
     try {
-      await authApi.setConsent({ acceptedTerms: true, healthConsent: true, marketingConsent: marketing });
+      await authApi.setConsent({ acceptedTerms: true, ...(healthDone ? {} : { healthConsent: true }), ...(updated ? {} : { marketingConsent: marketing }) });
       setAnsweredFor(user!.id);
       void refreshUser();
     } catch (e: any) {
@@ -70,14 +75,19 @@ export function ConsentSheet() {
   );
 
   const link = (path: string) => () => { void openExternal(`${SITE}${path}`); };
-  const ready = terms && health;
+  // Re-accepting updated Terms: health consent already given stays given.
+  const updated = termsOutdated(consent);
+  const healthDone = !!consent?.healthConsentAt;
+  const ready = terms && (health || healthDone);
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={() => { /* required — not dismissible */ }}>
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.body}>
-          <Text style={styles.title}>Before we continue</Text>
-          <Text style={styles.sub}>Two things we need your OK on. You can withdraw either later by deleting your account in Settings.</Text>
+          <Text style={styles.title}>{updated ? 'We’ve updated our Terms' : 'Before we continue'}</Text>
+          <Text style={styles.sub}>{updated
+            ? 'New in section 4: what happens if you train with a symptom we flag (like pain down an arm or leg), and weight cutting before a weigh-in. Please read and agree to keep going.'
+            : 'Two things we need your OK on. You can withdraw either later by deleting your account in Settings.'}</Text>
 
           <Check on={terms} onPress={() => setTerms((v) => !v)} label="I agree to the Terms of Use and Privacy Policy">
             <Text style={styles.checkText}>
@@ -88,18 +98,18 @@ export function ConsentSheet() {
             </Text>
           </Check>
 
-          <Check on={health} onPress={() => setHealth((v) => !v)} label="I consent to Axiom processing my health and fitness data">
+          {healthDone ? null : <Check on={health} onPress={() => setHealth((v) => !v)} label="I consent to Axiom processing my health and fitness data">
             <Text style={styles.checkText}>
               I consent to Axiom processing my health and fitness data, including injuries and body video, to coach me. See our{' '}
               <Text style={styles.link} onPress={link('/health-data')}>Consumer Health Data Privacy Policy</Text>.
             </Text>
-          </Check>
+          </Check>}
 
-          <Check on={marketing} onPress={() => setMarketing((v) => !v)} label="Optional: send me tips and product news by email">
+          {updated ? null : <Check on={marketing} onPress={() => setMarketing((v) => !v)} label="Optional: send me tips and product news by email">
             <Text style={styles.checkText}>
               <Text style={styles.optional}>Optional · </Text>Send me training tips and product news by email.
             </Text>
-          </Check>
+          </Check>}
 
           <TouchableOpacity style={[styles.cta, !ready && styles.ctaOff]} onPress={() => void submit()} disabled={!ready || busy} activeOpacity={0.85}
             accessibilityRole="button" accessibilityState={{ disabled: !ready || busy }}>

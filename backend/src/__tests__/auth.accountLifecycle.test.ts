@@ -105,7 +105,7 @@ describe('register: consent + display name', () => {
     expect(res.status).toBe(200);
     const data = userMock.create.mock.calls[0][0].data;
     expect(data.acceptedTermsAt).toBeInstanceOf(Date);
-    expect(data.termsVersion).toBe('2026-10');
+    expect(data.termsVersion).toBe('2026-10-20');
     expect(data.healthConsentAt).toBeInstanceOf(Date);
     expect(data.marketingConsentAt).toBeNull();
     expect(decode(res.body.token).tv).toBe(0);
@@ -158,11 +158,11 @@ describe('POST /auth/consent', () => {
     const res = await request(app).post('/api/auth/consent').set('x-test-user', 'u1').send({ acceptedTerms: true, marketingConsent: false });
     expect(res.status).toBe(200);
     const data = userMock.update.mock.calls[0][0].data;
-    expect(data.termsVersion).toBe('2026-10');
+    expect(data.termsVersion).toBe('2026-10-20');
     expect(data.acceptedTermsAt).toBeInstanceOf(Date);
     expect(data.marketingConsentAt).toBeNull();
     expect('healthConsentAt' in data).toBe(false);
-    expect(res.body.consent.termsVersion).toBe('2026-10');
+    expect(res.body.consent.termsVersion).toBe('2026-10-20');
   });
 
   it('400s an empty body and 401s without a session', async () => {

@@ -11,8 +11,8 @@ import { Navbar } from "@/components/Navbar";
 import { BrandLogo } from "@/components/BrandLogo";
 
 export const LEGAL = {
-  lastUpdated: "16 October 2026",
-  termsVersion: "2026-10",
+  lastUpdated: "20 October 2026",
+  termsVersion: "2026-10-20",
   /** Legal name of the operating entity. */
   entity: "[LEGAL ENTITY NAME]",
   postalAddress: "[POSTAL ADDRESS]",

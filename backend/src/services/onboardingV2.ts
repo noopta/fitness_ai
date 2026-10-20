@@ -10,6 +10,7 @@
 // existing generator, and return the phases + nutrition line for the plan
 // screen. Deterministic apart from the generator itself.
 
+import { safetyFromOnboarding } from './safetyScreen.js';
 import { PrismaClient } from '@prisma/client';
 import { retrieveProgramSources } from './ragService.js';
 
@@ -58,7 +59,7 @@ const REHAB: Question[] = [
   { key: 'cleared', short: 'Clearance', label: 'Has a clinician cleared you to load it?', why: 'I won\'t program load a clinician hasn\'t signed off.', adjust: 'the clinical route', options: ['Yes', 'Not yet'], redFlag: ['Not yet'] },
 ];
 const HEALTH: Question[] = [
-  { key: 'hurt', short: 'Pain', label: 'Does anything hurt when you train?', why: 'A sore joint changes how fast we progress — and which lifts get you there.', adjust: 'exercise selection', options: ['No', 'Lower back, sometimes', 'A shoulder or knee', 'Pain down a leg or arm'], redFlag: ['Pain down a leg or arm'], field: 'constraintsText' },
+  { key: 'hurt', short: 'Pain', label: 'Does anything hurt when you train?', why: 'A sore joint changes how fast we progress — and which lifts get you there.', adjust: 'exercise selection', options: ['No', 'Lower back, sometimes', 'A shoulder or knee', 'Pain down a leg', 'Pain down an arm'], redFlag: ['Pain down a leg', 'Pain down an arm', 'Pain down a leg or arm'], field: 'constraintsText' },
   { key: 'meds', short: 'Conditions', label: 'Any condition or medication I should know about?', why: 'Some change how hard you can safely push — heart, blood pressure, diabetes.', adjust: 'the intensity ceiling', options: ['No', 'Blood pressure or heart', 'Diabetes or thyroid', 'Something else — tell Anakin'], redFlag: ['Blood pressure or heart'] },
   { key: 'sleep', short: 'Sleep', label: 'How do you usually sleep?', why: 'Under 6 hours makes recovery weeks come sooner.', adjust: 'recovery cadence', options: ['Under 6 hours', '6–7 hours', '7 or more'] },
   { key: 'stress', short: 'Stress', label: 'How\'s your stress and energy lately?', why: 'High stress means lower volume, not lower effort.', adjust: 'weekly volume', options: ['Low — steady', 'Moderate', 'High — running on fumes'] },
@@ -160,6 +161,8 @@ export function profileFromAnswers(goal: string, answers: Record<string, string>
     primaryGoal: goal, goalKind: kind, daysPerWeek: daysFrom(days), trainingAge: answers.age, equipment: answers.equipment,
     sleepQuality: answers.sleep, stressEnergy: answers.stress, nutritionQuality: answers.food, foodRegion: answers.region,
     injuries: constraints, redFlagRoute: answers.redFlagRoute, answers, version: 'v2-onboarding-2026-09',
+    // Red flags: the follow-up state and the dated choice they made (safetyScreen.ts).
+    ...(() => { const r = safetyFromOnboarding(answers); return r ? { safety: r.safety, safetyAcks: r.acks } : {}; })(),
   };
   return {
     kind, daysPerWeek: daysFrom(days), durationWeeks: weeksFor(kind),

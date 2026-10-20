@@ -85,6 +85,9 @@ export interface ConsentState {
   acceptedTermsAt: string | null;
   healthConsentAt: string | null;
   marketingConsentAt?: string | null;
+  /** The Terms version they accepted, and the current one (re-accept when they differ). */
+  termsVersion?: string | null;
+  currentTermsVersion?: string | null;
 }
 
 /** `consent` from an /auth/me payload; undefined when the backend predates it. */
@@ -95,6 +98,8 @@ function readConsent(data: any): ConsentState | undefined {
     acceptedTermsAt: c.acceptedTermsAt ?? null,
     healthConsentAt: c.healthConsentAt ?? null,
     marketingConsentAt: c.marketingConsentAt ?? null,
+    termsVersion: c.termsVersion ?? null,
+    currentTermsVersion: c.currentTermsVersion ?? null,
   };
 }
 

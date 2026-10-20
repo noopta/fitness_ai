@@ -216,7 +216,7 @@ export const authApi = {
   logoutAll: () => apiFetch('/auth/logout-all', { method: 'POST' }),
 
   /** Records Terms/Privacy acceptance + explicit health-data consent (+ optional marketing). */
-  setConsent: (c: { acceptedTerms: boolean; healthConsent: boolean; marketingConsent: boolean }) =>
+  setConsent: (c: { acceptedTerms: boolean; healthConsent?: boolean; marketingConsent?: boolean }) =>
     apiFetch('/auth/consent', { method: 'POST', body: JSON.stringify(c) }),
 
   getMe: () => apiFetch('/auth/me'),
