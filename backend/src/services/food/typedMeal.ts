@@ -34,7 +34,7 @@ export async function withUsdaMicros(detail: ParsedMealDetail, lookup?: FoodLook
   try {
     const usda = await usdaFoodMicros(detail.foods, lookup);
     if (!usda.matched) return detail;
-    const micros = blendTypedMicros(detail.nutrients as any, detail.calories, usda);
+    const micros = blendTypedMicros(detail.nutrients as any, detail.calories, usda, detail.ingredientDetails);
     const nutrients = { ...detail.nutrients };
     for (const k of MICRO_KEYS) (nutrients as any)[k] = micros[k];
     return {

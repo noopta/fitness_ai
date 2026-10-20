@@ -57,3 +57,16 @@ describe('withUsdaMicros (pipeline step)', () => {
     expect(hit.microSource).toMatchObject({ usdaShare: 0.5, matched: 1, total: 1 });
   });
 });
+
+describe('unmatched low-calorie foods', () => {
+  it('keep their own estimate instead of a calorie share', async () => {
+    const { blendTypedMicros, unmatchedEstimate, simplerQueries } = await import('../services/food/typedMicros.js');
+    const u = await usdaFoodMicros([{ name: 'egg noodles', usdaQuery: 'noodles egg cooked', preparation: 'cooked', grams: 320, calories: 442 }, { name: 'steamed broccoli', usdaQuery: 'zzz', preparation: 'steamed', grams: 150, calories: 55 }], lookup);
+    expect(u.unmatched).toEqual(['steamed broccoli']);
+    const perFood = [{ name: 'egg noodles', nutrients: { vitaminCMg: 0 } }, { name: 'broccoli', nutrients: { vitaminCMg: 98 } }];
+    const out = blendTypedMicros({ ...zero(), vitaminCMg: 100 }, 497, u, perFood);
+    expect(out.vitaminCMg).toBeCloseTo(98, 0);
+    expect(unmatchedEstimate(['mystery'], perFood)).toBeNull();
+    expect(simplerQueries('broccoli cooked steamed', 'steamed')).toEqual(['broccoli cooked steamed', 'broccoli cooked', 'broccoli']);
+  });
+});
