@@ -611,6 +611,7 @@ export const HEALTH_TOOLS = [
       const hits = searchMessages(await loadStoredMessages(userId), str(input.words), day(input.from), day(input.to), Math.min(30, Math.max(1, numOr(input.limit) ?? 12)));
       return hits.length ? { found: hits.length, messages: hits.map((h) => ({ at: h.at, who: h.role === 'user' ? 'them' : 'you', text: h.text })) } : { found: 0, note: 'Nothing matched — try fewer or different words, or a wider date range.' };
     },
+    card: () => null, // a lookup for the reply, not something to show
   }),
   tool({
     name: 'forget', kind: 'log', fn: 'MEM-03',

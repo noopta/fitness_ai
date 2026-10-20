@@ -191,9 +191,12 @@ export function estimateWorkoutCaloriesBreakdown(
     const name = String(ex?.name ?? '');
     const rule = lookupMetRule(name);
     const sets = setCounts[i];
-    const minutes = hasUserDuration
-      ? opts.totalDurationMinutes! * (sets / totalSets)
-      : (sets * rule.secsPerSet) / 60;
+    const timed = String(ex?.reps ?? '').match(/(\d+(?:\.\d+)?)\s*(?:min|mins|minutes)\b/i);
+    const minutes = timed && !hasUserDuration
+      ? Number(timed[1]) * sets
+      : hasUserDuration
+        ? opts.totalDurationMinutes! * (sets / totalSets)
+        : (sets * rule.secsPerSet) / 60;
     const kcal = Math.round(rule.met * bodyweightKg * (minutes / 60));
     return { name, met: rule.met, kcal };
   });

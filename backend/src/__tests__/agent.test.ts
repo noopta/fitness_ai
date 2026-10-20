@@ -381,15 +381,15 @@ describe('conversation persistence', () => {
     expect(turn.message).not.toContain('Move session');
   });
 
-  it('trims to the most recent window', async () => {
-    // Pre-load 30 messages; appendTurn should cap at 24.
+  it('keeps the whole history (the prompt window is trimmed, not the store)', async () => {
+    // Pre-load 30 messages; nothing is dropped any more (Oct 2026: recall days back).
     const big = Array.from({ length: 30 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', text: `m${i}` }));
     let stored = JSON.stringify(big);
     mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));
     mocks.agentConversation.upsert.mockImplementation(async ({ update }: any) => { stored = update.messagesJson; return {}; });
     await appendTurn(USER, 'newU', 'newA');
     const parsed = JSON.parse(stored);
-    expect(parsed.length).toBe(24);
+    expect(parsed.length).toBe(32);
     expect(parsed[parsed.length - 1]).toMatchObject({ role: 'assistant', text: 'newA' }); // + `at` timestamp
   });
 });

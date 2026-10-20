@@ -219,6 +219,7 @@ export const GOAL_TOOLS = [
         howToAnswer: 'Lead with the recommended route, its daily calories and the date it lands. If they want a faster listed option, give its cost in one sentence (strength/power, recovery, hunger) and then do it. Never offer anything faster than the listed options. For a weigh-in, keep the acute cut at or under ~5% and remind them the acute protocol is theirs and their team’s.',
       };
     },
+    card: () => null, // the numbers go in the reply; the targets card comes from propose_macro_change
   }),
   tool({
     name: 'set_carb_cycling', kind: 'propose', fn: 'GOL-03',
