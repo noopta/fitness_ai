@@ -393,7 +393,7 @@ export const HEALTH_TOOLS = [
       const d = await loadDraft(userId);
       await retireQuestionCards(userId);
       const next = nextQuestion(d.answered);
-      return { resumed: d.answered.length > 0, answered: d.answered.length, of: Q.length, _step: next < 0 ? 0 : next, _draft: next < 0 ? emptyDraft() : d };
+      return { resumed: d.answered.length > 0, answered: d.answered.length, of: Q.length, showingQuestion: next < 0 ? 1 : d.answered.length + 1, _step: next < 0 ? 0 : next, _draft: next < 0 ? emptyDraft() : d };
     },
     card: (_i, r) => flowCard(r._step, r._draft),
   }),
