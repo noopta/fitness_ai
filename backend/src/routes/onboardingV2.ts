@@ -7,6 +7,7 @@
 // the same code path POST /coach/program uses, so a v2-built program is
 // indistinguishable from a v1 one to every downstream feature.
 
+import { CURRENT_TERMS_VERSION } from '../services/termsVersion.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
@@ -49,6 +50,13 @@ router.post('/coach/onboarding/build', requireAuth, aiLimiter, async (req, res) 
       await prisma.user.update({ where: { id: userId }, data: { ...profileUpdate, coachOnboardingDone: false } });
       return res.json({ paused: true, reason: 'clinician' });
     }
+    // "Agree and build" is the Terms clickwrap (onboarding.tsx): record it here,
+    // server-side, so it counts on every app version — a fresh install's first
+    // launch runs the store bundle, which predates the consent sheet (20 Oct
+    // 2026: new sign-ups had no acceptance on file). Health-data consent is not
+    // inferred: those toggles start on, so the consent sheet still asks for it.
+    const prior = await prisma.user.findUnique({ where: { id: userId }, select: { acceptedTermsAt: true } });
+    if (!prior?.acceptedTermsAt) await prisma.user.update({ where: { id: userId }, data: { acceptedTermsAt: new Date(), termsVersion: CURRENT_TERMS_VERSION } });
     const consentJson = consent ? JSON.stringify(consent) : null;
     await prisma.user.update({ where: { id: userId }, data: { ...profileUpdate, ...(consentJson ? { coachProfile: JSON.stringify({ ...JSON.parse(profileUpdate.coachProfile), consent }) } : {}) } });
     cacheClearByPrefix(`today:${userId}:`);
