@@ -52,7 +52,9 @@ export const PROFILE_FIELDS: ProfileField[] = [
     options: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced', elite: 'Elite' },
     aliases: [{ key: 'experience', map: { early_intermediate: 'intermediate' } }, { key: 'trainingAge', map: { early_intermediate: 'intermediate', 'Under a year': 'beginner', 'Under 6 months': 'beginner', '6–12 months': 'intermediate', '1–3 years': 'intermediate', '3+ years': 'advanced' } }],
     affects: 'program' }),
-  f({ key: 'daysPerWeek', label: 'Days per week', group: 'Training', type: 'number', blobKey: 'daysPerWeek', min: 2, max: 7, aliases: [{ key: 'frequency' }, { key: 'trainingDays' }], affects: 'program' }),
+  f({ key: 'daysPerWeek', label: 'Lifting days per week', group: 'Training', type: 'number', blobKey: 'daysPerWeek', min: 2, max: 7, aliases: [{ key: 'frequency' }, { key: 'trainingDays' }], affects: 'program' }),
+  // Sport / conditioning sessions on top of lifting (MMA, sparring, running…): counted in energy needs (services/maintenance.ts), never in program days.
+  f({ key: 'conditioningDays', label: 'Sport / conditioning days', group: 'Training', type: 'number', blobKey: 'conditioningDays', min: 0, max: 14, aliases: [{ key: 'sportDays' }, { key: 'cardioDays' }], affects: 'nutrition' }),
   f({ key: 'sessionMinutes', label: 'Session length (min)', group: 'Training', type: 'number', blobKey: 'sessionDuration', min: 20, max: 180, affects: 'program' }),
   f({ key: 'equipment', label: 'Equipment', group: 'Training', type: 'select', blobKey: 'equipment', column: 'equipment',
     options: { commercial: 'Full gym', limited: 'Limited (dumbbells, bands)', home: 'Home gym' },

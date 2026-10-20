@@ -114,6 +114,8 @@ export interface UserContext {
   memory: string[];
   /** Rolling summary of the chat older than the verbatim window (conversation.ts). */
   conversationSummary?: string | null;
+  /** A dated goal (fight weigh-in, race…) with its countdown and pace (toolkits/goals.ts). */
+  goalEvent?: string | null;
 }
 
 /** Structured proposal returned by a non-persisting tool (e.g.

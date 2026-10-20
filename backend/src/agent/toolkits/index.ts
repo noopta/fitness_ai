@@ -8,6 +8,7 @@ import './adaptation.js';
 import './workouts.js';
 import './nutrition.js';
 import './health.js';
+import './goals.js';
 import './wearables.js';
 import './social.js';
 import './suggest.js';

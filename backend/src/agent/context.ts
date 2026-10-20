@@ -64,7 +64,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       : null))
     .catch(() => null);
 
-  const [user, meals, bwLogs, wellness, memory, pendingAdaptation, trainingSummary, conversationSummary] = await Promise.all([
+  const [user, meals, bwLogs, wellness, memory, pendingAdaptation, trainingSummary, conversationSummary, goalEvent] = await Promise.all([
     userP,
     prisma.mealEntry.findMany({
       where: { userId, date },
@@ -83,6 +83,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
     pendingP,
     summaryP,
     loadSummary(userId).catch(() => null),
+    import('./toolkits/goals.js').then((m) => m.goalContextLine(userId)).catch(() => null),
   ]);
 
   if (!user) throw new Error('User not found');
@@ -156,6 +157,7 @@ export async function assembleContext(userId: string): Promise<UserContext> {
       : null,
     memory: promptMemory(memory),
     conversationSummary,
+    goalEvent,
     consentOff: (Object.keys(consent) as ConsentKey[]).filter((k) => !consent[k]),
     adaptation: { pendingCount: pendingAdaptation.length, latestTitle: pendingAdaptation[0]?.title ?? null },
     trainingSummary,
@@ -201,6 +203,8 @@ export function renderContext(ctx: UserContext): string {
       : p.diet.restrictions.includes('allergies') ? 'allergies: ticked at intake but NEVER NAMED — before suggesting or estimating any food, ask which (then save it pinned with remember and update_coaching_profile)' : '';
     lines.push(`Diet — ${[r.length ? r.join(', ') : '', allergyLine].filter(Boolean).join('; ')}. Never suggest food that breaks these.`);
   }
+
+  if (ctx.goalEvent) lines.push(ctx.goalEvent);
 
   if (ctx.adaptation && ctx.adaptation.pendingCount > 0) {
     lines.push(`Adaptive progression — ${ctx.adaptation.pendingCount} proposal(s) PENDING the user's decision${ctx.adaptation.latestTitle ? ` (latest: "${ctx.adaptation.latestTitle}")` : ''}. If the user mentions targets, suggestions, or "the card", call read_adaptation for the details before answering.`);

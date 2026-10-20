@@ -289,15 +289,20 @@ export const HEALTH_TOOLS = [
         const c = clampDailyCalories(change.calories, await floorProfileFor(prisma, userId));
         if (c.clamped) { change.calories = c.calories; floorNote = c.note; }
       }
-      const tdee = np?.expectedOutcomes?.tdee;
       const kcal = (change.calories ?? before.calories) as number;
-      return { change, before, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why), ...(floorNote ? { floorNote, tellUser: floorNote } : {}) };
+      // Maintenance measured from their weigh-ins + logs when possible (goals.ts), else the plan's estimate.
+      const { goalInputs, projectionLine } = await import('./goals.js');
+      const g = await goalInputs(userId).catch(() => null);
+      const tdee = g?.maintenance.kcal ?? np?.expectedOutcomes?.tdee;
+      // With a dated goal, the card says where this lands — the user sees what their numbers mean before applying.
+      const projection = await projectionLine(userId, kcal);
+      return { change, before, weeklyLb: tdee ? Math.round((((kcal - tdee) * 7) / 3500) * 10) / 10 : null, why: str(input.why), ...(projection ? { projection, tellUser: projection } : {}), ...(floorNote ? { floorNote, tellUser: floorNote } : {}) };
     },
     card: (_i, r, ctx) => ({
       fn: 'NTP-02', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
       diff: Object.keys(r.change).map((k) => ({ key: LABEL[k], from: `${num(r.before[k])}${UNIT[k]}`, to: `${num(r.change[k])}${UNIT[k]}` })),
       // One consequence line (P-04): the calorie-floor note, else the projected weekly change, else the reason.
-      why: r.floorNote ? r.floorNote : r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : (r.why || undefined),
+      why: r.floorNote ? r.floorNote : r.projection ? r.projection : r.weeklyLb != null ? `Projected ${r.weeklyLb > 0 ? '+' : '−'}${bodyWeight(ctx.unit, Math.abs(r.weeklyLb) * 0.45359237)} a week.` : (r.why || undefined),
       actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
       entity: 'nutrition:targets',
       pending: { actions: { apply: { op: 'nutrition.set_macros', args: { change: r.change } }, keep: { kind: 'keep' } } },
@@ -347,12 +352,15 @@ export const HEALTH_TOOLS = [
     execute: async (input, userId) => {
       const st = await planState(userId);
       const changes: PlanChange[] = planChanges(st, (Array.isArray(input.changes) ? input.changes : []) as RequestedChange[]);
-      return { changes: changes.map((c) => ({ field: c.field, to: c.to, name: c.name, ramp: c.ramp ?? null })), diff: changes.map((c) => c.row), consequence: str(input.consequence) };
+      // A calorie change against a dated goal says where it lands (goals.ts).
+      const kcal = changes.find((c) => c.field === 'calories')?.to;
+      const projection = typeof kcal === 'number' ? await (await import('./goals.js')).projectionLine(userId, kcal) : null;
+      return { changes: changes.map((c) => ({ field: c.field, to: c.to, name: c.name, ramp: c.ramp ?? null })), diff: changes.map((c) => c.row), consequence: str(input.consequence), ...(projection ? { projection, tellUser: projection } : {}) };
     },
     card: (_i, r) => ({
       fn: 'NTP-13', pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · nutrition plan', open: { page: 'fuelplan' } },
       diff: r.diff,
-      ...(r.consequence ? { why: String(r.consequence).slice(0, 120) } : {}),
+      ...(r.projection ? { why: String(r.projection).slice(0, 220) } : r.consequence ? { why: String(r.consequence).slice(0, 120) } : {}),
       actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
       entity: 'nutrition:plan',
       pending: { actions: { apply: { op: 'nutrition.plan.apply', args: { changes: r.changes }, line: 'Applied' }, keep: { kind: 'keep' } } },
