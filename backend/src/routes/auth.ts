@@ -16,7 +16,7 @@ import { cancelActiveSubscriptions, liveSubscriptionEnd } from '../services/stri
 import twilio from 'twilio';
 import appleSignin from 'apple-signin-auth';
 import posthog from '../services/posthogClient.js';
-import { detectUnitPreferenceFromAcceptLanguage, normalizePreference } from '../services/weightUnits.js';
+import { detectUnitPreference, normalizePreference } from '../services/weightUnits.js';
 import {
   requestCode as requestEmailVerification,
   verifyCode as verifyEmailCode,
@@ -273,8 +273,9 @@ router.post('/auth/register', registerLimiter, async (req, res) => {
     // Default the display unit: explicit client choice wins, else infer from the
     // signup locale (EU/metric regions → metric, US/unknown → imperial). Storage
     // stays canonical kg regardless; this only sets what the user sees first.
+    // Location first: the phone's timezone (North America → lb), then its language region.
     const unitPreference = data.unitPreference
-      ?? detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']);
+      ?? detectUnitPreference({ timezone: req.headers['x-timezone'] as string | undefined, acceptLanguage: req.headers['accept-language'] });
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
     const user = await prisma.user.create({
@@ -787,7 +788,7 @@ router.get('/auth/google/callback', async (req, res) => {
         data: {
           googleId, email, name,
           tier: tierForEmail(email),
-          unitPreference: detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']),
+          unitPreference: detectUnitPreference({ timezone: req.headers['x-timezone'] as string | undefined, acceptLanguage: req.headers['accept-language'] }),
           emailVerified: true,
           emailVerifiedAt: new Date(),
         },
@@ -905,7 +906,7 @@ router.post('/auth/apple', authLimiter, async (req, res) => {
         data: {
           appleId, email, name,
           tier: tierForEmail(email),
-          unitPreference: detectUnitPreferenceFromAcceptLanguage(req.headers['accept-language']),
+          unitPreference: detectUnitPreference({ timezone: req.headers['x-timezone'] as string | undefined, acceptLanguage: req.headers['accept-language'] }),
           emailVerified: true,
           emailVerifiedAt: new Date(),
         },
@@ -1200,6 +1201,8 @@ router.put('/auth/profile', requireAuth, async (req, res) => {
     // Dynamic import: strength.ts transitively constructs an OpenAI client
     // at module load, which auth's test suite (and any keyless env) can't.
     if (data.unitPreference !== undefined) {
+      // The Settings toggle (and Anakin's preference tool) land here: it's their choice now, never auto-switched.
+      void import('../services/autoUnits.js').then(({ markUnitsManual }) => markUnitsManual(req.user!.id)).catch(() => {});
       import('./strength.js')
         .then(({ recomputeStrengthProfileInBackground }) => recomputeStrengthProfileInBackground(req.user!.id))
         .catch((err) => console.error('[auth] strength recompute after unit change failed:', err));

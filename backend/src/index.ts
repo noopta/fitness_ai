@@ -309,6 +309,9 @@ process.on('unhandledRejection', (reason) => {
 // the port directly pick their own X-Forwarded-For and dodge every IP limit.
 // HOST overrides (e.g. HOST=0.0.0.0 for a container).
 const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0');
+// Units follow the phone's location (timezone) unless the user chose them.
+void import('./services/autoUnits.js').then(({ wireAutoUnits }) => wireAutoUnits()).catch((e) => console.error('[units] wiring failed:', e));
+
 app.listen(Number(PORT), HOST, () => {
   console.log(`🚀 Axiom API running on http://${HOST}:${PORT}`);
   console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);

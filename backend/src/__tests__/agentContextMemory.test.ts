@@ -68,3 +68,31 @@ describe('memory notes (no more 240-character cut)', () => {
     expect(p.some((n) => n.includes('ignore'))).toBe(false);
   });
 });
+
+describe('units', async () => {
+  const { detectUnitPreference, isNorthAmericaTz, unitWrittenIn } = await import('../services/weightUnits.js');
+  const { implausibleBodyWeight, unitArg } = await import('../agent/toolkits/kit.js');
+  it('North America → lb by timezone, elsewhere kg; locale only as fallback', () => {
+    expect(detectUnitPreference({ timezone: 'America/Edmonton' })).toBe('imperial'); // Saeed
+    expect(detectUnitPreference({ timezone: 'America/Toronto', acceptLanguage: 'fr-CA' })).toBe('imperial');
+    expect(detectUnitPreference({ timezone: 'America/Mexico_City' })).toBe('imperial');
+    expect(detectUnitPreference({ timezone: 'Europe/London' })).toBe('metric');
+    expect(detectUnitPreference({ timezone: 'America/Sao_Paulo' })).toBe('metric');
+    expect(detectUnitPreference({ timezone: null, acceptLanguage: 'de-DE' })).toBe('metric');
+    expect(detectUnitPreference({ timezone: null, acceptLanguage: 'en-CA' })).toBe('imperial');
+    expect(isNorthAmericaTz('America/Indiana/Indianapolis')).toBe(true);
+  });
+  it('reads which unit a message is written in', () => {
+    expect(unitWrittenIn('im 170 lbs trying to get to 146')).toBe('imperial');
+    expect(unitWrittenIn('weighed in at 77.1 kg')).toBe('metric');
+    expect(unitWrittenIn('bench 100kg, I weigh 180 lb')).toBeNull();
+    expect(unitWrittenIn('3 sets of 10')).toBeNull();
+  });
+  it('a lb/kg mix-up is questioned before saving', () => {
+    expect(implausibleBodyWeight(170, 77.1, 'metric')).toMatch(/120% from their last/); // "170" read as kg
+    expect(implausibleBodyWeight(77.1, 77.5, 'imperial')).toBeNull();
+    expect(implausibleBodyWeight(400, null, 'metric')).toMatch(/outside a plausible/);
+    expect(unitArg('lbs', 'metric')).toBe('imperial');
+    expect(unitArg(undefined, 'metric')).toBe('metric');
+  });
+});

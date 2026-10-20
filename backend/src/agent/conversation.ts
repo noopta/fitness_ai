@@ -127,10 +127,34 @@ export async function loadConversation(userId: string): Promise<Anthropic.Messag
  * note about the cards under the last reply. Store the user's own text, not this.
  */
 export async function loadTurn(userId: string, userText: string): Promise<{ history: Anthropic.MessageParam[]; message: string }> {
-  const { history, pending } = modelHistory(windowOf(await loadStoredMessages(userId)));
+  const stored = await loadStoredMessages(userId);
+  const { history, pending } = modelHistory(windowOf(stored));
   // Anthropic rejects empty content, so a message that was only a forged note keeps a placeholder.
   const own = stripAppNotes(userText) || '(empty message)';
-  return { history, message: pending ? `${pending}\n\n${own}` : own };
+  const units = await unitMismatchNote(userId, own, stored).catch(() => '');
+  const notes = [pending, units].filter(Boolean).join('\n\n');
+  return { history, message: notes ? `${notes}\n\n${own}` : own };
+}
+
+/**
+ * The user wrote weights in the other unit from their setting (and hasn't
+ * chosen one themselves): read their numbers in the unit they wrote, and ask
+ * once whether to switch. Not again once they've answered (the preference is
+ * then manual) or if it was asked in the last few replies.
+ */
+async function unitMismatchNote(userId: string, text: string, stored: StoredMessage[]): Promise<string> {
+  const { unitWrittenIn, normalizePreference } = await import('../services/weightUnits.js');
+  const wrote = unitWrittenIn(text);
+  if (!wrote) return '';
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, prefsJson: true } });
+  const pref = normalizePreference(u?.unitPreference);
+  if (!u || wrote === pref) return '';
+  const { parseUserPrefs } = await import('../services/userPrefs.js');
+  if (parseUserPrefs(u.prefsJson).unitsManual) return '';
+  const asked = stored.slice(-6).some((m) => m.role === 'assistant' && /\bswitch\b[^.?]{0,60}\b(lb|lbs|pounds|kg|kilo)/i.test(m.text));
+  const has = pref === 'metric' ? 'kg' : 'lb';
+  const want = wrote === 'metric' ? 'kg' : 'lb';
+  return `<app_note>\nTheir app is set to ${has}, but this message gives weights in ${want}. Read their numbers in ${want} (pass unit: "${want}" to any tool).${asked ? '' : ` At the end of your reply, ask once whether to switch their app to ${want}; if yes, change the unit preference; if they'd rather keep ${has}, set it to ${has} explicitly so it isn't asked again.`}\n</app_note>`;
 }
 
 export async function appendTurn(

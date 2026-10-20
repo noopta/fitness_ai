@@ -5,7 +5,7 @@
 
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp } from '../ops.js';
-import { tool, schema, str, numOr, prisma } from './kit.js';
+import { tool, schema, str, numOr, prisma, UNIT_FIELD, unitArg, implausibleBodyWeight } from './kit.js';
 import {
   PROFILE_FIELDS, FIELD_BY_KEY, readProfile, writeFields, displayValue, readInjuries, writeInjuries, restoreInjuries, parseBlob, normaliseValue, type Injury, type ProfileField,
 } from '../profile/coachProfile.js';
@@ -218,22 +218,31 @@ export const PROFILE_TOOLS = [
   }),
   tool({
     name: 'update_body_stats', kind: 'set', fn: 'PRO-04',
-    description: 'Change height, current body weight (also logs today’s weigh-in), goal weight, or body-fat percentage when the user states them. Give height as the user said it ("5 ft 11", "180 cm"); weight and goal weight in the user’s unit.',
-    input_schema: schema({ height: { type: 'string' }, weight: { type: 'number' }, goalWeight: { type: 'number', description: 'Use 0 to clear.' }, bodyFatPct: { type: 'number' } }),
+    description: 'Change height, current body weight (also logs today’s weigh-in), goal weight, or body-fat percentage when the user states them. Give height as the user said it ("5 ft 11", "180 cm"); weight and goal weight as the user said them, with unit = the unit they used ("lb"/"kg"). A weight far from their last one is questioned first: ask, then call again with confirmed: true.',
+    input_schema: schema({ height: { type: 'string' }, weight: { type: 'number' }, goalWeight: { type: 'number', description: 'Use 0 to clear.' }, unit: UNIT_FIELD, bodyFatPct: { type: 'number' }, confirmed: { type: 'boolean', description: 'They confirmed a weight that was questioned.' } }),
     receipt: () => ({ verb: 'Adjusted', text: 'Body stats' }),
     execute: async (input, userId) => {
-      const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
-      const unit = u?.unitPreference === 'metric' ? 'metric' : 'imperial';
+      const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, weightKg: true } });
+      const unit = unitArg(input.unit, u?.unitPreference === 'metric' ? 'metric' : 'imperial');
       const args: Record<string, unknown> = {};
       if (input.height != null) { const cm = parseHeight(input.height); if (!cm) throw new Error('Give height like "5 ft 11" or "180 cm".'); args.heightCm = cm; }
       if (numOr(input.weight) != null) args.weightKg = toKg(unit, numOr(input.weight)!);
       if (input.goalWeight !== undefined) args.goalWeightKg = numOr(input.goalWeight) ? toKg(unit, numOr(input.goalWeight)!) : null;
+      // A lb/kg mix-up is caught here, not after it's saved (Saeed: "170" saved as 170 kg).
+      if (input.confirmed !== true) {
+        const last = await prisma.bodyWeightLog.findFirst({ where: { userId }, orderBy: { date: 'desc' }, select: { weightKg: true } });
+        const lastKg = last?.weightKg ?? u?.weightKg ?? null;
+        const q = (typeof args.weightKg === 'number' ? implausibleBodyWeight(args.weightKg as number, lastKg, unit) : null)
+          ?? (typeof args.goalWeightKg === 'number' ? implausibleBodyWeight(args.goalWeightKg as number, null, unit) : null);
+        if (q) return { notSaved: true, ask: q };
+      }
       if (numOr(input.bodyFatPct) != null) args.bodyFatPct = numOr(input.bodyFatPct);
       if (!Object.keys(args).length) throw new Error('Say what changed: height, weight, goal weight or body fat.');
       const change = await executeOp(userId, 'body.set_stats', args);
       return { lines: (change.result as any).lines, goal: 'goalWeightKg' in args, _change: change };
     },
     card: async (_i, r, ctx) => {
+      if (r?.notSaved) return null;
       const draft: CardDraft = r.lines.length === 1
         ? (() => { const [key, rest] = r.lines[0].split(' · '); const [from, to] = (rest ?? '').split(' → '); return { fn: r.goal ? 'PRO-17' : 'PRO-04', pattern: 'setting', rule: 'change_undo', meta: { label: 'Body', open: { page: 'body' } }, change: { key, from, to }, undoLine: `Undone — back to ${from}` } as CardDraft; })()
         : { fn: 'PRO-04', pattern: 'setting', rule: 'change_undo', meta: { label: 'Body', open: { page: 'body' } }, rows: r.lines.map((l: string) => { const [key, rest] = l.split(' · '); const [from, to] = (rest ?? '').split(' → '); return { key, value: to, sub: `was ${from}` }; }) };

@@ -90,7 +90,8 @@ const METRIC_REGIONS = new Set([
   'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES',
   'SE', 'IS', 'LI', 'NO', 'GB', 'CH',
   // Other clearly-metric markets we ship to
-  'AU', 'NZ', 'CA', 'JP', 'CN', 'IN', 'BR', 'MX', 'ZA', 'KR', 'SG',
+  // (Canada and Mexico are North America: lb by product decision, Oct 2026.)
+  'AU', 'NZ', 'JP', 'CN', 'IN', 'BR', 'ZA', 'KR', 'SG',
 ]);
 
 /** ISO-3166 region of a metric country? (case-insensitive) */
@@ -116,4 +117,59 @@ export function detectUnitPreferenceFromAcceptLanguage(
     }
   }
   return 'imperial';
+}
+
+// ── Location → units (Oct 2026) ─────────────────────────────────────────────
+// Product decision: anyone in North America (US, Canada, Mexico) defaults to
+// lb; elsewhere to kg (with the few non-metric exceptions). The phone's IANA
+// timezone is the strongest location signal we get on every request (it's
+// where the user is, not what language their phone speaks); the locale's
+// region is the fallback. A manual choice always wins (users.unitsManual).
+
+const NA_PREFIXES = ['America/Indiana/', 'America/Kentucky/', 'America/North_Dakota/'];
+const NA_ZONES = new Set([
+  // US
+  'America/New_York', 'America/Detroit', 'America/Chicago', 'America/Menominee', 'America/Denver', 'America/Boise', 'America/Phoenix',
+  'America/Los_Angeles', 'America/Anchorage', 'America/Juneau', 'America/Sitka', 'America/Metlakatla', 'America/Yakutat', 'America/Nome',
+  'America/Adak', 'Pacific/Honolulu', 'America/Puerto_Rico', 'America/St_Thomas', 'Pacific/Guam', 'Pacific/Saipan', 'Pacific/Pago_Pago',
+  'US/Eastern', 'US/Central', 'US/Mountain', 'US/Pacific', 'US/Alaska', 'US/Hawaii', 'US/Arizona', 'US/Michigan',
+  // Canada
+  'America/Toronto', 'America/Montreal', 'America/Vancouver', 'America/Edmonton', 'America/Winnipeg', 'America/Regina', 'America/Halifax',
+  'America/St_Johns', 'America/Moncton', 'America/Glace_Bay', 'America/Goose_Bay', 'America/Whitehorse', 'America/Dawson', 'America/Dawson_Creek',
+  'America/Fort_Nelson', 'America/Creston', 'America/Yellowknife', 'America/Inuvik', 'America/Cambridge_Bay', 'America/Iqaluit',
+  'America/Rankin_Inlet', 'America/Resolute', 'America/Swift_Current', 'America/Atikokan', 'America/Blanc-Sablon', 'America/Nipigon',
+  'America/Thunder_Bay', 'America/Rainy_River', 'America/Pangnirtung', 'Canada/Eastern', 'Canada/Central', 'Canada/Mountain', 'Canada/Pacific',
+  'Canada/Atlantic', 'Canada/Newfoundland', 'Canada/Saskatchewan', 'Canada/Yukon',
+  // Mexico
+  'America/Mexico_City', 'America/Cancun', 'America/Merida', 'America/Monterrey', 'America/Matamoros', 'America/Chihuahua', 'America/Ciudad_Juarez',
+  'America/Ojinaga', 'America/Mazatlan', 'America/Bahia_Banderas', 'America/Hermosillo', 'America/Tijuana', 'Mexico/General', 'Mexico/BajaNorte', 'Mexico/BajaSur',
+]);
+/** Zones outside North America that still use pounds day to day. */
+const IMPERIAL_ZONES = new Set(['Africa/Monrovia', 'Asia/Yangon', 'Asia/Rangoon']);
+
+/** Pure: is this IANA zone in North America (US, Canada, Mexico)? */
+export function isNorthAmericaTz(tz: string | null | undefined): boolean {
+  if (!tz) return false;
+  return NA_ZONES.has(tz) || NA_PREFIXES.some((p) => tz.startsWith(p));
+}
+
+/**
+ * Pure: the unit preference for where the user is. Timezone first (North
+ * America → imperial, a few lb-using countries → imperial, any other real
+ * zone → metric), then the locale region, then imperial (US-first default).
+ */
+export function detectUnitPreference(opts: { timezone?: string | null; acceptLanguage?: string | null }): UnitPreference {
+  const tz = opts.timezone?.trim();
+  if (tz && tz !== 'UTC' && tz !== 'Etc/UTC' && tz.includes('/')) {
+    if (isNorthAmericaTz(tz) || IMPERIAL_ZONES.has(tz)) return 'imperial';
+    return 'metric';
+  }
+  return detectUnitPreferenceFromAcceptLanguage(opts.acceptLanguage);
+}
+
+/** Pure: which unit a message's weights are written in, when it says ("185 lb", "84 kg"), else null. */
+export function unitWrittenIn(text: string): UnitPreference | null {
+  const lb = /\b\d{1,3}(?:\.\d)?\s*(?:lb|lbs|pounds?)\b/i.test(text);
+  const kg = /\b\d{1,3}(?:\.\d)?\s*(?:kg|kgs|kilos?|kilograms?)\b/i.test(text);
+  return lb === kg ? null : lb ? 'imperial' : 'metric';
 }

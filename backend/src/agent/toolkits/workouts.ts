@@ -5,7 +5,7 @@
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
-import { tool, schema, str, numOr, prisma, parseJson, dateArg } from './kit.js';
+import { tool, schema, str, numOr, prisma, parseJson, dateArg, UNIT_FIELD, unitArg } from './kit.js';
 import { createWorkoutLog, createWorkoutLogsBulk, updateWorkoutLog, deleteWorkoutLog, restoreWorkoutLog, type WorkoutLogInput } from '../../services/workoutLogService.js';
 import { parseWorkoutNotes } from '../../services/workoutNotesParser.js';
 import { buildPreview, takePreview, peekPreview, withoutLogged, previewBatch, previewInputs, rangeLabel, bestsLine, shortDay, type BackfillPreview } from '../../services/workoutBackfill.js';
@@ -252,12 +252,12 @@ export const WORKOUT_TOOLS = [
     description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. reps is always a number (or a range like "8-10"), never words like "varies": if they didn’t say the reps for a lift, ask for them in one short line before logging. Otherwise log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
       exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
-      date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' },
+      date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' }, unit: UNIT_FIELD,
     }, ['exercises']),
     receipt: (i) => ({ verb: 'Logged', text: str(i.title) || 'Workout' }),
     execute: async (input, userId) => {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
-      const unit: Unit = u?.unitPreference === 'metric' ? 'metric' : 'imperial';
+      const unit: Unit = unitArg(input.unit, u?.unitPreference === 'metric' ? 'metric' : 'imperial');
       const exercises = toServiceExercises((input.exercises ?? []) as ChatExercise[], unit);
       if (!exercises.length) throw new Error('Tell me at least one exercise.');
       const tz = (await import('../cards/store.js')).userTz;
@@ -404,11 +404,11 @@ export const WORKOUT_TOOLS = [
   tool({
     name: 'log_set', kind: 'log', core: true, fn: 'WRK-03',
     description: 'Log a single set ("just hit 225 for 3"): adds it to today’s workout, or starts one. Weight in the user’s unit; 0 for bodyweight.',
-    input_schema: schema({ exercise: { type: 'string' }, weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' }, date: { type: 'string' } }, ['exercise', 'reps']),
+    input_schema: schema({ exercise: { type: 'string' }, weight: { type: 'number' }, unit: UNIT_FIELD, reps: { type: 'number' }, rpe: { type: 'number' }, date: { type: 'string' } }, ['exercise', 'reps']),
     receipt: (i) => ({ verb: 'Logged', text: `${str(i.exercise)} · ${i.weight ?? 'BW'} × ${i.reps}` }),
     execute: async (input, userId) => {
       const ctxU = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
-      const unit: Unit = ctxU?.unitPreference === 'metric' ? 'metric' : 'imperial';
+      const unit: Unit = unitArg(input.unit, ctxU?.unitPreference === 'metric' ? 'metric' : 'imperial');
       const { todayIn } = await import('../cards/format.js');
       const { userTz } = await import('../cards/store.js');
       const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : todayIn(await userTz(userId));

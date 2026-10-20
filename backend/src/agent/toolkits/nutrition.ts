@@ -237,6 +237,20 @@ function foundNote(lookups: ItemLookupResult[] | undefined): string | null {
   return hits.length === (lookups ?? []).length ? `From ${where}.` : `From ${where}; the rest is an estimate.`;
 }
 
+/** Fuel's micronutrient page, for the model: supplements, everything beyond the targeted set, and anything over an upper limit. */
+async function microExtras(userId: string, date: string) {
+  try {
+    const m: any = await callApi(userId, 'GET', `/nutrition-profile/micros?date=${date}`);
+    const rows: any[] = (m?.groups ?? []).flatMap((g: any) => g.rows);
+    return {
+      supplementsLogged: m?.supplements ?? [],
+      fromSupplements: rows.filter((r) => r.fromSupplements > 0).map((r) => ({ nutrient: r.label, unit: r.unit, fromSupplements: r.fromSupplements, total: r.amount })),
+      overUpperLimit: (m?.overUl ?? []).map((r: any) => ({ nutrient: r.label, total: r.amount, unit: r.unit, upperLimit: r.ul, basis: r.ulNote ?? 'total intake' })),
+      otherMicros: rows.filter((r) => !r.hasDetail).map((r) => ({ nutrient: r.label, unit: r.unit, amount: r.amount, target: r.target, pctOfTarget: r.pct })),
+    };
+  } catch { return {}; }
+}
+
 export const NUTRITION_TOOLS = [
   tool({
     name: 'log_meal', kind: 'log', core: true, fn: 'NUT-01',
@@ -394,7 +408,9 @@ export const NUTRITION_TOOLS = [
         ...d,
         meals: d.meals.map((m) => ({ id: m.id, name: m.name, mealType: m.mealType, calories: m.calories, proteinG: m.proteinG, micros: pick(microsOf(m)) })),
         micros: targets.map((t) => ({ nutrient: t.label, unit: t.unit, amount: Math.round((day[t.key] ?? 0) * 10) / 10, target: t.target, pctOfTarget: t.target ? Math.round(((day[t.key] ?? 0) / t.target) * 100) : null, direction: t.direction })),
-        microsNote: 'Logged estimates (about ±30%). Quote amounts with "about" and as a share of the target.',
+        microsNote: 'Logged estimates (about ±30%), except supplement doses, which are from the label. Quote amounts with "about" and as a share of the target.',
+        // The same full read as Fuel → Micronutrients: nutrients outside the targets above, the supplement share, upper-limit flags.
+        ...(await microExtras(userId, d.date ?? ctx.today)),
       };
     },
     card: (_i, r, ctx) => ({

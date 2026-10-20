@@ -4,7 +4,7 @@
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
-import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
+import { tool, schema, str, numOr, prisma, parseJson, UNIT_FIELD, unitArg, implausibleBodyWeight } from './kit.js';
 import { applyMacroChange } from '../applyTools.js';
 import { logBodyWeight, deleteBodyWeight, restoreBodyWeight, removeBodyWeightOn } from '../../services/bodyWeightService.js';
 import { upsertCheckin, revertCheckin } from '../../services/wellnessService.js';
@@ -432,18 +432,26 @@ export const HEALTH_TOOLS = [
   // ── Body weight ──
   tool({
     name: 'log_body_weight', kind: 'log', core: true, fn: 'BW-01',
-    description: 'Log a weigh-in in the user’s unit (one per day — a second one that day replaces the first). Log it the moment they say it.',
-    input_schema: schema({ weight: { type: 'number' }, date: { type: 'string' }, notes: { type: 'string' } }, ['weight']),
+    description: 'Log a weigh-in (one per day — a second one that day replaces the first) with unit = the unit they used. Log it the moment they say it. A weight far from their last one is questioned first: ask, then call again with confirmed: true.',
+    input_schema: schema({ weight: { type: 'number' }, unit: UNIT_FIELD, date: { type: 'string' }, notes: { type: 'string' }, confirmed: { type: 'boolean' } }, ['weight']),
     receipt: (i) => ({ verb: 'Logged', text: `Weigh-in · ${i.weight}` }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today;
-      const kg = toKg(ctx.unit, Number(input.weight));
+      const unit = unitArg(input.unit, ctx.unit);
+      const kg = toKg(unit, Number(input.weight));
+      if (input.confirmed !== true) {
+        const last = await prisma.bodyWeightLog.findFirst({ where: { userId, date: { not: date } }, orderBy: { date: 'desc' }, select: { weightKg: true } });
+        const u = last ? null : await prisma.user.findUnique({ where: { id: userId }, select: { weightKg: true } });
+        const q = implausibleBodyWeight(kg, last?.weightKg ?? u?.weightKg ?? null, unit);
+        if (q) return { notSaved: true, ask: q, date, weightKg: kg };
+      }
       const change = await executeOp(userId, 'weight.log', { date, weightKg: kg, notes: str(input.notes) || null, display: bodyWeight(ctx.unit, kg) });
       const r = change.result as any;
       return { logged: change.summary, date, weightKg: kg, warnings: r.warnings, _change: change };
     },
     card: async (_i, r, ctx) => {
+      if (r?.notSaved) return null;
       const logs = await prisma.bodyWeightLog.findMany({ where: { userId: ctx.userId, date: { gte: shiftDate(r.date, -13), lte: r.date } }, orderBy: { date: 'asc' }, select: { date: true, weightKg: true } });
       const last7 = logs.filter((l) => l.date > shiftDate(r.date, -7)).map((l) => l.weightKg ?? 0).filter(Boolean);
       const prev7 = logs.filter((l) => l.date <= shiftDate(r.date, -7)).map((l) => l.weightKg ?? 0).filter(Boolean);

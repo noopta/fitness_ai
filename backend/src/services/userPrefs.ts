@@ -32,8 +32,9 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
 };
 
 // shareCards: offer Share on progress moments (spec "Progress Moments"); the congratulation shows either way.
-export interface UserPrefs { saveFormStills: boolean; adaptationEnabled: boolean; shareTheme: 'light' | 'dark'; shareCards: boolean }
-export const DEFAULT_USER_PREFS: UserPrefs = { saveFormStills: false, adaptationEnabled: true, shareTheme: 'light', shareCards: true };
+// unitsManual: the user chose lb/kg themselves — location detection never overrides it (services/autoUnits.ts).
+export interface UserPrefs { saveFormStills: boolean; adaptationEnabled: boolean; shareTheme: 'light' | 'dark'; shareCards: boolean; unitsManual: boolean }
+export const DEFAULT_USER_PREFS: UserPrefs = { saveFormStills: false, adaptationEnabled: true, shareTheme: 'light', shareCards: true, unitsManual: false };
 
 const parse = <T>(raw: string | null | undefined, d: T): T => {
   if (!raw) return { ...d };
