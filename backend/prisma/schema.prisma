@@ -2335,3 +2335,35 @@ model WearableWorkout {
   @@unique([userId, provider, externalId])
   @@index([userId, startAt])
 }
+
+// A progress moment (spec "Progress Moments", 19 Oct 2026): what a log earned
+// — a PR, a session, a protein goal hit, a cut milestone — with its warm
+// server-written praise and the data for the shareable cards. Nutrition and
+// cut: one per day; workouts: one per workout (category workout:<logId>).
+// No FK to User on purpose (additive table; rows are swept with the user's).
+model ProgressMoment {
+  id           String    @id @default(uuid())
+  userId       String
+  // pr | session | nutrition | cut
+  type         String
+  // workout | nutrition | cut — the one-per-day slot.
+  category     String
+  // YYYY-MM-DD the moment is about (the log's date, not today).
+  date         String
+  workoutLogId String?
+  label        String
+  title        String
+  praise       String
+  whyJson      String
+  shareablesJson String
+  // Ranks same-day workout moments: a later one replaces only if this is higher.
+  score        Float     @default(0)
+  sharedAt     DateTime?
+  dismissedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  @@unique([userId, category, date])
+  @@index([userId, createdAt])
+  @@index([workoutLogId])
+}

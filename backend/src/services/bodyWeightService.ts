@@ -50,7 +50,9 @@ export async function logBodyWeight(userId: string, input: BodyWeightInput) {
   detectAndNotifyWeightMilestone(prisma, userId, date, weightKg).catch((err) =>
     console.error('[body-weight] milestone detection error:', err));
 
-  return { entry, before, warnings };
+  // A cut that's working earns a moment, at most once a week.
+  const m = await (await import('./moments/index.js')).momentForWeighIn(userId); // lazy, as in mealLogService
+  return { entry, before, warnings, moment: m?.fresh ? m.moment : null };
 }
 
 /** Delete a weigh-in by id; returns the row (for undo) or null. */

@@ -83,7 +83,7 @@ defineOp({
   name: 'meal.create',
   run: async (userId, args) => {
     const r = await createMealEntry(userId, args.input as any);
-    return { result: { id: r.entry.id, entry: r.entry }, inverse: { op: 'meal.remove', args: { id: r.entry.id } }, summary: `Logged · ${r.entry.name} · ${num(r.entry.calories)} kcal` };
+    return { result: { id: r.entry.id, entry: r.entry, moment: r.moment }, inverse: { op: 'meal.remove', args: { id: r.entry.id } }, summary: `Logged · ${r.entry.name} · ${num(r.entry.calories)} kcal` };
   },
 });
 defineOp({
@@ -158,7 +158,7 @@ defineOp({
   name: 'recipe.log',
   run: async (userId, args) => {
     const e: any = await callApi(userId, 'POST', `/nutrition/recipes/${String(args.id)}/log`, { date: args.date, mealType: args.mealType, servings: args.servings });
-    return { result: { id: e.id }, inverse: { op: 'meal.remove', args: { id: e.id } }, summary: `Logged · ${e.name} · ${num(e.calories)} kcal` };
+    return { result: { id: e.id, moment: e.moment ?? null }, inverse: { op: 'meal.remove', args: { id: e.id } }, summary: `Logged · ${e.name} · ${num(e.calories)} kcal` };
   },
 });
 defineOp({

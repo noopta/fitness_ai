@@ -173,8 +173,8 @@ export { mealEntrySchema } from '../services/mealLogService.js';
 // POST /api/nutrition/meals - Log a meal entry
 router.post('/nutrition/meals', requireAuth, async (req, res) => {
   try {
-    const { entry, ingredients, tags, nutrients } = await createMealEntry(req.user!.id, req.body);
-    res.status(201).json({ ...entry, ingredients, tags, nutrients });
+    const { entry, ingredients, tags, nutrients, moment } = await createMealEntry(req.user!.id, req.body);
+    res.status(201).json({ ...entry, ingredients, tags, nutrients, moment });
   } catch (err: any) {
     console.error('Meal entry error:', err);
     // Never surface raw Zod JSON to the sheet — it renders in the UI.

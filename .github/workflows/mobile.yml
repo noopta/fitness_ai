@@ -10,6 +10,10 @@ on:
       - 'backport/**'
     paths:
       - 'mobileAlt/**'
+      # Bundled into the app as source (Metro): a change there is an app change.
+      - 'packages/agent-ui-core/**'
+      - 'packages/diagnostic-core/**'
+      - 'packages/personal-training-core/**'
       - '.github/workflows/mobile.yml'
   workflow_dispatch:
     inputs:

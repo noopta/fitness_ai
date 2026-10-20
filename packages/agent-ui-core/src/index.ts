@@ -10,3 +10,5 @@ export * from './logger';
 export * from './training';
 export * from './fuel';
 export * from './social';
+export * from './shareables/types';
+export { sceneFor, approxMeasure as approxShareMeasure, interpY, W as SHARE_W, H as SHARE_H, type Op as ShareOp, type Measure as ShareMeasure, type Scene as ShareScene, type Weight as ShareWeight, type SceneOpts as ShareSceneOpts } from './shareables/scene';

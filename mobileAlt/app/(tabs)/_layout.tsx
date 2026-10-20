@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect, useSegments } from 'expo-router';
+import { v2SuppressedSync } from '../../src/v2/crashGuard';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/constants/theme';
 import { socialApi, formAnalysisApi } from '../../src/lib/api';
@@ -39,7 +40,8 @@ function SocialTabIcon({ color, size, totalCount }: { color: string; size: numbe
 }
 
 export default function TabLayout() {
-  const { user } = useAuth();
+  const { user, needsDobCheck, getFeatures } = useAuth();
+  const segments = useSegments();
   const [socialCount, setSocialCount] = useState(0);
   // Count of completed form-video analyses the user hasn't viewed since
   // last visit to the Diagnostics tab. The Diagnostics screen itself marks
@@ -81,6 +83,19 @@ export default function TabLayout() {
       clearInterval(interval);
     };
   }, [fetchCounts]);
+
+  // The new UI is everyone's app: a signed-in user who lands on the classic
+  // tabs (the cold-start default route, a stale replace) goes straight to it
+  // WITHOUT the classic home rendering first — that render was the "old app
+  // flashes for a second" on every open (19 Oct 2026). Only a genuine v2
+  // crash loop (crashGuard) keeps someone here for a launch.
+  if (user && !needsDobCheck && getFeatures().uiV2 && !v2SuppressedSync()) {
+    const toFeed = (segments as string[])[1] === 'social';
+    const dest = (user as any).coachOnboardingDone || getFeatures().directEntryPaywall
+      ? (toFeed ? { pathname: '/(v2)', params: { tab: 'feed' } } : '/(v2)')
+      : '/(v2)/onboarding';
+    return <Redirect href={dest as any} />;
+  }
 
   return (
     <Tabs

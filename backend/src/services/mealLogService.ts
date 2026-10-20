@@ -119,6 +119,14 @@ export async function todayForUser(userId: string, now: Date = new Date()): Prom
 }
 
 export async function createMealEntry(userId: string, input: MealEntryInput) {
+  const r = await saveMealEntry(userId, input);
+  // The first meal that takes the day's protein past target earns a moment (once a day).
+  // Lazy: the moments module reaches progressService → notifications → LLM clients.
+  const m = await (await import('./moments/index.js')).momentForNutrition(userId, r.entry.date);
+  return { ...r, moment: m?.fresh ? m.moment : null };
+}
+
+async function saveMealEntry(userId: string, input: MealEntryInput) {
     // A missing date is filled with the user's today; a malformed one is still refused.
     const dated = input && typeof input === 'object' && (input as any).date == null
       ? { ...(input as any), date: await todayForUser(userId) }

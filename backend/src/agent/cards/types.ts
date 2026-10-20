@@ -2,6 +2,8 @@
 // client renders it from ~20 primitives. The server owns ids, state and the
 // operation a tap runs — the client never sends an operation of its own.
 
+import type { ProgressMoment } from '../../services/moments/types.js';
+
 export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff';
 export type CardRule = 'show' | 'log_undo' | 'change_undo' | 'propose' | 'draft_send' | 'confirm_delete' | 'handoff';
 export type ClientAction =
@@ -116,6 +118,8 @@ export interface Card {
   batch?: BatchBlock;
   /** A personal trainer's invite (coach_invite): who, which practice, until when. The token stays server-side. */
   invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
+  /** A progress moment (MOM-01, or a logged batch): the congratulation and its share cards. */
+  moment?: ProgressMoment;
   state?: CardState;
 }
 

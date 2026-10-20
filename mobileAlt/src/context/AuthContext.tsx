@@ -60,7 +60,11 @@ async function oauthInFlight(): Promise<boolean> {
 // Device-local data that belongs to the signed-in person and must not survive
 // a sign-out on a shared phone: offline caches (incl. DMs), the in-flight
 // diagnostic draft (injuries are in `axiom_constraints`) and logger drafts.
-const USER_DATA_KEYS = [
+// The last /auth/me on this phone: a cold start whose /auth/me fails on the
+// network keeps the person signed in, on the right UI, instead of dropping
+// them on the welcome screen or the classic app (19 Oct 2026).
+const LAST_ME_KEY = 'auth:last-me:v1';
+const USER_DATA_KEYS = [LAST_ME_KEY, 
   'axiom_session_id', 'axiom_selected_lift', 'axiom_target_weight', 'axiom_target_sets', 'axiom_target_reps',
   'axiom_height_ft', 'axiom_height_in', 'axiom_weight_lbs', 'axiom_training_age', 'axiom_equipment', 'axiom_constraints',
   'v2.loggerDraft.v1', 'v2.sessionDraft.v1', 'v2:feedsearch:recent', OAUTH_FLIGHT_KEY,
@@ -243,14 +247,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // reason as the user: post-auth routing reads them synchronously, before
   // any re-render has happened. Defaults to everything off, so a server that
   // does not send the block (or a request that failed) leaves gated features
-  // dark rather than showing a flow the backend will refuse.
+  // dark rather than showing a flow the backend will refuse — except the two
+  // that are on for everyone (the new UI since 11 Oct, direct entry since
+  // 4 Oct): off-by-default there showed the classic app whenever /auth/me was
+  // slow. The server's kill switch still wins as soon as /auth/me lands.
   const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean }>({
     onboardingFormHook: false,
     diagnosticFirstOnboarding: false,
-    directEntryPaywall: false,
+    directEntryPaywall: true,
     liftDiagnosticConversation: false,
     onboardingTestAccount: false,
-    uiV2: false,
+    uiV2: true,
     personalTraining: false,
     // Freestyle release (Oct 2026) — all default off; off = today's behavior.
     freestyle: false,
@@ -298,6 +305,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /** Commit everything an /auth/me payload carries. */
   function applyMe(data: any) {
+    // (The avatar is a base64 image — not worth a copy on disk; it reloads with the next /auth/me.)
+    if (data?.user) void AsyncStorage.setItem(LAST_ME_KEY, JSON.stringify({ user: { ...data.user, avatarBase64: undefined }, features: data.features, consent: data.consent, needsDob: data.needsDob })).catch(() => {});
     commitUser(data?.user ?? null);
     commitFeatures(data?.features);
     setConsent(readConsent(data));
@@ -338,8 +347,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (err?.status === 401 || err?.status === 403) {
             await clearToken();
             commitUser(null);
+          } else {
+            // Network/server error with a valid token: stay signed in as last
+            // seen on this phone (same UI, same flags) and refresh next time.
+            try {
+              const raw = await AsyncStorage.getItem(LAST_ME_KEY);
+              if (raw) applyMe(JSON.parse(raw));
+            } catch { /* nothing cached → welcome, as before */ }
           }
-          // Network/server errors: still allow app to load (user stays null → redirect to login)
         }
       }
       setLoading(false);

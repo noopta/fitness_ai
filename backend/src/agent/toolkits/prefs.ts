@@ -16,11 +16,11 @@ const REGION: Record<string, string> = { global: 'Global', ng: 'Nigeria', gm: 'T
 const onOff = (b: unknown) => (b ? 'On' : 'Off');
 const hourLabel = (h: number) => `${((h + 11) % 12) + 1}${h < 12 ? ' am' : ' pm'}`;
 
-type PrefKey = 'unitPreference' | 'foodRegion' | 'subtractWorkoutBurnFromCalories' | 'scheduleSharing' | 'timezone' | 'saveFormStills' | 'adaptationEnabled' | 'shareTheme';
+type PrefKey = 'unitPreference' | 'foodRegion' | 'subtractWorkoutBurnFromCalories' | 'scheduleSharing' | 'timezone' | 'saveFormStills' | 'adaptationEnabled' | 'shareTheme' | 'shareCards';
 const LABEL: Record<PrefKey, string> = {
   unitPreference: 'Units', foodRegion: 'Food region', subtractWorkoutBurnFromCalories: 'Count workout calories',
   scheduleSharing: 'Share my training calendar', timezone: 'Timezone', saveFormStills: 'Save form-check stills',
-  adaptationEnabled: 'Progression suggestions', shareTheme: 'Share card theme',
+  adaptationEnabled: 'Progression suggestions', shareTheme: 'Share card theme', shareCards: 'Offer share cards',
 };
 function display(k: PrefKey, v: unknown): string {
   if (k === 'unitPreference') return v === 'metric' ? 'kg' : 'lb';
@@ -42,7 +42,7 @@ export async function readPrefs(userId: string) {
   return {
     prefs: {
       unitPreference: u.unitPreference === 'metric' ? 'metric' : 'imperial', foodRegion: u.foodRegion, subtractWorkoutBurnFromCalories: u.subtractWorkoutBurnFromCalories,
-      scheduleSharing: u.scheduleSharing, timezone: u.timezone ?? 'America/New_York', saveFormStills: p.saveFormStills, adaptationEnabled: p.adaptationEnabled, shareTheme: p.shareTheme,
+      scheduleSharing: u.scheduleSharing, timezone: u.timezone ?? 'America/New_York', saveFormStills: p.saveFormStills, adaptationEnabled: p.adaptationEnabled, shareTheme: p.shareTheme, shareCards: p.shareCards,
     } as Record<PrefKey, any>,
     notifications: { ...parseNotificationPrefs(u.notificationPrefsJson), nudges: !u.reengagementOptOut, marketingEmails: !u.marketingEmailsOptOut },
     consent: parseConsent(u.coachProfile) as Record<string, boolean>,
@@ -75,7 +75,7 @@ defineOp({
       const v = normalisePref(k, raw);
       previous[k] = prefs[k];
       lines.push(`${LABEL[k]} · ${display(k, prefs[k])} → ${display(k, v)}`);
-      if (k === 'saveFormStills' || k === 'adaptationEnabled' || k === 'shareTheme') json[k] = v; else col[k] = v;
+      if (k === 'saveFormStills' || k === 'adaptationEnabled' || k === 'shareTheme' || k === 'shareCards') json[k] = v; else col[k] = v;
     }
     if (col.unitPreference !== undefined) {
       // The route also kicks off the strength-profile recompute in the new unit.
@@ -156,7 +156,7 @@ function changeCard(fn: string, label: string, lines: string[], page: string, no
   return { fn, pattern: 'setting', rule: 'change_undo', meta: { label, open: { page } }, rows: lines.map((l) => { const [key, rest] = l.split(' · '); return { key, value: (rest ?? '').split(' → ')[1] ?? rest, sub: `was ${(rest ?? '').split(' → ')[0]}` }; }), ...(note ? { note } : {}) };
 }
 
-const PREF_FN: Partial<Record<PrefKey, string>> = { unitPreference: 'PRF-01', foodRegion: 'PRF-02', subtractWorkoutBurnFromCalories: 'PRF-03', scheduleSharing: 'PRF-10', saveFormStills: 'PRF-12', adaptationEnabled: 'PRF-13', shareTheme: 'PRF-14', timezone: 'PRF-06' };
+const PREF_FN: Partial<Record<PrefKey, string>> = { unitPreference: 'PRF-01', foodRegion: 'PRF-02', subtractWorkoutBurnFromCalories: 'PRF-03', scheduleSharing: 'PRF-10', saveFormStills: 'PRF-12', adaptationEnabled: 'PRF-13', shareTheme: 'PRF-14', shareCards: 'PRF-15', timezone: 'PRF-06' };
 
 export const PREF_TOOLS = [
   tool({
@@ -176,6 +176,7 @@ export const PREF_TOOLS = [
           toggleRow('Share my training calendar', 'scheduleSharing', !!r.prefs.scheduleSharing),
           toggleRow('Progression suggestions', 'adaptationEnabled', !!r.prefs.adaptationEnabled),
           toggleRow('Save form-check stills', 'saveFormStills', !!r.prefs.saveFormStills),
+          toggleRow('Offer share cards', 'shareCards', r.prefs.shareCards !== false),
           { key: 'Timezone', value: r.prefs.timezone },
         ],
         pending: { toggles: {
@@ -183,6 +184,7 @@ export const PREF_TOOLS = [
           scheduleSharing: { op: 'pref.toggle', args: { key: 'scheduleSharing' }, valueKey: 'on' },
           adaptationEnabled: { op: 'pref.toggle', args: { key: 'adaptationEnabled' }, valueKey: 'on' },
           saveFormStills: { op: 'pref.toggle', args: { key: 'saveFormStills' }, valueKey: 'on' },
+          shareCards: { op: 'pref.toggle', args: { key: 'shareCards' }, valueKey: 'on' },
         } },
       };
       const n = r.notifications as any;
@@ -201,10 +203,10 @@ export const PREF_TOOLS = [
   }),
   tool({
     name: 'set_preferences', kind: 'set', fn: 'PRF-01',
-    description: 'Change settings the user asked to change: unitPreference (lb or kg), foodRegion (global, Nigeria, The Gambia, West Africa), subtractWorkoutBurnFromCalories (true = calories burned in workouts are added to that day’s calorie target; false = “don’t add my workout calories back”), scheduleSharing (friends can see my training calendar), timezone (IANA name), saveFormStills (18+), adaptationEnabled (progression suggestions), shareTheme (light or dark). Pass only what changes.',
+    description: 'Change settings the user asked to change: unitPreference (lb or kg), foodRegion (global, Nigeria, The Gambia, West Africa), subtractWorkoutBurnFromCalories (true = calories burned in workouts are added to that day’s calorie target; false = “don’t add my workout calories back”), scheduleSharing (friends can see my training calendar), timezone (IANA name), saveFormStills (18+), adaptationEnabled (progression suggestions), shareTheme (light or dark), shareCards (offer a share card after a workout, PR or goal hit). Pass only what changes.',
     input_schema: schema({
       unitPreference: { type: 'string', enum: ['lb', 'kg'] }, foodRegion: { type: 'string' }, subtractWorkoutBurnFromCalories: { type: 'boolean' },
-      scheduleSharing: { type: 'boolean' }, timezone: { type: 'string' }, saveFormStills: { type: 'boolean' }, adaptationEnabled: { type: 'boolean' }, shareTheme: { type: 'string', enum: ['light', 'dark'] },
+      scheduleSharing: { type: 'boolean' }, timezone: { type: 'string' }, saveFormStills: { type: 'boolean' }, adaptationEnabled: { type: 'boolean' }, shareTheme: { type: 'string', enum: ['light', 'dark'] }, shareCards: { type: 'boolean' },
     }),
     receipt: () => ({ verb: 'Adjusted', text: 'Preferences' }),
     execute: async (input, userId) => {

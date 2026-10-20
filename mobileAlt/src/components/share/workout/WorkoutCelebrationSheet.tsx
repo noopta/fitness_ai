@@ -38,6 +38,8 @@ interface Props {
   visible: boolean;
   shareable: ShareableWorkout | null;
   onClose: () => void;
+  /** The server's congratulation for this log (progress moment): replaces the generic headline. */
+  praise?: { title: string; line: string } | null;
 }
 
 /** Fit a ref-aspect card into the available box. */
@@ -52,7 +54,7 @@ function fitFrame(availW: number, availH: number, template: ShareTemplate) {
   return { w, h };
 }
 
-export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) {
+export function WorkoutCelebrationSheet({ visible, shareable, onClose, praise }: Props) {
   const { width: screenW, height: screenH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { unit } = useUnits();
@@ -98,10 +100,10 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
 
   // Header copy — clipped, second person, no exclamation marks.
   const pr = display.pr;
-  const headline = pr ? 'New PR.' : 'Session logged.';
-  const subline = pr
+  const headline = praise?.title ?? (pr ? 'New PR.' : 'Session logged.');
+  const subline = praise?.line ?? (pr
     ? `${pr.lift} ${pr.metric} ${pr.value} ${pr.unit}`
-    : display.title;
+    : display.title);
 
   // Preview frame — leave room for header + controls.
   const availW = Math.min(screenW - spacing.lg * 2, 360);
@@ -208,7 +210,7 @@ export function WorkoutCelebrationSheet({ visible, shareable, onClose }: Props) 
               <Ionicons name={pr ? 'trophy' : 'checkmark'} size={26} color={colors.primaryForeground} />
             </View>
             <Text style={styles.headline}>{headline}</Text>
-            <Text style={styles.subline} numberOfLines={2}>{subline}</Text>
+            <Text style={styles.subline} numberOfLines={praise ? 4 : 2}>{subline}</Text>
           </View>
 
           {/* Live preview */}

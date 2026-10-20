@@ -31,8 +31,9 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   weeklyEmail: true, reminderHour: 20,
 };
 
-export interface UserPrefs { saveFormStills: boolean; adaptationEnabled: boolean; shareTheme: 'light' | 'dark' }
-export const DEFAULT_USER_PREFS: UserPrefs = { saveFormStills: false, adaptationEnabled: true, shareTheme: 'light' };
+// shareCards: offer Share on progress moments (spec "Progress Moments"); the congratulation shows either way.
+export interface UserPrefs { saveFormStills: boolean; adaptationEnabled: boolean; shareTheme: 'light' | 'dark'; shareCards: boolean }
+export const DEFAULT_USER_PREFS: UserPrefs = { saveFormStills: false, adaptationEnabled: true, shareTheme: 'light', shareCards: true };
 
 const parse = <T>(raw: string | null | undefined, d: T): T => {
   if (!raw) return { ...d };

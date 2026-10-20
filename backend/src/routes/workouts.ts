@@ -129,8 +129,8 @@ router.post('/workouts', requireAuth, async (req, res) => {
     }
     // Every side effect (streak, PRs, adaptation, strength recompute…) lives in
     // the shared service so chat-logged workouts behave identically.
-    const { log, exercises, shareable, adaptationProposals, backdated } = await createWorkoutLog(req.user!.id, parsed.data, 'app');
-    res.status(201).json({ ...log, exercises, shareable, adaptationProposals, backdated });
+    const { log, exercises, shareable, adaptationProposals, backdated, moment } = await createWorkoutLog(req.user!.id, parsed.data, 'app');
+    res.status(201).json({ ...log, exercises, shareable, adaptationProposals, backdated, moment });
   } catch (err) {
     if (err instanceof WorkoutDateError) return res.status(400).json({ error: err.message, code: 'future_date' });
     posthog.captureException(err, req.user?.id);

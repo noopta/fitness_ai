@@ -184,7 +184,7 @@ defineOp({
   run: async (userId, args) => {
     const r = await logBodyWeight(userId, { date: String(args.date), weightKg: Number(args.weightKg), notes: args.notes ? String(args.notes) : undefined });
     await prisma.user.update({ where: { id: userId }, data: { weightKg: Number(args.weightKg) } }).catch(() => {});
-    return { result: { entry: r.entry, warnings: r.warnings }, inverse: r.before ? { op: 'weight.restore', args: { row: r.before } } : { op: 'weight.remove_on', args: { date: String(args.date) } }, summary: `Weigh-in · ${String(args.display)}` };
+    return { result: { entry: r.entry, warnings: r.warnings, moment: r.moment }, inverse: r.before ? { op: 'weight.restore', args: { row: r.before } } : { op: 'weight.remove_on', args: { date: String(args.date) } }, summary: `Weigh-in · ${String(args.display)}` };
   },
 });
 defineOp({ name: 'weight.restore', run: async (userId, args) => { await restoreBodyWeight(userId, args.row); return { inverse: null, summary: 'Weigh-in restored' }; } });
