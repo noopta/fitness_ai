@@ -214,7 +214,14 @@ function CaptureScreenInner() {
         if (!perm.granted) return;
         const start = new Date(); start.setHours(0, 0, 0, 0);
         const page = await MediaLibrary.getAssetsAsync({ first: 12, mediaType: 'photo', sortBy: [[MediaLibrary.SortBy.creationTime, false]], createdAfter: start.getTime() });
-        if (live) setTodayPhotos(page.assets.map((a) => ({ id: a.id, uri: a.uri, at: a.creationTime })));
+        // iOS hands back ph:// URLs, which RN's Image can't draw (21 Oct 2026: the strip was
+        // grey squares). The local file path draws; photos only in iCloud are skipped, not downloaded.
+        const shown = Platform.OS === 'ios'
+          ? await Promise.all(page.assets.map(async (a) => {
+              try { const info = await MediaLibrary.getAssetInfoAsync(a, { shouldDownloadFromNetwork: false }); return info.localUri ? { id: a.id, uri: info.localUri, at: a.creationTime } : null; } catch { return null; }
+            }))
+          : page.assets.map((a) => ({ id: a.id, uri: a.uri, at: a.creationTime }));
+        if (live) setTodayPhotos(shown.filter((x): x is TodayPhoto => !!x));
       } catch { /* no library access in this binary — the Library button still works */ }
     })();
     return () => { live = false; };
