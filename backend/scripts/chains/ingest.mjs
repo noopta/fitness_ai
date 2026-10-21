@@ -136,12 +136,12 @@ async function modelRead(level, note = '') {
   return rows.map((r) => ({ name: String(r.name ?? '').trim(), values: Object.fromEntries(['calories', 'proteinG', 'carbsG', 'fatG', 'fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'transFatG', 'cholesterolMg'].map((k) => [k, n(r[k])])) })).filter((r) => r.name && r.values.calories != null);
 }
 
-const parsed = isPdf ? parseNutritionTables(text).map((r) => ({ name: r.name, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, n(v)])) })) : [];
+const parsed = isPdf ? parseNutritionTables(text).map((r) => ({ name: r.name, section: r.section, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, n(v)])) })) : [];
 const useParser = parsed.length >= 5;
-const readA = useParser ? parsed : await modelRead('MEDIUM', RECHECK);
+const readA = useParser ? parsed : await modelRead('LOW', RECHECK); // MEDIUM thinking returned 1 row of 82 (Little Caesars) — same level, column-by-column prompt
 const readB = await modelRead('LOW');
 const method = useParser ? 'table parser + model read' : 'two model reads';
-console.log(`  read A (${useParser ? 'parser' : 'model MEDIUM'}): ${readA.length} rows · read B (model): ${readB.length} rows`);
+console.log(`  read A (${useParser ? 'parser' : 'model, column-by-column'}): ${readA.length} rows · read B (model): ${readB.length} rows`);
 
 const agree = (x, y) => x != null && y != null && Math.abs(x - y) <= Math.max(1, 0.05 * Math.max(x, y));
 const CORE = ['calories', 'proteinG', 'carbsG', 'fatG'];
@@ -159,7 +159,7 @@ for (const a of readA) {
       if (useParser && a.values[k] != null && (b.values[k] == null || agree(a.values[k], b.values[k]))) micros[k] = a.values[k];
       else if (agree(a.values[k], b.values[k])) micros[k] = a.values[k];
     }
-    agreed.push({ name: a.name, values: a.values, micros });
+    agreed.push({ name: a.name, section: a.section, values: a.values, micros });
   } else disagreements.push({ name: a.name, readA: CORE.map((k) => a.values[k]), readB: list[0] ? CORE.map((k) => list[0].values[k]) : null });
 }
 for (const [, list] of byKeyB) for (const b of list) disagreements.push({ name: b.name, readA: null, readB: CORE.map((k) => b.values[k]) });
@@ -177,8 +177,12 @@ for (const r of agreed) {
   const m = r.name.match(SIZE_RE);
   const size = m ? sizeKey(m[1]) : 'regular';
   const base = (m ? r.name.replace(m[0], ' ') : r.name).replace(/[()]/g, ' ').replace(/\s*[-–,:]\s*$/, '').replace(/\s+/g, ' ').trim();
-  const id = slug(base); if (!id) continue;
-  const it = items.get(id) ?? { id, name: base, sizes: [] };
+  let id = slug(base); if (!id) continue;
+  let name = base;
+  // The same name printed in two sections ("Pepperoni" pizza vs topping) with different numbers: name it by section.
+  const clash = items.get(id)?.sizes.find((x) => x.size === size);
+  if (clash && clash.calories !== r.values.calories && r.section) { name = `${base} (${r.section.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())})`; id = slug(name); }
+  const it = items.get(id) ?? { id, name, ...(r.section ? { category: r.section } : {}), sizes: [] };
   if (!it.sizes.some((x) => x.size === size)) it.sizes.push({ size, label: m?.[1], calories: r.values.calories, proteinG: r.values.proteinG, carbsG: r.values.carbsG, fatG: r.values.fatG, micros: r.micros });
   items.set(id, it);
 }

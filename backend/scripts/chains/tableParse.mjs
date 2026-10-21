@@ -36,12 +36,14 @@ const UNIT = /^\(?(k?cal|kj|g|mg|mcg|µg|%|%dv|iu)\)?$/i;
  * exactly — header words go to the nearest unit (Mary Brown's prints "Trans
  * Fat Cholesterol" with single spaces). Otherwise phrases split on 2+ spaces.
  */
-function headerColumns(header, below) {
+function headerColumns(header, below, above = []) {
   const unitLine = below.slice(0, 3).find((l) => tokens(l).filter((t) => UNIT.test(t.text)).length >= 4);
   let centers;
   if (unitLine) centers = tokens(unitLine).filter((t) => UNIT.test(t.text)).map((t) => ({ start: t.start, end: t.end, mid: t.mid, words: [t.text] }));
-  else centers = [...header.matchAll(/\S+(?: \S+)*/g)].map((m) => ({ start: m.index, end: m.index + m[0].length, mid: m.index + m[0].length / 2, words: [] }));
-  const wordLines = [header, ...(unitLine ? below.slice(0, below.indexOf(unitLine) + 1) : [])];
+  // Staggered headers (Little Caesars): column names alternate between two
+  // lines, each centred over its column — phrases from both lines are columns.
+  else centers = [header, ...above].flatMap((l) => [...l.matchAll(/\S+(?: \S+)*/g)].map((m) => ({ start: m.index, end: m.index + m[0].length, mid: m.index + m[0].length / 2, words: unitLine ? [] : [m[0]] })));
+  const wordLines = unitLine ? [header, ...below.slice(0, below.indexOf(unitLine) + 1)] : [];
   for (const l of wordLines) for (const w of tokens(l)) {
     if (UNIT.test(w.text) && l === unitLine) continue;
     let best = null; let d = Infinity;
@@ -74,11 +76,19 @@ export function parseNutritionTables(text) {
   const rows = [];
   let cols = null;
   let pendingName = '';
+  let section = '';
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // Section headings ("LARGE SPECIALTY PIZZAS", "SIDES"): all caps, no numbers — kept on each row
+    // so items printed under the same name in two sections stay apart.
+    const bare = line.trim();
+    if (bare && /^[A-Z0-9®™&'’ ,.\-/]+$/.test(bare) && /[A-Z]{3}/.test(bare) && !/\d{2,}/.test(bare) && bare.length < 60 && !isHeaderLine(line)) { section = bare.replace(/[®™]/g, '').trim(); continue; }
     if (isHeaderLine(line)) {
-      const c = headerColumns(line, lines.slice(i + 1, i + 4));
+      // A header line just above (no numbers, nutrient words) is the other half of a staggered header.
+      const prev = lines.slice(Math.max(0, i - 2), i).filter((l) => /fat|carb|prot|sodium|sugar|fib|chol|calor/i.test(l) && !tokens(l).some((t) => NUM.test(t.text)));
+      const c = headerColumns(line, lines.slice(i + 1, i + 4), prev);
       cols = ['calories', 'fatG', 'carbsG', 'proteinG'].every((k) => c.some((x) => x.key === k)) ? c : null;
+      if (process.env.TP_DEBUG) console.error('header', i, c.map((x) => `${x.key}@${x.start}-${x.end}`).join(' '), cols ? 'OK' : 'REJECTED');
       pendingName = '';
       continue;
     }
@@ -107,18 +117,25 @@ export function parseNutritionTables(text) {
       tail.forEach((t, k) => { if (ord[k]) values[ord[k]] = Number(t.text.replace(/^<\s*/, '').replace(',', '.').replace(/[*†‡]+$/, '')); });
       const nm = toks.filter((t) => t.end <= tail[0].start).map((t) => t.text).join(' ');
       const clean = nm.replace(/\s+\d+(\.\d+)?\s*(serving|servings|piece|pieces|container|containers|each|order|cup|cups|packet|packets|pkt|portion|portions|slice|slices|oz|g)\b.*$/i, '').trim();
-      if (clean && values.calories != null) rows.push({ name: clean, values });
+      if (clean && values.calories != null) rows.push({ name: clean, values, section });
       pendingName = '';
       continue;
     }
     for (const t of nums) {
       // Nearest column centre, within half the gap to the next column.
+      // Tables align numbers left, centre or right under their header; the best of
+      // the three decides, among columns still empty (Little Caesars' 252 g carbs
+      // sat equidistant from Sodium's and Carbohydrates' centres).
       let best = null; let bestD = Infinity;
-      for (const c of cols) { const d = Math.abs(t.mid - c.mid); if (d < bestD) { best = c; bestD = d; } }
-      const span = Math.max(4, (best.end - best.start) / 2 + 4);
-      if (best && bestD <= span && values[best.key] == null) values[best.key] = Number(t.text.replace(/^<\s*/, '').replace(',', '.').replace(/[*†‡]+$/, ''));
+      for (const c of cols) {
+        if (values[c.key] != null) continue;
+        const d = Math.min(Math.abs(t.mid - c.mid), Math.abs(t.start - c.start), Math.abs(t.end - c.end));
+        if (d < bestD) { best = c; bestD = d; }
+      }
+      const span = best ? Math.max(4, (best.end - best.start) / 2 + 4) : 0;
+      if (best && bestD <= span) values[best.key] = Number(t.text.replace(/^<\s*/, '').replace(',', '.').replace(/[*†‡]+$/, ''));
     }
-    if (values.calories != null) rows.push({ name: name.replace(/\s{2,}.*$/, '').trim(), values });
+    if (values.calories != null) rows.push({ name: name.replace(/\s{2,}.*$/, '').trim(), values, section });
   }
   return rows;
 }

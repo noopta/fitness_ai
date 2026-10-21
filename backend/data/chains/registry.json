@@ -228,7 +228,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.pizzahut.com/c/content/nutrition",
-   "CA": "https://www.pizzahut.ca/nutrition/"
+   "CA": "https://assets.ctfassets.net/foi9ggpj1j8o/7rP6F2kWHOSs5DTlolMoeM/1473cdd8784a6ff7ae8eccf56fe52e04/nutritionals.14841ea6d15764c94dd896afffdb2452.pdf"
   }
  },
  {
@@ -286,7 +286,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": "https://littlecaesars.com/en-us/menu/nutrition/",
+   "US": "https://littlecaesars.com/static/usnutritionguide.pdf",
    "CA": "https://littlecaesars.ca/en-ca/menu/nutrition/"
   }
  },
@@ -426,7 +426,7 @@
   },
   "nutritionUrl": {
    "US": "https://www.kfc.com/full-nutrition-guide",
-   "CA": null
+   "CA": "https://assets.ctfassets.net/a2mgcrjjefyo/3AUi2N7aacNo4rjQ1jE3di/ab5513730957082e372dd36fd0a7c950/KFC_Nutritional_Information__W8__EN_FR.pdf"
   }
  },
  {
@@ -1780,7 +1780,7 @@
    ]
   },
   "nutritionUrl": {
-   "US": "https://www.bobevans.com/nutrition"
+   "US": "https://assets.ctfassets.net/81w9kb7f1jq4/2A9f5Tf5lGRHb20qCFWy1q/25301c677d211595df3e09f995514055/Nutritional_Guide_Fall_FY2027_Lunch_Dinner.pdf"
   }
  },
  {
