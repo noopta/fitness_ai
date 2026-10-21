@@ -160,7 +160,6 @@ export function HomePage() {
   }, [shell, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
   // "While you were away · N" (spec §9): Anakin-initiated turns since the user last spoke, folded once at open.
   const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
-  const [awayOpen, setAwayOpen] = useState(false);
   // Load the thread, then pick up a turn Anakin is still working on (the app was closed or the screen left mid-answer).
   useEffect(() => { void thread.hydrate().then(setAway).then(() => thread.resume()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Suggestions reach chat (feedback 8 Oct): pending ones chat hasn't shown yet arrive as Anakin's turn. At most every 10 min.
@@ -468,12 +467,12 @@ export function HomePage() {
               ) : null}
               <CardHandlersProvider value={handlers}>
               {thread.state.turns.map((t, i) => {
-                if (away && !awayOpen && i >= away.start && i < away.end) {
-                  return i === away.start ? <View key="away" style={{ marginTop: i === 0 ? 0 : TURN_GAP }}><AwayRow count={away.count} onPress={() => setAwayOpen(true)} /></View> : null;
-                }
+                // What Anakin posted while they were gone is shown open, under a divider — never folded behind a tap (Oct 2026).
                 const sl = slots[i];
-                return <SignedTurn key={t.id} turn={t} first={i === 0} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
+                const turn = <SignedTurn key={t.id} turn={t} first={i === 0 && !(away && i === away.start)} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
                   dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
+                if (away && i === away.start) return <React.Fragment key={`away-${t.id}`}><View style={{ marginTop: i === 0 ? 0 : TURN_GAP }}><AwayDivider count={away.count} /></View>{turn}</React.Fragment>;
+                return turn;
               })}
               </CardHandlersProvider>
               {thread.state.error ? (
@@ -620,14 +619,13 @@ function sessionLabel(session: NonNullable<BriefSession>): string {
 
 export function dismissKeyboard() { Keyboard.dismiss(); }
 
-/** "While you were away · 3" — one collapsed row; tapping expands the cards in order. */
-function AwayRow({ count, onPress }: { count: number; onPress: () => void }) {
+/** "While you were away · 3" — a divider over what Anakin posted while they were gone; the messages show open below it. */
+function AwayDivider({ count }: { count: number }) {
   return (
     <Enter exit={false}>
-      <Pressable onPress={onPress} style={styles.awayRow} accessibilityRole="button" accessibilityLabel={`While you were away, ${count} items. Show them`}>
-        <Text style={[T.rowStrong, { fontSize: 15, flex: 1 }]}>While you were away · {count}</Text>
-        <Text style={[T.rowStrong, { fontSize: 15, color: C.muted }]}>↓</Text>
-      </Pressable>
+      <View style={styles.awayRow} accessibilityRole="header" accessibilityLabel={`While you were away, ${count} new from Anakin`}>
+        <Text style={[T.eyebrow, { flex: 1 }]}>While you were away · {count} new</Text>
+      </View>
     </Enter>
   );
 }
@@ -657,7 +655,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: v2.font.regular, fontSize: 17, padding: 0 },
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0, height: 56 },
-  awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 48, borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.hairline },
+  awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingTop: 10, borderTopWidth: 1, borderColor: C.hairline },
   saveBar: { justifyContent: 'space-between' },
   editingRow: { position: 'absolute', left: 0, right: 0, bottom: COMPOSER_H, height: 32, flexDirection: 'row', alignItems: 'center', backgroundColor: C.white },
   newPillWrap: { position: 'absolute', left: 0, right: 0, bottom: 84, alignItems: 'center' },
