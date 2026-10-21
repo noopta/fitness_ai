@@ -23,6 +23,7 @@ import { qk, useInvalidate } from '../data';
 import { unitLabel } from '../format';
 import type { Turn } from '@axiom/agent-ui-core';
 import { haptics } from '../haptics';
+import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 interface CardProps {
   turn: Turn;
@@ -135,9 +136,9 @@ export function BenchCard({ turn, patch, resolve }: CardProps) {
           <View style={{ marginTop: 14 }}>
             <Text style={T.caption}>Log one and the line starts.</Text>
             <View style={styles.logger}>
-              <TextInput value={w} onChangeText={setW} placeholder={`weight, ${u}`} placeholderTextColor={v2.color.placeholder} keyboardType="decimal-pad" style={styles.loggerInput} accessibilityLabel="Weight" />
+              <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={w} onChangeText={setW} placeholder={`weight, ${u}`} placeholderTextColor={v2.color.placeholder} keyboardType="decimal-pad" style={styles.loggerInput} accessibilityLabel="Weight" />
               <Text style={[T.row, { color: v2.color.placeholder }]}>×</Text>
-              <TextInput value={r} onChangeText={setR} placeholder="reps" placeholderTextColor={v2.color.placeholder} keyboardType="number-pad" style={[styles.loggerInput, { flex: 0.6 }]} accessibilityLabel="Reps" />
+              <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={r} onChangeText={setR} placeholder="reps" placeholderTextColor={v2.color.placeholder} keyboardType="number-pad" style={[styles.loggerInput, { flex: 0.6 }]} accessibilityLabel="Reps" />
               <TextAction primary size={15} onPress={() => void logSet()} loading={busy} disabled={!w || !r}>Log it</TextAction>
             </View>
           </View>

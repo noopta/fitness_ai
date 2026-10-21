@@ -23,6 +23,7 @@ import { useShellOptional } from '../../shell/ShellContext';
 import { useSaved, qk } from '../../data';
 import { LinkTabs, RowAction, Avatar, ago, displayName } from './common';
 import { Post, type PostModel } from './Post';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 type Filter = 'all' | 'workouts' | 'posts' | 'articles';
@@ -118,7 +119,7 @@ export function PostPage({ id }: { id: string }) {
             );
           })}
           <View style={styles.composer}>
-            <TextInput value={text} onChangeText={setText} placeholder="Add a comment" placeholderTextColor={C.placeholder} style={styles.input} multiline maxLength={1000} accessibilityLabel="Add a comment" />
+            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} placeholder="Add a comment" placeholderTextColor={C.placeholder} style={styles.input} multiline maxLength={1000} accessibilityLabel="Add a comment" />
             <RowAction label="Post" primary busy={busy || !text.trim()} onPress={() => void add()} />
           </View>
         </View>

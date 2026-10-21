@@ -21,6 +21,7 @@ import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-nat
 import { Pressable } from './Pressable';
 import { TextAction } from './TextAction';
 import { v2, T } from '../theme';
+import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 export interface NumberSheetProps {
   visible: boolean;
@@ -89,7 +90,7 @@ export function NumberSheet({ visible, title, sub, current, unit, decimal, min =
         <Text style={[T.headlineSm, { fontSize: 20, lineHeight: 26 }]}>{title}</Text>
         {sub ? <Text style={[T.caption, { marginTop: 4 }]}>{sub}</Text> : null}
         <View style={styles.field}>
-          <TextInput ref={input} value={text} onChangeText={(v) => { setText(v.replace(decimal ? /[^0-9.,]/g : /[^0-9]/g, '')); setError(null); }}
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} ref={input} value={text} onChangeText={(v) => { setText(v.replace(decimal ? /[^0-9.,]/g : /[^0-9]/g, '')); setError(null); }}
             placeholder={current ?? ''} placeholderTextColor={v2.color.placeholder} keyboardType={(decimal ? 'decimal-pad' : 'number-pad') as KeyboardTypeOptions}
             autoFocus maxLength={decimal ? 6 : 3} style={styles.input} onSubmitEditing={submit} returnKeyType="done"
             cursorColor={v2.color.crimson} selectionColor={v2.color.crimson} accessibilityLabel={title} />

@@ -27,6 +27,7 @@ import { socialApi, groupsApi, trainTogetherApi } from '../../../lib/api';
 import { haptics } from '../../haptics';
 import { Avatar, LinkTabs, RowAction, ago, displayName } from './common';
 import { groupsOf } from './lists';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 const fmtDay = (d: string) => { const x = new Date(`${String(d).slice(0, 10)}T12:00:00`); return Number.isNaN(x.getTime()) ? d : x.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); };
@@ -69,7 +70,7 @@ export function FriendsPage({ params }: { params: Record<string, string> }) {
     <PushedPage back="Feed" title={sending ? 'Send to…' : `Friends · ${friends.data?.length ?? 0}`} meta={sending ? (params.title ?? null) : null}
       right={sending ? undefined : <RowAction label="Add" onPress={() => push(router, 'feedsearch', { scope: 'people' })} />}
       loading={friends.isLoading} refreshing={friends.isRefetching} onRefresh={() => { void friends.refetch(); void requests.refetch(); }}>
-      <TextInput value={q} onChangeText={setQ} placeholder="Search friends" placeholderTextColor={C.placeholder} style={styles.search} accessibilityLabel="Search friends" />
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={q} onChangeText={setQ} placeholder="Search friends" placeholderTextColor={C.placeholder} style={styles.search} accessibilityLabel="Search friends" />
       {reqs.length ? (
         <View style={{ marginBottom: 22 }}>
           <Eyebrow>Requests · {reqs.length}</Eyebrow>
@@ -151,7 +152,7 @@ export function GroupPage({ id }: { id: string }) {
         </>
       ) : null}
       <View style={styles.composer}>
-        <TextInput value={text} onChangeText={setText} placeholder={`Message ${group?.name ?? 'the group'}`} placeholderTextColor={C.placeholder} style={styles.composerInput} onSubmitEditing={() => void send()} returnKeyType="send" />
+        <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} placeholder={`Message ${group?.name ?? 'the group'}`} placeholderTextColor={C.placeholder} style={styles.composerInput} onSubmitEditing={() => void send()} returnKeyType="send" />
         <Pressable onPress={() => void send()} disabled={!text.trim() || sending} hitSlop={10} accessibilityLabel="Send"><Text style={[T.rowStrong, { color: text.trim() ? C.crimson : C.placeholder }]}>↑</Text></Pressable>
       </View>
       <Sheet visible={menu} onClose={() => setMenu(false)} title={group?.name}>
@@ -160,7 +161,7 @@ export function GroupPage({ id }: { id: string }) {
         <Row name="Leave group" muted last onPress={() => { setMenu(false); leave(); }} />
       </Sheet>
       <Sheet visible={goalEdit != null} onClose={() => setGoalEdit(null)} title="What’s the group working on?">
-        <TextInput value={goalEdit ?? ''} onChangeText={setGoalEdit} placeholder="e.g. Fall cut, 30 lb together" placeholderTextColor={C.placeholder} style={styles.search} autoFocus />
+        <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={goalEdit ?? ''} onChangeText={setGoalEdit} placeholder="e.g. Fall cut, 30 lb together" placeholderTextColor={C.placeholder} style={styles.search} autoFocus />
         <TextAction primary onPress={() => void saveGoal(goalEdit ?? '')}>Save</TextAction>
       </Sheet>
     </PushedPage>

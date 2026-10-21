@@ -33,6 +33,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { authApi, apiFetch } from '../../../lib/api';
 import { haptics } from '../../haptics';
 import { contactSupport, SUPPORT_EMAIL } from '../../../lib/openExternal';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const FOOD_REGIONS = [
   { value: 'global', label: 'Global', sub: 'USDA database, US portion sizes' },
@@ -215,7 +216,7 @@ export function DeleteAccountPage() {
       <TextAction muted arrow={false} size={14} onPress={() => void exportFirst()} style={{ marginTop: 14 }}>Download my data first</TextAction>
 
       <Text style={[T.caption, { marginTop: 26 }]}>Type DELETE to confirm</Text>
-      <TextInput value={typed} onChangeText={setTyped} autoCapitalize="characters" autoCorrect={false} placeholder="DELETE" placeholderTextColor={v2.color.placeholder}
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={typed} onChangeText={setTyped} autoCapitalize="characters" autoCorrect={false} placeholder="DELETE" placeholderTextColor={v2.color.placeholder}
         style={styles.typed} accessibilityLabel="Type DELETE to confirm" />
 
       <View style={[styles.sheetActions, { marginTop: 26 }]}>

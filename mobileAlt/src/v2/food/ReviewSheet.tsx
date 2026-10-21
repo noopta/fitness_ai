@@ -31,6 +31,7 @@ import { nutritionApi } from '../../lib/api';
 import { todayStr } from '../../lib/localDate';
 import { useMeals } from '../data';
 import type { FoodResult } from '../api';
+import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 const SLOTS = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
@@ -195,7 +196,7 @@ function PortionRow({ item, last, onStep, onType }: { item: Portioned; last: boo
       <View style={styles.stepper}>
         <Pressable onPress={() => onStep(-1)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Less"><Text style={styles.stepBtn}>−</Text></Pressable>
         {editing ? (
-          <TextInput autoFocus value={draft} onChangeText={setDraft} keyboardType="decimal-pad" returnKeyType="done" selectTextOnFocus
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} autoFocus value={draft} onChangeText={setDraft} keyboardType="decimal-pad" returnKeyType="done" selectTextOnFocus
             onBlur={() => { onType(draft); setEditing(false); }} onSubmitEditing={() => { onType(draft); setEditing(false); }}
             style={[styles.stepValue, styles.dotted, { minWidth: 64 }]} accessibilityLabel={`Amount in ${item.unit === 'g' ? 'grams' : 'servings'}`} />
         ) : (

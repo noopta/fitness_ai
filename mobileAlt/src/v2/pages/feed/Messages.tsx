@@ -28,6 +28,7 @@ import { groupsOf } from './lists';
 import { useFriends } from './People';
 import { Avatar, AskLine, RowAction, LinkTabs, ago, displayName } from './common';
 import { userSafetyMenu } from '../../../lib/moderation';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 
@@ -157,7 +158,7 @@ function NewGroupSheet({ visible, onClose, onCreated }: { visible: boolean; onCl
   };
   return (
     <Sheet visible={visible} onClose={onClose} title="New group">
-      <TextInput value={name} onChangeText={setName} placeholder="Name it — e.g. Fall cut" placeholderTextColor={C.placeholder} style={styles.groupName} autoFocus />
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={name} onChangeText={setName} placeholder="Name it — e.g. Fall cut" placeholderTextColor={C.placeholder} style={styles.groupName} autoFocus />
       <View style={{ maxHeight: 280, marginTop: 8 }}>
         {fl.map((f, i) => { const on = picked.includes(f.username); return <Row key={f.id} name={displayName(f)} sub={`@${f.username}`} value={on ? '✓' : undefined} emphasis={on} last={i === fl.length - 1} onPress={() => setPicked((p) => (on ? p.filter((u) => u !== f.username) : [...p, f.username]))} />; })}
         {!friends.isLoading && !fl.length ? <Text style={T.bodyMuted}>Add a friend first.</Text> : null}
@@ -254,7 +255,7 @@ export function ThreadPage({ id, name }: { id: string; name?: string }) {
         ))}
       </ScrollView>
       <View style={[styles.composer, { paddingBottom: Math.max(12, insets.bottom) }]}>
-        <TextInput value={text} onChangeText={setText} placeholder={`Message ${name || ''}`.trim()} placeholderTextColor={C.placeholder}
+        <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} placeholder={`Message ${name || ''}`.trim()} placeholderTextColor={C.placeholder}
           style={styles.input} multiline maxLength={2000} accessibilityLabel="Message" />
         <Pressable onPress={() => void send()} disabled={!text.trim() || sending} hitSlop={10} accessibilityRole="button" accessibilityLabel="Send">
           <Text style={[styles.send, { color: text.trim() ? C.crimson : C.placeholder }]}>↑</Text>

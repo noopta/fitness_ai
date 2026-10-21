@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable } from './Pressable';
 import { TextAction } from './TextAction';
 import { v2, T } from '../theme';
+import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 export function Sheet({ visible, onClose, title, sub, children }: {
   visible: boolean;
@@ -41,6 +42,8 @@ export function Sheet({ visible, onClose, title, sub, children }: {
           </Animated.View>
         ) : null}
       </KeyboardAvoidingView>
+      {/* A Modal is its own window: the shell's Done bar doesn't reach in here. */}
+      <KeyboardDoneBar force />
     </Modal>
   );
 }
@@ -69,7 +72,7 @@ export function PromptSheet({ visible, title, sub, initial = '', placeholder, ke
   return (
     <Sheet visible={visible} onClose={onClose} title={title} sub={sub}>
       <View style={styles.field}>
-        <TextInput value={value} onChangeText={setValue} placeholder={placeholder} placeholderTextColor={v2.color.placeholder}
+        <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={value} onChangeText={setValue} placeholder={placeholder} placeholderTextColor={v2.color.placeholder}
           keyboardType={keyboardType} autoFocus selectTextOnFocus style={styles.input} onSubmitEditing={() => void submit()}
           returnKeyType="done" cursorColor={v2.color.crimson} selectionColor={v2.color.crimson} accessibilityLabel={title} />
         {unit ? <Text style={T.body}>{unit}</Text> : null}

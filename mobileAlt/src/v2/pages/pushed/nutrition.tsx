@@ -31,6 +31,7 @@ import { nutritionApi, nutritionProfileApi } from '../../../lib/api';
 import { v2Api, type FoodResult } from '../../api';
 import { todayStr } from '../../../lib/localDate';
 import { haptics } from '../../haptics';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 const slotNow = (): 'breakfast' | 'lunch' | 'dinner' | 'snack' => { const h = new Date().getHours(); return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snack'; };
@@ -143,7 +144,7 @@ function NumberField({ value, onChange, unit, onNext }: { value: string; onChang
   return (
     <View>
       <View style={styles.field}>
-        <TextInput value={value} onChangeText={onChange} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.fieldInput} autoFocus={!value} accessibilityLabel={unit} />
+        <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={value} onChangeText={onChange} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.fieldInput} autoFocus={!value} accessibilityLabel={unit} />
         <Text style={[T.body, { color: C.muted }]}>{unit}</Text>
       </View>
       {onNext ? <TextAction primary style={{ marginTop: 20 }} onPress={onNext} disabled={!value.trim()}>Next</TextAction> : null}
@@ -369,10 +370,10 @@ function AddIngredientSheet({ visible, onClose, onAdd }: { visible: boolean; onC
         </View>
       ) : typing ? (
         <View style={{ gap: 12 }}>
-          <TextInput value={manual.name} onChangeText={(v) => setManual((m) => ({ ...m, name: v }))} placeholder="Name" placeholderTextColor={C.placeholder} style={styles.typeInput} autoFocus />
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={manual.name} onChangeText={(v) => setManual((m) => ({ ...m, name: v }))} placeholder="Name" placeholderTextColor={C.placeholder} style={styles.typeInput} autoFocus />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             {(['calories', 'proteinG', 'carbsG', 'fatG'] as const).map((k) => (
-              <TextInput key={k} value={(manual as any)[k]} onChangeText={(v) => setManual((m) => ({ ...m, [k]: v }))} keyboardType="decimal-pad" placeholder={k === 'calories' ? 'kcal' : k.replace('G', ' g')} placeholderTextColor={C.placeholder} style={[styles.typeInput, { flex: 1 }]} />
+              <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} key={k} value={(manual as any)[k]} onChangeText={(v) => setManual((m) => ({ ...m, [k]: v }))} keyboardType="decimal-pad" placeholder={k === 'calories' ? 'kcal' : k.replace('G', ' g')} placeholderTextColor={C.placeholder} style={[styles.typeInput, { flex: 1 }]} />
             ))}
           </View>
           <View style={styles.actions}>
@@ -382,7 +383,7 @@ function AddIngredientSheet({ visible, onClose, onAdd }: { visible: boolean; onC
         </View>
       ) : (
         <View>
-          <TextInput value={q} onChangeText={setQ} placeholder="Search foods" placeholderTextColor={C.placeholder} style={styles.typeInput} autoFocus returnKeyType="search" />
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={q} onChangeText={setQ} placeholder="Search foods" placeholderTextColor={C.placeholder} style={styles.typeInput} autoFocus returnKeyType="search" />
           <View style={{ marginTop: 8, maxHeight: 320 }}>
             {res.isFetching && !res.data ? <ActivityIndicator color={C.muted} style={{ marginVertical: 12 }} /> : null}
             {(res.data?.results ?? []).slice(0, 8).map((f, i, arr) => <Row key={`${f.kind}:${f.id}`} name={f.name} sub={f.caption} value={`${Math.round(f.kcal)}`} last={i === arr.length - 1} onPress={() => { haptics.select(); setFood(f); setQty(1); }} />)}

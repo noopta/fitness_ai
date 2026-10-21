@@ -18,6 +18,7 @@ import { Sheet } from '../../primitives/Sheet';
 import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
 import { ptApi } from '../../../features/personal-training/api';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const consent = (trainer: string) =>
   `If you accept, ${trainer} will see your workouts, check-ins, body weight, program and the injuries you've listed, and can message you.`;
@@ -168,7 +169,7 @@ export function CoachPage({ params }: { params: Record<string, string> }) {
         <View style={styles.block}>
           <Eyebrow>Join with an invite</Eyebrow>
           <View style={styles.field}>
-            <TextInput value={entry} onChangeText={(t) => { setEntry(t); setError(null); }} placeholder="Code or link, e.g. K7QM-3XPA"
+            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={entry} onChangeText={(t) => { setEntry(t); setError(null); }} placeholder="Code or link, e.g. K7QM-3XPA"
               placeholderTextColor={v2.color.placeholder} autoCapitalize="characters" autoCorrect={false} returnKeyType="go"
               onSubmitEditing={() => void find(entry)} style={styles.input} cursorColor={v2.color.crimson} selectionColor={v2.color.crimson}
               accessibilityLabel="Invite code or link" />

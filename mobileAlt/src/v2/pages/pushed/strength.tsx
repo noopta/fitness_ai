@@ -26,6 +26,7 @@ import { useUnits } from '../../../context/UnitsContext';
 import { workoutsApi, apiFetch } from '../../../lib/api';
 import { todayStr } from '../../../lib/localDate';
 import { haptics } from '../../haptics';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 const TIER_LABEL: Record<string, string> = { novice: 'Novice', intermediate: 'Intermediate', advanced: 'Advanced', elite: 'Elite', untested: 'Not yet tested' };
@@ -175,12 +176,12 @@ function LogSetSheet({ visible, onClose, name, last }: { visible: boolean; onClo
     <Sheet visible={visible} onClose={onClose} title={`Log a set · ${name}`} sub={last ? `Last time ${last.weightKg ? Math.round(fromKg(last.weightKg)) : 'BW'} × ${last.reps}` : 'Today'}>
       <View style={styles.setRow}>
         <View style={{ flex: 1 }}>
-          <TextInput value={w} onChangeText={setW} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.setInput} accessibilityLabel={`Weight in ${unit}`} />
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={w} onChangeText={setW} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.setInput} accessibilityLabel={`Weight in ${unit}`} />
           <Text style={T.caption}>{unit}</Text>
         </View>
         <Text style={[T.read, { color: C.muted }]}>×</Text>
         <View style={{ flex: 1 }}>
-          <TextInput value={r} onChangeText={setR} keyboardType="number-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.setInput} accessibilityLabel="Reps" />
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={r} onChangeText={setR} keyboardType="number-pad" placeholder="0" placeholderTextColor={C.placeholder} style={styles.setInput} accessibilityLabel="Reps" />
           <Text style={T.caption}>reps</Text>
         </View>
       </View>

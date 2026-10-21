@@ -11,6 +11,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
 import { useShellOptional } from '../../shell/ShellContext';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 
@@ -108,7 +109,7 @@ export function SearchHeader({ placeholder, value, onChange, onQuery, size = 20,
   };
   return (
     <View style={[styles.searchHead, { paddingTop: insets.top + 12 }]}>
-      <TextInput
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID}
         value={value} onChangeText={change} placeholder={placeholder} placeholderTextColor={C.placeholder}
         autoFocus={autoFocus} autoCorrect={false} autoCapitalize="none" returnKeyType="search"
         onSubmitEditing={() => onQuery?.(value.trim())}

@@ -16,6 +16,7 @@ import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 import { markV2Boot } from '../../src/v2/crashGuard';
 import { useAppleHealthAutoSync } from '../../src/health/useAppleHealthAutoSync';
 import { MomentPresenter } from '../../src/v2/moments/MomentPrompt';
+import { KeyboardDoneBar } from '../../src/components/ui/KeyboardDoneBar';
 
 export default function V2Layout() {
   const ready = useV2Fonts();
@@ -49,6 +50,8 @@ export default function V2Layout() {
       </Stack>
       {/* A log anywhere in the shell that earns a moment raises the congratulation + share prompt. */}
       <MomentPresenter />
+      {/* The one "Done" strip on top of the keyboard for every v2 input (inputAccessoryViewID={KEYBOARD_DONE_ID}). */}
+      <KeyboardDoneBar />
     </HomeVideoProvider>
     </ShellProvider>
     </ErrorBoundary>

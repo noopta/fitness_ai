@@ -4,6 +4,7 @@
 import React from 'react';
 import { TextInput, StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { v2, T } from '../theme';
+import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 interface Props {
   value: string;
@@ -20,7 +21,7 @@ interface Props {
 
 export function GoalInput({ value, onChange, onSubmit, placeholder = 'What are you working toward?', size = 34, readOnly, autoFocus, style, tone = 'light', multiline = true }: Props) {
   return (
-    <TextInput
+    <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID}
       value={value}
       onChangeText={onChange}
       onSubmitEditing={onSubmit}

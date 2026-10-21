@@ -25,14 +25,36 @@ export const KEYBOARD_DONE_ID = 'axiom-keyboard-done';
  * anchored to the top of the IME using keyboard events. It only mounts while
  * the keyboard is actually open, so it costs nothing the rest of the time.
  *
- * Usage:
- *   1. Render <KeyboardDoneBar /> once anywhere in the screen tree.
+ * Usage (Oct 2026 — the standard for every input in the app):
+ *   1. v2: already mounted once in app/(v2)/_layout.tsx. Inside a <Modal>,
+ *      render <KeyboardDoneBar force /> (a Modal is its own window).
  *   2. Add inputAccessoryViewID={KEYBOARD_DONE_ID} to every TextInput / Input
- *      (iOS only needs this; Android ignores the prop).
+ *      (iOS only needs this; Android ignores the prop). Without it iOS shows
+ *      its own floating "Done" pill over the content instead of this strip.
  */
-export function KeyboardDoneBar() {
+// One bar at a time: the v2 layout mounts it for every screen, and older
+// screens and sheets that render their own don't stack a second pill on
+// Android. The earliest mounted instance draws it; `force` (a Modal, which is
+// its own window) always draws.
+let nextId = 1;
+const mounted: number[] = [];
+const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((l) => l());
+
+export function KeyboardDoneBar({ force = false }: { force?: boolean } = {}) {
   // Hooks must run unconditionally, so the platform split happens at render.
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [id] = useState(() => nextId++);
+  const [, rerender] = useState(0);
+  useEffect(() => {
+    if (force) return;
+    mounted.push(id);
+    const l = () => rerender((n) => n + 1);
+    listeners.add(l);
+    notify();
+    return () => { mounted.splice(mounted.indexOf(id), 1); listeners.delete(l); notify(); };
+  }, [id, force]);
+  const owner = force || mounted[0] === id;
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -44,6 +66,8 @@ export function KeyboardDoneBar() {
     const hideSub = Keyboard.addListener('keyboardDidHide', onHide);
     return () => { showSub.remove(); hideSub.remove(); };
   }, []);
+
+  if (!owner) return null;
 
   if (Platform.OS === 'ios') {
     return (

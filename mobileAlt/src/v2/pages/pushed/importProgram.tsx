@@ -16,6 +16,7 @@ import { v2, T } from '../../theme';
 import { haptics } from '../../haptics';
 import { apiFetch, LONG_TIMEOUT_MS } from '../../../lib/api';
 import { useInvalidate } from '../../data';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 interface Photo { uri: string; base64: string }
 interface Preview {
@@ -121,9 +122,9 @@ export function ImportProgramPage() {
   return (
     <PushedPage back="Training" title="Import a program" lead="Your coach’s program, exactly as they wrote it — paste it or add photos of the sheet. Nothing gets changed; progression suggestions stay out of it.">
       <Eyebrow>Paste it</Eyebrow>
-      <TextInput value={text} onChangeText={setText} multiline placeholder={'MON: Trap bar DL 4x3 @ 80%, Box jump 4x3…\nTUE: MMA sparring 60 min…'} placeholderTextColor={v2.color.placeholder}
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} multiline placeholder={'MON: Trap bar DL 4x3 @ 80%, Box jump 4x3…\nTUE: MMA sparring 60 min…'} placeholderTextColor={v2.color.placeholder}
         style={styles.input} textAlignVertical="top" accessibilityLabel="Program text" />
-      <TextInput value={coach} onChangeText={setCoach} placeholder="Coach’s name (optional)" placeholderTextColor={v2.color.placeholder} style={styles.coach} accessibilityLabel="Coach’s name" />
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={coach} onChangeText={setCoach} placeholder="Coach’s name (optional)" placeholderTextColor={v2.color.placeholder} style={styles.coach} accessibilityLabel="Coach’s name" />
       <View style={{ marginTop: 22 }}><Eyebrow>Or photos of the sheet</Eyebrow></View>
       <View style={styles.photos}>
         {photos.map((p, i) => (

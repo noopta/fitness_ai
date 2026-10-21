@@ -18,6 +18,7 @@ import { Sheet } from '../../primitives/Sheet';
 import { useWorkouts, useMeals, qk } from '../../data';
 import { socialApi } from '../../../lib/api';
 import { haptics } from '../../haptics';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 const fmtDay = (d: string) => { const x = new Date(`${String(d).slice(0, 10)}T12:00:00`); return Number.isNaN(x.getTime()) ? d : x.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); };
@@ -61,7 +62,7 @@ export function ComposePage({ params }: { params: Record<string, string> }) {
     <PushedPage back="Cancel" title=""
       right={<Pressable onPress={() => setPicker('audience')} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Audience: ${audience === 'friends' ? 'Friends' : 'Everyone'}. Change`}><Text style={[T.captionStrong, { color: C.ink }]}>{audience === 'friends' ? 'Friends' : 'Everyone'} ▾</Text></Pressable>}
       cta={{ label: 'Post', onPress: () => void post(), loading: busy }}>
-      <TextInput value={text} onChangeText={setText} placeholder={att?.kind === 'workout' ? 'Say something about it (optional)' : 'What happened?'} placeholderTextColor={C.placeholder}
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} placeholder={att?.kind === 'workout' ? 'Say something about it (optional)' : 'What happened?'} placeholderTextColor={C.placeholder}
         style={styles.input} multiline autoFocus maxLength={2000} accessibilityLabel="Post text" />
       {att ? (
         <View style={{ marginTop: 22 }}>

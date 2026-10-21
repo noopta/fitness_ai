@@ -50,6 +50,7 @@ import {
   applyEdit, editMode, itemLogFields, itemsFromParse, itemsFromPhoto, itemSubtitle, mealNameFrom, mergeItems,
   toMealPhotoItems, totalsOf, type ReviewItem,
 } from '../../src/components/coach/nutrition/mealItems';
+import { KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 
 let vision: any = null;
 try { vision = require('react-native-vision-camera'); } catch { vision = null; }
@@ -456,7 +457,7 @@ function CaptureScreenInner() {
           </View>
           {photoV2 ? (
             <View style={styles.missedRow}>
-              <TextInput value={extra} onChangeText={setExtra} placeholder='Missed anything? "cooked in butter", "latte"' placeholderTextColor={v2.color.placeholder} style={styles.missedInput} returnKeyType="done" onSubmitEditing={() => void addMissed()} editable={!adding && !lookupPending} />
+              <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={extra} onChangeText={setExtra} placeholder='Missed anything? "cooked in butter", "latte"' placeholderTextColor={v2.color.placeholder} style={styles.missedInput} returnKeyType="done" onSubmitEditing={() => void addMissed()} editable={!adding && !lookupPending} />
               <TextAction arrow={false} loading={adding} onPress={() => void addMissed()}>+ Add item</TextAction>
             </View>
           ) : null}
@@ -484,7 +485,7 @@ function CaptureScreenInner() {
                   {editMode(editing) === 'grams' ? (editing.per100g ? 'Grams — calories and macros follow exactly.' : 'Grams — macros scale with it.') : 'Calories — no weight known for this one.'}
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 14 }}>
-                  <TextInput value={editDraft} onChangeText={setEditDraft} keyboardType="decimal-pad" autoFocus selectTextOnFocus style={styles.editInput} onSubmitEditing={saveEdit} cursorColor={v2.color.crimson} accessibilityLabel={editMode(editing) === 'grams' ? 'Grams' : 'Calories'} />
+                  <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={editDraft} onChangeText={setEditDraft} keyboardType="decimal-pad" autoFocus selectTextOnFocus style={styles.editInput} onSubmitEditing={saveEdit} cursorColor={v2.color.crimson} accessibilityLabel={editMode(editing) === 'grams' ? 'Grams' : 'Calories'} />
                   <Text style={T.body}>{editMode(editing) === 'grams' ? 'g' : 'kcal'}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28, marginTop: 22 }}>
@@ -537,7 +538,7 @@ function CaptureScreenInner() {
         {mode === 'describe' ? (
           <View style={{ padding: 24, paddingTop: 40 }}>
             <Text style={[T.headlineSm, { color: v2.color.darkInk }]}>What did you eat?</Text>
-            <TextInput value={text} onChangeText={setText} placeholder="turkey sandwich and an apple" placeholderTextColor={v2.color.darkMuted} style={[styles.describeInput]} autoFocus multiline cursorColor={v2.color.crimson} onSubmitEditing={() => void describe()} blurOnSubmit returnKeyType="send" />
+            <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={text} onChangeText={setText} placeholder="turkey sandwich and an apple" placeholderTextColor={v2.color.darkMuted} style={[styles.describeInput]} autoFocus multiline cursorColor={v2.color.crimson} onSubmitEditing={() => void describe()} blurOnSubmit returnKeyType="send" />
             <TextAction primary onPress={() => void describe()} loading={busy} style={{ marginTop: 20 }}>Find it</TextAction>
           </View>
         ) : null}

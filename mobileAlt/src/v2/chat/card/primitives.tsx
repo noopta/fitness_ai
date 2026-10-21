@@ -12,6 +12,7 @@ import { primaryActionIndex, undoOpen } from '@axiom/agent-ui-core';
 import { K, S } from './tokens';
 import { useCardHandlers } from './context';
 import { haptics } from '../../haptics';
+import { KEYBOARD_DONE_ID } from '../../../components/ui/KeyboardDoneBar';
 
 const HIT = { top: 12, bottom: 12, left: 12, right: 12 };
 export const MASK = '•••• Tap to show';
@@ -112,7 +113,7 @@ function EditableValue({ card, row, rowRef }: { card: Card; row: CardRow; rowRef
   }
   if (active) {
     return (
-      <TextInput
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID}
         autoFocus
         value={h.editing!.value}
         onChangeText={h.setEditValue}
@@ -308,7 +309,7 @@ export function TypedConfirm({ word, value, onChange, onFocusField }: { word: st
   return (
     <View>
       <Text style={S.note}>Type {word} to confirm</Text>
-      <TextInput
+      <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID}
         value={value}
         onChangeText={(t) => onChange(t.toUpperCase())}
         autoCorrect={false}

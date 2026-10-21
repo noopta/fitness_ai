@@ -17,6 +17,7 @@ import { haptics } from '../haptics';
 import { TextAction } from '../primitives/TextAction';
 import { nutritionApi } from '../../lib/api';
 import { todayStr } from '../../lib/localDate';
+import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
 
 const C = v2.color;
 type Field = 'calories' | 'proteinG' | 'carbsG' | 'fatG';
@@ -64,14 +65,14 @@ export function ManualSheet({ initialName = '', onClose, onLogged }: { initialNa
         <View style={styles.grabber} />
         <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Text style={T.caption}>Enter macros manually</Text>
-          <TextInput value={name} onChangeText={setName} placeholder="What was it?" placeholderTextColor={C.placeholder} autoFocus={!initialName}
+          <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={name} onChangeText={setName} placeholder="What was it?" placeholderTextColor={C.placeholder} autoFocus={!initialName}
             style={styles.name} returnKeyType="next" accessibilityLabel="Food name" />
           <View style={{ marginTop: 18 }}>
             {ROWS.map((r, i) => (
               <View key={r.key} style={[styles.row, i === ROWS.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.hairline }]}>
                 <Text style={[T.row, { color: r.key === 'calories' ? C.ink : r.color }]}>{r.label}</Text>
                 <View style={styles.valueWrap}>
-                  <TextInput value={vals[r.key]} onChangeText={(v) => setVals((s) => ({ ...s, [r.key]: v.replace(/[^0-9.,]/g, '') }))}
+                  <TextInput inputAccessoryViewID={KEYBOARD_DONE_ID} value={vals[r.key]} onChangeText={(v) => setVals((s) => ({ ...s, [r.key]: v.replace(/[^0-9.,]/g, '') }))}
                     keyboardType="number-pad" placeholder="0" placeholderTextColor={C.placeholder} autoFocus={!!initialName && r.key === 'calories'}
                     style={[styles.value, { color: r.color }]} accessibilityLabel={`${r.label} in ${r.unit}${r.key === 'calories' ? ', required' : ', optional'}`} />
                   <Text style={[T.caption, { width: 30 }]}>{r.unit}</Text>
