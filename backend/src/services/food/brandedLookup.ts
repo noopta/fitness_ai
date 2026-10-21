@@ -198,7 +198,12 @@ export function validateBrandedAnswer(raw: any, sources: WebSource[], item: Pick
 
   let kcal = num(raw.calories);
   if (kcal == null) return { kind: 'not_found', reason: 'no_calories' };
-  let p = num(raw.proteinG) ?? 0, c = num(raw.carbsG) ?? 0, f = num(raw.fatG) ?? 0;
+  // Calories alone isn't a find: a missing macro used to become 0 and a Double
+  // Whopper logged as 1,010 kcal with 0 g protein, carbs and fat (Oct 2026).
+  // Only near-zero drinks (black coffee, tea) may leave them unstated.
+  const pRaw = num(raw.proteinG), cRaw = num(raw.carbsG), fRaw = num(raw.fatG);
+  if ((pRaw == null || cRaw == null || fRaw == null) && kcal > 5) return { kind: 'not_found', reason: 'no_macros' };
+  let p = pRaw ?? 0, c = cRaw ?? 0, f = fRaw ?? 0;
 
   if (raw.basis === 'per_100g') {
     const g = num(raw.servingGrams);
@@ -211,6 +216,7 @@ export function validateBrandedAnswer(raw: any, sources: WebSource[], item: Pick
   const fromMacros = 4 * p + 4 * c + 9 * f;
   if (kcal > 0 && fromMacros > 0 && Math.abs(fromMacros - kcal) / kcal > 0.35) return { kind: 'not_found', reason: 'macros_mismatch' };
   if (kcal === 0 && fromMacros > 20) return { kind: 'not_found', reason: 'macros_mismatch' };
+  if (kcal > 50 && fromMacros === 0) return { kind: 'not_found', reason: 'no_macros' };
   if (kcal > 3000) return { kind: 'not_found', reason: 'implausible' };
 
   const r1 = (x: number) => Math.round(x * 10) / 10;

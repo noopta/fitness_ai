@@ -83,7 +83,8 @@ describe('eval fixes (9 Oct 2026)', () => {
     expect(clarifyQuestion(item({ brand: 'Barebells', product: 'Barebells protein drink' }))).toBe('Which Barebells protein drink was it — the flavour or exact name?');
   });
   it('rejects matches far from the estimate', () => {
-    const facts = (calories: number) => ({ name: 'x', brand: 'Starbucks', servingSize: null, calories, proteinG: 0, carbsG: 0, fatG: 0, sources: [] });
+    // Sound macros for the calories (calories-only facts are rejected outright — chainNutritionGate).
+    const facts = (calories: number) => ({ name: 'x', brand: 'Starbucks', servingSize: null, calories, proteinG: calories / 16, carbsG: calories / 16, fatG: calories / 18, sources: [] });
     expect(plausible(item({ estimate: { calories: 220, proteinG: 12, carbsG: 19, fatG: 7 } }), facts(3888))).toBe(false);
     expect(plausible(item({ estimate: { calories: 400, proteinG: 12, carbsG: 19, fatG: 7 } }), facts(174))).toBe(true);
   });
@@ -179,3 +180,14 @@ describe('unofficial answers need a second opinion', () => {
     expect(remember).not.toHaveBeenCalled();
   });
 });
+
+describe('calories without macros is never a find (21 Oct 2026: Double Whopper 1,010 kcal, 0/0/0)', () => {
+  it('plausible() refuses calories-only and impossible macros from any source', () => {
+    const it0 = item({ estimate: { calories: 1000, proteinG: 55, carbsG: 50, fatG: 65 } });
+    const f = (p: number, c: number, fat: number) => ({ name: 'Double Whopper', brand: 'Burger King', servingSize: null, calories: 1010, proteinG: p, carbsG: c, fatG: fat, sources: [] });
+    expect(plausible(it0, f(0, 0, 0))).toBe(false);
+    expect(plausible(it0, f(5, 5, 5))).toBe(false);
+    expect(plausible(it0, f(57, 50, 65))).toBe(true);
+  });
+});
+

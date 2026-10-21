@@ -15,6 +15,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { norm, productRecall } from './nameSearch.js';
 import { coreProduct, menuSize, type BrandedFacts, type LabelMicros } from './brandedLookup.js';
+import { nutritionProblem } from './chainNutritionGate.js';
 
 export interface Macros { calories: number; proteinG: number; carbsG: number; fatG: number; micros?: LabelMicros }
 
@@ -84,6 +85,21 @@ export function loadRegistry(): ChainEntry[] {
   return registry!;
 }
 
+/**
+ * A size without full, sound macros is never served (chainNutritionGate) — the
+ * lookup falls through to the next source instead of logging calories with 0 g
+ * protein, carbs and fat. Counted once per file in the log.
+ */
+export function sound(m: ChainMenu): ChainMenu {
+  let dropped = 0;
+  const items = m.items.map((it) => {
+    const sizes = it.sizes.filter((sz) => { const bad = nutritionProblem(sz, it.name); if (bad) dropped++; return !bad; });
+    return sizes.length === it.sizes.length ? it : { ...it, sizes };
+  }).filter((it) => it.sizes.length);
+  if (dropped) console.warn(`[chain-menus] ${m.chain}.${m.country}: ${dropped} size(s) without sound macros withheld`);
+  return dropped ? { ...m, items } : m;
+}
+
 export function loadMenus(): Map<string, ChainMenu> {
   if (menus) return menus;
   menus = new Map();
@@ -93,7 +109,7 @@ export function loadMenus(): Map<string, ChainMenu> {
     if (!f.endsWith('.json')) continue;
     try {
       const m: ChainMenu = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-      menus.set(`${m.chain}.${m.country}`, m);
+      menus.set(`${m.chain}.${m.country}`, sound(m));
     } catch (e) { console.error(`[chain-menus] bad menu file ${f}:`, (e as Error).message); }
   }
   return menus;

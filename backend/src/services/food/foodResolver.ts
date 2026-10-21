@@ -19,6 +19,7 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
+import { nutritionProblem } from './chainNutritionGate.js';
 import { brandedCacheKey, coreProduct, lookupBranded, menuSize, mentionsBrand, type BrandedFacts, type BrandedItem, type BrandedLookup } from './brandedLookup.js';
 import { norm, productRecall, searchDatabases, type DbOutcome } from './nameSearch.js';
 import { findChain, isOfficial, lookupChainMenu, type AppliedModifier, type ChainMatch } from './chainMenus.js';
@@ -95,6 +96,8 @@ export function isSpecific(item: Pick<BrandedItem, 'brand' | 'product' | 'size'>
  * grande latte to a 3,888 kcal retail product. Pure.
  */
 export function plausible(item: BrandedItem, facts: BrandedFacts): boolean {
+  // Every source — menus, scans, the shared cache, databases — needs sound macros (chainNutritionGate).
+  if (nutritionProblem(facts, facts.name ?? item.product)) return false;
   const est = item.estimate.calories;
   const got = facts.calories * (item.servings || 1);
   if (est < 50 || got < 50) return true;
@@ -185,6 +188,7 @@ async function fromRecords(item: BrandedItem, tz?: string | null): Promise<Brand
 }
 
 async function remember(item: BrandedItem, tz: string | null | undefined, facts: BrandedFacts, step: ResolveStep) {
+  if (nutritionProblem(facts, facts.name ?? item.product)) return; // never cache what we wouldn't serve
   const s = await loadStore();
   s.set(brandedCacheKey(item, countryKey(tz)), { facts, step, at: new Date().toISOString(), item: { brand: item.brand, product: item.product, size: item.size }, country: countryKey(tz) });
   scheduleSave();
