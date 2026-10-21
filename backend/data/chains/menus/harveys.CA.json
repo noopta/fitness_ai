@@ -3,55 +3,18 @@
  "country": "CA",
  "source": {
   "url": "https://www.harveys.ca/en/nutrition.html",
-  "fetchedAt": "2026-10-11",
-  "note": "page → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "page → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "defaultSize": "regular",
  "items": [
-  {
-   "id": "angus-burger",
-   "name": "Angus Burger",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 23,
-     "micros": {
-      "sugarG": 3,
-      "saturatedFatG": 6
-     }
-    }
-   ]
-  },
-  {
-   "id": "pepsi",
-   "name": "Pepsi",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 210,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 54,
-      "sodiumMg": 45,
-      "saturatedFatG": 0
-     }
-    }
-   ]
-  },
   {
    "id": "english-muffin-with-chicken-and-cheese",
    "name": "English Muffin with Chicken & Cheese",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 370,
      "proteinG": 16,
      "carbsG": 34,
@@ -61,6 +24,7 @@
       "sugarG": 4,
       "sodiumMg": 800,
       "saturatedFatG": 4,
+      "transFatG": 0.1,
       "cholesterolMg": 35
      }
     }
@@ -72,7 +36,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 540,
      "proteinG": 16,
      "carbsG": 45,
@@ -82,6 +45,7 @@
       "sugarG": 3,
       "sodiumMg": 1080,
       "saturatedFatG": 9,
+      "transFatG": 0.3,
       "cholesterolMg": 195
      }
     }
@@ -93,7 +57,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 590,
      "proteinG": 20,
      "carbsG": 45,
@@ -103,6 +66,7 @@
       "sugarG": 3,
       "sodiumMg": 1260,
       "saturatedFatG": 10,
+      "transFatG": 0.3,
       "cholesterolMg": 210
      }
     }
@@ -114,7 +78,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 680,
      "proteinG": 22,
      "carbsG": 46,
@@ -124,6 +87,7 @@
       "sugarG": 3,
       "sodiumMg": 1370,
       "saturatedFatG": 13,
+      "transFatG": 0.3,
       "cholesterolMg": 225
      }
     }
@@ -135,7 +99,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 720,
      "proteinG": 24,
      "carbsG": 53,
@@ -145,6 +108,7 @@
       "sugarG": 4,
       "sodiumMg": 1400,
       "saturatedFatG": 10,
+      "transFatG": 0.4,
       "cholesterolMg": 220
      }
     }
@@ -156,7 +120,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 740,
      "proteinG": 28,
      "carbsG": 49,
@@ -166,6 +129,7 @@
       "sugarG": 3,
       "sodiumMg": 1310,
       "saturatedFatG": 9,
+      "transFatG": 0.3,
       "cholesterolMg": 395
      }
     }
@@ -177,7 +141,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 780,
      "proteinG": 25,
      "carbsG": 49,
@@ -187,6 +150,7 @@
       "sugarG": 2,
       "sodiumMg": 1250,
       "saturatedFatG": 12,
+      "transFatG": 0.3,
       "cholesterolMg": 400
      }
     }
@@ -198,7 +162,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 820,
      "proteinG": 27,
      "carbsG": 56,
@@ -208,6 +171,7 @@
       "sugarG": 4,
       "sodiumMg": 1270,
       "saturatedFatG": 8,
+      "transFatG": 0.3,
       "cholesterolMg": 395
      }
     }
@@ -219,7 +183,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 300,
      "proteinG": 2,
      "carbsG": 23,
@@ -229,88 +192,96 @@
       "sugarG": 1,
       "sodiumMg": 590,
       "saturatedFatG": 2.5,
+      "transFatG": 0.3,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fried-egg",
+   "name": "Fried Egg",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 130,
+     "proteinG": 6,
+     "carbsG": 0,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 100,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "sausage-patty",
+   "name": "Sausage Patty",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 6,
+     "carbsG": 1,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 290,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "english-muffin",
+   "name": "English Muffin",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 130,
+     "proteinG": 5,
+     "carbsG": 24,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 190,
+      "saturatedFatG": 0.3,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "toast",
+   "name": "Toast",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 130,
+     "proteinG": 4,
+     "carbsG": 25,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 190,
+      "saturatedFatG": 0.3,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   }
  ],
- "modifiers": [
-  {
-   "id": "fried-egg",
-   "name": "Fried Egg",
-   "group": "protein",
-   "unit": "57 g",
-   "per": {
-    "calories": 130,
-    "proteinG": 6,
-    "carbsG": 0,
-    "fatG": 11,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 100,
-     "saturatedFatG": 2.5,
-     "cholesterolMg": 185
-    }
-   }
-  },
-  {
-   "id": "sausage-patty",
-   "name": "Sausage Patty",
-   "group": "protein",
-   "unit": "41 g",
-   "per": {
-    "calories": 150,
-    "proteinG": 6,
-    "carbsG": 1,
-    "fatG": 13,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 290,
-     "saturatedFatG": 4.5,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "english-muffin",
-   "name": "English Muffin",
-   "group": "bread",
-   "unit": "65 g",
-   "per": {
-    "calories": 130,
-    "proteinG": 5,
-    "carbsG": 24,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 1,
-     "sodiumMg": 190,
-     "saturatedFatG": 0.3,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "toast",
-   "name": "Toast",
-   "group": "bread",
-   "unit": "45 g",
-   "per": {
-    "calories": 130,
-    "proteinG": 4,
-    "carbsG": 25,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 2,
-     "sodiumMg": 190,
-     "saturatedFatG": 0.3,
-     "cholesterolMg": 0
-    }
-   }
-  }
- ]
+ "modifiers": []
 }

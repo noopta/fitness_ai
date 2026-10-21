@@ -3,15 +3,15 @@
  "country": "CA",
  "source": {
   "url": "https://pitapit.ca/nutrition/",
-  "fetchedAt": "2026-10-11",
-  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "defaultSize": "regular",
  "items": [
   {
    "id": "c4u-ancho-chicken-pita",
    "name": "C4U Ancho Chicken Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -25,6 +25,7 @@
       "sugarG": 11,
       "sodiumMg": 1800,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -40,6 +41,7 @@
       "sugarG": 20,
       "sodiumMg": 3370,
       "saturatedFatG": 17,
+      "transFatG": 0.5,
       "cholesterolMg": 130
      }
     }
@@ -48,7 +50,6 @@
   {
    "id": "c4u-cordon-bleu-pita",
    "name": "C4U Cordon Bleu Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -62,6 +63,7 @@
       "sugarG": 3,
       "sodiumMg": 830,
       "saturatedFatG": 7,
+      "transFatG": 0.3,
       "cholesterolMg": 70
      }
     },
@@ -77,6 +79,7 @@
       "sugarG": 5,
       "sodiumMg": 1480,
       "saturatedFatG": 13,
+      "transFatG": 0.7,
       "cholesterolMg": 140
      }
     }
@@ -85,7 +88,6 @@
   {
    "id": "c4u-chicken-crave-2-0-pita",
    "name": "C4U Chicken Crave 2.0 Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -99,6 +101,7 @@
       "sugarG": 17,
       "sodiumMg": 1250,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -114,6 +117,7 @@
       "sugarG": 34,
       "sodiumMg": 2550,
       "saturatedFatG": 11,
+      "transFatG": 0.2,
       "cholesterolMg": 130
      }
     }
@@ -122,7 +126,6 @@
   {
    "id": "c4u-fiesta-steak-pita",
    "name": "C4U Fiesta Steak Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -136,6 +139,7 @@
       "sugarG": 10,
       "sodiumMg": 1210,
       "saturatedFatG": 10,
+      "transFatG": 0.5,
       "cholesterolMg": 70
      }
     },
@@ -151,6 +155,7 @@
       "sugarG": 22,
       "sodiumMg": 2560,
       "saturatedFatG": 20,
+      "transFatG": 1,
       "cholesterolMg": 135
      }
     }
@@ -159,7 +164,6 @@
   {
    "id": "c4u-halloumi-and-falafel-pita",
    "name": "C4U Halloumi & Falafel Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -173,6 +177,7 @@
       "sugarG": 7,
       "sodiumMg": 1510,
       "saturatedFatG": 15,
+      "transFatG": 0.5,
       "cholesterolMg": 70
      }
     },
@@ -188,6 +193,7 @@
       "sugarG": 18,
       "sodiumMg": 2220,
       "saturatedFatG": 24,
+      "transFatG": 1,
       "cholesterolMg": 135
      }
     }
@@ -196,7 +202,6 @@
   {
    "id": "c4u-halloumi-bacon-pita",
    "name": "C4U Halloumi Bacon Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -210,6 +215,7 @@
       "sugarG": 11,
       "sodiumMg": 1600,
       "saturatedFatG": 14,
+      "transFatG": 0.7,
       "cholesterolMg": 85
      }
     },
@@ -225,6 +231,7 @@
       "sugarG": 18,
       "sodiumMg": 2050,
       "saturatedFatG": 23,
+      "transFatG": 1.2,
       "cholesterolMg": 120
      }
     }
@@ -233,7 +240,6 @@
   {
    "id": "c4u-sweet-heat-pita",
    "name": "C4U Sweet Heat Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -247,6 +253,7 @@
       "sugarG": 16,
       "sodiumMg": 1850,
       "saturatedFatG": 8,
+      "transFatG": 0.4,
       "cholesterolMg": 70
      }
     },
@@ -262,6 +269,7 @@
       "sugarG": 29,
       "sodiumMg": 3450,
       "saturatedFatG": 15,
+      "transFatG": 0.7,
       "cholesterolMg": 135
      }
     }
@@ -270,7 +278,6 @@
   {
    "id": "c4u-jalapeno-club-pita",
    "name": "C4U Jalapeno Club Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -284,6 +291,7 @@
       "sugarG": 17,
       "sodiumMg": 1170,
       "saturatedFatG": 7,
+      "transFatG": 0.3,
       "cholesterolMg": 50
      }
     },
@@ -299,6 +307,7 @@
       "sugarG": 33,
       "sodiumMg": 2160,
       "saturatedFatG": 14,
+      "transFatG": 0.7,
       "cholesterolMg": 100
      }
     }
@@ -307,7 +316,6 @@
   {
    "id": "c4u-lemon-pepper-chicken-pita",
    "name": "C4U Lemon Pepper Chicken Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -321,6 +329,7 @@
       "sugarG": 7,
       "sodiumMg": 1060,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -336,6 +345,7 @@
       "sugarG": 11,
       "sodiumMg": 1910,
       "saturatedFatG": 14,
+      "transFatG": 0.5,
       "cholesterolMg": 115
      }
     }
@@ -344,7 +354,6 @@
   {
    "id": "c4u-mighty-ceasar-pita",
    "name": "C4U Mighty Ceasar Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -358,6 +367,7 @@
       "sugarG": 3,
       "sodiumMg": 960,
       "saturatedFatG": 4.5,
+      "transFatG": 0.2,
       "cholesterolMg": 65
      }
     },
@@ -373,6 +383,7 @@
       "sugarG": 5,
       "sodiumMg": 1700,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 125
      }
     }
@@ -381,7 +392,6 @@
   {
    "id": "c4u-bbq-brisket-pita",
    "name": "C4U BBQ Brisket Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -395,6 +405,7 @@
       "sugarG": 23,
       "sodiumMg": 1310,
       "saturatedFatG": 9,
+      "transFatG": 0.6,
       "cholesterolMg": 60
      }
     },
@@ -410,6 +421,7 @@
       "sugarG": 45,
       "sodiumMg": 2410,
       "saturatedFatG": 18,
+      "transFatG": 1.1,
       "cholesterolMg": 115
      }
     }
@@ -418,7 +430,6 @@
   {
    "id": "c4u-southwest-baja-pita",
    "name": "C4U Southwest Baja Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -432,6 +443,7 @@
       "sugarG": 11,
       "sodiumMg": 1180,
       "saturatedFatG": 9,
+      "transFatG": 0.4,
       "cholesterolMg": 45
      }
     },
@@ -447,6 +459,7 @@
       "sugarG": 22,
       "sodiumMg": 2130,
       "saturatedFatG": 18,
+      "transFatG": 0.5,
       "cholesterolMg": 85
      }
     }
@@ -455,7 +468,6 @@
   {
    "id": "c4u-spicy-buffalo-cesar-pita",
    "name": "C4U Spicy Buffalo Cesar Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -469,6 +481,7 @@
       "sugarG": 10,
       "sodiumMg": 1930,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -484,6 +497,7 @@
       "sugarG": 18,
       "sodiumMg": 3650,
       "saturatedFatG": 18,
+      "transFatG": 0.5,
       "cholesterolMg": 115
      }
     }
@@ -492,7 +506,6 @@
   {
    "id": "c4u-spicy-greek-pita",
    "name": "C4U Spicy Greek Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -506,6 +519,7 @@
       "sugarG": 6,
       "sodiumMg": 1930,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -521,6 +535,7 @@
       "sugarG": 10,
       "sodiumMg": 3770,
       "saturatedFatG": 14,
+      "transFatG": 0.4,
       "cholesterolMg": 125
      }
     }
@@ -529,7 +544,6 @@
   {
    "id": "c4u-veg-cheeseburger-pita",
    "name": "C4U Veg Cheeseburger Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -543,6 +557,7 @@
       "sugarG": 16,
       "sodiumMg": 1420,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     },
@@ -558,6 +573,7 @@
       "sugarG": 31,
       "sodiumMg": 2630,
       "saturatedFatG": 15,
+      "transFatG": 0.5,
       "cholesterolMg": 70
      }
     }
@@ -566,7 +582,6 @@
   {
    "id": "c4u-west-coast-club-pita",
    "name": "C4U West Coast Club Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -580,6 +595,7 @@
       "sugarG": 15,
       "sodiumMg": 2030,
       "saturatedFatG": 8,
+      "transFatG": 0.4,
       "cholesterolMg": 85
      }
     },
@@ -595,6 +611,7 @@
       "sugarG": 28,
       "sodiumMg": 3860,
       "saturatedFatG": 16,
+      "transFatG": 0.5,
       "cholesterolMg": 165
      }
     }
@@ -603,7 +620,6 @@
   {
    "id": "c4u-zesty-chicken-bacon-pita",
    "name": "C4U Zesty chicken /bacon Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -617,6 +633,7 @@
       "sugarG": 16,
       "sodiumMg": 1430,
       "saturatedFatG": 3.5,
+      "transFatG": 0.2,
       "cholesterolMg": 50
      }
     },
@@ -632,6 +649,7 @@
       "sugarG": 30,
       "sodiumMg": 2540,
       "saturatedFatG": 6,
+      "transFatG": 0.3,
       "cholesterolMg": 100
      }
     }
@@ -640,7 +658,6 @@
   {
    "id": "c4u-chicken-bruschetta-pita",
    "name": "C4U Chicken Bruschetta Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -654,6 +671,7 @@
       "sugarG": 4,
       "sodiumMg": 1160,
       "saturatedFatG": 7,
+      "transFatG": 0.2,
       "cholesterolMg": 70
      }
     },
@@ -669,6 +687,7 @@
       "sugarG": 7,
       "sodiumMg": 2120,
       "saturatedFatG": 14,
+      "transFatG": 0.4,
       "cholesterolMg": 135
      }
     }
@@ -677,7 +696,6 @@
   {
    "id": "c4u-balsamic-bacon-pita",
    "name": "C4U Balsamic bacon Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -691,6 +709,7 @@
       "sugarG": 7,
       "sodiumMg": 1030,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     },
@@ -706,6 +725,7 @@
       "sugarG": 11,
       "sodiumMg": 1790,
       "saturatedFatG": 17,
+      "transFatG": 1,
       "cholesterolMg": 90
      }
     }
@@ -714,7 +734,6 @@
   {
    "id": "c4u-bbq-bacon-cheeseburger-pita",
    "name": "C4U BBQ Bacon Cheeseburger Pita",
-   "category": "CREATED FOR YOU - PITA",
    "sizes": [
     {
      "size": "small",
@@ -728,6 +747,7 @@
       "sugarG": 15,
       "sodiumMg": 1790,
       "saturatedFatG": 10,
+      "transFatG": 0.5,
       "cholesterolMg": 70
      }
     },
@@ -743,6 +763,7 @@
       "sugarG": 27,
       "sodiumMg": 3380,
       "saturatedFatG": 19,
+      "transFatG": 0.9,
       "cholesterolMg": 135
      }
     }
@@ -751,7 +772,6 @@
   {
    "id": "c4u-ancho-chicken-salad",
    "name": "C4U Ancho chicken Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -765,6 +785,7 @@
       "sugarG": 9,
       "sodiumMg": 1590,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -780,6 +801,7 @@
       "sugarG": 18,
       "sodiumMg": 3170,
       "saturatedFatG": 17,
+      "transFatG": 0.6,
       "cholesterolMg": 130
      }
     }
@@ -788,7 +810,6 @@
   {
    "id": "c4u-cordon-bleu-salad",
    "name": "C4U Cordon Bleu Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -802,6 +823,7 @@
       "sugarG": 2,
       "sodiumMg": 630,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -817,6 +839,7 @@
       "sugarG": 4,
       "sodiumMg": 1250,
       "saturatedFatG": 13,
+      "transFatG": 0.7,
       "cholesterolMg": 140
      }
     }
@@ -825,7 +848,6 @@
   {
    "id": "c4u-chicken-crave-salad",
    "name": "C4U Chicken Crave Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -839,6 +861,7 @@
       "sugarG": 16,
       "sodiumMg": 1210,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -854,6 +877,7 @@
       "sugarG": 32,
       "sodiumMg": 2310,
       "saturatedFatG": 11,
+      "transFatG": 0.2,
       "cholesterolMg": 130
      }
     }
@@ -862,7 +886,6 @@
   {
    "id": "c4u-fiesta-steak-salad",
    "name": "C4U Fiesta Steak Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -876,6 +899,7 @@
       "sugarG": 10,
       "sodiumMg": 1120,
       "saturatedFatG": 10,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -891,6 +915,7 @@
       "sugarG": 19,
       "sodiumMg": 2240,
       "saturatedFatG": 19,
+      "transFatG": 0.9,
       "cholesterolMg": 135
      }
     }
@@ -899,7 +924,6 @@
   {
    "id": "c4u-halloumi-and-falalfel-salad",
    "name": "C4U Halloumi & Falalfel Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -913,6 +937,7 @@
       "sugarG": 5,
       "sodiumMg": 1300,
       "saturatedFatG": 14,
+      "transFatG": 1,
       "cholesterolMg": 70
      }
     },
@@ -928,6 +953,7 @@
       "sugarG": 11,
       "sodiumMg": 2600,
       "saturatedFatG": 28,
+      "transFatG": 1.4,
       "cholesterolMg": 140
      }
     }
@@ -936,7 +962,6 @@
   {
    "id": "c4u-halloumi-and-bacon-salad",
    "name": "C4U Halloumi & Bacon Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -950,6 +975,7 @@
       "sugarG": 9,
       "sodiumMg": 1260,
       "saturatedFatG": 13,
+      "transFatG": 1,
       "cholesterolMg": 80
      }
     },
@@ -965,6 +991,7 @@
       "sugarG": 17,
       "sodiumMg": 2470,
       "saturatedFatG": 26,
+      "transFatG": 1.2,
       "cholesterolMg": 160
      }
     }
@@ -973,7 +1000,6 @@
   {
    "id": "c4u-sweet-heat-salad",
    "name": "C4U Sweet Heat Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -987,6 +1013,7 @@
       "sugarG": 14,
       "sodiumMg": 1650,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -1002,6 +1029,7 @@
       "sugarG": 27,
       "sodiumMg": 3240,
       "saturatedFatG": 14,
+      "transFatG": 0.7,
       "cholesterolMg": 135
      }
     }
@@ -1010,7 +1038,6 @@
   {
    "id": "c4u-jalapeno-club-salad",
    "name": "C4U Jalapeno Club Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1024,6 +1051,7 @@
       "sugarG": 16,
       "sodiumMg": 970,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     },
@@ -1039,6 +1067,7 @@
       "sugarG": 32,
       "sodiumMg": 1930,
       "saturatedFatG": 14,
+      "transFatG": 0.6,
       "cholesterolMg": 95
      }
     }
@@ -1047,7 +1076,6 @@
   {
    "id": "c4u-lemon-pep-chicken-salad",
    "name": "C4U Lemon Pep Chicken Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1061,6 +1089,7 @@
       "sugarG": 7,
       "sodiumMg": 1040,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -1076,6 +1105,7 @@
       "sugarG": 13,
       "sodiumMg": 2080,
       "saturatedFatG": 16,
+      "transFatG": 0.9,
       "cholesterolMg": 115
      }
     }
@@ -1084,7 +1114,6 @@
   {
    "id": "c4u-mighty-caesar-salad",
    "name": "C4U Mighty Caesar Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1098,6 +1127,7 @@
       "sugarG": 2,
       "sodiumMg": 690,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -1113,6 +1143,7 @@
       "sugarG": 4,
       "sodiumMg": 1500,
       "saturatedFatG": 8,
+      "transFatG": 0.2,
       "cholesterolMg": 125
      }
     }
@@ -1121,7 +1152,6 @@
   {
    "id": "c4u-bbq-brisket-salad",
    "name": "C4U BBQ Brisket Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1135,6 +1165,7 @@
       "sugarG": 22,
       "sodiumMg": 1110,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 60
      }
     },
@@ -1150,6 +1181,7 @@
       "sugarG": 44,
       "sodiumMg": 2210,
       "saturatedFatG": 17,
+      "transFatG": 1.1,
       "cholesterolMg": 115
      }
     }
@@ -1158,7 +1190,6 @@
   {
    "id": "c4u-southwest-baja-salad",
    "name": "C4U Southwest Baja Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1172,6 +1203,7 @@
       "sugarG": 10,
       "sodiumMg": 1040,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     },
@@ -1187,6 +1219,7 @@
       "sugarG": 20,
       "sodiumMg": 2070,
       "saturatedFatG": 18,
+      "transFatG": 0.7,
       "cholesterolMg": 85
      }
     }
@@ -1195,7 +1228,6 @@
   {
    "id": "c4u-spicy-buffalo-caesar-salad",
    "name": "C4U Spicy Buffalo Caesar Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1209,6 +1241,7 @@
       "sugarG": 8,
       "sodiumMg": 1720,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -1224,6 +1257,7 @@
       "sugarG": 17,
       "sodiumMg": 3440,
       "saturatedFatG": 17,
+      "transFatG": 0.7,
       "cholesterolMg": 115
      }
     }
@@ -1232,7 +1266,6 @@
   {
    "id": "c4u-spicy-greek-salad",
    "name": "C4U Spicy Greek Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1246,6 +1279,7 @@
       "sugarG": 4,
       "sodiumMg": 1810,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -1261,6 +1295,7 @@
       "sugarG": 8,
       "sodiumMg": 3560,
       "saturatedFatG": 13,
+      "transFatG": 0.4,
       "cholesterolMg": 125
      }
     }
@@ -1269,7 +1304,6 @@
   {
    "id": "c4u-veg-cheeseburger-salad",
    "name": "C4U Veg cheeseburger Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1283,6 +1317,7 @@
       "sugarG": 14,
       "sodiumMg": 1220,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     },
@@ -1298,6 +1333,7 @@
       "sugarG": 29,
       "sodiumMg": 2430,
       "saturatedFatG": 15,
+      "transFatG": 0.7,
       "cholesterolMg": 70
      }
     }
@@ -1306,7 +1342,6 @@
   {
    "id": "c4u-west-coast-club-salad",
    "name": "C4U West Coast Club Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1320,6 +1355,7 @@
       "sugarG": 13,
       "sodiumMg": 1830,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 85
      }
     },
@@ -1335,6 +1371,7 @@
       "sugarG": 24,
       "sodiumMg": 3840,
       "saturatedFatG": 16,
+      "transFatG": 0.7,
       "cholesterolMg": 165
      }
     }
@@ -1343,7 +1380,6 @@
   {
    "id": "c4u-zesty-chicken-bacon-salad",
    "name": "C4U Zesty Chicken/bacon Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1357,6 +1393,7 @@
       "sugarG": 15,
       "sodiumMg": 1230,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     },
@@ -1372,6 +1409,7 @@
       "sugarG": 29,
       "sodiumMg": 2330,
       "saturatedFatG": 6,
+      "transFatG": 0.2,
       "cholesterolMg": 100
      }
     }
@@ -1380,7 +1418,6 @@
   {
    "id": "c4u-chicken-bruschetta-salad",
    "name": "C4U Chicken Bruschetta Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1394,6 +1431,7 @@
       "sugarG": 3,
       "sodiumMg": 960,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -1409,6 +1447,7 @@
       "sugarG": 6,
       "sodiumMg": 1910,
       "saturatedFatG": 13,
+      "transFatG": 0,
       "cholesterolMg": 135
      }
     }
@@ -1417,7 +1456,6 @@
   {
    "id": "c4u-balsamic-bacon-salad",
    "name": "C4U Balsamic bacon Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1431,6 +1469,7 @@
       "sugarG": 5,
       "sodiumMg": 800,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     },
@@ -1446,6 +1485,7 @@
       "sugarG": 9,
       "sodiumMg": 1590,
       "saturatedFatG": 17,
+      "transFatG": 1,
       "cholesterolMg": 90
      }
     }
@@ -1454,7 +1494,6 @@
   {
    "id": "c4u-bbq-bacon-cheeseburger-salad",
    "name": "C4U BBQ Bacon Cheeseburger Salad",
-   "category": "CREATED FOR YOU - SALAD BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1468,6 +1507,7 @@
       "sugarG": 13,
       "sodiumMg": 1570,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -1483,6 +1523,7 @@
       "sugarG": 27,
       "sodiumMg": 3140,
       "saturatedFatG": 18,
+      "transFatG": 1,
       "cholesterolMg": 135
      }
     }
@@ -1491,7 +1532,6 @@
   {
    "id": "c4u-ancho-chicken-rice",
    "name": "C4U Ancho chicken Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1505,6 +1545,7 @@
       "sugarG": 10,
       "sodiumMg": 1620,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -1520,6 +1561,7 @@
       "sugarG": 20,
       "sodiumMg": 3240,
       "saturatedFatG": 18,
+      "transFatG": 0.6,
       "cholesterolMg": 130
      }
     }
@@ -1528,7 +1570,6 @@
   {
    "id": "c4u-cordon-bleu-rice",
    "name": "C4U Cordon Bleu Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1542,6 +1583,7 @@
       "sugarG": 3,
       "sodiumMg": 660,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -1557,6 +1599,7 @@
       "sugarG": 6,
       "sodiumMg": 1320,
       "saturatedFatG": 14,
+      "transFatG": 0.7,
       "cholesterolMg": 140
      }
     }
@@ -1565,7 +1608,6 @@
   {
    "id": "c4u-chicken-crave-rice",
    "name": "C4U Chicken Crave Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1579,6 +1621,7 @@
       "sugarG": 17,
       "sodiumMg": 1250,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -1594,6 +1637,7 @@
       "sugarG": 34,
       "sodiumMg": 2380,
       "saturatedFatG": 12,
+      "transFatG": 0.2,
       "cholesterolMg": 130
      }
     }
@@ -1602,7 +1646,6 @@
   {
    "id": "c4u-fiesta-steak-rice",
    "name": "C4U Fiesta Steak Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1616,6 +1659,7 @@
       "sugarG": 10,
       "sodiumMg": 840,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     },
@@ -1631,6 +1675,7 @@
       "sugarG": 20,
       "sodiumMg": 2220,
       "saturatedFatG": 20,
+      "transFatG": 0.9,
       "cholesterolMg": 135
      }
     }
@@ -1639,7 +1684,6 @@
   {
    "id": "c4u-halloumi-and-falalfel-rice",
    "name": "C4U Halloumi & Falalfel Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1653,6 +1697,7 @@
       "sugarG": 6,
       "sodiumMg": 1340,
       "saturatedFatG": 15,
+      "transFatG": 1,
       "cholesterolMg": 70
      }
     },
@@ -1668,6 +1713,7 @@
       "sugarG": 13,
       "sodiumMg": 2670,
       "saturatedFatG": 29,
+      "transFatG": 1.4,
       "cholesterolMg": 140
      }
     }
@@ -1676,7 +1722,6 @@
   {
    "id": "c4u-halloumi-and-bacon-rice",
    "name": "C4U Halloumi & Bacon Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1690,6 +1735,7 @@
       "sugarG": 10,
       "sodiumMg": 1300,
       "saturatedFatG": 14,
+      "transFatG": 1,
       "cholesterolMg": 80
      }
     },
@@ -1705,6 +1751,7 @@
       "sugarG": 19,
       "sodiumMg": 2540,
       "saturatedFatG": 27,
+      "transFatG": 1.2,
       "cholesterolMg": 160
      }
     }
@@ -1713,7 +1760,6 @@
   {
    "id": "c4u-sweet-heat-rice",
    "name": "C4U Sweet Heat Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1727,6 +1773,7 @@
       "sugarG": 14,
       "sodiumMg": 1730,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 75
      }
     },
@@ -1742,6 +1789,7 @@
       "sugarG": 29,
       "sodiumMg": 3310,
       "saturatedFatG": 15,
+      "transFatG": 0.7,
       "cholesterolMg": 135
      }
     }
@@ -1750,7 +1798,6 @@
   {
    "id": "c4u-jalapeno-club-rice",
    "name": "C4U Jalapeno Club Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1764,6 +1811,7 @@
       "sugarG": 17,
       "sodiumMg": 1000,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     },
@@ -1779,6 +1827,7 @@
       "sugarG": 34,
       "sodiumMg": 2000,
       "saturatedFatG": 15,
+      "transFatG": 0.6,
       "cholesterolMg": 95
      }
     }
@@ -1787,7 +1836,6 @@
   {
    "id": "c4u-lemon-pep-chicken-rice",
    "name": "C4U Lemon Pep Chicken Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1801,6 +1849,7 @@
       "sugarG": 8,
       "sodiumMg": 1080,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -1816,6 +1865,7 @@
       "sugarG": 15,
       "sodiumMg": 2150,
       "saturatedFatG": 18,
+      "transFatG": 0.9,
       "cholesterolMg": 115
      }
     }
@@ -1824,7 +1874,6 @@
   {
    "id": "c4u-mighty-caesar-rice",
    "name": "C4U Mighty Caesar Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1838,6 +1887,7 @@
       "sugarG": 3,
       "sodiumMg": 790,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -1853,6 +1903,7 @@
       "sugarG": 6,
       "sodiumMg": 1570,
       "saturatedFatG": 9,
+      "transFatG": 0.2,
       "cholesterolMg": 125
      }
     }
@@ -1861,7 +1912,6 @@
   {
    "id": "c4u-bbq-brisket-rice",
    "name": "C4U BBQ Brisket Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1875,6 +1925,7 @@
       "sugarG": 23,
       "sodiumMg": 1140,
       "saturatedFatG": 9,
+      "transFatG": 1,
       "cholesterolMg": 60
      }
     },
@@ -1890,6 +1941,7 @@
       "sugarG": 46,
       "sodiumMg": 2280,
       "saturatedFatG": 18,
+      "transFatG": 1.1,
       "cholesterolMg": 115
      }
     }
@@ -1898,7 +1950,6 @@
   {
    "id": "c4u-southwest-baja-rice",
    "name": "C4U Southwest Baja Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1912,6 +1963,7 @@
       "sugarG": 11,
       "sodiumMg": 1080,
       "saturatedFatG": 10,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     },
@@ -1927,6 +1979,7 @@
       "sugarG": 22,
       "sodiumMg": 2140,
       "saturatedFatG": 20,
+      "transFatG": 0.7,
       "cholesterolMg": 85
      }
     }
@@ -1935,7 +1988,6 @@
   {
    "id": "c4u-spicy-buffalo-caesar-rice",
    "name": "C4U Spicy Buffalo Caesar Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1949,6 +2001,7 @@
       "sugarG": 9,
       "sodiumMg": 1760,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     },
@@ -1964,6 +2017,7 @@
       "sugarG": 19,
       "sodiumMg": 3510,
       "saturatedFatG": 18,
+      "transFatG": 0.7,
       "cholesterolMg": 115
      }
     }
@@ -1972,7 +2026,6 @@
   {
    "id": "c4u-spicy-greek-rice",
    "name": "C4U Spicy Greek Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -1986,6 +2039,7 @@
       "sugarG": 5,
       "sodiumMg": 1850,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     },
@@ -2001,6 +2055,7 @@
       "sugarG": 10,
       "sodiumMg": 3630,
       "saturatedFatG": 15,
+      "transFatG": 0.4,
       "cholesterolMg": 125
      }
     }
@@ -2009,7 +2064,6 @@
   {
    "id": "c4u-veg-cheeseburger-rice",
    "name": "C4U Veg cheeseburger Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2023,6 +2077,7 @@
       "sugarG": 15,
       "sodiumMg": 1250,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     },
@@ -2038,6 +2093,7 @@
       "sugarG": 31,
       "sodiumMg": 2490,
       "saturatedFatG": 16,
+      "transFatG": 0.7,
       "cholesterolMg": 70
      }
     }
@@ -2046,7 +2102,6 @@
   {
    "id": "c4u-west-coast-club-rice",
    "name": "C4U West Coast Club Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2060,6 +2115,7 @@
       "sugarG": 13,
       "sodiumMg": 1960,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 85
      }
     },
@@ -2075,6 +2131,7 @@
       "sugarG": 28,
       "sodiumMg": 3720,
       "saturatedFatG": 17,
+      "transFatG": 0.7,
       "cholesterolMg": 165
      }
     }
@@ -2083,7 +2140,6 @@
   {
    "id": "c4u-zesty-chicken-bacon-rice",
    "name": "C4U Zesty Chicken/bacon Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2097,6 +2153,7 @@
       "sugarG": 16,
       "sodiumMg": 1210,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     },
@@ -2112,6 +2169,7 @@
       "sugarG": 31,
       "sodiumMg": 2350,
       "saturatedFatG": 7,
+      "transFatG": 0.2,
       "cholesterolMg": 100
      }
     }
@@ -2120,7 +2178,6 @@
   {
    "id": "c4u-chicken-bruschetta-rice",
    "name": "C4U Chicken Bruschetta Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2134,6 +2191,7 @@
       "sugarG": 5,
       "sodiumMg": 1220,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 80
      }
     },
@@ -2149,6 +2207,7 @@
       "sugarG": 8,
       "sodiumMg": 1980,
       "saturatedFatG": 15,
+      "transFatG": 0,
       "cholesterolMg": 135
      }
     }
@@ -2157,7 +2216,6 @@
   {
    "id": "c4u-balsamic-bacon-rice",
    "name": "C4U Balsamic bacon Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2171,6 +2229,7 @@
       "sugarG": 6,
       "sodiumMg": 830,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     },
@@ -2186,6 +2245,7 @@
       "sugarG": 11,
       "sodiumMg": 1660,
       "saturatedFatG": 18,
+      "transFatG": 1,
       "cholesterolMg": 90
      }
     }
@@ -2194,7 +2254,6 @@
   {
    "id": "c4u-bbq-bacon-cheeseburger-rice",
    "name": "C4U BBQ Bacon Cheeseburger Rice",
-   "category": "CREATED FOR YOU - RICE BOWL",
    "sizes": [
     {
      "size": "small",
@@ -2208,6 +2267,7 @@
       "sugarG": 14,
       "sodiumMg": 1610,
       "saturatedFatG": 10,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     },
@@ -2223,2141 +2283,193 @@
       "sugarG": 29,
       "sodiumMg": 3200,
       "saturatedFatG": 20,
+      "transFatG": 1,
       "cholesterolMg": 135
      }
     }
    ]
   },
   {
-   "id": "falafel-and-dip",
-   "name": "Falafel & Dip",
-   "category": "SIDE SNACKS",
+   "id": "pita-white-1-ea-57g",
+   "name": "Pita White 1 EA 57g",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
+     "calories": 150,
+     "proteinG": 6,
+     "carbsG": 28,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 210,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pita-whole-wheat-1-ea-57g",
+   "name": "Pita Whole Wheat 1 EA 57g",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 6,
+     "carbsG": 28,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 210,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pita-gluten-free-1-ea-112g",
+   "name": "Pita Gluten- Free 1 EA 112g",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 6,
+     "carbsG": 52,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 0,
+      "sodiumMg": 460,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "rice-for-pitas",
+   "name": "Rice for Pitas",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 210,
+     "proteinG": 6,
+     "carbsG": 44,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 1,
+      "sodiumMg": 20,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 420,
+     "proteinG": 11,
+     "carbsG": 87,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 40,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "rice-for-bowls",
+   "name": "Rice for Bowls",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 420,
+     "proteinG": 11,
+     "carbsG": 87,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 1,
+      "sodiumMg": 40,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 830,
+     "proteinG": 21,
+     "carbsG": 174,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 2,
+      "sodiumMg": 70,
+      "saturatedFatG": 1.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "falafel-2-patties-34g",
+   "name": "Falafel 2 patties 34g",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 100,
+     "proteinG": 3,
+     "carbsG": 11,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 170,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "falafel-4-patty-68-g",
+   "name": "Falafel 4 patty 68 g",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 190,
      "proteinG": 6,
-     "carbsG": 21,
+     "carbsG": 22,
      "fatG": 10,
      "micros": {
       "fiberG": 6,
       "sugarG": 4,
-      "sodiumMg": 330,
-      "saturatedFatG": 2,
+      "sodiumMg": 340,
+      "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "pita-chips",
-   "name": "Pita Chips",
-   "category": "SIDE SNACKS",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 310,
-     "proteinG": 10,
-     "carbsG": 57,
-     "fatG": 5,
-     "micros": {
-      "fiberG": 3,
-      "sugarG": 4,
-      "sodiumMg": 420,
-      "saturatedFatG": 2,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "buffalo-bites",
-   "name": "Buffalo bites",
-   "category": "SIDE SNACKS",
-   "sizes": [
-    {
-     "size": "1 5 oz",
-     "label": "1.5 oz",
-     "calories": 110,
-     "proteinG": 7,
-     "carbsG": 2,
-     "fatG": 8,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 1,
-      "sodiumMg": 530,
-      "saturatedFatG": 3,
-      "cholesterolMg": 30
-     }
-    },
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 240,
-     "proteinG": 16,
-     "carbsG": 22,
-     "fatG": 9,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 0,
-      "sodiumMg": 410,
-      "saturatedFatG": 0.5,
-      "cholesterolMg": 35
-     }
-    }
-   ]
-  },
-  {
-   "id": "halloumi-sticks",
-   "name": "Halloumi Sticks",
-   "category": "SIDE SNACKS",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 280,
-     "proteinG": 18,
-     "carbsG": 3,
-     "fatG": 23,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 3,
-      "sodiumMg": 940,
-      "saturatedFatG": 14,
-      "cholesterolMg": 60
-     }
-    }
-   ]
-  },
-  {
-   "id": "pita-twist-pepperoni",
-   "name": "Pita Twist - Pepperoni",
-   "category": "SIDE SNACKS",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 350,
-     "proteinG": 19,
-     "carbsG": 31,
-     "fatG": 17,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 2,
-      "sodiumMg": 920,
-      "saturatedFatG": 7,
-      "cholesterolMg": 50
-     }
-    }
-   ]
-  },
-  {
-   "id": "pita-twist-cheesy-garlic",
-   "name": "Pita Twist - Cheesy Garlic",
-   "category": "SIDE SNACKS",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 450,
-     "proteinG": 27,
-     "carbsG": 31,
-     "fatG": 24,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 2,
-      "sodiumMg": 740,
-      "saturatedFatG": 15,
-      "cholesterolMg": 70
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-peanut-butter",
-   "name": "Cookie Peanut Butter",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 350,
-     "proteinG": 6,
-     "carbsG": 40,
-     "fatG": 19,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 20,
-      "sodiumMg": 460,
-      "saturatedFatG": 7,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-macademia-nut",
-   "name": "Cookie Macademia Nut",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 350,
-     "proteinG": 4,
-     "carbsG": 46,
-     "fatG": 17,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 28,
-      "sodiumMg": 260,
-      "saturatedFatG": 8,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-double-chocolate",
-   "name": "Cookie Double Chocolate",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 320,
-     "proteinG": 4,
-     "carbsG": 46,
-     "fatG": 16,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 30,
-      "sodiumMg": 300,
-      "saturatedFatG": 8,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-oatmeal-raison",
-   "name": "Cookie Oatmeal Raison",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 320,
-     "proteinG": 6,
-     "carbsG": 49,
-     "fatG": 13,
-     "micros": {
-      "fiberG": 3,
-      "sugarG": 27,
-      "sodiumMg": 290,
-      "saturatedFatG": 8,
-      "cholesterolMg": 15
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-carnival",
-   "name": "Cookie Carnival",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 320,
-     "proteinG": 4,
-     "carbsG": 46,
-     "fatG": 16,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 30,
-      "sodiumMg": 300,
-      "saturatedFatG": 8,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "cookie-chocolate-chip",
-   "name": "Cookie Chocolate Chip",
-   "category": "COOKIES",
-   "sizes": [
-    {
-     "size": "2 ea 75 4g",
-     "label": "2 EA (75.4g)",
-     "calories": 320,
-     "proteinG": 4,
-     "carbsG": 46,
-     "fatG": 16,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 30,
-      "sodiumMg": 300,
-      "saturatedFatG": 8,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "berry-bliss",
-   "name": "Berry Bliss",
-   "category": "SMOOTHIES",
-   "sizes": [
-    {
-     "size": "12 oz 354 ml",
-     "label": "12 oz (354 ml)",
-     "calories": 280,
-     "proteinG": 2,
-     "carbsG": 66,
-     "fatG": 1.5,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 49,
-      "sodiumMg": 55,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "16 oz 473 ml",
-     "label": "16 oz (473 ml)",
-     "calories": 390,
-     "proteinG": 2,
-     "carbsG": 92,
-     "fatG": 2.5,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 65,
-      "sodiumMg": 100,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "sunset-paradise",
-   "name": "Sunset paradise",
-   "category": "SMOOTHIES",
-   "sizes": [
-    {
-     "size": "12 oz 354 ml",
-     "label": "12 oz (354 ml)",
-     "calories": 290,
-     "proteinG": 2,
-     "carbsG": 68,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 48,
-      "sodiumMg": 60,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "16 oz 473 ml",
-     "label": "16 oz (473 ml)",
-     "calories": 400,
-     "proteinG": 2,
-     "carbsG": 93,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 64,
-      "sodiumMg": 105,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "chocolate-banana",
-   "name": "Chocolate Banana",
-   "category": "SMOOTHIES",
-   "sizes": [
-    {
-     "size": "12 oz 354 ml",
-     "label": "12 oz (354 ml)",
-     "calories": 300,
-     "proteinG": 9,
-     "carbsG": 62,
-     "fatG": 3,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 44,
-      "sodiumMg": 190,
-      "saturatedFatG": 2.5,
-      "cholesterolMg": 15
-     }
-    },
-    {
-     "size": "16 oz 473 ml",
-     "label": "16 oz (473 ml)",
-     "calories": 370,
-     "proteinG": 12,
-     "carbsG": 66,
-     "fatG": 7,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 42,
-      "sodiumMg": 210,
-      "saturatedFatG": 5,
-      "cholesterolMg": 30
-     }
-    }
-   ]
-  },
-  {
-   "id": "strawberry-and-banana",
-   "name": "Strawberry & Banana",
-   "category": "SMOOTHIES",
-   "sizes": [
-    {
-     "size": "12 oz 354 ml",
-     "label": "12 oz (354 ml)",
-     "calories": 290,
-     "proteinG": 2,
-     "carbsG": 71,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 52,
-      "sodiumMg": 50,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "16 oz 473 ml",
-     "label": "16 oz (473 ml)",
-     "calories": 420,
-     "proteinG": 3,
-     "carbsG": 97,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 70,
-      "sodiumMg": 100,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "low-fat-vanilla-yogurt-base",
-   "name": "Low Fat Vanilla Yogurt (Base)",
-   "category": "FROZEN DESSERT",
-   "sizes": [
-    {
-     "size": "1 2 ea 50g",
-     "label": "1/2 EA (50g)",
-     "calories": 70,
-     "proteinG": 1,
-     "carbsG": 14,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 45,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "1 ea 100g",
-     "label": "1 EA(100g)",
-     "calories": 140,
-     "proteinG": 1,
-     "carbsG": 28,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 14,
-      "sodiumMg": 90,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "mango-frozen-dessert",
-   "name": "Mango Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 100,
-     "proteinG": 1,
-     "carbsG": 23,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 15,
-      "sodiumMg": 50,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 210,
-     "proteinG": 2,
-     "carbsG": 46,
-     "fatG": 2.5,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 29,
-      "sodiumMg": 95,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "strawberry-frozen-dessert",
-   "name": "Strawberry Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 90,
-     "proteinG": 1,
-     "carbsG": 20,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 9,
-      "sodiumMg": 45,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 180,
-     "proteinG": 2,
-     "carbsG": 39,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 19,
-      "sodiumMg": 90,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "rasberry-frozen-dessert",
-   "name": "Rasberry Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 90,
-     "proteinG": 2,
-     "carbsG": 20,
-     "fatG": 1.5,
-     "micros": {
-      "fiberG": 3,
-      "sugarG": 9,
-      "sodiumMg": 45,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 180,
-     "proteinG": 3,
-     "carbsG": 39,
-     "fatG": 2.5,
-     "micros": {
-      "fiberG": 5,
-      "sugarG": 18,
-      "sodiumMg": 90,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "peach-frozen-dessert",
-   "name": "Peach Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 90,
-     "proteinG": 1,
-     "carbsG": 20,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 11,
-      "sodiumMg": 45,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 190,
-     "proteinG": 2,
-     "carbsG": 39,
-     "fatG": 2.5,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 23,
-      "sodiumMg": 90,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "blueberry-frozen-dessert",
-   "name": "Blueberry Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 90,
-     "proteinG": 1,
-     "carbsG": 20,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 10,
-      "sodiumMg": 50,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 180,
-     "proteinG": 2,
-     "carbsG": 39,
-     "fatG": 2.5,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 21,
-      "sodiumMg": 95,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "pinapple-frozen-dessert",
-   "name": "Pinapple Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 100,
-     "proteinG": 1,
-     "carbsG": 22,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 13,
-      "sodiumMg": 50,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 200,
-     "proteinG": 2,
-     "carbsG": 43,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 25,
-      "sodiumMg": 95,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
-     }
-    }
-   ]
-  },
-  {
-   "id": "banana-frozen-dessert",
-   "name": "Banana Frozen Dessert",
-   "category": "JUST FRUIT DESSERT",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 120,
-     "proteinG": 2,
-     "carbsG": 27,
-     "fatG": 1,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 16,
-      "sodiumMg": 45,
-      "saturatedFatG": 1,
-      "cholesterolMg": 5
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 250,
-     "proteinG": 3,
-     "carbsG": 54,
-     "fatG": 2,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 31,
-      "sodiumMg": 90,
-      "saturatedFatG": 2,
-      "cholesterolMg": 10
      }
     }
    ]
   }
  ],
- "modifiers": [
-  {
-   "id": "pita-white",
-   "name": "Pita White",
-   "group": "bread",
-   "unit": "1 EA (57g)",
-   "per": {
-    "calories": 150,
-    "proteinG": 6,
-    "carbsG": 28,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 2,
-     "sodiumMg": 210,
-     "saturatedFatG": 0.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "pita-whole-wheat",
-   "name": "Pita Whole Wheat",
-   "group": "bread",
-   "unit": "1 EA (57g)",
-   "per": {
-    "calories": 150,
-    "proteinG": 6,
-    "carbsG": 28,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 2,
-     "sodiumMg": 210,
-     "saturatedFatG": 0.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "pita-gluten-free",
-   "name": "Pita Gluten- Free",
-   "group": "bread",
-   "unit": "1 EA (112g)",
-   "per": {
-    "calories": 280,
-    "proteinG": 6,
-    "carbsG": 52,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 8,
-     "sugarG": 0,
-     "sodiumMg": 460,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "rice-for-pitas",
-   "name": "Rice for Pitas",
-   "group": "other",
-   "unit": "181g",
-   "per": {
-    "calories": 210,
-    "proteinG": 6,
-    "carbsG": 44,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 2,
-     "sugarG": 1,
-     "sodiumMg": 20,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "rice-for-bowls",
-   "name": "Rice for Bowls",
-   "group": "other",
-   "unit": "313g",
-   "per": {
-    "calories": 420,
-    "proteinG": 11,
-    "carbsG": 87,
-    "fatG": 3,
-    "micros": {
-     "fiberG": 3,
-     "sugarG": 1,
-     "sodiumMg": 40,
-     "saturatedFatG": 0.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "falafel",
-   "name": "Falafel",
-   "group": "protein",
-   "unit": "2 patties (34g)",
-   "per": {
-    "calories": 100,
-    "proteinG": 3,
-    "carbsG": 11,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 3,
-     "sugarG": 2,
-     "sodiumMg": 170,
-     "saturatedFatG": 1,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "bacon",
-   "name": "Bacon",
-   "group": "protein",
-   "unit": "3 slices (18g)",
-   "per": {
-    "calories": 70,
-    "proteinG": 7,
-    "carbsG": 1,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 330,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 20
-    }
-   }
-  },
-  {
-   "id": "beef-brisket",
-   "name": "Beef Brisket",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 100,
-    "proteinG": 7,
-    "carbsG": 3,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 340,
-     "saturatedFatG": 2.5,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "buffalo-chicken",
-   "name": "Buffalo Chicken",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 90,
-    "proteinG": 6,
-    "carbsG": 9,
-    "fatG": 3.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 160,
-     "saturatedFatG": 0,
-     "cholesterolMg": 15
-    }
-   }
-  },
-  {
-   "id": "chicken",
-   "name": "Chicken",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 50,
-    "proteinG": 10,
-    "carbsG": 0,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 170,
-     "saturatedFatG": 0,
-     "cholesterolMg": 35
-    }
-   }
-  },
-  {
-   "id": "chicken-and-bacon",
-   "name": "Chicken & Bacon",
-   "group": "protein",
-   "unit": "55g",
-   "per": {
-    "calories": 100,
-    "proteinG": 15,
-    "carbsG": 1,
-    "fatG": 4.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 380,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 45
-    }
-   }
-  },
-  {
-   "id": "chicken-shawarma",
-   "name": "Chicken Shawarma",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 50,
-    "proteinG": 8,
-    "carbsG": 1,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 260,
-     "saturatedFatG": 0,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "chicken-souvlaki",
-   "name": "Chicken Souvlaki",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 50,
-    "proteinG": 9,
-    "carbsG": 2,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 390,
-     "saturatedFatG": 0,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "southwest-chicken",
-   "name": "Southwest chicken",
-   "group": "protein",
-   "unit": "57g",
-   "per": {
-    "calories": 100,
-    "proteinG": 10,
-    "carbsG": 4,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 3,
-     "sodiumMg": 270,
-     "saturatedFatG": 1,
-     "cholesterolMg": 35
-    }
-   }
-  },
-  {
-   "id": "chicken-crave",
-   "name": "Chicken Crave",
-   "group": "protein",
-   "unit": "60g",
-   "per": {
-    "calories": 70,
-    "proteinG": 13,
-    "carbsG": 1,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 270,
-     "saturatedFatG": 0,
-     "cholesterolMg": 40
-    }
-   }
-  },
-  {
-   "id": "southwest-steak",
-   "name": "Southwest Steak",
-   "group": "protein",
-   "unit": "57g",
-   "per": {
-    "calories": 110,
-    "proteinG": 9,
-    "carbsG": 5,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 3,
-     "sodiumMg": 420,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 25
-    }
-   }
-  },
-  {
-   "id": "steak",
-   "name": "Steak",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 60,
-    "proteinG": 9,
-    "carbsG": 1,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 320,
-     "saturatedFatG": 1,
-     "cholesterolMg": 25
-    }
-   }
-  },
-  {
-   "id": "deli-ham",
-   "name": "Deli ham",
-   "group": "protein",
-   "unit": "2 slices (34g)",
-   "per": {
-    "calories": 35,
-    "proteinG": 6,
-    "carbsG": 2,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 200,
-     "saturatedFatG": 0,
-     "cholesterolMg": 15
-    }
-   }
-  },
-  {
-   "id": "deli-turkey",
-   "name": "Deli Turkey",
-   "group": "protein",
-   "unit": "2 slices (37.5g)",
-   "per": {
-    "calories": 60,
-    "proteinG": 7,
-    "carbsG": 3,
-    "fatG": 0.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 390,
-     "saturatedFatG": 0,
-     "cholesterolMg": 25
-    }
-   }
-  },
-  {
-   "id": "deli-club",
-   "name": "Deli Club",
-   "group": "protein",
-   "unit": "2 slices (42 g)",
-   "per": {
-    "calories": 70,
-    "proteinG": 9,
-    "carbsG": 3,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 400,
-     "saturatedFatG": 1,
-     "cholesterolMg": 25
-    }
-   }
-  },
-  {
-   "id": "gyro",
-   "name": "Gyro",
-   "group": "protein",
-   "unit": "3 slice (55g)",
-   "per": {
-    "calories": 150,
-    "proteinG": 9,
-    "carbsG": 2,
-    "fatG": 13,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 370,
-     "saturatedFatG": 4.5,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "bbq-rib-patty",
-   "name": "BBQ Rib Patty",
-   "group": "protein",
-   "unit": "1.5oz",
-   "per": {
-    "calories": 160,
-    "proteinG": 12,
-    "carbsG": 0,
-    "fatG": 11,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 55,
-     "saturatedFatG": 4.5,
-     "cholesterolMg": 50
-    }
-   }
-  },
-  {
-   "id": "ham-black-forest-sliced",
-   "name": "Ham Black Forest Sliced",
-   "group": "protein",
-   "unit": "1 slice",
-   "per": {
-    "calories": 20,
-    "proteinG": 3,
-    "carbsG": 1,
-    "fatG": 0.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 100,
-     "saturatedFatG": 0,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "halloumi",
-   "name": "Halloumi",
-   "group": "protein",
-   "unit": "43g",
-   "per": {
-    "calories": 140,
-    "proteinG": 9,
-    "carbsG": 2,
-    "fatG": 11,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 470,
-     "saturatedFatG": 7,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "black-beans-patty",
-   "name": "Black Beans Patty",
-   "group": "protein",
-   "unit": "2 patties (48g)",
-   "per": {
-    "calories": 100,
-    "proteinG": 4,
-    "carbsG": 11,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 2,
-     "sugarG": 2,
-     "sodiumMg": 180,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "cheddar-cheese",
-   "name": "Cheddar Cheese",
-   "group": "cheese",
-   "unit": "28g",
-   "per": {
-    "calories": 110,
-    "proteinG": 7,
-    "carbsG": 2,
-    "fatG": 9,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 210,
-     "saturatedFatG": 6,
-     "cholesterolMg": 30
-    }
-   }
-  },
-  {
-   "id": "mozarella-cheese",
-   "name": "Mozarella Cheese",
-   "group": "cheese",
-   "unit": "28g",
-   "per": {
-    "calories": 80,
-    "proteinG": 7,
-    "carbsG": 1,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 190,
-     "saturatedFatG": 4,
-     "cholesterolMg": 20
-    }
-   }
-  },
-  {
-   "id": "swiss-cheese",
-   "name": "Swiss Cheese",
-   "group": "cheese",
-   "unit": "28g",
-   "per": {
-    "calories": 100,
-    "proteinG": 8,
-    "carbsG": 1,
-    "fatG": 8,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 110,
-     "saturatedFatG": 4.5,
-     "cholesterolMg": 20
-    }
-   }
-  },
-  {
-   "id": "parmesan-cheese",
-   "name": "Parmesan Cheese",
-   "group": "cheese",
-   "unit": "4g",
-   "per": {
-    "calories": 15,
-    "proteinG": 2,
-    "carbsG": 0,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 60,
-     "saturatedFatG": 0.5,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "feta-cheese",
-   "name": "Feta Cheese",
-   "group": "cheese",
-   "unit": "28g",
-   "per": {
-    "calories": 70,
-    "proteinG": 4,
-    "carbsG": 0,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 330,
-     "saturatedFatG": 4,
-     "cholesterolMg": 20
-    }
-   }
-  },
-  {
-   "id": "alfalfa-sprouts",
-   "name": "Alfalfa Sprouts",
-   "group": "topping",
-   "unit": "7g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "black-olives",
-   "name": "Black Olives",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 15,
-    "proteinG": 0,
-    "carbsG": 1,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 105,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "cucumber",
-   "name": "Cucumber",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "green-olives",
-   "name": "Green Olives",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 20,
-    "proteinG": 0,
-    "carbsG": 1,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 220,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "green-peppers",
-   "name": "Green Peppers",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 1,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "roasted-red-peppers",
-   "name": "Roasted Red Peppers",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0.2,
-    "carbsG": 1,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 2,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "hot-peppers",
-   "name": "Hot Peppers",
-   "group": "topping",
-   "unit": "7g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 5,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "jalapenos",
-   "name": "Jalapenos",
-   "group": "topping",
-   "unit": "7g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 95,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "lettuce-iceberg",
-   "name": "Lettuce Iceberg",
-   "group": "topping",
-   "unit": "43g",
-   "per": {
-    "calories": 5,
-    "proteinG": 0,
-    "carbsG": 2,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 1,
-     "sodiumMg": 5,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "lettuce-romaine",
-   "name": "Lettuce Romaine",
-   "group": "topping",
-   "unit": "43g",
-   "per": {
-    "calories": 5,
-    "proteinG": 1,
-    "carbsG": 2,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 1,
-     "sodiumMg": 5,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "shredded-carrots",
-   "name": "Shredded Carrots",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 5,
-    "proteinG": 0.1,
-    "carbsG": 1,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 10,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "mushrooms",
-   "name": "Mushrooms",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 5,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "onions",
-   "name": "Onions",
-   "group": "topping",
-   "unit": "7g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 1,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "pinapple",
-   "name": "Pinapple",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 5,
-    "proteinG": 0,
-    "carbsG": 2,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "pickles",
-   "name": "Pickles",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 40,
-    "proteinG": 0,
-    "carbsG": 4,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 45,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "spinach-baby",
-   "name": "Spinach Baby",
-   "group": "topping",
-   "unit": "28g",
-   "per": {
-    "calories": 5,
-    "proteinG": 1,
-    "carbsG": 2,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 0,
-     "sodiumMg": 25,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "tomato",
-   "name": "Tomato",
-   "group": "topping",
-   "unit": "14g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "croutons",
-   "name": "Croutons",
-   "group": "topping",
-   "unit": "7g",
-   "per": {
-    "calories": 35,
-    "proteinG": 1,
-    "carbsG": 5,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 80,
-     "saturatedFatG": 0,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "hummus",
-   "name": "Hummus",
-   "group": "topping",
-   "unit": "28g",
-   "per": {
-    "calories": 45,
-    "proteinG": 3,
-    "carbsG": 5,
-    "fatG": 2.5,
-    "micros": {
-     "fiberG": 2,
-     "sugarG": 0,
-     "sodiumMg": 110,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "avocado",
-   "name": "Avocado",
-   "group": "topping",
-   "unit": "28g",
-   "per": {
-    "calories": 45,
-    "proteinG": 1,
-    "carbsG": 3,
-    "fatG": 4,
-    "micros": {
-     "fiberG": 2,
-     "sugarG": 0,
-     "sodiumMg": 75,
-     "saturatedFatG": 0.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "ancho-chipotle",
-   "name": "Ancho Chipotle",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 110,
-    "proteinG": 0,
-    "carbsG": 8,
-    "fatG": 8,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 6,
-     "sodiumMg": 280,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 10
-    }
-   }
-  },
-  {
-   "id": "balsamic-gluten-free",
-   "name": "Balsamic Gluten Free",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 100,
-    "proteinG": 0,
-    "carbsG": 3,
-    "fatG": 10,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2,
-     "sodiumMg": 170,
-     "saturatedFatG": 1,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "bbq",
-   "name": "BBQ",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 50,
-    "proteinG": 1,
-    "carbsG": 13,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 8,
-     "sodiumMg": 310,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "caesar",
-   "name": "Caesar",
-   "group": "dressing",
-   "unit": "28g",
-   "per": {
-    "calories": 150,
-    "proteinG": 1,
-    "carbsG": 1,
-    "fatG": 17,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 230,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 15
-    }
-   }
-  },
-  {
-   "id": "donair",
-   "name": "Donair",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 60,
-    "proteinG": 1,
-    "carbsG": 12,
-    "fatG": 1.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 9,
-     "sodiumMg": 35,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "garlic-aioli",
-   "name": "Garlic Aioli",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 140,
-    "proteinG": 0,
-    "carbsG": 2,
-    "fatG": 15,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 230,
-     "saturatedFatG": 1,
-     "cholesterolMg": 15
-    }
-   }
-  },
-  {
-   "id": "honey-garlic",
-   "name": "Honey Garlic",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 70,
-    "proteinG": 0,
-    "carbsG": 18,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 10,
-     "sodiumMg": 190,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "honey-mustard",
-   "name": "Honey Mustard",
-   "group": "dressing",
-   "unit": "28g",
-   "per": {
-    "calories": 60,
-    "proteinG": 0,
-    "carbsG": 14,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 12,
-     "sodiumMg": 85,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "hot-sauce",
-   "name": "Hot Sauce",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 1,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 750,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "ketchup",
-   "name": "Ketchup",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 35,
-    "proteinG": 0,
-    "carbsG": 9,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 7,
-     "sodiumMg": 250,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "lemon-za-atar",
-   "name": "Lemon Za'atar",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 100,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 10,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2,
-     "sodiumMg": 190,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "light-mayonnaise",
-   "name": "Light Mayonnaise",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 70,
-    "proteinG": 0,
-    "carbsG": 3,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 240,
-     "saturatedFatG": 1,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "mustard",
-   "name": "Mustard",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 20,
-    "proteinG": 2,
-    "carbsG": 2,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 0,
-     "sodiumMg": 350,
-     "saturatedFatG": 0,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "ranch",
-   "name": "Ranch",
-   "group": "dressing",
-   "unit": "28g",
-   "per": {
-    "calories": 120,
-    "proteinG": 0,
-    "carbsG": 3,
-    "fatG": 13,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 190,
-     "saturatedFatG": 1,
-     "cholesterolMg": 10
-    }
-   }
-  },
-  {
-   "id": "smoky-bbq",
-   "name": "Smoky BBQ",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 45,
-    "proteinG": 0,
-    "carbsG": 12,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 9,
-     "sodiumMg": 210,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "spicy-mayo",
-   "name": "Spicy Mayo",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 190,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 21,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 190,
-     "saturatedFatG": 3.5,
-     "cholesterolMg": 15
-    }
-   }
-  },
-  {
-   "id": "spicy-thai",
-   "name": "Spicy Thai",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 60,
-    "proteinG": 0,
-    "carbsG": 14,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 12,
-     "sodiumMg": 330,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "teriyaki",
-   "name": "Teriyaki",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 40,
-    "proteinG": 0,
-    "carbsG": 11,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 9,
-     "sodiumMg": 310,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "tzatziki",
-   "name": "Tzatziki",
-   "group": "sauce",
-   "unit": "28g",
-   "per": {
-    "calories": 40,
-    "proteinG": 1,
-    "carbsG": 3,
-    "fatG": 3,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 1,
-     "sodiumMg": 180,
-     "saturatedFatG": 1,
-     "cholesterolMg": 10
-    }
-   }
-  },
-  {
-   "id": "whey-protein-scoop",
-   "name": "Whey Protein (Scoop)",
-   "group": "add-on",
-   "unit": "14 g",
-   "per": {
-    "calories": 50,
-    "proteinG": 13,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 35,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "crushed-kitkat",
-   "name": "Crushed KitKat",
-   "group": "topping",
-   "unit": "28",
-   "per": {
-    "calories": 150,
-    "proteinG": 2,
-    "carbsG": 19,
-    "fatG": 7,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 14,
-     "sodiumMg": 20,
-     "saturatedFatG": 5,
-     "cholesterolMg": 5
-    }
-   }
-  },
-  {
-   "id": "crushed-smarties",
-   "name": "Crushed Smarties",
-   "group": "topping",
-   "unit": "28",
-   "per": {
-    "calories": 140,
-    "proteinG": 2,
-    "carbsG": 19,
-    "fatG": 9,
-    "micros": {
-     "fiberG": 2,
-     "sugarG": 15,
-     "sodiumMg": 5,
-     "saturatedFatG": 5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "cookie-crumble",
-   "name": "Cookie Crumble",
-   "group": "topping",
-   "unit": "28",
-   "per": {
-    "calories": 130,
-    "proteinG": 2,
-    "carbsG": 21,
-    "fatG": 5,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 11,
-     "sodiumMg": 100,
-     "saturatedFatG": 1.5,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "cheesecake-bites",
-   "name": "Cheesecake bites",
-   "group": "topping",
-   "unit": "28",
-   "per": {
-    "calories": 100,
-    "proteinG": 2,
-    "carbsG": 11,
-    "fatG": 6,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 8,
-     "sodiumMg": 65,
-     "saturatedFatG": 3.5,
-     "cholesterolMg": 30
-    }
-   }
-  }
- ]
+ "modifiers": []
 }

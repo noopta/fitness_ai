@@ -3,19 +3,18 @@
  "country": "US",
  "source": {
   "url": "https://www.pfchangs.com/nutrition",
-  "fetchedAt": "2026-10-11",
-  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
- "defaultSize": "medium",
+ "defaultSize": "regular",
  "items": [
   {
    "id": "chang-s-chicken-lettuce-wraps",
    "name": "Chang's Chicken Lettuce Wraps",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 660,
      "proteinG": 38,
      "carbsG": 66,
@@ -25,22 +24,8 @@
       "sugarG": 28,
       "sodiumMg": 1840,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 30
-     }
-    },
-    {
-     "size": "half order",
-     "label": "Half Order",
-     "calories": 440,
-     "proteinG": 19,
-     "carbsG": 38,
-     "fatG": 23,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 17,
-      "sodiumMg": 1170,
-      "saturatedFatG": 4.5,
-      "cholesterolMg": 15
      }
     }
    ]
@@ -48,11 +33,9 @@
   {
    "id": "veggie-lettuce-wraps",
    "name": "Veggie Lettuce Wraps",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 640,
      "proteinG": 14,
      "carbsG": 76,
@@ -62,21 +45,7 @@
       "sugarG": 32,
       "sodiumMg": 1700,
       "saturatedFatG": 5,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "half order",
-     "label": "half order",
-     "calories": 500,
-     "proteinG": 10,
-     "carbsG": 52,
-     "fatG": 29,
-     "micros": {
-      "fiberG": 5,
-      "sugarG": 24,
-      "sodiumMg": 1290,
-      "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -85,11 +54,9 @@
   {
    "id": "pork-belly-bao-buns",
    "name": "Pork Belly Bao Buns",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1000,
      "proteinG": 14,
      "carbsG": 62,
@@ -99,6 +66,7 @@
       "sugarG": 28,
       "sodiumMg": 1840,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 80
      }
     }
@@ -107,11 +75,9 @@
   {
    "id": "japanese-wok-fired-calamari",
    "name": "Japanese Wok Fired Calamari",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 780,
      "proteinG": 24,
      "carbsG": 29,
@@ -121,6 +87,7 @@
       "sugarG": 7,
       "sodiumMg": 1470,
       "saturatedFatG": 10,
+      "transFatG": 0,
       "cholesterolMg": 355
      }
     }
@@ -129,11 +96,9 @@
   {
    "id": "crispy-eggplant",
    "name": "Crispy Eggplant",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 700,
      "proteinG": 4,
      "carbsG": 43,
@@ -143,6 +108,7 @@
       "sugarG": 5,
       "sodiumMg": 1120,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 15
      }
     }
@@ -151,11 +117,9 @@
   {
    "id": "flaming-red-wontons",
    "name": "Flaming Red Wontons",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 550,
      "proteinG": 15,
      "carbsG": 41,
@@ -165,81 +129,8 @@
       "sugarG": 19,
       "sodiumMg": 2170,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 35
-     }
-    }
-   ]
-  },
-  {
-   "id": "bbq-pork-spare-ribs",
-   "name": "BBQ Pork Spare Ribs",
-   "category": "APPETIZERS",
-   "sizes": [
-    {
-     "size": "6",
-     "label": "6",
-     "calories": 840,
-     "proteinG": 38,
-     "carbsG": 42,
-     "fatG": 22,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 38,
-      "sodiumMg": 1200,
-      "saturatedFatG": 12,
-      "cholesterolMg": 190
-     }
-    },
-    {
-     "size": "3 half order",
-     "label": "3 Half Order",
-     "calories": 420,
-     "proteinG": 19,
-     "carbsG": 21,
-     "fatG": 11,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 19,
-      "sodiumMg": 600,
-      "saturatedFatG": 6,
-      "cholesterolMg": 95
-     }
-    }
-   ]
-  },
-  {
-   "id": "northern-style-spare-ribs",
-   "name": "Northern Style Spare Ribs",
-   "category": "APPETIZERS",
-   "sizes": [
-    {
-     "size": "6",
-     "label": "6",
-     "calories": 680,
-     "proteinG": 36,
-     "carbsG": 6,
-     "fatG": 22,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 4,
-      "sodiumMg": 980,
-      "saturatedFatG": 12,
-      "cholesterolMg": 190
-     }
-    },
-    {
-     "size": "3 half order",
-     "label": "3 half order",
-     "calories": 340,
-     "proteinG": 18,
-     "carbsG": 3,
-     "fatG": 11,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 2,
-      "sodiumMg": 710,
-      "saturatedFatG": 6,
-      "cholesterolMg": 95
      }
     }
    ]
@@ -247,11 +138,9 @@
   {
    "id": "crispy-green-beans",
    "name": "Crispy Green Beans",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1000,
      "proteinG": 8,
      "carbsG": 70,
@@ -261,6 +150,7 @@
       "sugarG": 12,
       "sodiumMg": 1500,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
     }
@@ -269,11 +159,9 @@
   {
    "id": "duck-wings",
    "name": "Duck Wings",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 720,
      "proteinG": 32,
      "carbsG": 61,
@@ -283,6 +171,7 @@
       "sugarG": 40,
       "sodiumMg": 2110,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 180
      }
     }
@@ -291,11 +180,9 @@
   {
    "id": "edamame",
    "name": "Edamame",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 400,
      "proteinG": 36,
      "carbsG": 24,
@@ -305,6 +192,7 @@
       "sugarG": 0,
       "sodiumMg": 1960,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -313,11 +201,9 @@
   {
    "id": "dynamite-shrimp",
    "name": "Dynamite Shrimp",
-   "category": "APPETIZERS",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 710,
      "proteinG": 14,
      "carbsG": 41,
@@ -327,19 +213,60 @@
       "sugarG": 6,
       "sodiumMg": 1120,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 80
      }
     }
    ]
   },
   {
-   "id": "vegetable-spring-rolls",
-   "name": "Vegetable Spring Rolls",
-   "category": "DIM SUM",
+   "id": "chang-s-chicken-lettuce-wraps-half-order",
+   "name": "Chang's Chicken Lettuce Wraps Half Order",
    "sizes": [
     {
-     "size": "1",
-     "label": "1",
+     "size": "regular",
+     "calories": 440,
+     "proteinG": 19,
+     "carbsG": 38,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 17,
+      "sodiumMg": 1170,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-lettuce-wraps-half-order",
+   "name": "Veggie Lettuce Wraps half order",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 500,
+     "proteinG": 10,
+     "carbsG": 52,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 24,
+      "sodiumMg": 1290,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-rolls-1",
+   "name": "Vegetable Spring Rolls 1",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 350,
      "proteinG": 4,
      "carbsG": 48,
@@ -349,12 +276,18 @@
       "sugarG": 20,
       "sodiumMg": 450,
       "saturatedFatG": 2.5,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "vegetable-spring-rolls-3",
+   "name": "Vegetable Spring Rolls 3",
+   "sizes": [
     {
-     "size": "3",
-     "label": "3",
+     "size": "regular",
      "calories": 720,
      "proteinG": 9,
      "carbsG": 90,
@@ -364,19 +297,18 @@
       "sugarG": 24,
       "sodiumMg": 840,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "pork-dumplings-pan-fried",
-   "name": "Pork Dumplings Pan Fried",
-   "category": "DIM SUM",
+   "id": "pork-dumplings-pan-fried-6",
+   "name": "Pork Dumplings Pan Fried 6",
    "sizes": [
     {
-     "size": "6",
-     "label": "6",
+     "size": "regular",
      "calories": 540,
      "proteinG": 18,
      "carbsG": 42,
@@ -386,12 +318,18 @@
       "sugarG": 12,
       "sodiumMg": 1380,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "pork-dumplings-pan-fried-3-half-order",
+   "name": "Pork Dumplings Pan Fried 3 half order",
+   "sizes": [
     {
-     "size": "3 half order",
-     "label": "3 half order",
+     "size": "regular",
      "calories": 270,
      "proteinG": 9,
      "carbsG": 24,
@@ -401,19 +339,18 @@
       "sugarG": 6,
       "sodiumMg": 780,
       "saturatedFatG": 4.5,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
    ]
   },
   {
-   "id": "pork-dumpling-steamed",
-   "name": "Pork Dumpling Steamed",
-   "category": "DIM SUM",
+   "id": "pork-dumpling-steamed-6",
+   "name": "Pork Dumpling Steamed 6",
    "sizes": [
     {
-     "size": "6",
-     "label": "6",
+     "size": "regular",
      "calories": 480,
      "proteinG": 18,
      "carbsG": 42,
@@ -423,12 +360,18 @@
       "sugarG": 12,
       "sodiumMg": 1380,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "pork-dumpling-steamed-3-half-order",
+   "name": "Pork Dumpling Steamed 3 half order",
+   "sizes": [
     {
-     "size": "3 half order",
-     "label": "3 half order",
+     "size": "regular",
      "calories": 240,
      "proteinG": 9,
      "carbsG": 24,
@@ -438,19 +381,18 @@
       "sugarG": 6,
       "sodiumMg": 780,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
    ]
   },
   {
-   "id": "shrimp-dumplings-pan-fried",
-   "name": "Shrimp Dumplings Pan Fried",
-   "category": "DIM SUM",
+   "id": "shrimp-dumplings-pan-fried-6",
+   "name": "Shrimp Dumplings Pan Fried 6",
    "sizes": [
     {
-     "size": "6",
-     "label": "6",
+     "size": "regular",
      "calories": 360,
      "proteinG": 24,
      "carbsG": 36,
@@ -460,12 +402,18 @@
       "sugarG": 12,
       "sodiumMg": 1620,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 180
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-pan-fried-3-half-order",
+   "name": "Shrimp Dumplings Pan Fried 3 half order",
+   "sizes": [
     {
-     "size": "3 half order",
-     "label": "3 half order",
+     "size": "regular",
      "calories": 210,
      "proteinG": 12,
      "carbsG": 21,
@@ -475,19 +423,18 @@
       "sugarG": 6,
       "sodiumMg": 900,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 90
      }
     }
    ]
   },
   {
-   "id": "shrimp-dumplings-steamed",
-   "name": "Shrimp Dumplings Steamed",
-   "category": "DIM SUM",
+   "id": "shrimp-dumplings-steamed-6",
+   "name": "Shrimp Dumplings Steamed 6",
    "sizes": [
     {
-     "size": "6",
-     "label": "6",
+     "size": "regular",
      "calories": 300,
      "proteinG": 24,
      "carbsG": 36,
@@ -497,12 +444,18 @@
       "sugarG": 12,
       "sodiumMg": 1620,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 180
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "shrimp-dumplings-steamed-3-half-order",
+   "name": "Shrimp Dumplings Steamed 3 half order",
+   "sizes": [
     {
-     "size": "3 half order",
-     "label": "3 half order",
+     "size": "regular",
      "calories": 180,
      "proteinG": 12,
      "carbsG": 21,
@@ -512,6 +465,7 @@
       "sugarG": 6,
       "sodiumMg": 900,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 90
      }
     }
@@ -519,12 +473,10 @@
   },
   {
    "id": "wagyu-egg-rolls-2",
-   "name": "Wagyu Egg Rolls (2)",
-   "category": "DIM SUM",
+   "name": "Wagyu Egg Rolls 2",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1610,
      "proteinG": 30,
      "carbsG": 71,
@@ -534,6 +486,7 @@
       "sugarG": 11,
       "sodiumMg": 1440,
       "saturatedFatG": 28,
+      "transFatG": 3,
       "cholesterolMg": 90
      }
     }
@@ -541,12 +494,10 @@
   },
   {
    "id": "pork-egg-rolls-2",
-   "name": "Pork Egg Rolls (2)",
-   "category": "DIM SUM",
+   "name": "Pork Egg Rolls 2",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 700,
      "proteinG": 18,
      "carbsG": 68,
@@ -556,19 +507,18 @@
       "sugarG": 14,
       "sodiumMg": 920,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     }
    ]
   },
   {
-   "id": "crab-wontons",
-   "name": "Crab Wontons",
-   "category": "DIM SUM",
+   "id": "crab-wontons-6",
+   "name": "Crab Wontons 6",
    "sizes": [
     {
-     "size": "6",
-     "label": "6",
+     "size": "regular",
      "calories": 600,
      "proteinG": 12,
      "carbsG": 66,
@@ -578,12 +528,18 @@
       "sugarG": 30,
       "sodiumMg": 1740,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "crab-wontons-3-half-order",
+   "name": "Crab Wontons 3 half order",
+   "sizes": [
     {
-     "size": "3 half order",
-     "label": "3 half order",
+     "size": "regular",
      "calories": 210,
      "proteinG": 0,
      "carbsG": 27,
@@ -593,6 +549,7 @@
       "sugarG": 24,
       "sodiumMg": 780,
       "saturatedFatG": 1.5,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -601,11 +558,9 @@
   {
    "id": "kung-pao-brussel-sprouts",
    "name": "Kung Pao Brussel Sprouts",
-   "category": "MARKET SIDES",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 480,
      "proteinG": 8,
      "carbsG": 64,
@@ -615,6 +570,7 @@
       "sugarG": 46,
       "sodiumMg": 980,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -623,11 +579,9 @@
   {
    "id": "garlic-noodles",
    "name": "Garlic Noodles",
-   "category": "MARKET SIDES",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 680,
      "proteinG": 16,
      "carbsG": 106,
@@ -637,6 +591,7 @@
       "sugarG": 18,
       "sodiumMg": 1500,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
@@ -645,11 +600,9 @@
   {
    "id": "cold-cucumber-salad",
    "name": "Cold Cucumber Salad",
-   "category": "MARKET SIDES",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 520,
      "proteinG": 4,
      "carbsG": 28,
@@ -659,6 +612,7 @@
       "sugarG": 20,
       "sodiumMg": 920,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -667,11 +621,9 @@
   {
    "id": "chili-garlic-green-beans",
    "name": "Chili Garlic Green Beans",
-   "category": "MARKET SIDES",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 520,
      "proteinG": 8,
      "carbsG": 38,
@@ -681,19 +633,18 @@
       "sugarG": 24,
       "sodiumMg": 1700,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "wonton-soup",
-   "name": "Wonton Soup",
-   "category": "SALADS & SOUP",
+   "id": "wonton-soup-bowl",
+   "name": "Wonton Soup Bowl",
    "sizes": [
     {
-     "size": "bowl",
-     "label": "Bowl",
+     "size": "regular",
      "calories": 480,
      "proteinG": 40,
      "carbsG": 52,
@@ -703,12 +654,18 @@
       "sugarG": 12,
       "sodiumMg": 2960,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 160
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "wonton-soup-cup",
+   "name": "Wonton Soup Cup",
+   "sizes": [
     {
-     "size": "cup",
-     "label": "Cup",
+     "size": "regular",
      "calories": 130,
      "proteinG": 9,
      "carbsG": 14,
@@ -718,19 +675,18 @@
       "sugarG": 2,
       "sodiumMg": 770,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     }
    ]
   },
   {
-   "id": "egg-drop-soup",
-   "name": "Egg Drop Soup",
-   "category": "SALADS & SOUP",
+   "id": "egg-drop-soup-bowl",
+   "name": "Egg Drop Soup Bowl",
    "sizes": [
     {
-     "size": "bowl",
-     "label": "Bowl",
+     "size": "regular",
      "calories": 280,
      "proteinG": 8,
      "carbsG": 44,
@@ -740,12 +696,18 @@
       "sugarG": 12,
       "sodiumMg": 3760,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 180
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "egg-drop-soup-cup",
+   "name": "Egg Drop Soup Cup",
+   "sizes": [
     {
-     "size": "cup",
-     "label": "Cup",
+     "size": "regular",
      "calories": 40,
      "proteinG": 1,
      "carbsG": 6,
@@ -755,19 +717,18 @@
       "sugarG": 2,
       "sodiumMg": 560,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
    ]
   },
   {
-   "id": "hot-and-sour-soup",
-   "name": "Hot & Sour Soup",
-   "category": "SALADS & SOUP",
+   "id": "hot-and-sour-soup-bowl",
+   "name": "Hot & Sour Soup Bowl",
    "sizes": [
     {
-     "size": "bowl",
-     "label": "Bowl",
+     "size": "regular",
      "calories": 480,
      "proteinG": 28,
      "carbsG": 60,
@@ -777,12 +738,18 @@
       "sugarG": 8,
       "sodiumMg": 3720,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 200
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "hot-and-sour-soup-cup",
+   "name": "Hot & Sour Soup Cup",
+   "sizes": [
     {
-     "size": "cup",
-     "label": "Cup",
+     "size": "regular",
      "calories": 70,
      "proteinG": 4,
      "carbsG": 9,
@@ -792,19 +759,18 @@
       "sugarG": 1,
       "sodiumMg": 580,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
    ]
   },
   {
-   "id": "thai-peanut-salad",
-   "name": "Thai Peanut Salad",
-   "category": "SALADS & SOUP",
+   "id": "thai-peanut-salad-to-share",
+   "name": "Thai Peanut Salad To Share",
    "sizes": [
     {
-     "size": "to share",
-     "label": "To Share",
+     "size": "regular",
      "calories": 580,
      "proteinG": 22,
      "carbsG": 56,
@@ -814,12 +780,18 @@
       "sugarG": 28,
       "sodiumMg": 1780,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "thai-peanut-salad-for-one",
+   "name": "Thai Peanut Salad For One",
+   "sizes": [
     {
-     "size": "for one",
-     "label": "For One",
+     "size": "regular",
      "calories": 280,
      "proteinG": 12,
      "carbsG": 28,
@@ -829,19 +801,18 @@
       "sugarG": 14,
       "sodiumMg": 900,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "asian-caesar-salad",
-   "name": "Asian Caesar Salad",
-   "category": "SALADS & SOUP",
+   "id": "asian-caesar-salad-to-share",
+   "name": "Asian Caesar Salad To Share",
    "sizes": [
     {
-     "size": "to share",
-     "label": "To Share",
+     "size": "regular",
      "calories": 420,
      "proteinG": 16,
      "carbsG": 22,
@@ -851,12 +822,18 @@
       "sugarG": 2,
       "sodiumMg": 880,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "asian-caesar-salad-for-one",
+   "name": "Asian Caesar Salad For One",
+   "sizes": [
     {
-     "size": "for one",
-     "label": "For One",
+     "size": "regular",
      "calories": 220,
      "proteinG": 8,
      "carbsG": 12,
@@ -866,19 +843,18 @@
       "sugarG": 2,
       "sodiumMg": 480,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
    ]
   },
   {
-   "id": "mandarin-crunch-salad",
-   "name": "Mandarin Crunch Salad",
-   "category": "SALADS & SOUP",
+   "id": "mandarin-crunch-salad-to-share",
+   "name": "Mandarin Crunch Salad To Share",
    "sizes": [
     {
-     "size": "to share",
-     "label": "To Share",
+     "size": "regular",
      "calories": 700,
      "proteinG": 12,
      "carbsG": 74,
@@ -888,12 +864,18 @@
       "sugarG": 38,
       "sodiumMg": 1520,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "mandarin-crunch-salad-for-one",
+   "name": "Mandarin Crunch Salad For One",
+   "sizes": [
     {
-     "size": "for one",
-     "label": "For One",
+     "size": "regular",
      "calories": 360,
      "proteinG": 6,
      "carbsG": 38,
@@ -903,19 +885,18 @@
       "sugarG": 20,
       "sodiumMg": 760,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "house-salad",
-   "name": "House Salad",
-   "category": "SALADS & SOUP",
+   "id": "house-salad-to-share",
+   "name": "House Salad To Share",
    "sizes": [
     {
-     "size": "to share",
-     "label": "To Share",
+     "size": "regular",
      "calories": 220,
      "proteinG": 6,
      "carbsG": 28,
@@ -925,12 +906,18 @@
       "sugarG": 12,
       "sodiumMg": 720,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "house-salad-for-one",
+   "name": "House Salad For One",
+   "sizes": [
     {
-     "size": "for one",
-     "label": "For One",
+     "size": "regular",
      "calories": 160,
      "proteinG": 4,
      "carbsG": 20,
@@ -940,7 +927,50 @@
       "sugarG": 8,
       "sodiumMg": 520,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken",
+   "name": "Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 24,
+     "carbsG": 2,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 110,
+      "saturatedFatG": 2,
+      "transFatG": 0,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "salmon",
+   "name": "Salmon*",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 22,
+     "carbsG": 0,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 440,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 70
      }
     }
    ]
@@ -948,11 +978,9 @@
   {
    "id": "dynamite-roll",
    "name": "Dynamite Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 780,
      "proteinG": 19,
      "carbsG": 85,
@@ -962,6 +990,7 @@
       "sugarG": 25,
       "sodiumMg": 2630,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     }
@@ -970,11 +999,9 @@
   {
    "id": "california-roll",
    "name": "California Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 400,
      "proteinG": 11,
      "carbsG": 60,
@@ -984,6 +1011,7 @@
       "sugarG": 19,
       "sodiumMg": 1200,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
     }
@@ -991,12 +1019,10 @@
   },
   {
    "id": "california-hand-roll-1",
-   "name": "California Hand Roll*(1)",
-   "category": "SUSHI",
+   "name": "California Hand Roll* 1",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 100,
      "proteinG": 3,
      "carbsG": 11,
@@ -1006,6 +1032,7 @@
       "sugarG": 3,
       "sodiumMg": 270,
       "saturatedFatG": 0.5,
+      "transFatG": 0,
       "cholesterolMg": 5
      }
     }
@@ -1014,11 +1041,9 @@
   {
    "id": "shrimp-tempura-roll",
    "name": "Shrimp Tempura Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 500,
      "proteinG": 13,
      "carbsG": 71,
@@ -1028,6 +1053,7 @@
       "sugarG": 21,
       "sodiumMg": 1410,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 40
      }
     }
@@ -1035,12 +1061,10 @@
   },
   {
    "id": "shrimp-tempura-hand-roll-1",
-   "name": "Shrimp Tempura Hand Roll*(1)",
-   "category": "SUSHI",
+   "name": "Shrimp Tempura Hand Roll* 1",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 200,
      "proteinG": 5,
      "carbsG": 16,
@@ -1050,6 +1074,7 @@
       "sugarG": 3,
       "sodiumMg": 400,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
     }
@@ -1057,12 +1082,10 @@
   },
   {
    "id": "spicy-tuna-hand-roll-1",
-   "name": "Spicy Tuna Hand Roll*(1)",
-   "category": "SUSHI",
+   "name": "Spicy Tuna Hand Roll* 1",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 110,
      "proteinG": 5,
      "carbsG": 9,
@@ -1072,6 +1095,7 @@
       "sugarG": 3,
       "sodiumMg": 310,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -1080,11 +1104,9 @@
   {
    "id": "spicy-tuna-roll",
    "name": "Spicy Tuna Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 480,
      "proteinG": 19,
      "carbsG": 57,
@@ -1094,6 +1116,7 @@
       "sugarG": 19,
       "sodiumMg": 1570,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 25
      }
     }
@@ -1102,11 +1125,9 @@
   {
    "id": "spicy-tuna-crispy-rice",
    "name": "Spicy Tuna Crispy Rice*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 570,
      "proteinG": 17,
      "carbsG": 53,
@@ -1116,6 +1137,7 @@
       "sugarG": 15,
       "sodiumMg": 1080,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
     }
@@ -1124,11 +1146,9 @@
   {
    "id": "tiger-roll",
    "name": "Tiger Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 740,
      "proteinG": 19,
      "carbsG": 73,
@@ -1138,6 +1158,7 @@
       "sugarG": 20,
       "sodiumMg": 2510,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 85
      }
     }
@@ -1146,11 +1167,9 @@
   {
    "id": "japanese-philly-roll",
    "name": "Japanese Philly Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 950,
      "proteinG": 19,
      "carbsG": 87,
@@ -1160,6 +1179,7 @@
       "sugarG": 13,
       "sodiumMg": 1030,
       "saturatedFatG": 13,
+      "transFatG": 0.5,
       "cholesterolMg": 50
      }
     }
@@ -1168,11 +1188,9 @@
   {
    "id": "kung-pao-dragon-roll",
    "name": "Kung Pao Dragon Roll*",
-   "category": "SUSHI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 490,
      "proteinG": 21,
      "carbsG": 60,
@@ -1182,6 +1200,7 @@
       "sugarG": 14,
       "sodiumMg": 1660,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     }
@@ -1190,11 +1209,9 @@
   {
    "id": "hong-kong-beef",
    "name": "Hong Kong Beef",
-   "category": "HOUSE SPECIALS- VALUES DO NOT INCLUDE RI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 350,
      "proteinG": 24,
      "carbsG": 26,
@@ -1204,6 +1221,7 @@
       "sugarG": 13,
       "sodiumMg": 1750,
       "saturatedFatG": 4.5,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
@@ -1212,11 +1230,9 @@
   {
    "id": "korean-sesame-chicken",
    "name": "Korean Sesame Chicken",
-   "category": "HOUSE SPECIALS- VALUES DO NOT INCLUDE RI",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 550,
      "proteinG": 23,
      "carbsG": 43,
@@ -1226,6 +1242,7 @@
       "sugarG": 27,
       "sodiumMg": 1080,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 45
      }
     }
@@ -1234,11 +1251,9 @@
   {
    "id": "chicken-with-broccoli",
    "name": "Chicken with Broccoli",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "house specials",
-     "label": "House Specials",
+     "size": "regular",
      "calories": 350,
      "proteinG": 34,
      "carbsG": 33,
@@ -1248,37 +1263,8 @@
       "sugarG": 25,
       "sodiumMg": 1450,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 60
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium Sized",
-     "calories": 410,
-     "proteinG": 43,
-     "carbsG": 37,
-     "fatG": 11,
-     "micros": {
-      "fiberG": 5,
-      "sugarG": 26,
-      "sodiumMg": 1510,
-      "saturatedFatG": 2,
-      "cholesterolMg": 70
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 480,
-     "proteinG": 60,
-     "carbsG": 30,
-     "fatG": 14,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 20,
-      "sodiumMg": 1300,
-      "saturatedFatG": 3,
-      "cholesterolMg": 110
      }
     }
    ]
@@ -1286,11 +1272,9 @@
   {
    "id": "mongolian-tofu",
    "name": "Mongolian Tofu",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "house specials",
-     "label": "House Specials",
+     "size": "regular",
      "calories": 550,
      "proteinG": 13,
      "carbsG": 40,
@@ -1300,36 +1284,49 @@
       "sugarG": 23,
       "sodiumMg": 1260,
       "saturatedFatG": 7,
+      "transFatG": 2.5,
       "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "white-rice-individual-serving-6oz",
+   "name": "White Rice - individual serving 6oz",
+   "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
-     "calories": 750,
-     "proteinG": 17,
-     "carbsG": 53,
-     "fatG": 53,
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 4,
+     "carbsG": 49,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "brown-rice-individual-serving-6oz",
+   "name": "Brown Rice - individual serving 6oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 190,
+     "proteinG": 4,
+     "carbsG": 40,
+     "fatG": 0,
      "micros": {
       "fiberG": 3,
-      "sugarG": 30,
-      "sodiumMg": 1580,
-      "saturatedFatG": 10,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 900,
-     "proteinG": 22,
-     "carbsG": 58,
-     "fatG": 64,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 30,
-      "sodiumMg": 1600,
-      "saturatedFatG": 12,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -1338,11 +1335,9 @@
   {
    "id": "house-side-salad",
    "name": "House Side Salad",
-   "category": "STARTER",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 100,
      "proteinG": 2,
      "carbsG": 12,
@@ -1352,6 +1347,7 @@
       "sugarG": 6,
       "sodiumMg": 320,
       "saturatedFatG": 0.5,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -1360,11 +1356,9 @@
   {
    "id": "mongolian-beef",
    "name": "Mongolian Beef",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 510,
      "proteinG": 36,
      "carbsG": 38,
@@ -1374,22 +1368,8 @@
       "sugarG": 30,
       "sodiumMg": 2080,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 45
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 680,
-     "proteinG": 54,
-     "carbsG": 40,
-     "fatG": 34,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 30,
-      "sodiumMg": 2340,
-      "saturatedFatG": 10,
-      "cholesterolMg": 70
      }
     }
    ]
@@ -1397,11 +1377,9 @@
   {
    "id": "beef-with-broccoli",
    "name": "Beef with Broccoli",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 260,
      "proteinG": 19,
      "carbsG": 23,
@@ -1411,22 +1389,8 @@
       "sugarG": 16,
       "sodiumMg": 1030,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 20
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 600,
-     "proteinG": 46,
-     "carbsG": 46,
-     "fatG": 26,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 32,
-      "sodiumMg": 2200,
-      "saturatedFatG": 8,
-      "cholesterolMg": 50
      }
     }
    ]
@@ -1434,11 +1398,9 @@
   {
    "id": "teriyaki-beef",
    "name": "Teriyaki Beef",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 720,
      "proteinG": 28,
      "carbsG": 98,
@@ -1448,22 +1410,8 @@
       "sugarG": 71,
       "sodiumMg": 2360,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 35
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 800,
-     "proteinG": 36,
-     "carbsG": 98,
-     "fatG": 30,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 70,
-      "sodiumMg": 2480,
-      "saturatedFatG": 8,
-      "cholesterolMg": 50
      }
     }
    ]
@@ -1471,11 +1419,9 @@
   {
    "id": "pepper-steak",
    "name": "Pepper Steak",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 400,
      "proteinG": 28,
      "carbsG": 28,
@@ -1485,22 +1431,8 @@
       "sugarG": 16,
       "sodiumMg": 2020,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 35
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 600,
-     "proteinG": 48,
-     "carbsG": 30,
-     "fatG": 30,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 16,
-      "sodiumMg": 2320,
-      "saturatedFatG": 9,
-      "cholesterolMg": 60
      }
     }
    ]
@@ -1508,11 +1440,9 @@
   {
    "id": "sesame-beef",
    "name": "Sesame Beef",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 650,
      "proteinG": 32,
      "carbsG": 78,
@@ -1522,22 +1452,8 @@
       "sugarG": 49,
       "sodiumMg": 2070,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 35
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 820,
-     "proteinG": 50,
-     "carbsG": 80,
-     "fatG": 32,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 48,
-      "sodiumMg": 2320,
-      "saturatedFatG": 9,
-      "cholesterolMg": 60
      }
     }
    ]
@@ -1545,11 +1461,9 @@
   {
    "id": "kung-pao-beef",
    "name": "Kung Pao Beef",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 770,
      "proteinG": 42,
      "carbsG": 50,
@@ -1559,22 +1473,8 @@
       "sugarG": 23,
       "sodiumMg": 2190,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 35
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 900,
-     "proteinG": 56,
-     "carbsG": 52,
-     "fatG": 54,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 22,
-      "sodiumMg": 2380,
-      "saturatedFatG": 12,
-      "cholesterolMg": 50
      }
     }
    ]
@@ -1582,11 +1482,9 @@
   {
    "id": "chang-s-spicy-chicken",
    "name": "Chang's Spicy Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 800,
      "proteinG": 33,
      "carbsG": 66,
@@ -1596,22 +1494,8 @@
       "sugarG": 61,
       "sodiumMg": 1590,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 75
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1060,
-     "proteinG": 50,
-     "carbsG": 66,
-     "fatG": 52,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 62,
-      "sodiumMg": 1740,
-      "saturatedFatG": 10,
-      "cholesterolMg": 110
      }
     }
    ]
@@ -1619,11 +1503,9 @@
   {
    "id": "crispy-honey-chicken",
    "name": "Crispy Honey Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 1180,
      "proteinG": 36,
      "carbsG": 100,
@@ -1633,22 +1515,8 @@
       "sugarG": 41,
       "sodiumMg": 700,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 40
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1380,
-     "proteinG": 44,
-     "carbsG": 112,
-     "fatG": 82,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 42,
-      "sodiumMg": 780,
-      "saturatedFatG": 14,
-      "cholesterolMg": 50
      }
     }
    ]
@@ -1656,11 +1524,9 @@
   {
    "id": "sesame-chicken",
    "name": "Sesame Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 860,
      "proteinG": 39,
      "carbsG": 60,
@@ -1670,22 +1536,8 @@
       "sugarG": 49,
       "sodiumMg": 1980,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 75
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 980,
-     "proteinG": 48,
-     "carbsG": 60,
-     "fatG": 48,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 48,
-      "sodiumMg": 2060,
-      "saturatedFatG": 9,
-      "cholesterolMg": 90
      }
     }
    ]
@@ -1693,11 +1545,9 @@
   {
    "id": "orange-chicken",
    "name": "Orange Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 1060,
      "proteinG": 35,
      "carbsG": 97,
@@ -1707,22 +1557,8 @@
       "sugarG": 48,
       "sodiumMg": 1100,
       "saturatedFatG": 10,
+      "transFatG": 0,
       "cholesterolMg": 40
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1260,
-     "proteinG": 44,
-     "carbsG": 108,
-     "fatG": 74,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 48,
-      "sodiumMg": 1160,
-      "saturatedFatG": 12,
-      "cholesterolMg": 50
      }
     }
    ]
@@ -1730,11 +1566,9 @@
   {
    "id": "sweet-and-sour-chicken",
    "name": "Sweet & Sour Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 730,
      "proteinG": 24,
      "carbsG": 83,
@@ -1744,22 +1578,8 @@
       "sugarG": 45,
       "sodiumMg": 480,
       "saturatedFatG": 5,
+      "transFatG": 0,
       "cholesterolMg": 80
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 880,
-     "proteinG": 36,
-     "carbsG": 88,
-     "fatG": 42,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 46,
-      "sodiumMg": 560,
-      "saturatedFatG": 7,
-      "cholesterolMg": 120
      }
     }
    ]
@@ -1767,11 +1587,9 @@
   {
    "id": "teriyaki-chicken",
    "name": "Teriyaki Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 850,
      "proteinG": 31,
      "carbsG": 82,
@@ -1781,22 +1599,8 @@
       "sugarG": 71,
       "sodiumMg": 2230,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 65
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 980,
-     "proteinG": 40,
-     "carbsG": 82,
-     "fatG": 44,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 70,
-      "sodiumMg": 2300,
-      "saturatedFatG": 8,
-      "cholesterolMg": 80
      }
     }
    ]
@@ -1804,11 +1608,9 @@
   {
    "id": "kung-pao-chicken",
    "name": "Kung Pao Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 850,
      "proteinG": 41,
      "carbsG": 31,
@@ -1818,22 +1620,8 @@
       "sugarG": 20,
       "sodiumMg": 1820,
       "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 55
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1040,
-     "proteinG": 54,
-     "carbsG": 30,
-     "fatG": 68,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 20,
-      "sodiumMg": 1920,
-      "saturatedFatG": 12,
-      "cholesterolMg": 80
      }
     }
    ]
@@ -1841,11 +1629,9 @@
   {
    "id": "black-pepper-chicken",
    "name": "Black Pepper Chicken",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 760,
      "proteinG": 24,
      "carbsG": 77,
@@ -1855,22 +1641,8 @@
       "sugarG": 40,
       "sodiumMg": 2110,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 95
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 880,
-     "proteinG": 30,
-     "carbsG": 76,
-     "fatG": 50,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 32,
-      "sodiumMg": 2480,
-      "saturatedFatG": 8,
-      "cholesterolMg": 120
      }
     }
    ]
@@ -1878,11 +1650,9 @@
   {
    "id": "firecracker-shrimp",
    "name": "Firecracker Shrimp",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 530,
      "proteinG": 35,
      "carbsG": 28,
@@ -1892,22 +1662,8 @@
       "sugarG": 18,
       "sodiumMg": 2300,
       "saturatedFatG": 14,
+      "transFatG": 1,
       "cholesterolMg": 275
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 580,
-     "proteinG": 44,
-     "carbsG": 28,
-     "fatG": 34,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 18,
-      "sodiumMg": 2720,
-      "saturatedFatG": 14,
-      "cholesterolMg": 330
      }
     }
    ]
@@ -1915,11 +1671,9 @@
   {
    "id": "crispy-honey-shrimp",
    "name": "Crispy Honey Shrimp",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 980,
      "proteinG": 24,
      "carbsG": 71,
@@ -1929,22 +1683,8 @@
       "sugarG": 38,
       "sodiumMg": 1760,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 95
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1180,
-     "proteinG": 30,
-     "carbsG": 78,
-     "fatG": 80,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 38,
-      "sodiumMg": 2100,
-      "saturatedFatG": 14,
-      "cholesterolMg": 120
      }
     }
    ]
@@ -1952,11 +1692,9 @@
   {
    "id": "kung-pao-shrimp",
    "name": "Kung Pao Shrimp",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 680,
      "proteinG": 29,
      "carbsG": 40,
@@ -1966,22 +1704,8 @@
       "sugarG": 20,
       "sodiumMg": 2260,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 1020,
-     "proteinG": 48,
-     "carbsG": 54,
-     "fatG": 70,
-     "micros": {
-      "fiberG": 8,
-      "sugarG": 20,
-      "sodiumMg": 3260,
-      "saturatedFatG": 12,
-      "cholesterolMg": 170
      }
     }
    ]
@@ -1989,11 +1713,9 @@
   {
    "id": "stir-fried-eggplant",
    "name": "Stir-Fried Eggplant",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 400,
      "proteinG": 3,
      "carbsG": 43,
@@ -2003,21 +1725,7 @@
       "sugarG": 27,
       "sodiumMg": 1710,
       "saturatedFatG": 4,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 530,
-     "proteinG": 4,
-     "carbsG": 52,
-     "fatG": 35,
-     "micros": {
-      "fiberG": 9,
-      "sugarG": 30,
-      "sodiumMg": 1710,
-      "saturatedFatG": 5,
+      "transFatG": 0.5,
       "cholesterolMg": 0
      }
     }
@@ -2026,11 +1734,9 @@
   {
    "id": "buddha-s-feast",
    "name": "Buddha's Feast",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 400,
      "proteinG": 13,
      "carbsG": 35,
@@ -2040,21 +1746,7 @@
       "sugarG": 13,
       "sodiumMg": 1390,
       "saturatedFatG": 4,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 480,
-     "proteinG": 16,
-     "carbsG": 38,
-     "fatG": 30,
-     "micros": {
-      "fiberG": 10,
-      "sugarG": 14,
-      "sodiumMg": 1400,
-      "saturatedFatG": 5,
+      "transFatG": 1,
       "cholesterolMg": 0
      }
     }
@@ -2063,11 +1755,9 @@
   {
    "id": "ma-po-tofu",
    "name": "Ma Po Tofu",
-   "category": "ENTREES",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 730,
      "proteinG": 40,
      "carbsG": 58,
@@ -2077,21 +1767,7 @@
       "sugarG": 30,
       "sodiumMg": 2760,
       "saturatedFatG": 6,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "traditional sized",
-     "label": "Traditional Sized",
-     "calories": 980,
-     "proteinG": 58,
-     "carbsG": 66,
-     "fatG": 62,
-     "micros": {
-      "fiberG": 16,
-      "sugarG": 30,
-      "sodiumMg": 2780,
-      "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2100,11 +1776,9 @@
   {
    "id": "mongolian-trio",
    "name": "Mongolian Trio",
-   "category": "CHEF'S FEAST/MEDIUM SIZED/MEAL DEALS ENT",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 700,
      "proteinG": 33,
      "carbsG": 62,
@@ -2114,6 +1788,7 @@
       "sugarG": 49,
       "sodiumMg": 3090,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     }
@@ -2122,11 +1797,9 @@
   {
    "id": "teriyaki-trio",
    "name": "Teriyaki Trio",
-   "category": "CHEF'S FEAST/MEDIUM SIZED/MEAL DEALS ENT",
    "sizes": [
     {
-     "size": "medium",
-     "label": "Medium Sized",
+     "size": "regular",
      "calories": 930,
      "proteinG": 34,
      "carbsG": 111,
@@ -2136,6 +1809,7 @@
       "sugarG": 92,
       "sodiumMg": 3190,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 70
      }
     }
@@ -2144,11 +1818,9 @@
   {
    "id": "pad-thai-chefs-feast",
    "name": "Pad Thai chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1320,
      "proteinG": 35,
      "carbsG": 193,
@@ -2158,6 +1830,7 @@
       "sugarG": 54,
       "sodiumMg": 3010,
       "saturatedFatG": 9,
+      "transFatG": 1,
       "cholesterolMg": 370
      }
     }
@@ -2166,11 +1839,9 @@
   {
    "id": "chicken-pad-thai-chefs-feast",
    "name": "Chicken Pad Thai chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1450,
      "proteinG": 51,
      "carbsG": 196,
@@ -2180,6 +1851,7 @@
       "sugarG": 54,
       "sodiumMg": 3130,
       "saturatedFatG": 10,
+      "transFatG": 1,
       "cholesterolMg": 415
      }
     }
@@ -2188,11 +1860,9 @@
   {
    "id": "tofu-pad-thai-chefs-feast",
    "name": "Tofu Pad Thai chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1590,
      "proteinG": 41,
      "carbsG": 200,
@@ -2202,6 +1872,7 @@
       "sugarG": 54,
       "sodiumMg": 3020,
       "saturatedFatG": 13,
+      "transFatG": 2,
       "cholesterolMg": 370
      }
     }
@@ -2210,11 +1881,9 @@
   {
    "id": "beef-pad-thai-chefs-feast",
    "name": "Beef Pad Thai chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1450,
      "proteinG": 48,
      "carbsG": 195,
@@ -2224,6 +1893,7 @@
       "sugarG": 54,
       "sodiumMg": 3200,
       "saturatedFatG": 11,
+      "transFatG": 1,
       "cholesterolMg": 390
      }
     }
@@ -2232,11 +1902,9 @@
   {
    "id": "shrimp-pad-thai-chefs-feast",
    "name": "Shrimp Pad Thai chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1400,
      "proteinG": 47,
      "carbsG": 193,
@@ -2246,6 +1914,7 @@
       "sugarG": 54,
       "sodiumMg": 3640,
       "saturatedFatG": 9,
+      "transFatG": 1,
       "cholesterolMg": 455
      }
     }
@@ -2254,11 +1923,9 @@
   {
    "id": "fried-rice-with-vegetable-chefs-feast",
    "name": "Fried Rice with Vegetable Chefs Feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 940,
      "proteinG": 33,
      "carbsG": 162,
@@ -2268,6 +1935,7 @@
       "sugarG": 23,
       "sodiumMg": 1920,
       "saturatedFatG": 3.5,
+      "transFatG": 0,
       "cholesterolMg": 255
      }
     }
@@ -2276,11 +1944,9 @@
   {
    "id": "fried-rice-with-beef-chefs-feast",
    "name": "Fried Rice with Beef Chefs Feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 970,
      "proteinG": 33,
      "carbsG": 154,
@@ -2290,6 +1956,7 @@
       "sugarG": 18,
       "sodiumMg": 1720,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     }
@@ -2298,11 +1965,9 @@
   {
    "id": "fried-rice-with-chicken-chefs-feast",
    "name": "Fried Rice with Chicken Chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 970,
      "proteinG": 36,
      "carbsG": 155,
@@ -2312,6 +1977,7 @@
       "sugarG": 18,
       "sodiumMg": 1640,
       "saturatedFatG": 4.5,
+      "transFatG": 0,
       "cholesterolMg": 230
      }
     }
@@ -2320,11 +1986,9 @@
   {
    "id": "fried-rice-with-shrimp-chefs-feast",
    "name": "Fried Rice with Shrimp chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 890,
      "proteinG": 28,
      "carbsG": 152,
@@ -2334,6 +1998,7 @@
       "sugarG": 19,
       "sodiumMg": 1890,
       "saturatedFatG": 3.5,
+      "transFatG": 0,
       "cholesterolMg": 255
      }
     }
@@ -2342,11 +2007,9 @@
   {
    "id": "fried-rice-with-tofu-chefs-feast",
    "name": "Fried Rice with Tofu chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1060,
      "proteinG": 26,
      "carbsG": 160,
@@ -2356,6 +2019,7 @@
       "sugarG": 18,
       "sodiumMg": 1530,
       "saturatedFatG": 7,
+      "transFatG": 1.5,
       "cholesterolMg": 185
      }
     }
@@ -2364,11 +2028,9 @@
   {
    "id": "lo-mein-vegetable-chefs-feast",
    "name": "Lo Mein Vegetable Chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 710,
      "proteinG": 22,
      "carbsG": 124,
@@ -2378,6 +2040,7 @@
       "sugarG": 28,
       "sodiumMg": 3080,
       "saturatedFatG": 2.5,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2386,11 +2049,9 @@
   {
    "id": "lo-mein-beef-chefs-feast",
    "name": "Lo Mein Beef Chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 780,
      "proteinG": 31,
      "carbsG": 117,
@@ -2400,6 +2061,7 @@
       "sugarG": 24,
       "sodiumMg": 3250,
       "saturatedFatG": 4.5,
+      "transFatG": 0,
       "cholesterolMg": 20
      }
     }
@@ -2408,11 +2070,9 @@
   {
    "id": "lo-mein-chicken-chefs-feast",
    "name": "Lo Mein Chicken Chefs Feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 780,
      "proteinG": 34,
      "carbsG": 118,
@@ -2422,6 +2082,7 @@
       "sugarG": 24,
       "sodiumMg": 3180,
       "saturatedFatG": 3.5,
+      "transFatG": 0,
       "cholesterolMg": 40
      }
     }
@@ -2430,11 +2091,9 @@
   {
    "id": "lo-mein-shrimp-chefs-feast",
    "name": "Lo Mein Shrimp Chefs Feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 730,
      "proteinG": 30,
      "carbsG": 115,
@@ -2444,6 +2103,7 @@
       "sugarG": 24,
       "sodiumMg": 3690,
       "saturatedFatG": 2.5,
+      "transFatG": 0,
       "cholesterolMg": 85
      }
     }
@@ -2452,11 +2112,9 @@
   {
    "id": "lo-mein-tofu-chefs-feast",
    "name": "Lo Mein Tofu Chefs feast",
-   "category": "NOODLES & RICE CHEF'S FEAST",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 870,
      "proteinG": 24,
      "carbsG": 122,
@@ -2466,6 +2124,7 @@
       "sugarG": 24,
       "sodiumMg": 3070,
       "saturatedFatG": 6,
+      "transFatG": 1.5,
       "cholesterolMg": 0
      }
     }
@@ -2474,11 +2133,9 @@
   {
    "id": "ny-prime-strip-steak-takaki",
    "name": "NY Prime Strip Steak Takaki*",
-   "category": "MAIN ENTRÉES / TRADITIONAL SIZED",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 970,
      "proteinG": 39,
      "carbsG": 42,
@@ -2488,6 +2145,7 @@
       "sugarG": 32,
       "sodiumMg": 1820,
       "saturatedFatG": 28,
+      "transFatG": 0.5,
       "cholesterolMg": 165
      }
     }
@@ -2496,11 +2154,9 @@
   {
    "id": "black-pepper-filet",
    "name": "Black Pepper Filet*",
-   "category": "MAIN ENTRÉES / TRADITIONAL SIZED",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1240,
      "proteinG": 46,
      "carbsG": 99,
@@ -2510,6 +2166,7 @@
       "sugarG": 68,
       "sodiumMg": 2850,
       "saturatedFatG": 13,
+      "transFatG": 1,
       "cholesterolMg": 100
      }
     }
@@ -2518,11 +2175,9 @@
   {
    "id": "miso-glazed-salmon",
    "name": "Miso Glazed Salmon*",
-   "category": "MAIN ENTRÉES / TRADITIONAL SIZED",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 680,
      "proteinG": 52,
      "carbsG": 32,
@@ -2532,6 +2187,7 @@
       "sugarG": 20,
       "sodiumMg": 1200,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 150
      }
     }
@@ -2540,11 +2196,9 @@
   {
    "id": "oolong-chilean-seabass",
    "name": "Oolong Chilean Seabass*",
-   "category": "MAIN ENTRÉES / TRADITIONAL SIZED",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 900,
      "proteinG": 39,
      "carbsG": 56,
@@ -2554,130 +2208,12 @@
       "sugarG": 27,
       "sodiumMg": 1370,
       "saturatedFatG": 10,
+      "transFatG": 0.5,
       "cholesterolMg": 85
-     }
-    }
-   ]
-  },
-  {
-   "id": "gf-fried-rice",
-   "name": "GF Fried Rice",
-   "category": "Gluten-Free Sides",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 510,
-     "proteinG": 13,
-     "carbsG": 77,
-     "fatG": 15,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 10,
-      "sodiumMg": 670,
-      "saturatedFatG": 3,
-      "cholesterolMg": 185
-     }
-    }
-   ]
-  },
-  {
-   "id": "gf-chocolate-souffle",
-   "name": "GF Chocolate Souffle",
-   "category": "GF Dessert",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 800,
-     "proteinG": 12,
-     "carbsG": 84,
-     "fatG": 50,
-     "micros": {
-      "fiberG": 6,
-      "sugarG": 72,
-      "sodiumMg": 100,
-      "saturatedFatG": 32,
-      "cholesterolMg": 230
      }
     }
    ]
   }
  ],
- "modifiers": [
-  {
-   "id": "chicken",
-   "name": "Chicken",
-   "group": "protein",
-   "per": {
-    "calories": 220,
-    "proteinG": 24,
-    "carbsG": 2,
-    "fatG": 12,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2,
-     "sodiumMg": 110,
-     "saturatedFatG": 2,
-     "cholesterolMg": 80
-    }
-   }
-  },
-  {
-   "id": "salmon",
-   "name": "Salmon*",
-   "group": "protein",
-   "per": {
-    "calories": 320,
-    "proteinG": 22,
-    "carbsG": 0,
-    "fatG": 26,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 440,
-     "saturatedFatG": 4,
-     "cholesterolMg": 70
-    }
-   }
-  },
-  {
-   "id": "white-rice-individual-serving-6oz",
-   "name": "White Rice - individual serving (6oz)",
-   "group": "add-on",
-   "unit": "6oz",
-   "per": {
-    "calories": 220,
-    "proteinG": 4,
-    "carbsG": 49,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 1,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "brown-rice-individual-serving-6oz",
-   "name": "Brown Rice - individual serving (6oz)",
-   "group": "add-on",
-   "unit": "6oz",
-   "per": {
-    "calories": 190,
-    "proteinG": 4,
-    "carbsG": 40,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 3,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  }
- ]
+ "modifiers": []
 }

@@ -3,1375 +3,1197 @@
  "country": "US",
  "source": {
   "url": "https://www.freddys.com/nutrition-and-allergens",
-  "fetchedAt": "2026-10-11",
-  "note": "page → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "page → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "defaultSize": "medium",
  "items": [
   {
-   "id": "grilled-chicken-club",
-   "name": "Grilled Chicken Club",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 530,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 29,
-     "micros": {
-      "sugarG": 7,
-      "saturatedFatG": 8
-     }
-    }
-   ]
-  },
-  {
-   "id": "single-steakburger-no-cheese",
-   "name": "Single Steakburger (No Cheese)",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 380,
-     "proteinG": 24,
-     "carbsG": 30,
-     "fatG": 12,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 4,
-      "sodiumMg": 870,
-      "saturatedFatG": 10,
-      "cholesterolMg": 70
-     }
-    }
-   ]
-  },
-  {
-   "id": "double-steakburger-no-cheese",
-   "name": "Double Steakburger (No Cheese)",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 570,
-     "proteinG": 43,
-     "carbsG": 30,
-     "fatG": 29,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 5,
-      "sodiumMg": 1060,
-      "saturatedFatG": 10,
-      "cholesterolMg": 135
-     }
-    }
-   ]
-  },
-  {
-   "id": "triple-steakburger-no-cheese",
-   "name": "Triple Steakburger (No Cheese)",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 760,
-     "proteinG": 63,
-     "carbsG": 30,
-     "fatG": 41,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 5,
-      "sodiumMg": 1250,
-      "saturatedFatG": 14,
-      "cholesterolMg": 205
-     }
-    }
-   ]
-  },
-  {
-   "id": "bacon-and-cheese-single-patty",
-   "name": "Bacon & Cheese - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 520,
-     "proteinG": 33,
-     "carbsG": 32,
-     "fatG": 28,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 6,
-      "sodiumMg": 1460,
-      "saturatedFatG": 10,
-      "cholesterolMg": 100
-     }
-    }
-   ]
-  },
-  {
-   "id": "bacon-and-cheese-double-patty",
-   "name": "Bacon & Cheese - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 760,
-     "proteinG": 55,
-     "carbsG": 33,
-     "fatG": 44,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 1890,
-      "saturatedFatG": 17,
-      "cholesterolMg": 180
-     }
-    }
-   ]
-  },
-  {
-   "id": "bacon-and-cheese-triple-patty",
-   "name": "Bacon & Cheese - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 990,
-     "proteinG": 77,
-     "carbsG": 34,
-     "fatG": 60,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 2330,
-      "saturatedFatG": 24,
-      "cholesterolMg": 260
-     }
-    }
-   ]
-  },
-  {
-   "id": "california-style-single-patty",
-   "name": "California Style - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 510,
-     "proteinG": 27,
-     "carbsG": 35,
-     "fatG": 29,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 10,
-      "sodiumMg": 890,
-      "saturatedFatG": 9,
-      "cholesterolMg": 90
-     }
-    }
-   ]
-  },
-  {
-   "id": "california-style-double-patty",
-   "name": "California Style - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 750,
-     "proteinG": 49,
-     "carbsG": 36,
-     "fatG": 45,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 10,
-      "sodiumMg": 1320,
-      "saturatedFatG": 16,
-      "cholesterolMg": 170
-     }
-    }
-   ]
-  },
-  {
-   "id": "california-style-triple-patty",
-   "name": "California Style - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 980,
-     "proteinG": 71,
-     "carbsG": 37,
-     "fatG": 61,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 11,
-      "sodiumMg": 1760,
-      "saturatedFatG": 23,
-      "cholesterolMg": 250
-     }
-    }
-   ]
-  },
-  {
-   "id": "cheeseburger-single-patty",
-   "name": "Cheeseburger - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 430,
-     "proteinG": 26,
-     "carbsG": 31,
-     "fatG": 22,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 6,
-      "sodiumMg": 1120,
-      "saturatedFatG": 8,
-      "cholesterolMg": 80
-     }
-    }
-   ]
-  },
-  {
-   "id": "cheeseburger-double-patty",
-   "name": "Cheeseburger - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 670,
-     "proteinG": 48,
-     "carbsG": 32,
-     "fatG": 38,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 6,
-      "sodiumMg": 1560,
-      "saturatedFatG": 15,
-      "cholesterolMg": 160
-     }
-    }
-   ]
-  },
-  {
-   "id": "cheeseburger-triple-patty",
-   "name": "Cheeseburger - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 910,
-     "proteinG": 70,
-     "carbsG": 33,
-     "fatG": 54,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 2000,
-      "saturatedFatG": 22,
-      "cholesterolMg": 240
-     }
-    }
-   ]
-  },
-  {
-   "id": "patty-melt-single-patty",
-   "name": "Patty Melt - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 540,
-     "proteinG": 30,
-     "carbsG": 39,
-     "fatG": 28,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 4,
-      "sodiumMg": 1040,
-      "saturatedFatG": 9,
-      "cholesterolMg": 80
-     }
-    }
-   ]
-  },
-  {
-   "id": "patty-melt-double-patty",
-   "name": "Patty Melt - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 780,
-     "proteinG": 52,
-     "carbsG": 40,
-     "fatG": 44,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 4,
-      "sodiumMg": 1470,
-      "saturatedFatG": 16,
-      "cholesterolMg": 160
-     }
-    }
-   ]
-  },
-  {
-   "id": "patty-melt-triple-patty",
-   "name": "Patty Melt - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 1020,
-     "proteinG": 74,
-     "carbsG": 41,
-     "fatG": 60,
-     "micros": {
-      "fiberG": 2,
-      "sugarG": 5,
-      "sodiumMg": 1900,
-      "saturatedFatG": 23,
-      "cholesterolMg": 240
-     }
-    }
-   ]
-  },
-  {
-   "id": "jalapeno-pepper-jack-single-patty",
-   "name": "Jalapeño Pepper Jack - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 530,
-     "proteinG": 27,
-     "carbsG": 31,
-     "fatG": 33,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 6,
-      "sodiumMg": 960,
-      "saturatedFatG": 10,
-      "cholesterolMg": 95
-     }
-    }
-   ]
-  },
-  {
-   "id": "jalapeno-pepper-jack-double-patty",
-   "name": "Jalapeño Pepper Jack - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 790,
-     "proteinG": 49,
-     "carbsG": 32,
-     "fatG": 50,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 6,
-      "sodiumMg": 1470,
-      "saturatedFatG": 18,
-      "cholesterolMg": 180
-     }
-    }
-   ]
-  },
-  {
-   "id": "jalapeno-pepper-jack-triple-patty",
-   "name": "Jalapeño Pepper Jack - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 1050,
-     "proteinG": 72,
-     "carbsG": 33,
-     "fatG": 68,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 6,
-      "sodiumMg": 1980,
-      "saturatedFatG": 26,
-      "cholesterolMg": 270
-     }
-    }
-   ]
-  },
-  {
-   "id": "prime-steakburger-single-patty",
-   "name": "Prime Steakburger - Single Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 770,
-     "proteinG": 34,
-     "carbsG": 33,
-     "fatG": 54,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 6,
-      "sodiumMg": 1350,
-      "saturatedFatG": 16,
-      "cholesterolMg": 130
-     }
-    }
-   ]
-  },
-  {
-   "id": "prime-steakburger-double-patty",
-   "name": "Prime Steakburger - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 1000,
-     "proteinG": 56,
-     "carbsG": 34,
-     "fatG": 70,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 6,
-      "sodiumMg": 1780,
-      "saturatedFatG": 23,
-      "cholesterolMg": 210
-     }
-    }
-   ]
-  },
-  {
-   "id": "prime-steakburger-triple-patty",
-   "name": "Prime Steakburger - Triple Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 1240,
-     "proteinG": 78,
-     "carbsG": 35,
-     "fatG": 86,
-     "micros": {
-      "fiberG": 1,
-      "sugarG": 7,
-      "sodiumMg": 2210,
-      "saturatedFatG": 30,
-      "cholesterolMg": 290
-     }
-    }
-   ]
-  },
-  {
-   "id": "grilled-cheese-steakburger-double-patty",
-   "name": "Grilled Cheese Steakburger - Double Patty",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 1050,
-     "proteinG": 64,
-     "carbsG": 52,
-     "fatG": 67,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 7,
-      "sodiumMg": 2340,
-      "saturatedFatG": 25,
-      "cholesterolMg": 215
-     }
-    }
-   ]
-  },
-  {
-   "id": "veggie-burger",
-   "name": "Veggie Burger",
-   "category": "Steakburgers",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 510,
-     "proteinG": 22,
-     "carbsG": 52,
-     "fatG": 24,
-     "micros": {
-      "fiberG": 10,
-      "sugarG": 11,
-      "sodiumMg": 1180,
-      "saturatedFatG": 6,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "crispy-chicken-bowl-excludes-dressing",
-   "name": "Crispy Chicken Bowl (Excludes Dressing)",
-   "category": "Bowls",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 610,
-     "proteinG": 43,
-     "carbsG": 24,
-     "fatG": 38,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 5,
-      "sodiumMg": 1520,
-      "saturatedFatG": 11,
-      "cholesterolMg": 105
-     }
-    }
-   ]
-  },
-  {
-   "id": "grilled-chicken-bowl-excludes-dressing",
-   "name": "Grilled Chicken Bowl (Excludes Dressing)",
-   "category": "Bowls",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 420,
-     "proteinG": 37,
-     "carbsG": 10,
-     "fatG": 27,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 4,
-      "sodiumMg": 1180,
-      "saturatedFatG": 9,
-      "cholesterolMg": 105
-     }
-    }
-   ]
-  },
-  {
-   "id": "steakburger-bowl-excludes-dressing",
-   "name": "Steakburger Bowl (Excludes Dressing)",
-   "category": "Bowls",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 660,
-     "proteinG": 55,
-     "carbsG": 9,
-     "fatG": 45,
-     "micros": {
-      "fiberG": 4,
-      "sugarG": 4,
-      "sodiumMg": 1070,
-      "saturatedFatG": 17,
-      "cholesterolMg": 180
-     }
-    }
-   ]
-  },
-  {
-   "id": "veggie-burger-bowl-excludes-dressing",
-   "name": "Veggie Burger Bowl (Excludes Dressing)",
-   "category": "Bowls",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 370,
-     "proteinG": 22,
-     "carbsG": 26,
-     "fatG": 20,
-     "micros": {
-      "fiberG": 12,
-      "sugarG": 5,
-      "sodiumMg": 730,
-      "saturatedFatG": 6,
-      "cholesterolMg": 20
-     }
-    }
-   ]
-  },
-  {
-   "id": "pepsi",
-   "name": "Pepsi®",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 41,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 41,
-      "sodiumMg": 30,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 69,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 69,
-      "sodiumMg": 55,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 110,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 110,
-      "sodiumMg": 85,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "diet-pepsi",
-   "name": "Diet Pepsi®",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 55,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 95,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 150,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "dr-pepper",
-   "name": "Dr. Pepper®️",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 40,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 40,
-      "sodiumMg": 60,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 66,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 66,
-      "sodiumMg": 100,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 105,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 105,
-      "sodiumMg": 160,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "diet-dr-pepper",
-   "name": "Diet Dr. Pepper®️",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 60,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 100,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 160,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "mug-root-beer",
-   "name": "MUG®️ Root Beer",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 39,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 39,
-      "sodiumMg": 45,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 65,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 65,
-      "sodiumMg": 75,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 104,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 104,
-      "sodiumMg": 120,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "mountain-dew",
-   "name": "Mountain Dew®️",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 170,
-     "proteinG": 0,
-     "carbsG": 44,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 44,
-      "sodiumMg": 50,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 290,
-     "proteinG": 0,
-     "carbsG": 65,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 65,
-      "sodiumMg": 75,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 460,
-     "proteinG": 0,
-     "carbsG": 117,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 117,
-      "sodiumMg": 135,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "diet-mountain-dew",
-   "name": "Diet Mountain Dew®️",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 55,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 10,
-     "proteinG": 0,
-     "carbsG": 1,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 1,
-      "sodiumMg": 90,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 15,
-     "proteinG": 0,
-     "carbsG": 1,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 1,
-      "sodiumMg": 150,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "mist-twist",
-   "name": "Mist Twist®️",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 40,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 40,
-      "sodiumMg": 155,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 68,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 68,
-      "sodiumMg": 55,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 108,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 108,
-      "sodiumMg": 90,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "tropicana-pink-lemonade",
-   "name": "Tropicana®️ Pink Lemonade",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 40,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 40,
-      "sodiumMg": 155,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 67,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 67,
-      "sodiumMg": 260,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 107,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 107,
-      "sodiumMg": 410,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "tropicana-lemonade",
-   "name": "Tropicana®️ Lemonade",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 40,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 40,
-      "sodiumMg": 155,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 67,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 67,
-      "sodiumMg": 260,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 107,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 107,
-      "sodiumMg": 410,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "tropicana-light-lemonade",
-   "name": "Tropicana®️ Light Lemonade",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 140,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 10,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 235,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 15,
-     "proteinG": 0,
-     "carbsG": 1,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 375,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "tropicana-fruit-punch",
-   "name": "Tropicana®️ Fruit Punch",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 170,
-     "proteinG": 0,
-     "carbsG": 45,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 45,
-      "sodiumMg": 35,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 290,
-     "proteinG": 0,
-     "carbsG": 75,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 75,
-      "sodiumMg": 60,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 460,
-     "proteinG": 0,
-     "carbsG": 120,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 120,
-      "sodiumMg": 95,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "pepsi-wild-cherry",
-   "name": "Pepsi®️ Wild Cherry",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 160,
-     "proteinG": 0,
-     "carbsG": 42,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 42,
-      "sodiumMg": 30,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 260,
-     "proteinG": 0,
-     "carbsG": 70,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 70,
-      "sodiumMg": 50,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 410,
-     "proteinG": 0,
-     "carbsG": 112,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 112,
-      "sodiumMg": 85,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "luzianne-iced-tea-unsweet",
-   "name": "Luzianne®️ Iced Tea Unsweet",
-   "category": "Drinks",
-   "sizes": [
-    {
-     "size": "small",
-     "label": "Small",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "medium",
-     "label": "Medium",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
    "id": "luzianne-iced-tea",
-   "name": "Luzianne® Iced Tea",
+   "name": "Luzianne®️ Iced Tea",
    "sizes": [
     {
      "size": "small",
      "label": "Small",
      "calories": 110,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 27,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 27,
-      "saturatedFatG": 0
+      "sodiumMg": 5,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 73,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 73,
+      "sodiumMg": 15,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "cyo-concrete-vanilla",
-   "name": "CYO Concrete - Vanilla",
+   "id": "lipton-brisk-raspberry",
+   "name": "Lipton Brisk®️ Raspberry",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "small",
+     "label": "Small",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 20,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 130,
+     "proteinG": 0,
+     "carbsG": 33,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 70,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lipton-brisk-peach",
+   "name": "Lipton Brisk®️ Peach",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 175,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 10,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 285,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "moutain-dew-code-red",
+   "name": "Moutain Dew CODE RED®️",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 170,
+     "proteinG": 0,
+     "carbsG": 46,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 46,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 50
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 290,
+     "proteinG": 0,
+     "carbsG": 77,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 77,
+      "sodiumMg": 85,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 0,
+     "carbsG": 123,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 123,
+      "sodiumMg": 130,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sobe-lifewater-yumberry-pomegranate",
+   "name": "Sobe®️ Lifewater Yumberry Pomegranate",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "Small",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 45,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "medium",
+     "label": "Medium",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 80,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-blue-rizzberry-custard-cream-soda",
+   "name": "Freddy's Bevies - Blue Rizzberry Custard Cream Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 250,
+     "proteinG": 2,
+     "carbsG": 53,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 53,
+      "sodiumMg": 55,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 430,
+     "proteinG": 3,
+     "carbsG": 87,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 86,
+      "sodiumMg": 100,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-coco-loco-custard-cream-soda",
+   "name": "Freddy's Bevies - Coco Loco Custard Cream Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 58,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 57,
+      "sodiumMg": 75,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 3,
+     "carbsG": 95,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 92,
+      "sodiumMg": 130,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-golden-hour-orange-custard-cream-soda",
+   "name": "Freddy's Bevies - Golden Hour Orange Custard Cream Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 260,
+     "proteinG": 2,
+     "carbsG": 58,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 55,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 450,
+     "proteinG": 3,
+     "carbsG": 96,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 95,
+      "sodiumMg": 100,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-mango-magic-custard-cream-soda",
+   "name": "Freddy's Bevies - Mango Magic Custard Cream Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 59,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 55,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 3,
+     "carbsG": 98,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 95,
+      "sodiumMg": 100,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-mango-sunrise-lemonade",
+   "name": "Freddy's Bevies - Mango Sunrise Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 86,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 190,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-mango-sunrise-tea",
+   "name": "Freddy's Bevies - Mango Sunrise Tea",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 26,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 10,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 45,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 15,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-peachy-keen-lemonade",
+   "name": "Freddy's Bevies -Peachy Keen Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 200,
+     "proteinG": 0,
+     "carbsG": 51,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 51,
+      "sodiumMg": 125,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 85,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 190,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-peachy-keen-tea",
+   "name": "Freddy's Bevies - Peachy Keen Tea",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 25,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 10,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 180,
+     "proteinG": 0,
+     "carbsG": 43,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 42,
+      "sodiumMg": 15,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-peach-peach-baby-custard-cream-soda",
+   "name": "Freddy's Bevies - Peach Peach Baby Custard Cream Soda",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 270,
+     "proteinG": 2,
+     "carbsG": 58,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 58,
+      "sodiumMg": 55,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 460,
+     "proteinG": 3,
+     "carbsG": 96,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 95,
+      "sodiumMg": 100,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-strawberry-sunset-lemonade",
+   "name": "Freddy's Bevies - Strawberry Sunset Lemonade",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 190,
+     "proteinG": 0,
+     "carbsG": 50,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 49,
+      "sodiumMg": 125,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 320,
+     "proteinG": 0,
+     "carbsG": 83,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 82,
+      "sodiumMg": 190,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-bevies-strawberry-sunset-tea",
+   "name": "Freddy's Bevies - Strawberry Sunset Tea",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 22,
+      "sodiumMg": 10,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 160,
+     "proteinG": 0,
+     "carbsG": 42,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 38,
+      "sodiumMg": 15,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-concrete-mini",
+   "name": "Chocolate Brownie Delight - Concrete - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 700,
+     "proteinG": 10,
+     "carbsG": 96,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 73,
+      "sodiumMg": 360,
+      "saturatedFatG": 17,
+      "transFatG": 0,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-concrete",
+   "name": "Chocolate Brownie Delight - Concrete",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 19,
+     "carbsG": 132,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 103,
+      "sodiumMg": 510,
+      "saturatedFatG": 27,
+      "transFatG": 0,
+      "cholesterolMg": 240
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1710,
+     "proteinG": 28,
+     "carbsG": 224,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 173,
+      "sodiumMg": 860,
+      "saturatedFatG": 44,
+      "transFatG": 0,
+      "cholesterolMg": 365
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-shake-mini",
+   "name": "Chocolate Brownie Delight - Shake - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 930,
+     "proteinG": 17,
+     "carbsG": 118,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 93,
+      "sodiumMg": 470,
+      "saturatedFatG": 24,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-shake",
+   "name": "Chocolate Brownie Delight - Shake",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1280,
+     "proteinG": 27,
+     "carbsG": 156,
+     "fatG": 60,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 125,
+      "sodiumMg": 630,
+      "saturatedFatG": 35,
+      "transFatG": 0,
+      "cholesterolMg": 305
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1990,
+     "proteinG": 39,
+     "carbsG": 251,
+     "fatG": 91,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 198,
+      "sodiumMg": 1020,
+      "saturatedFatG": 52,
+      "transFatG": 0,
+      "cholesterolMg": 435
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-sundae-mini",
+   "name": "Chocolate Brownie Delight - Sundae - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 700,
+     "proteinG": 10,
+     "carbsG": 96,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 73,
+      "sodiumMg": 360,
+      "saturatedFatG": 17,
+      "transFatG": 0,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-brownie-delight-sundae",
+   "name": "Chocolate Brownie Delight - Sundae",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1040,
+     "proteinG": 19,
+     "carbsG": 132,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 103,
+      "sodiumMg": 510,
+      "saturatedFatG": 27,
+      "transFatG": 0,
+      "cholesterolMg": 240
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1710,
+     "proteinG": 28,
+     "carbsG": 224,
+     "fatG": 77,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 173,
+      "sodiumMg": 860,
+      "saturatedFatG": 44,
+      "transFatG": 0,
+      "cholesterolMg": 365
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-frozen-custard-sandwich-each",
+   "name": "Chocolate Chip Frozen Custard Sandwich Each",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 300,
+     "proteinG": 4,
+     "carbsG": 43,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 27,
+      "sodiumMg": 220,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-caramel-crunch-concrete-mini",
+   "name": "Cold Brew Caramel Crunch - Concrete - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 790,
+     "proteinG": 13,
+     "carbsG": 95,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 81,
+      "sodiumMg": 420,
+      "saturatedFatG": 22,
+      "transFatG": 0,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-caramel-crunch-concrete",
+   "name": "Cold Brew Caramel Crunch - Concrete",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1120,
+     "proteinG": 20,
+     "carbsG": 129,
+     "fatG": 53,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 111,
+      "sodiumMg": 580,
+      "saturatedFatG": 32,
+      "transFatG": 0,
+      "cholesterolMg": 260
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1720,
+     "proteinG": 29,
+     "carbsG": 206,
+     "fatG": 79,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 176,
+      "sodiumMg": 920,
+      "saturatedFatG": 48,
+      "transFatG": 0,
+      "cholesterolMg": 365
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-caramel-crunch-shake-mini",
+   "name": "Cold Brew Caramel Crunch - Shake - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 830,
+     "proteinG": 15,
+     "carbsG": 99,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 85,
+      "sodiumMg": 450,
+      "saturatedFatG": 23,
+      "transFatG": 0,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "cold-brew-caramel-crunch-shake",
+   "name": "Cold Brew Caramel Crunch - Shake",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 1180,
+     "proteinG": 23,
+     "carbsG": 133,
+     "fatG": 56,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 117,
+      "sodiumMg": 620,
+      "saturatedFatG": 34,
+      "transFatG": 0,
+      "cholesterolMg": 270
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1810,
+     "proteinG": 34,
+     "carbsG": 213,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 184,
+      "sodiumMg": 980,
+      "saturatedFatG": 51,
+      "transFatG": 0,
+      "cholesterolMg": 380
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-chocolate-single-scoop",
+   "name": "Cone - Chocolate - Single Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 10,
+     "carbsG": 42,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 160,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-chocolate-double-scoop",
+   "name": "Cone - Chocolate - Double Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 690,
+     "proteinG": 19,
+     "carbsG": 79,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 61,
+      "sodiumMg": 310,
+      "saturatedFatG": 21,
+      "transFatG": 0,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-chocolate-triple-scoop",
+   "name": "Cone - Chocolate - Triple Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1020,
+     "proteinG": 28,
+     "carbsG": 115,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 91,
+      "sodiumMg": 460,
+      "saturatedFatG": 32,
+      "transFatG": 0,
+      "cholesterolMg": 320
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-vanilla-single-scoop",
+   "name": "Cone - Vanilla - Single Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 9,
+     "carbsG": 39,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 30,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-vanilla-double-scoop",
+   "name": "Cone - Vanilla - Double Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 690,
+     "proteinG": 16,
+     "carbsG": 73,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 61,
+      "sodiumMg": 330,
+      "saturatedFatG": 21,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "cone-vanilla-triple-scoop",
+   "name": "Cone - Vanilla - Triple Scoop",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1020,
+     "proteinG": 24,
+     "carbsG": 106,
+     "fatG": 50,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 91,
+      "sodiumMg": 490,
+      "saturatedFatG": 32,
+      "transFatG": 0,
+      "cholesterolMg": 295
+     }
+    }
+   ]
+  },
+  {
+   "id": "cyo-concrete-chocolate-mini",
+   "name": "CYO Concrete - Chocolate - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 500,
+     "proteinG": 14,
+     "carbsG": 55,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 45,
+      "sodiumMg": 230,
+      "saturatedFatG": 16,
+      "transFatG": 0,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "cyo-concrete-chocolate",
+   "name": "CYO Concrete - Chocolate",
+   "sizes": [
+    {
+     "size": "regular",
+     "label": "Regular",
+     "calories": 830,
+     "proteinG": 23,
+     "carbsG": 91,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 76,
+      "sodiumMg": 380,
+      "saturatedFatG": 26,
+      "transFatG": 0,
+      "cholesterolMg": 265
+     }
+    },
+    {
+     "size": "large",
+     "label": "Large",
+     "calories": 1170,
+     "proteinG": 32,
+     "carbsG": 127,
+     "fatG": 58,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 106,
+      "sodiumMg": 530,
+      "saturatedFatG": 37,
+      "transFatG": 0,
+      "cholesterolMg": 370
+     }
+    }
+   ]
+  },
+  {
+   "id": "cyo-concrete-vanilla-mini",
+   "name": "CYO Concrete - Vanilla - Mini",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 500,
      "proteinG": 11,
      "carbsG": 50,
@@ -1381,9 +1203,16 @@
       "sugarG": 45,
       "sodiumMg": 240,
       "saturatedFatG": 16,
+      "transFatG": 0,
       "cholesterolMg": 150
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-concrete-vanilla",
+   "name": "CYO Concrete - Vanilla",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1396,6 +1225,7 @@
       "sugarG": 76,
       "sodiumMg": 400,
       "saturatedFatG": 26,
+      "transFatG": 0,
       "cholesterolMg": 245
      }
     },
@@ -1411,18 +1241,18 @@
       "sugarG": 106,
       "sodiumMg": 560,
       "saturatedFatG": 37,
+      "transFatG": 0,
       "cholesterolMg": 345
      }
     }
    ]
   },
   {
-   "id": "cyo-malt-chocolate",
-   "name": "CYO Malt - Chocolate",
+   "id": "cyo-malt-chocolate-mini",
+   "name": "CYO Malt - Chocolate - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 630,
      "proteinG": 17,
      "carbsG": 76,
@@ -1432,9 +1262,16 @@
       "sugarG": 61,
       "sodiumMg": 280,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 170
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-malt-chocolate",
+   "name": "CYO Malt - Chocolate",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1447,6 +1284,7 @@
       "sugarG": 98,
       "sodiumMg": 450,
       "saturatedFatG": 29,
+      "transFatG": 0,
       "cholesterolMg": 275
      }
     },
@@ -1462,18 +1300,18 @@
       "sugarG": 137,
       "sodiumMg": 640,
       "saturatedFatG": 41,
+      "transFatG": 0,
       "cholesterolMg": 390
      }
     }
    ]
   },
   {
-   "id": "cyo-malt-vanilla",
-   "name": "CYO Malt - Vanilla",
+   "id": "cyo-malt-vanilla-mini",
+   "name": "CYO Malt - Vanilla - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 630,
      "proteinG": 14,
      "carbsG": 72,
@@ -1483,9 +1321,16 @@
       "sugarG": 61,
       "sodiumMg": 290,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 155
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-malt-vanilla",
+   "name": "CYO Malt - Vanilla",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1498,6 +1343,7 @@
       "sugarG": 98,
       "sodiumMg": 470,
       "saturatedFatG": 29,
+      "transFatG": 0,
       "cholesterolMg": 260
      }
     },
@@ -1513,18 +1359,18 @@
       "sugarG": 137,
       "sodiumMg": 660,
       "saturatedFatG": 41,
+      "transFatG": 0,
       "cholesterolMg": 365
      }
     }
    ]
   },
   {
-   "id": "cyo-shake-chocolate",
-   "name": "CYO Shake - Chocolate",
+   "id": "cyo-shake-chocolate-mini",
+   "name": "CYO Shake - Chocolate - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 560,
      "proteinG": 17,
      "carbsG": 59,
@@ -1534,9 +1380,16 @@
       "sugarG": 50,
       "sodiumMg": 270,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 170
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-shake-chocolate",
+   "name": "CYO Shake - Chocolate",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1549,6 +1402,7 @@
       "sugarG": 82,
       "sodiumMg": 430,
       "saturatedFatG": 29,
+      "transFatG": 0,
       "cholesterolMg": 275
      }
     },
@@ -1564,18 +1418,18 @@
       "sugarG": 116,
       "sodiumMg": 610,
       "saturatedFatG": 41,
+      "transFatG": 0,
       "cholesterolMg": 390
      }
     }
    ]
   },
   {
-   "id": "cyo-shake-vanilla",
-   "name": "CYO Shake - Vanilla",
+   "id": "cyo-shake-vanilla-mini",
+   "name": "CYO Shake - Vanilla - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 560,
      "proteinG": 14,
      "carbsG": 54,
@@ -1585,9 +1439,16 @@
       "sugarG": 50,
       "sodiumMg": 280,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 155
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-shake-vanilla",
+   "name": "CYO Shake - Vanilla",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1600,6 +1461,7 @@
       "sugarG": 82,
       "sodiumMg": 450,
       "saturatedFatG": 29,
+      "transFatG": 0,
       "cholesterolMg": 260
      }
     },
@@ -1615,18 +1477,18 @@
       "sugarG": 116,
       "sodiumMg": 640,
       "saturatedFatG": 41,
+      "transFatG": 0,
       "cholesterolMg": 365
      }
     }
    ]
   },
   {
-   "id": "cyo-sundae-chocolate",
-   "name": "CYO Sundae - Chocolate",
+   "id": "cyo-sundae-chocolate-mini",
+   "name": "CYO Sundae - Chocolate - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 330,
      "proteinG": 9,
      "carbsG": 36,
@@ -1636,9 +1498,16 @@
       "sugarG": 30,
       "sodiumMg": 150,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-sundae-chocolate",
+   "name": "CYO Sundae - Chocolate",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1651,6 +1520,7 @@
       "sugarG": 61,
       "sodiumMg": 300,
       "saturatedFatG": 21,
+      "transFatG": 0,
       "cholesterolMg": 210
      }
     },
@@ -1666,18 +1536,18 @@
       "sugarG": 91,
       "sodiumMg": 450,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 320
      }
     }
    ]
   },
   {
-   "id": "cyo-sundae-vanilla",
-   "name": "CYO Sundae - Vanilla",
+   "id": "cyo-sundae-vanilla-mini",
+   "name": "CYO Sundae - Vanilla - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 330,
      "proteinG": 8,
      "carbsG": 33,
@@ -1687,9 +1557,16 @@
       "sugarG": 30,
       "sodiumMg": 160,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 100
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cyo-sundae-vanilla",
+   "name": "CYO Sundae - Vanilla",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1702,6 +1579,7 @@
       "sugarG": 61,
       "sodiumMg": 320,
       "saturatedFatG": 21,
+      "transFatG": 0,
       "cholesterolMg": 195
      }
     },
@@ -1717,7 +1595,29 @@
       "sugarG": 91,
       "sodiumMg": 480,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 295
+     }
+    }
+   ]
+  },
+  {
+   "id": "dirt-n-worms-concrete-mini",
+   "name": "Dirt n' Worms - Concrete - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 530,
+     "proteinG": 9,
+     "carbsG": 69,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 250,
+      "saturatedFatG": 12,
+      "transFatG": 0,
+      "cholesterolMg": 105
      }
     }
    ]
@@ -1727,21 +1627,6 @@
    "name": "Dirt n' Worms - Concrete",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
-     "calories": 530,
-     "proteinG": 9,
-     "carbsG": 69,
-     "fatG": 21,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 54,
-      "sodiumMg": 250,
-      "saturatedFatG": 12,
-      "cholesterolMg": 105
-     }
-    },
-    {
      "size": "regular",
      "label": "Regular",
      "calories": 860,
@@ -1753,6 +1638,7 @@
       "sugarG": 84,
       "sodiumMg": 410,
       "saturatedFatG": 23,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -1768,7 +1654,29 @@
       "sugarG": 135,
       "sodiumMg": 670,
       "saturatedFatG": 34,
+      "transFatG": 0,
       "cholesterolMg": 300
+     }
+    }
+   ]
+  },
+  {
+   "id": "dirt-n-worms-sundae-mini",
+   "name": "Dirt n' Worms - Sundae - Mini",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 530,
+     "proteinG": 9,
+     "carbsG": 69,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 250,
+      "saturatedFatG": 12,
+      "transFatG": 0,
+      "cholesterolMg": 105
      }
     }
    ]
@@ -1778,21 +1686,6 @@
    "name": "Dirt n' Worms - Sundae",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
-     "calories": 530,
-     "proteinG": 9,
-     "carbsG": 69,
-     "fatG": 21,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 54,
-      "sodiumMg": 250,
-      "saturatedFatG": 12,
-      "cholesterolMg": 105
-     }
-    },
-    {
      "size": "regular",
      "label": "Regular",
      "calories": 860,
@@ -1804,6 +1697,7 @@
       "sugarG": 84,
       "sodiumMg": 410,
       "saturatedFatG": 23,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -1819,18 +1713,18 @@
       "sugarG": 135,
       "sodiumMg": 670,
       "saturatedFatG": 34,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
    ]
   },
   {
-   "id": "freddy-s-frost-lemon-cream",
-   "name": "Freddy's Frost - Lemon Cream",
+   "id": "freddy-s-frost-lemon-cream-mini",
+   "name": "Freddy's Frost - Lemon Cream - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 450,
      "proteinG": 8,
      "carbsG": 58,
@@ -1840,9 +1734,16 @@
       "sugarG": 54,
       "sodiumMg": 160,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-frost-lemon-cream",
+   "name": "Freddy's Frost - Lemon Cream",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1855,6 +1756,7 @@
       "sugarG": 92,
       "sodiumMg": 320,
       "saturatedFatG": 22,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -1870,18 +1772,18 @@
       "sugarG": 137,
       "sodiumMg": 480,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
    ]
   },
   {
-   "id": "freddy-s-frost-orange-cream",
-   "name": "Freddy's Frost - Orange Cream",
+   "id": "freddy-s-frost-orange-cream-mini",
+   "name": "Freddy's Frost - Orange Cream - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 540,
      "proteinG": 8,
      "carbsG": 83,
@@ -1891,9 +1793,16 @@
       "sugarG": 78,
       "sodiumMg": 160,
       "saturatedFatG": 11,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "freddy-s-frost-orange-cream",
+   "name": "Freddy's Frost - Orange Cream",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1906,6 +1815,7 @@
       "sugarG": 140,
       "sodiumMg": 320,
       "saturatedFatG": 22,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -1921,6 +1831,7 @@
       "sugarG": 209,
       "sodiumMg": 480,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
@@ -1932,7 +1843,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 310,
      "proteinG": 6,
      "carbsG": 41,
@@ -1942,6 +1852,7 @@
       "sugarG": 28,
       "sodiumMg": 190,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 55
      }
     }
@@ -1953,7 +1864,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 310,
      "proteinG": 5,
      "carbsG": 39,
@@ -1963,18 +1873,18 @@
       "sugarG": 28,
       "sodiumMg": 200,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     }
    ]
   },
   {
-   "id": "oreo-double-trouble-concrete",
-   "name": "OREO® Double Trouble - Concrete",
+   "id": "oreo-double-trouble-concrete-mini",
+   "name": "OREO® Double Trouble - Concrete - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 700,
      "proteinG": 13,
      "carbsG": 80,
@@ -1984,9 +1894,16 @@
       "sugarG": 62,
       "sodiumMg": 390,
       "saturatedFatG": 19,
+      "transFatG": 0,
       "cholesterolMg": 155
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "oreo-double-trouble-concrete",
+   "name": "OREO® Double Trouble - Concrete",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -1999,6 +1916,7 @@
       "sugarG": 93,
       "sodiumMg": 550,
       "saturatedFatG": 29,
+      "transFatG": 0,
       "cholesterolMg": 250
      }
     },
@@ -2014,18 +1932,18 @@
       "sugarG": 135,
       "sodiumMg": 820,
       "saturatedFatG": 42,
+      "transFatG": 0,
       "cholesterolMg": 350
      }
     }
    ]
   },
   {
-   "id": "oreo-double-trouble-shake",
-   "name": "OREO® Double Trouble - Shake",
+   "id": "oreo-double-trouble-shake-mini",
+   "name": "OREO® Double Trouble - Shake - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 760,
      "proteinG": 16,
      "carbsG": 84,
@@ -2035,9 +1953,16 @@
       "sugarG": 67,
       "sodiumMg": 430,
       "saturatedFatG": 20,
+      "transFatG": 0,
       "cholesterolMg": 165
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "oreo-double-trouble-shake",
+   "name": "OREO® Double Trouble - Shake",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2050,6 +1975,7 @@
       "sugarG": 99,
       "sodiumMg": 600,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 265
      }
     },
@@ -2065,18 +1991,18 @@
       "sugarG": 145,
       "sodiumMg": 900,
       "saturatedFatG": 45,
+      "transFatG": 0,
       "cholesterolMg": 370
      }
     }
    ]
   },
   {
-   "id": "oreo-double-trouble-sundae",
-   "name": "OREO® Double Trouble - Sundae",
+   "id": "oreo-double-trouble-sundae-mini",
+   "name": "OREO® Double Trouble - Sundae - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 540,
      "proteinG": 9,
      "carbsG": 63,
@@ -2086,9 +2012,16 @@
       "sugarG": 47,
       "sodiumMg": 310,
       "saturatedFatG": 13,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "oreo-double-trouble-sundae",
+   "name": "OREO® Double Trouble - Sundae",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2101,6 +2034,7 @@
       "sugarG": 77,
       "sodiumMg": 470,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2116,18 +2050,18 @@
       "sugarG": 120,
       "sodiumMg": 740,
       "saturatedFatG": 36,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
    ]
   },
   {
-   "id": "peanut-butter-bananza-concrete",
-   "name": "Peanut Butter Bananza - Concrete",
+   "id": "peanut-butter-bananza-concrete-mini",
+   "name": "Peanut Butter Bananza - Concrete - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 560,
      "proteinG": 12,
      "carbsG": 65,
@@ -2137,9 +2071,16 @@
       "sugarG": 57,
       "sodiumMg": 260,
       "saturatedFatG": 14,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-bananza-concrete",
+   "name": "Peanut Butter Bananza - Concrete",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2152,6 +2093,7 @@
       "sugarG": 88,
       "sodiumMg": 420,
       "saturatedFatG": 25,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2167,18 +2109,18 @@
       "sugarG": 142,
       "sodiumMg": 690,
       "saturatedFatG": 39,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
    ]
   },
   {
-   "id": "peanut-butter-bananza-sundae",
-   "name": "Peanut Butter Bananza - Sundae",
+   "id": "peanut-butter-bananza-sundae-mini",
+   "name": "Peanut Butter Bananza - Sundae - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 530,
      "proteinG": 12,
      "carbsG": 58,
@@ -2188,9 +2130,16 @@
       "sugarG": 51,
       "sodiumMg": 260,
       "saturatedFatG": 14,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-bananza-sundae",
+   "name": "Peanut Butter Bananza - Sundae",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2203,6 +2152,7 @@
       "sugarG": 81,
       "sodiumMg": 420,
       "saturatedFatG": 25,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2218,6 +2168,7 @@
       "sugarG": 129,
       "sodiumMg": 670,
       "saturatedFatG": 39,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
@@ -2229,7 +2180,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1150,
      "proteinG": 31,
      "carbsG": 125,
@@ -2239,6 +2189,7 @@
       "sugarG": 104,
       "sodiumMg": 520,
       "saturatedFatG": 37,
+      "transFatG": 0,
       "cholesterolMg": 365
      }
     }
@@ -2250,7 +2201,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 1150,
      "proteinG": 26,
      "carbsG": 115,
@@ -2260,6 +2210,7 @@
       "sugarG": 104,
       "sodiumMg": 550,
       "saturatedFatG": 37,
+      "transFatG": 0,
       "cholesterolMg": 340
      }
     }
@@ -2271,7 +2222,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 2300,
      "proteinG": 63,
      "carbsG": 250,
@@ -2281,6 +2231,7 @@
       "sugarG": 209,
       "sodiumMg": 1040,
       "saturatedFatG": 73,
+      "transFatG": 0,
       "cholesterolMg": 730
      }
     }
@@ -2292,7 +2243,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 2300,
      "proteinG": 52,
      "carbsG": 230,
@@ -2302,18 +2252,18 @@
       "sugarG": 209,
       "sodiumMg": 1100,
       "saturatedFatG": 73,
+      "transFatG": 0,
       "cholesterolMg": 680
      }
     }
    ]
   },
   {
-   "id": "reese-s-royale-concrete",
-   "name": "Reese's Royale - Concrete",
+   "id": "reese-s-royale-concrete-mini",
+   "name": "Reese's Royale - Concrete - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 860,
      "proteinG": 21,
      "carbsG": 76,
@@ -2323,9 +2273,16 @@
       "sugarG": 67,
       "sodiumMg": 490,
       "saturatedFatG": 22,
+      "transFatG": 0,
       "cholesterolMg": 155
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "reese-s-royale-concrete",
+   "name": "Reese's Royale - Concrete",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2338,6 +2295,7 @@
       "sugarG": 97,
       "sodiumMg": 650,
       "saturatedFatG": 32,
+      "transFatG": 0,
       "cholesterolMg": 250
      }
     },
@@ -2353,18 +2311,18 @@
       "sugarG": 146,
       "sodiumMg": 1060,
       "saturatedFatG": 48,
+      "transFatG": 0,
       "cholesterolMg": 350
      }
     }
    ]
   },
   {
-   "id": "reese-s-royale-shake",
-   "name": "Reese's Royale - Shake",
+   "id": "reese-s-royale-shake-mini",
+   "name": "Reese's Royale - Shake - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 920,
      "proteinG": 24,
      "carbsG": 80,
@@ -2374,9 +2332,16 @@
       "sugarG": 72,
       "sodiumMg": 530,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 165
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "reese-s-royale-shake",
+   "name": "Reese's Royale - Shake",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2389,6 +2354,7 @@
       "sugarG": 104,
       "sodiumMg": 700,
       "saturatedFatG": 35,
+      "transFatG": 0,
       "cholesterolMg": 265
      }
     },
@@ -2404,18 +2370,18 @@
       "sugarG": 156,
       "sodiumMg": 1140,
       "saturatedFatG": 52,
+      "transFatG": 0,
       "cholesterolMg": 370
      }
     }
    ]
   },
   {
-   "id": "reese-s-royale-sundae",
-   "name": "Reese's Royale - Sundae",
+   "id": "reese-s-royale-sundae-mini",
+   "name": "Reese's Royale - Sundae - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 700,
      "proteinG": 18,
      "carbsG": 59,
@@ -2425,9 +2391,16 @@
       "sugarG": 52,
       "sodiumMg": 410,
       "saturatedFatG": 17,
+      "transFatG": 0,
       "cholesterolMg": 105
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "reese-s-royale-sundae",
+   "name": "Reese's Royale - Sundae",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2440,6 +2413,7 @@
       "sugarG": 82,
       "sodiumMg": 570,
       "saturatedFatG": 27,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2455,18 +2429,18 @@
       "sugarG": 131,
       "sodiumMg": 980,
       "saturatedFatG": 43,
+      "transFatG": 0,
       "cholesterolMg": 300
      }
     }
    ]
   },
   {
-   "id": "signature-turtle-concrete",
-   "name": "Signature Turtle - Concrete",
+   "id": "signature-turtle-concrete-mini",
+   "name": "Signature Turtle - Concrete - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 730,
      "proteinG": 10,
      "carbsG": 91,
@@ -2476,9 +2450,16 @@
       "sugarG": 72,
       "sodiumMg": 320,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 110
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "signature-turtle-concrete",
+   "name": "Signature Turtle - Concrete",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2491,6 +2472,7 @@
       "sugarG": 102,
       "sodiumMg": 480,
       "saturatedFatG": 28,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2506,18 +2488,18 @@
       "sugarG": 170,
       "sodiumMg": 790,
       "saturatedFatG": 45,
+      "transFatG": 0,
       "cholesterolMg": 310
      }
     }
    ]
   },
   {
-   "id": "signature-turtle-shake",
-   "name": "Signature Turtle - Shake",
+   "id": "signature-turtle-shake-mini",
+   "name": "Signature Turtle - Shake - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 960,
      "proteinG": 17,
      "carbsG": 112,
@@ -2527,9 +2509,16 @@
       "sugarG": 92,
       "sodiumMg": 440,
       "saturatedFatG": 25,
+      "transFatG": 0,
       "cholesterolMg": 165
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "signature-turtle-shake",
+   "name": "Signature Turtle - Shake",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2542,6 +2531,7 @@
       "sugarG": 124,
       "sodiumMg": 610,
       "saturatedFatG": 36,
+      "transFatG": 0,
       "cholesterolMg": 270
      }
     },
@@ -2557,18 +2547,18 @@
       "sugarG": 195,
       "sodiumMg": 950,
       "saturatedFatG": 54,
+      "transFatG": 0,
       "cholesterolMg": 375
      }
     }
    ]
   },
   {
-   "id": "signature-turtle-sundae",
-   "name": "Signature Turtle - Sundae",
+   "id": "signature-turtle-sundae-mini",
+   "name": "Signature Turtle - Sundae - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 750,
      "proteinG": 10,
      "carbsG": 91,
@@ -2578,9 +2568,16 @@
       "sugarG": 72,
       "sodiumMg": 320,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 110
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "signature-turtle-sundae",
+   "name": "Signature Turtle - Sundae",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2593,6 +2590,7 @@
       "sugarG": 102,
       "sodiumMg": 480,
       "saturatedFatG": 28,
+      "transFatG": 0,
       "cholesterolMg": 205
      }
     },
@@ -2608,18 +2606,18 @@
       "sugarG": 171,
       "sodiumMg": 790,
       "saturatedFatG": 45,
+      "transFatG": 0,
       "cholesterolMg": 310
      }
     }
    ]
   },
   {
-   "id": "strawberry-dreamcake-concrete",
-   "name": "Strawberry Dreamcake - Concrete",
+   "id": "strawberry-dreamcake-concrete-mini",
+   "name": "Strawberry Dreamcake - Concrete - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 860,
      "proteinG": 14,
      "carbsG": 102,
@@ -2629,9 +2627,16 @@
       "sugarG": 86,
       "sodiumMg": 430,
       "saturatedFatG": 23,
+      "transFatG": 0,
       "cholesterolMg": 170
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "strawberry-dreamcake-concrete",
+   "name": "Strawberry Dreamcake - Concrete",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2644,6 +2649,7 @@
       "sugarG": 117,
       "sodiumMg": 590,
       "saturatedFatG": 34,
+      "transFatG": 0,
       "cholesterolMg": 265
      }
     },
@@ -2659,18 +2665,18 @@
       "sugarG": 185,
       "sodiumMg": 930,
       "saturatedFatG": 51,
+      "transFatG": 0.5,
       "cholesterolMg": 380
      }
     }
    ]
   },
   {
-   "id": "strawberry-dreamcake-shake",
-   "name": "Strawberry Dreamcake - Shake",
+   "id": "strawberry-dreamcake-shake-mini",
+   "name": "Strawberry Dreamcake - Shake - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 920,
      "proteinG": 17,
      "carbsG": 106,
@@ -2680,9 +2686,16 @@
       "sugarG": 91,
       "sodiumMg": 470,
       "saturatedFatG": 25,
+      "transFatG": 0,
       "cholesterolMg": 175
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "strawberry-dreamcake-shake",
+   "name": "Strawberry Dreamcake - Shake",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2695,6 +2708,7 @@
       "sugarG": 123,
       "sodiumMg": 640,
       "saturatedFatG": 36,
+      "transFatG": 0,
       "cholesterolMg": 280
      }
     },
@@ -2710,18 +2724,18 @@
       "sugarG": 195,
       "sodiumMg": 1010,
       "saturatedFatG": 54,
+      "transFatG": 0.5,
       "cholesterolMg": 395
      }
     }
    ]
   },
   {
-   "id": "strawberry-dreamcake-sundae",
-   "name": "Strawberry Dreamcake - Sundae",
+   "id": "strawberry-dreamcake-sundae-mini",
+   "name": "Strawberry Dreamcake - Sundae - Mini",
    "sizes": [
     {
-     "size": "mini",
-     "label": "Mini",
+     "size": "regular",
      "calories": 690,
      "proteinG": 10,
      "carbsG": 85,
@@ -2731,9 +2745,16 @@
       "sugarG": 71,
       "sodiumMg": 350,
       "saturatedFatG": 18,
+      "transFatG": 0,
       "cholesterolMg": 120
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "strawberry-dreamcake-sundae",
+   "name": "Strawberry Dreamcake - Sundae",
+   "sizes": [
     {
      "size": "regular",
      "label": "Regular",
@@ -2746,6 +2767,7 @@
       "sugarG": 102,
       "sodiumMg": 510,
       "saturatedFatG": 28,
+      "transFatG": 0,
       "cholesterolMg": 215
      }
     },
@@ -2761,25 +2783,8 @@
       "sugarG": 170,
       "sodiumMg": 850,
       "saturatedFatG": 45,
+      "transFatG": 0.5,
       "cholesterolMg": 330
-     }
-    }
-   ]
-  },
-  {
-   "id": "kids-meal-chicken-tenders",
-   "name": "Kids Meal - Chicken Tenders",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 280,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 12,
-     "micros": {
-      "sugarG": 0,
-      "saturatedFatG": 2
      }
     }
    ]
