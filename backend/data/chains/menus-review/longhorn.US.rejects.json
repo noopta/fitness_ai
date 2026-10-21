@@ -1,0 +1,20 @@
+[
+ {
+  "item": "+ Avocado-Lime Sauce",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 170,
+  "proteinG": 1,
+  "carbsG": 3,
+  "fatG": 23
+ },
+ {
+  "item": "Chicken Fried Steak where available",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 730,
+  "proteinG": 30,
+  "carbsG": 24,
+  "fatG": 26
+ }
+]

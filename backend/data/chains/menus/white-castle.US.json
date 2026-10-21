@@ -1,0 +1,3255 @@
+{
+ "chain": "white-castle",
+ "country": "US",
+ "source": {
+  "url": "https://www.whitecastle.com/dA/4878e0f7ab/White-Castle-Nutrition-Info.pdf",
+  "via": "downloaded by hand from the official site",
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
+ },
+ "defaultSize": "medium",
+ "items": [
+  {
+   "id": "the-original-slider",
+   "name": "The Original Slider ®",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 140,
+     "proteinG": 6,
+     "carbsG": 15,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 230,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "the-original-slider-new-york-new-jersey-only",
+   "name": "The Original Slider ® New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 6,
+     "carbsG": 17,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 280,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-original-slider",
+   "name": "Double Original Slider ®",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 24,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 690,
+      "saturatedFatG": 4.5,
+      "transFatG": 1,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-original-slider-new-york-new-jersey-only",
+   "name": "Double Original Slider ® New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 770,
+      "saturatedFatG": 4.5,
+      "transFatG": 1,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese",
+   "name": "Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 4,
+      "transFatG": 0.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-new-york-new-jersey-only",
+   "name": "Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 17,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 410,
+      "saturatedFatG": 4,
+      "transFatG": 0.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheese",
+   "name": "Double Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 300,
+     "proteinG": 14,
+     "carbsG": 24,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 680,
+      "saturatedFatG": 8,
+      "transFatG": 1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheese-new-york-new-jersey-only",
+   "name": "Double Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 310,
+     "proteinG": 14,
+     "carbsG": 27,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 760,
+      "saturatedFatG": 8,
+      "transFatG": 1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoked-cheddar-cheese",
+   "name": "Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 180,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 360,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoked-cheddar-cheese-new-york-new-jersey-only",
+   "name": "Smoked Cheddar Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 180,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 400,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-smoked-cheddar-cheese",
+   "name": "Double Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 15,
+     "carbsG": 25,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 640,
+      "saturatedFatG": 9,
+      "transFatG": 1,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-smoked-cheddar-cheese-new-york-new-jersey-only",
+   "name": "Double Smoked Cheddar Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 330,
+     "proteinG": 15,
+     "carbsG": 28,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 730,
+      "saturatedFatG": 9,
+      "transFatG": 1,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapeno-cheese",
+   "name": "Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 16,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 350,
+      "saturatedFatG": 4,
+      "transFatG": 0.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapeno-cheese-new-york-new-jersey-only",
+   "name": "Jalapeño Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 180,
+     "proteinG": 8,
+     "carbsG": 17,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 390,
+      "saturatedFatG": 4,
+      "transFatG": 0.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-jalapeno-cheese",
+   "name": "Double Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 15,
+     "carbsG": 25,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 640,
+      "saturatedFatG": 9,
+      "transFatG": 1,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-jalapeno-cheese-new-york-new-jersey-only",
+   "name": "Double Jalapeño Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 15,
+     "carbsG": 27,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 6,
+      "sodiumMg": 720,
+      "saturatedFatG": 8,
+      "transFatG": 1,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-cheese-limited-time-offering",
+   "name": "Garlic Cheese - limited time offering",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 8,
+     "carbsG": 14,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 4,
+      "transFatG": 0.5,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-garlic-cheese-limited-time-offering",
+   "name": "Double Garlic Cheese - limited time offering",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 300,
+     "proteinG": 15,
+     "carbsG": 22,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 860,
+      "saturatedFatG": 8,
+      "transFatG": 1.5,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-cheese",
+   "name": "Bacon Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 11,
+     "carbsG": 15,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 510,
+      "saturatedFatG": 6,
+      "transFatG": 0.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-cheese-new-york-new-jersey-only",
+   "name": "Bacon Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 17,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 550,
+      "saturatedFatG": 6,
+      "transFatG": 0.5,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-jalapeno-cheese",
+   "name": "Bacon Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 16,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 540,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-jalapeno-cheese-new-york-new-jersey-only",
+   "name": "Bacon Jalapeño Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 17,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 6,
+      "transFatG": 0.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-smoked-cheddar-cheese",
+   "name": "Bacon Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 16,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 540,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-smoked-cheddar-cheese-new-york-new-jersey-only",
+   "name": "Bacon Smoked Cheddar Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 240,
+     "proteinG": 11,
+     "carbsG": 18,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 590,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-fish-slider-plain",
+   "name": "Panko Fish Slider - Plain",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 9,
+     "carbsG": 25,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 320,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-fish-slider-w-cheese",
+   "name": "Panko Fish Slider w/ Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 340,
+     "proteinG": 11,
+     "carbsG": 25,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 460,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-fish-slider-w-jalapeno-cheese",
+   "name": "Panko Fish Slider w/ Jalapeno Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 490,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-fish-slider-w-cheddar-cheese",
+   "name": "Panko Fish Slider w/ Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 11,
+     "carbsG": 26,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 490,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "surf-and-turf-w-cheese",
+   "name": "Surf & Turf w/ Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 550,
+     "proteinG": 21,
+     "carbsG": 34,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 760,
+      "saturatedFatG": 11,
+      "transFatG": 1,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-surf-and-turf-w-cheese-new-york-new-jersey-only",
+   "name": "Panko Surf & Turf w/ Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 550,
+     "proteinG": 21,
+     "carbsG": 36,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 820,
+      "saturatedFatG": 11,
+      "transFatG": 1,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-surf-and-turf-w-jalapeno-cheese",
+   "name": "Panko Surf & Turf w/ Jalapeno Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 22,
+     "carbsG": 36,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 830,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-surf-and-turf-w-jalapeno-cheese-new-york-new-jersey-on",
+   "name": "Panko Surf & Turf w/ Jalapeno Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 570,
+     "proteinG": 22,
+     "carbsG": 38,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 880,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-surf-and-turf-w-smoked-cheddar-cheese",
+   "name": "Panko Surf & Turf W/ Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 22,
+     "carbsG": 36,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 830,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "panko-surf-and-turf-w-smoked-cheddar-cheese-new-york-new-jer",
+   "name": "Panko Surf & Turf W/ Smoked Cheddar Cheese New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 570,
+     "proteinG": 22,
+     "carbsG": 38,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 880,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-ring-w-cheese",
+   "name": "Chicken Ring w/ Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 200,
+     "proteinG": 9,
+     "carbsG": 18,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 470,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-ring-w-jalapeno-cheese",
+   "name": "Chicken Ring w/ Jalapeno Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 510,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-ring-w-smoked-cheddar-cheese",
+   "name": "Chicken Ring w/ Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 10,
+     "carbsG": 19,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 510,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-w-cheese",
+   "name": "Crispy Chicken w/ Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 22,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 620,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-w-jalapeno-cheese",
+   "name": "Crispy Chicken w/ Jalapeno Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 660,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "crispy-chicken-w-smoked-cheddar-cheese",
+   "name": "Crispy Chicken w/ Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 11,
+     "carbsG": 23,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 660,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-and-waffles-crispy",
+   "name": "Chicken & Waffles - Crispy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 9,
+     "carbsG": 36,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 650,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "impossible-slider-no-cheese",
+   "name": "Impossible Slider - No Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 190,
+     "proteinG": 8,
+     "carbsG": 18,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 540,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "impossible-slider-w-american-cheese",
+   "name": "Impossible Slider w/ American Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 9,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 660,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "impossible-slider-w-jalapeno-cheese",
+   "name": "Impossible Slider w/ Jalapeno Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 17,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 690,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "impossible-slider-w-smoked-cheddar-cheese",
+   "name": "Impossible Slider w/ Smoked Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 10,
+     "carbsG": 17,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 690,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "1921-slider-w-american-cheese-lettuce-and-tomato",
+   "name": "1921 Slider w/ American Cheese, Lettuce & Tomato",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 14,
+     "carbsG": 16,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 560,
+      "saturatedFatG": 7,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "1921-slider-w-jalapeno-cheese-lettuce-and-tomato",
+   "name": "1921 Slider w/ Jalapeno Cheese, Lettuce & Tomato",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 14,
+     "carbsG": 17,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 590,
+      "saturatedFatG": 7,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "1921-slider-w-smoked-cheddar-lettuce-and-tomato",
+   "name": "1921 Slider w/ Smoked Cheddar, Lettuce & Tomato",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 14,
+     "carbsG": 17,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 590,
+      "saturatedFatG": 7,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-fries",
+   "name": "Cheese Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 400,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 350,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-fries-new-york-new-jersey-only",
+   "name": "Cheese Fries New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 410,
+     "proteinG": 4,
+     "carbsG": 35,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 350,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-fries",
+   "name": "Loaded Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 480,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 810,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-fries-new-york-new-jersey-only",
+   "name": "Loaded Fries New York / New Jersey only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 480,
+     "proteinG": 8,
+     "carbsG": 27,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 810,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-fries-scottsdale-orlando-only",
+   "name": "Cheese Fries Scottsdale / Orlando only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 470,
+     "proteinG": 4,
+     "carbsG": 43,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 2,
+      "sodiumMg": 1110,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-fries-scottsdale-orlando-only",
+   "name": "Loaded Fries Scottsdale / Orlando only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 570,
+     "proteinG": 4,
+     "carbsG": 33,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1460,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-egg-and-cheese",
+   "name": "Breakfast Slider w/ Egg & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 200,
+     "proteinG": 9,
+     "carbsG": 15,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 370,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-egg-and-jalapeno-cheese",
+   "name": "Breakfast Slider w/ Egg & Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 15,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-egg-and-cheddar-cheese",
+   "name": "Breakfast Slider w/ Egg & Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 10,
+     "carbsG": 15,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 400,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-sausage-egg-and-cheese",
+   "name": "Breakfast Slider w/ Sausage, Egg & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 14,
+     "carbsG": 15,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 680,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-sausage-egg-and-jalapeno-cheese",
+   "name": "Breakfast Slider w/ Sausage, Egg & Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 15,
+     "carbsG": 16,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 710,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-sausage-egg-and-cheddar-cheese",
+   "name": "Breakfast Slider w/ Sausage, Egg & Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 15,
+     "carbsG": 16,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 710,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bacon-egg-and-cheese",
+   "name": "Breakfast Slider w/ Bacon, Egg & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 12,
+     "carbsG": 15,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 560,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bacon-egg-and-jalapeno-cheese",
+   "name": "Breakfast Slider w/ Bacon, Egg & Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 12,
+     "carbsG": 15,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 590,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bacon-egg-and-cheddar-cheese",
+   "name": "Breakfast Slider w/ Bacon, Egg & Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 13,
+     "carbsG": 15,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 590,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bologna-egg-and-cheese",
+   "name": "Breakfast Slider w/ Bologna, Egg & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 15,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bologna-egg-and-jalapeno-cheese",
+   "name": "Breakfast Slider w/ Bologna, Egg & Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 15,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 480,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-slider-w-bologna-egg-and-cheddar-cheese",
+   "name": "Breakfast Slider w/ Bologna, Egg & Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 16,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 490,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-slider-w-egg-and-cheese",
+   "name": "Original Slider w/ Egg & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 13,
+     "carbsG": 16,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 560,
+      "saturatedFatG": 6,
+      "transFatG": 0.5,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-slider-w-egg-and-jalapeno-cheese",
+   "name": "Original Slider w/ Egg & Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 14,
+     "carbsG": 17,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 600,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "original-slider-w-egg-and-cheddar-cheese",
+   "name": "Original Slider w/ Egg & Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 14,
+     "carbsG": 17,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 600,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-egg-cheese",
+   "name": "Breakfast Toast Sandwich w/ Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 11,
+     "carbsG": 29,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 540,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-egg-jalapeno-cheese",
+   "name": "Breakfast Toast Sandwich w/ Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 29,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 560,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-egg-cheddar-cheese",
+   "name": "Breakfast Toast Sandwich w/ Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 12,
+     "carbsG": 29,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 570,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-sausage-egg-cheese",
+   "name": "Breakfast Toast Sandwich w/ Sausage, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 420,
+     "proteinG": 16,
+     "carbsG": 29,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 850,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-sausage-egg-jalapeno-cheese",
+   "name": "Breakfast Toast Sandwich w/ Sausage, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 30,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 880,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-sausage-egg-cheddar-cheese",
+   "name": "Breakfast Toast Sandwich w/ Sausage, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 430,
+     "proteinG": 17,
+     "carbsG": 30,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 880,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 200
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bacon-egg-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bacon, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 380,
+     "proteinG": 17,
+     "carbsG": 29,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 910,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bacon-egg-jalapeno-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bacon, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 29,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 940,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bacon-egg-cheddar-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bacon, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 390,
+     "proteinG": 18,
+     "carbsG": 29,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 940,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 195
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bologna-egg-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bologna, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 600,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bologna-egg-jalapeno-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bologna, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 29,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 630,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "breakfast-toast-sandwich-w-bologna-egg-cheddar-cheese",
+   "name": "Breakfast Toast Sandwich w/ Bologna, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 320,
+     "proteinG": 13,
+     "carbsG": 30,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 630,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-egg-cheese",
+   "name": "Waffle Breakfast Slider w/ Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 330,
+     "proteinG": 9,
+     "carbsG": 27,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 390,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-egg-jalapeno-cheese",
+   "name": "Waffle Breakfast Slider w/ Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 340,
+     "proteinG": 9,
+     "carbsG": 27,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 410,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 210
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-egg-cheddar-cheese",
+   "name": "Waffle Breakfast Slider w/ Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 340,
+     "proteinG": 10,
+     "carbsG": 27,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 420,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-sausage-egg-cheese",
+   "name": "Waffle Breakfast Slider w/ Sausage, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 490,
+     "proteinG": 15,
+     "carbsG": 28,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 730,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-sausage-egg-jalapeno-cheese",
+   "name": "Waffle Breakfast Slider w/ Sausage, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 490,
+     "proteinG": 15,
+     "carbsG": 28,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 730,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-sausage-egg-cheddar-cheese",
+   "name": "Waffle Breakfast Slider w/ Sausage, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 490,
+     "proteinG": 15,
+     "carbsG": 28,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 730,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bacon-egg-cheese",
+   "name": "Waffle Breakfast Slider w/ Bacon, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 390,
+     "proteinG": 12,
+     "carbsG": 27,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 570,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bacon-egg-jalapeno-cheese",
+   "name": "Waffle Breakfast Slider w/ Bacon, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 27,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 610,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bacon-egg-cheddar-cheese",
+   "name": "Waffle Breakfast Slider w/ Bacon, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 390,
+     "proteinG": 13,
+     "carbsG": 27,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 610,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bologna-egg-cheese",
+   "name": "Waffle Breakfast Slider w/ Bologna, Egg, Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 470,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bologna-egg-jalapeno-cheese",
+   "name": "Waffle Breakfast Slider w/ Bologna, Egg, Jalapeño Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 500,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "waffle-breakfast-slider-w-bologna-egg-cheddar-cheese",
+   "name": "Waffle Breakfast Slider w/ Bologna, Egg, Cheddar Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 380,
+     "proteinG": 11,
+     "carbsG": 28,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 14,
+      "sodiumMg": 500,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "two-waffles-w-syrup",
+   "name": "Two Waffles w/ Syrup",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 2,
+     "carbsG": 46,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 200,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-sauce-tubs",
+   "name": "BBQ Sauce Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 40,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 8,
+      "sodiumMg": 380,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq-sauce-packets",
+   "name": "BBQ Sauce Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 15,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 125,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fat-free-honey-mustard-tubs",
+   "name": "Fat-Free Honey Mustard Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 11,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 115,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fat-free-honey-mustard-packets",
+   "name": "Fat-Free Honey Mustard Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 20,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 50,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-sauce-packets",
+   "name": "Hot Sauce Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "marinara-tubs",
+   "name": "Marinara Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mayonnaise-packets",
+   "name": "Mayonnaise Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 70,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 45,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch-tubs",
+   "name": "Ranch Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 1,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 340,
+      "saturatedFatG": 2,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "tartar-sauce-tubs",
+   "name": "Tartar Sauce Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 210,
+      "saturatedFatG": 2,
+      "transFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "tartar-sauce-packets",
+   "name": "Tartar Sauce Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 45,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 4,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 80,
+      "saturatedFatG": 0.5,
+      "transFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "zesty-zing-sauce-tubs",
+   "name": "Zesty Zing Sauce Tubs",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 170,
+      "saturatedFatG": 1.5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "dusseldorf-mustard-packets",
+   "name": "Dusseldorf Mustard Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "horseradish-mustard-packets",
+   "name": "Horseradish Mustard Packets",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 5,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 65,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-sauce",
+   "name": "Cheese Sauce",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 40,
+     "proteinG": 1,
+     "carbsG": 1,
+     "fatG": 3.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 300,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-sauce-detroit-only",
+   "name": "Cheese Sauce Detroit Only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 45,
+     "proteinG": 1,
+     "carbsG": 3,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 390,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "fudge-dipped-brownie",
+   "name": "Fudge Dipped Brownie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 240,
+     "proteinG": 2,
+     "carbsG": 34,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 26,
+      "sodiumMg": 90,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-swirl-cheesecake",
+   "name": "Strawberry Swirl Cheesecake",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 105,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "gooey-butter-cake",
+   "name": "Gooey Butter Cake",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 3,
+     "carbsG": 31,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 22,
+      "sodiumMg": 140,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-detroit-only",
+   "name": "Vanilla Shake - Detroit only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-indianapolis-only",
+   "name": "Chocolate Shake - Indianapolis only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-louisville-only",
+   "name": "Chocolate Shake - Louisville only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 680,
+     "proteinG": 15,
+     "carbsG": 110,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 98,
+      "sodiumMg": 320,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 1040,
+     "proteinG": 23,
+     "carbsG": 167,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 149,
+      "sodiumMg": 490,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1430,
+     "proteinG": 31,
+     "carbsG": 230,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 205,
+      "sodiumMg": 680,
+      "saturatedFatG": 21,
+      "transFatG": 0,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-louisville-only",
+   "name": "Vanilla Shake - Louisville only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 550,
+     "proteinG": 15,
+     "carbsG": 84,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 74,
+      "sodiumMg": 370,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 830,
+     "proteinG": 23,
+     "carbsG": 129,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 113,
+      "sodiumMg": 570,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1140,
+     "proteinG": 31,
+     "carbsG": 177,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 156,
+      "sodiumMg": 780,
+      "saturatedFatG": 21,
+      "transFatG": 0,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-shake-louisville-only",
+   "name": "Strawberry Shake - Louisville only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 620,
+     "proteinG": 15,
+     "carbsG": 102,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 93,
+      "sodiumMg": 370,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 75
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 940,
+     "proteinG": 23,
+     "carbsG": 156,
+     "fatG": 27,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 141,
+      "sodiumMg": 570,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1300,
+     "proteinG": 31,
+     "carbsG": 215,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 194,
+      "sodiumMg": 780,
+      "saturatedFatG": 21,
+      "transFatG": 0,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-nashville-only",
+   "name": "Chocolate Shake - Nashville only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 570,
+     "proteinG": 13,
+     "carbsG": 101,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 79,
+      "sodiumMg": 220,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 820,
+     "proteinG": 19,
+     "carbsG": 145,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 113,
+      "sodiumMg": 320,
+      "saturatedFatG": 13,
+      "transFatG": 0,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1090,
+     "proteinG": 25,
+     "carbsG": 193,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 151,
+      "sodiumMg": 420,
+      "saturatedFatG": 17,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-nashville-only",
+   "name": "Vanilla Shake - Nashville only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 660,
+     "proteinG": 13,
+     "carbsG": 124,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 290,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 950,
+     "proteinG": 19,
+     "carbsG": 176,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 145,
+      "sodiumMg": 410,
+      "saturatedFatG": 13,
+      "transFatG": 0,
+      "cholesterolMg": 65
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1260,
+     "proteinG": 25,
+     "carbsG": 236,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 193,
+      "sodiumMg": 550,
+      "saturatedFatG": 17,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-minneapolis-only",
+   "name": "Chocolate Shake - Minneapolis only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 460,
+     "proteinG": 12,
+     "carbsG": 85,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 73,
+      "sodiumMg": 330,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 660,
+     "proteinG": 16,
+     "carbsG": 122,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 104,
+      "sodiumMg": 470,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 880,
+     "proteinG": 22,
+     "carbsG": 163,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 139,
+      "sodiumMg": 630,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-new-jersey-only",
+   "name": "Chocolate Shake - New Jersey only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-new-jersey-only",
+   "name": "Vanilla Shake - New Jersey only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-new-york-only",
+   "name": "Chocolate Shake - New York only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "vanilla-shake-new-york-only",
+   "name": "Vanilla Shake - New York only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 560,
+     "proteinG": 16,
+     "carbsG": 91,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 400,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 790,
+     "proteinG": 23,
+     "carbsG": 130,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 108,
+      "sodiumMg": 570,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 1060,
+     "proteinG": 30,
+     "carbsG": 174,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 144,
+      "sodiumMg": 760,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 115
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-shake-st-louis-only",
+   "name": "Chocolate Shake - St. Louis only",
+   "sizes": [
+    {
+     "size": "small",
+     "label": "small",
+     "calories": 490,
+     "proteinG": 11,
+     "carbsG": 87,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 64,
+      "sodiumMg": 150,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    },
+    {
+     "size": "medium",
+     "label": "medium",
+     "calories": 700,
+     "proteinG": 16,
+     "carbsG": 124,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 92,
+      "sodiumMg": 220,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    },
+    {
+     "size": "large",
+     "label": "large",
+     "calories": 980,
+     "proteinG": 23,
+     "carbsG": 174,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 8,
+      "sugarG": 129,
+      "sodiumMg": 300,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-banana-16oz",
+   "name": "Strawberry Banana - 16oz.",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 360,
+     "proteinG": 5,
+     "carbsG": 88,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 68,
+      "sodiumMg": 60,
+      "saturatedFatG": 0.5,
+      "transFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade-16oz",
+   "name": "Strawberry Lemonade - 16oz.",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 88,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 75,
+      "sodiumMg": 75,
+      "saturatedFatG": 0.5,
+      "transFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-banana-smoothie-16oz-az-and-fl-markets-only",
+   "name": "Strawberry Banana Smoothie - 16oz. AZ & FL markets only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 400,
+     "proteinG": 5,
+     "carbsG": 97,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 68,
+      "sodiumMg": 100,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-lemonade-smoothie-16oz-az-and-fl-markets-only",
+   "name": "Strawberry Lemonade Smoothie - 16oz. AZ & FL markets only",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 370,
+     "proteinG": 4,
+     "carbsG": 89,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 67,
+      "sodiumMg": 110,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "simply-orange-juice",
+   "name": "SIMPLY® ORANGE JUICE",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 160,
+     "proteinG": 2,
+     "carbsG": 37,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 33,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bottled-water",
+   "name": "BOTTLED WATER",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "100-apple-juice-box",
+   "name": "100% APPLE JUICE BOX",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 100,
+     "proteinG": 0,
+     "carbsG": 24,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "monster-energy",
+   "name": "MONSTER ENERGY®",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 0,
+     "carbsG": 54,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 54,
+      "sodiumMg": 370,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barq-s-red-cream-soda-select-locations",
+   "name": "BARQ'S® RED CREAM SODA select locations",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 0,
+     "carbsG": 75,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 75,
+      "sodiumMg": 105,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

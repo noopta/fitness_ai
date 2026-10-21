@@ -1,0 +1,1767 @@
+[
+ {
+  "name": "Lettuce & Tomato Topping",
+  "readA": [
+   0,
+   0,
+   null,
+   0
+  ],
+  "readB": [
+   0,
+   0,
+   null,
+   0
+  ]
+ },
+ {
+  "name": "Small",
+  "readA": [
+   330,
+   3,
+   32,
+   21
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   600,
+   6,
+   57,
+   39
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   770,
+   8,
+   76,
+   49
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   350,
+   5,
+   34,
+   21
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   630,
+   9,
+   60,
+   39
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   810,
+   12,
+   81,
+   49
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   430,
+   3,
+   42,
+   29
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   540,
+   4,
+   59,
+   33
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   770,
+   5,
+   74,
+   51
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   540,
+   12,
+   24,
+   42
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   480,
+   4,
+   33,
+   36
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   930,
+   8,
+   73,
+   65
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   1350,
+   11,
+   92,
+   101
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   480,
+   6,
+   40,
+   33
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   890,
+   11,
+   74,
+   61
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   340,
+   2,
+   33,
+   22
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   640,
+   4,
+   62,
+   41
+  ],
+  "readB": null
+ },
+ {
+  "name": "3 Sticks",
+  "readA": [
+   460,
+   12,
+   26,
+   33
+  ],
+  "readB": null
+ },
+ {
+  "name": "5 Sticks",
+  "readA": [
+   760,
+   21,
+   40,
+   55
+  ],
+  "readB": null
+ },
+ {
+  "name": "10 Sticks (serves 3)",
+  "readA": [
+   1490,
+   41,
+   77,
+   111
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   320,
+   16,
+   28,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   590,
+   30,
+   51,
+   29
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   1100,
+   55,
+   95,
+   53
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   440,
+   8,
+   38,
+   29
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   890,
+   16,
+   75,
+   57
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack (serves 3)",
+  "readA": [
+   1330,
+   25,
+   113,
+   86
+  ],
+  "readB": null
+ },
+ {
+  "name": "6 pc.",
+  "readA": [
+   320,
+   18,
+   12,
+   20
+  ],
+  "readB": null
+ },
+ {
+  "name": "9 pc.",
+  "readA": [
+   470,
+   26,
+   18,
+   31
+  ],
+  "readB": null
+ },
+ {
+  "name": "12 pc. (serves 2) - limited time offering",
+  "readA": [
+   630,
+   35,
+   25,
+   41
+  ],
+  "readB": null
+ },
+ {
+  "name": "20 pc. (serves 3)",
+  "readA": [
+   1050,
+   58,
+   41,
+   68
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   360,
+   2,
+   25,
+   28
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   720,
+   5,
+   51,
+   55
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack",
+  "readA": [
+   1440,
+   10,
+   101,
+   110
+  ],
+  "readB": null
+ },
+ {
+  "name": "Small",
+  "readA": [
+   340,
+   2,
+   23,
+   25
+  ],
+  "readB": null
+ },
+ {
+  "name": "Medium",
+  "readA": [
+   560,
+   4,
+   39,
+   42
+  ],
+  "readB": null
+ },
+ {
+  "name": "Sack",
+  "readA": [
+   1330,
+   9,
+   92,
+   101
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   5,
+   0,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   5,
+   1,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   5,
+   1,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   240,
+   2,
+   41,
+   6
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   300,
+   1,
+   46,
+   10
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   110,
+   0,
+   29,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   140,
+   0,
+   39,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   190,
+   0,
+   51,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   110,
+   0,
+   29,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   140,
+   0,
+   39,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   190,
+   0,
+   51,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   190,
+   0,
+   50,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   260,
+   0,
+   71,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   300,
+   0,
+   82,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   180,
+   0,
+   49,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   260,
+   0,
+   70,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   300,
+   0,
+   80,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   180,
+   0,
+   49,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   260,
+   0,
+   70,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   300,
+   0,
+   80,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   550,
+   12,
+   106,
+   9
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   780,
+   16,
+   152,
+   14
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1040,
+   22,
+   202,
+   18
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   460,
+   12,
+   85,
+   8
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   660,
+   17,
+   122,
+   11
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   890,
+   23,
+   163,
+   15
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   540,
+   12,
+   103,
+   8
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   770,
+   17,
+   148,
+   11
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1020,
+   23,
+   197,
+   15
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   640,
+   16,
+   112,
+   17
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   920,
+   23,
+   160,
+   24
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1220,
+   30,
+   213,
+   32
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   630,
+   16,
+   109,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   900,
+   23,
+   157,
+   23
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1200,
+   30,
+   209,
+   30
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   630,
+   16,
+   109,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   900,
+   23,
+   157,
+   23
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1200,
+   30,
+   209,
+   30
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   500,
+   13,
+   88,
+   12
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   710,
+   19,
+   126,
+   18
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   950,
+   25,
+   167,
+   23
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   410,
+   13,
+   67,
+   11
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   590,
+   19,
+   96,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   780,
+   25,
+   128,
+   21
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   480,
+   13,
+   85,
+   11
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   690,
+   19,
+   122,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   920,
+   25,
+   162,
+   21
+  ],
+  "readB": null
+ },
+ {
+  "name": "small",
+  "readA": [
+   560,
+   16,
+   91,
+   16
+  ],
+  "readB": null
+ },
+ {
+  "name": "medium",
+  "readA": [
+   790,
+   23,
+   130,
+   23
+  ],
+  "readB": null
+ },
+ {
+  "name": "large",
+  "readA": [
+   1060,
+   30,
+   174,
+   30
+  ],
+  "readB": null
+ },
+ {
+  "name": "Lettuce & Tomato Topping",
+  "readA": null,
+  "readB": [
+   0,
+   0,
+   null,
+   0
+  ]
+ },
+ {
+  "name": "French Fries Small",
+  "readA": null,
+  "readB": [
+   330,
+   3,
+   32,
+   21
+  ]
+ },
+ {
+  "name": "French Fries Medium",
+  "readA": null,
+  "readB": [
+   600,
+   6,
+   57,
+   39
+  ]
+ },
+ {
+  "name": "French Fries Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   770,
+   8,
+   76,
+   49
+  ]
+ },
+ {
+  "name": "French Fries (New York / New Jersey only) Small",
+  "readA": null,
+  "readB": [
+   350,
+   5,
+   34,
+   21
+  ]
+ },
+ {
+  "name": "French Fries (New York / New Jersey only) Medium",
+  "readA": null,
+  "readB": [
+   630,
+   9,
+   60,
+   39
+  ]
+ },
+ {
+  "name": "French Fries (New York / New Jersey only) Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   810,
+   12,
+   81,
+   49
+  ]
+ },
+ {
+  "name": "French Fries (Scottsdale / Orlando only) Small",
+  "readA": null,
+  "readB": [
+   430,
+   3,
+   42,
+   29
+  ]
+ },
+ {
+  "name": "French Fries (Scottsdale / Orlando only) Medium",
+  "readA": null,
+  "readB": [
+   540,
+   4,
+   59,
+   33
+  ]
+ },
+ {
+  "name": "French Fries (Scottsdale / Orlando only) Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   770,
+   5,
+   74,
+   51
+  ]
+ },
+ {
+  "name": "Three Cheese Tots - Select Locations Small",
+  "readA": null,
+  "readB": [
+   540,
+   12,
+   24,
+   42
+  ]
+ },
+ {
+  "name": "Onion Chips Small",
+  "readA": null,
+  "readB": [
+   480,
+   4,
+   33,
+   36
+  ]
+ },
+ {
+  "name": "Onion Chips Medium",
+  "readA": null,
+  "readB": [
+   930,
+   8,
+   73,
+   65
+  ]
+ },
+ {
+  "name": "Onion Chips Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   1350,
+   11,
+   92,
+   101
+  ]
+ },
+ {
+  "name": "Onion Rings Small",
+  "readA": null,
+  "readB": [
+   480,
+   6,
+   40,
+   33
+  ]
+ },
+ {
+  "name": "Onion Rings Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   890,
+   11,
+   74,
+   61
+  ]
+ },
+ {
+  "name": "Onion Rings (New York / New Jersey only) Small",
+  "readA": null,
+  "readB": [
+   340,
+   2,
+   33,
+   22
+  ]
+ },
+ {
+  "name": "Onion Rings (New York / New Jersey only) Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   640,
+   4,
+   62,
+   41
+  ]
+ },
+ {
+  "name": "Mozzarella Cheese Sticks 3 Sticks",
+  "readA": null,
+  "readB": [
+   460,
+   12,
+   26,
+   33
+  ]
+ },
+ {
+  "name": "Mozzarella Cheese Sticks 5 Sticks",
+  "readA": null,
+  "readB": [
+   760,
+   21,
+   40,
+   55
+  ]
+ },
+ {
+  "name": "Mozzarella Cheese Sticks 10 Sticks (serves 3)",
+  "readA": null,
+  "readB": [
+   1490,
+   41,
+   77,
+   111
+  ]
+ },
+ {
+  "name": "Fish Nibblers® Small",
+  "readA": null,
+  "readB": [
+   320,
+   16,
+   28,
+   16
+  ]
+ },
+ {
+  "name": "Fish Nibblers® Medium",
+  "readA": null,
+  "readB": [
+   590,
+   30,
+   51,
+   29
+  ]
+ },
+ {
+  "name": "Fish Nibblers® Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   1100,
+   55,
+   95,
+   53
+  ]
+ },
+ {
+  "name": "Clam Strips - Select Locations Small",
+  "readA": null,
+  "readB": [
+   440,
+   8,
+   38,
+   29
+  ]
+ },
+ {
+  "name": "Clam Strips - Select Locations Medium",
+  "readA": null,
+  "readB": [
+   890,
+   16,
+   75,
+   57
+  ]
+ },
+ {
+  "name": "Clam Strips - Select Locations Sack (serves 3)",
+  "readA": null,
+  "readB": [
+   1330,
+   25,
+   113,
+   86
+  ]
+ },
+ {
+  "name": "Chicken Rings 6 pc.",
+  "readA": null,
+  "readB": [
+   320,
+   18,
+   12,
+   20
+  ]
+ },
+ {
+  "name": "Chicken Rings 9 pc.",
+  "readA": null,
+  "readB": [
+   470,
+   26,
+   18,
+   31
+  ]
+ },
+ {
+  "name": "Chicken Rings 12 pc. (serves 2) - limited time offering",
+  "readA": null,
+  "readB": [
+   630,
+   35,
+   25,
+   41
+  ]
+ },
+ {
+  "name": "Chicken Rings 20 pc. (serves 3)",
+  "readA": null,
+  "readB": [
+   1050,
+   58,
+   41,
+   68
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® Small",
+  "readA": null,
+  "readB": [
+   360,
+   2,
+   25,
+   28
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® Medium",
+  "readA": null,
+  "readB": [
+   720,
+   5,
+   51,
+   55
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® Sack",
+  "readA": null,
+  "readB": [
+   1440,
+   10,
+   101,
+   110
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® (New York / New Jersey only) Small",
+  "readA": null,
+  "readB": [
+   340,
+   2,
+   23,
+   25
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® (New York / New Jersey only) Medium",
+  "readA": null,
+  "readB": [
+   560,
+   4,
+   39,
+   42
+  ]
+ },
+ {
+  "name": "Hash Round Nibblers® (New York / New Jersey only) Sack",
+  "readA": null,
+  "readB": [
+   1330,
+   9,
+   92,
+   101
+  ]
+ },
+ {
+  "name": "Coffee small",
+  "readA": null,
+  "readB": [
+   5,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Coffee medium",
+  "readA": null,
+  "readB": [
+   5,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Coffee large",
+  "readA": null,
+  "readB": [
+   5,
+   1,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Decaf Coffee small",
+  "readA": null,
+  "readB": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Hot Chocolate medium",
+  "readA": null,
+  "readB": [
+   240,
+   2,
+   41,
+   6
+  ]
+ },
+ {
+  "name": "Hot Chocolate - Columbus only medium",
+  "readA": null,
+  "readB": [
+   300,
+   1,
+   46,
+   10
+  ]
+ },
+ {
+  "name": "Crave Cooler Coke® small",
+  "readA": null,
+  "readB": [
+   110,
+   0,
+   29,
+   0
+  ]
+ },
+ {
+  "name": "Crave Cooler Coke® medium",
+  "readA": null,
+  "readB": [
+   140,
+   0,
+   39,
+   0
+  ]
+ },
+ {
+  "name": "Crave Cooler Coke® large",
+  "readA": null,
+  "readB": [
+   190,
+   0,
+   51,
+   0
+  ]
+ },
+ {
+  "name": "Crave Cooler Fanta Wild Cherry® small",
+  "readA": null,
+  "readB": [
+   110,
+   0,
+   29,
+   0
+  ]
+ },
+ {
+  "name": "Crave Cooler Fanta Wild Cherry® medium",
+  "readA": null,
+  "readB": [
+   140,
+   0,
+   39,
+   0
+  ]
+ },
+ {
+  "name": "Crave Cooler Fanta Wild Cherry® large",
+  "readA": null,
+  "readB": [
+   190,
+   0,
+   51,
+   0
+  ]
+ },
+ {
+  "name": "Coca-Cola small",
+  "readA": null,
+  "readB": [
+   190,
+   0,
+   50,
+   0
+  ]
+ },
+ {
+  "name": "Coca-Cola medium",
+  "readA": null,
+  "readB": [
+   260,
+   0,
+   71,
+   0
+  ]
+ },
+ {
+  "name": "Coca-Cola large",
+  "readA": null,
+  "readB": [
+   300,
+   0,
+   82,
+   0
+  ]
+ },
+ {
+  "name": "Blue Raspberry small",
+  "readA": null,
+  "readB": [
+   180,
+   0,
+   49,
+   0
+  ]
+ },
+ {
+  "name": "Blue Raspberry medium",
+  "readA": null,
+  "readB": [
+   260,
+   0,
+   70,
+   0
+  ]
+ },
+ {
+  "name": "Blue Raspberry large",
+  "readA": null,
+  "readB": [
+   300,
+   0,
+   80,
+   0
+  ]
+ },
+ {
+  "name": "Wild Cherry small",
+  "readA": null,
+  "readB": [
+   180,
+   0,
+   49,
+   0
+  ]
+ },
+ {
+  "name": "Wild Cherry medium",
+  "readA": null,
+  "readB": [
+   260,
+   0,
+   70,
+   0
+  ]
+ },
+ {
+  "name": "Wild Cherry large",
+  "readA": null,
+  "readB": [
+   300,
+   0,
+   80,
+   0
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Chicago only small",
+  "readA": null,
+  "readB": [
+   550,
+   12,
+   106,
+   9
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Chicago only medium",
+  "readA": null,
+  "readB": [
+   780,
+   16,
+   152,
+   14
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Chicago only large",
+  "readA": null,
+  "readB": [
+   1040,
+   22,
+   202,
+   18
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Chicago only small",
+  "readA": null,
+  "readB": [
+   460,
+   12,
+   85,
+   8
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Chicago only medium",
+  "readA": null,
+  "readB": [
+   660,
+   17,
+   122,
+   11
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Chicago only large",
+  "readA": null,
+  "readB": [
+   890,
+   23,
+   163,
+   15
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Chicago only small",
+  "readA": null,
+  "readB": [
+   540,
+   12,
+   103,
+   8
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Chicago only medium",
+  "readA": null,
+  "readB": [
+   770,
+   17,
+   148,
+   11
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Chicago only large",
+  "readA": null,
+  "readB": [
+   1020,
+   23,
+   197,
+   15
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Cincinnati only small",
+  "readA": null,
+  "readB": [
+   640,
+   16,
+   112,
+   17
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Cincinnati only medium",
+  "readA": null,
+  "readB": [
+   920,
+   23,
+   160,
+   24
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Cincinnati only large",
+  "readA": null,
+  "readB": [
+   1220,
+   30,
+   213,
+   32
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Cincinnati only small",
+  "readA": null,
+  "readB": [
+   630,
+   16,
+   109,
+   16
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Cincinnati only medium",
+  "readA": null,
+  "readB": [
+   900,
+   23,
+   157,
+   23
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Cincinnati only large",
+  "readA": null,
+  "readB": [
+   1200,
+   30,
+   209,
+   30
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Cincinnati only small",
+  "readA": null,
+  "readB": [
+   630,
+   16,
+   109,
+   16
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Cincinnati only medium",
+  "readA": null,
+  "readB": [
+   900,
+   23,
+   157,
+   23
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Cincinnati only large",
+  "readA": null,
+  "readB": [
+   1200,
+   30,
+   209,
+   30
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Columbus only small",
+  "readA": null,
+  "readB": [
+   500,
+   13,
+   88,
+   12
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Columbus only medium",
+  "readA": null,
+  "readB": [
+   710,
+   19,
+   126,
+   18
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Columbus only large",
+  "readA": null,
+  "readB": [
+   950,
+   25,
+   167,
+   23
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Columbus only small",
+  "readA": null,
+  "readB": [
+   410,
+   13,
+   67,
+   11
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Columbus only medium",
+  "readA": null,
+  "readB": [
+   590,
+   19,
+   96,
+   16
+  ]
+ },
+ {
+  "name": "Vanilla Shake - Columbus only large",
+  "readA": null,
+  "readB": [
+   780,
+   25,
+   128,
+   21
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Columbus only small",
+  "readA": null,
+  "readB": [
+   480,
+   13,
+   85,
+   11
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Columbus only medium",
+  "readA": null,
+  "readB": [
+   690,
+   19,
+   122,
+   16
+  ]
+ },
+ {
+  "name": "Strawberry Shake - Columbus only large",
+  "readA": null,
+  "readB": [
+   920,
+   25,
+   162,
+   21
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Detroit only small",
+  "readA": null,
+  "readB": [
+   560,
+   16,
+   91,
+   16
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Detroit only medium",
+  "readA": null,
+  "readB": [
+   790,
+   23,
+   130,
+   23
+  ]
+ },
+ {
+  "name": "Chocolate Shake - Detroit only large",
+  "readA": null,
+  "readB": [
+   1060,
+   30,
+   174,
+   30
+  ]
+ }
+]

@@ -1,0 +1,380 @@
+[
+ {
+  "item": "Apple Fritter French Toast",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 1230,
+  "proteinG": 16,
+  "carbsG": 84,
+  "fatG": 50
+ },
+ {
+  "item": "Bacon & Chorizo Omelette",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 830,
+  "proteinG": 55,
+  "carbsG": 6,
+  "fatG": 117
+ },
+ {
+  "item": "Champagne Lobster Omelette",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 547,
+  "proteinG": 43,
+  "carbsG": 25,
+  "fatG": 83
+ },
+ {
+  "item": "Skinny Omelette",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 330,
+  "proteinG": 26,
+  "carbsG": 11,
+  "fatG": 41
+ },
+ {
+  "item": "Chicken Salad Sandwich",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 880,
+  "proteinG": 36,
+  "carbsG": 61,
+  "fatG": 30
+ },
+ {
+  "item": "Chicken Salad Sandwich Half Entrée",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 225,
+  "proteinG": 18,
+  "carbsG": 30,
+  "fatG": 15
+ },
+ {
+  "item": "Chicken Salad Sandwich Waldorf",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 1020,
+  "proteinG": 37,
+  "carbsG": 66,
+  "fatG": 35
+ },
+ {
+  "item": "Chicken Cobb Salad Half Entrée",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 715,
+  "proteinG": 26,
+  "carbsG": 23,
+  "fatG": 32
+ },
+ {
+  "item": "Brunch Jambalaya Entree",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 1230,
+  "proteinG": 47,
+  "carbsG": 53,
+  "fatG": 43
+ },
+ {
+  "item": "Brunch Jambalaya Cup",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 615,
+  "proteinG": 23,
+  "carbsG": 27,
+  "fatG": 22
+ },
+ {
+  "item": "Fried Eggs",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 220,
+  "proteinG": 13,
+  "carbsG": 0,
+  "fatG": 11
+ },
+ {
+  "item": "Poached Eggs",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 160,
+  "proteinG": 13,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Fresh Country Potatoes",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 320,
+  "proteinG": 5,
+  "carbsG": 23,
+  "fatG": 1.5
+ },
+ {
+  "item": "Breakfast Chorizo, Side of",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 230,
+  "proteinG": 19,
+  "carbsG": 4,
+  "fatG": 33
+ },
+ {
+  "item": "Caramel Cold Brew",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 430,
+  "proteinG": 6,
+  "carbsG": 20,
+  "fatG": 4
+ },
+ {
+  "item": "Strawberry Lemonade Spritzer",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 140,
+  "proteinG": 0,
+  "carbsG": 10,
+  "fatG": 0
+ },
+ {
+  "item": "Blueberry Lavender Refresher",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 230,
+  "proteinG": 1,
+  "carbsG": 101,
+  "fatG": 0
+ },
+ {
+  "item": "Wycliff® 8 ounce Champagne",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 200,
+  "proteinG": 0,
+  "carbsG": 6,
+  "fatG": 0
+ },
+ {
+  "item": "Wycliff® 11 ounce Champagne",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 280,
+  "proteinG": 0,
+  "carbsG": 8,
+  "fatG": 0
+ },
+ {
+  "item": "ABE Famous Infused Mary",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 220,
+  "proteinG": 6,
+  "carbsG": 13,
+  "fatG": 9
+ },
+ {
+  "item": "Pitcher ABE Infused Mary",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 880,
+  "proteinG": 24,
+  "carbsG": 53,
+  "fatG": 37
+ },
+ {
+  "item": "N'Orleans Hurricane",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 300,
+  "proteinG": 1,
+  "carbsG": 41,
+  "fatG": 0
+ },
+ {
+  "item": "Milagro Paloma",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 160,
+  "proteinG": 3,
+  "carbsG": 58,
+  "fatG": 1
+ },
+ {
+  "item": "Milagro Paloma Pitcher",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 640,
+  "proteinG": 12,
+  "carbsG": 232,
+  "fatG": 4
+ },
+ {
+  "item": "Tito's Vanilla Cold Brew",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 280,
+  "proteinG": 2,
+  "carbsG": 23,
+  "fatG": 10
+ },
+ {
+  "item": "Mr. Black Mocha Cold Brew",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 310,
+  "proteinG": 4,
+  "carbsG": 23,
+  "fatG": 12
+ },
+ {
+  "item": "Jameson Irish Cold Brew",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 310,
+  "proteinG": 2,
+  "carbsG": 22,
+  "fatG": 13
+ },
+ {
+  "item": "Tito's®Handmade Vodka",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Makers Mark®",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Gran Marnier®",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 6,
+  "fatG": 0
+ },
+ {
+  "item": "Frangelico®",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 130,
+  "proteinG": 0,
+  "carbsG": 11,
+  "fatG": 0
+ },
+ {
+  "item": "Kahlua®Coffee Liqueur",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 110,
+  "proteinG": 0,
+  "carbsG": 14,
+  "fatG": 0
+ },
+ {
+  "item": "St Germain®",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 120,
+  "proteinG": 0,
+  "carbsG": 11,
+  "fatG": 0
+ },
+ {
+  "item": "Milagro® Tequila",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Captain Morgan® Original Spiced Rum",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Jameson® Irish Whiskey",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Hendrick's® Gin",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Rumchata® liqueur",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 180,
+  "proteinG": 1,
+  "carbsG": 18,
+  "fatG": 0
+ },
+ {
+  "item": "ABE Infused Mary Non-Infused",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 220,
+  "proteinG": 6,
+  "carbsG": 13,
+  "fatG": 9
+ },
+ {
+  "item": "Tito's Vanilla Cold Brew Liquor",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 280,
+  "proteinG": 2,
+  "carbsG": 23,
+  "fatG": 10
+ },
+ {
+  "item": "Wycliff® Champagne",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 200,
+  "proteinG": 0,
+  "carbsG": 6,
+  "fatG": 0
+ },
+ {
+  "item": "Louisiana Gumbo Side",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 1263,
+  "proteinG": 58,
+  "carbsG": 60,
+  "fatG": 15
+ }
+]
