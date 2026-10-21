@@ -1,0 +1,432 @@
+[
+ {
+  "name": "Southern Breakfast Bowl",
+  "readA": [
+   1370,
+   69,
+   89,
+   85
+  ],
+  "readB": null
+ },
+ {
+  "name": "Southern Breakfast Bowl Biscuit",
+  "readA": null,
+  "readB": [
+   1370,
+   69,
+   89,
+   85
+  ]
+ },
+ {
+  "name": "Shrimp 'N Grits",
+  "readA": null,
+  "readB": [
+   980,
+   37,
+   59,
+   72
+  ]
+ },
+ {
+  "name": "The Southern Stack Club Catering Multi Grain",
+  "readA": null,
+  "readB": [
+   4560,
+   256,
+   345,
+   271
+  ]
+ },
+ {
+  "name": "Bacon Lovers BLT&A Catering",
+  "readA": null,
+  "readB": [
+   5480,
+   229,
+   343,
+   386
+  ]
+ },
+ {
+  "name": "Chicken Salad Sandwich Catering",
+  "readA": null,
+  "readB": [
+   3236,
+   165,
+   159,
+   213
+  ]
+ },
+ {
+  "name": "Shrimp n Grits Catering",
+  "readA": null,
+  "readB": [
+   6860,
+   242,
+   264,
+   584
+  ]
+ },
+ {
+  "name": "Southwest Scramble Catering",
+  "readA": null,
+  "readB": [
+   4740,
+   225,
+   356,
+   309
+  ]
+ },
+ {
+  "name": "Supreme Scramble Catering",
+  "readA": null,
+  "readB": [
+   4040,
+   257,
+   37,
+   348
+  ]
+ },
+ {
+  "name": "Supreme Quiche Catering",
+  "readA": null,
+  "readB": [
+   3580,
+   150,
+   40,
+   260
+  ]
+ },
+ {
+  "name": "Veggie Quiche Catering",
+  "readA": null,
+  "readB": [
+   2200,
+   90,
+   15,
+   150
+  ]
+ },
+ {
+  "name": "Skinny Scrambler Catering",
+  "readA": null,
+  "readB": [
+   1920,
+   172,
+   87,
+   123
+  ]
+ },
+ {
+  "name": "Brunch Jambalaya",
+  "readA": null,
+  "readB": [
+   3082,
+   163,
+   263,
+   151
+  ]
+ },
+ {
+  "name": "Southern Salad (Fried Chicken)",
+  "readA": null,
+  "readB": [
+   5700,
+   255,
+   240,
+   314
+  ]
+ },
+ {
+  "name": "Southern Salad (Grilled Chicken)",
+  "readA": null,
+  "readB": [
+   4799,
+   255,
+   240,
+   314
+  ]
+ },
+ {
+  "name": "Southern Salad (Smoked Salmon)",
+  "readA": null,
+  "readB": [
+   4812,
+   231,
+   239,
+   327
+  ]
+ },
+ {
+  "name": "Scrambled Eggs Catering",
+  "readA": null,
+  "readB": [
+   2080,
+   140,
+   8,
+   193
+  ]
+ },
+ {
+  "name": "Scrambled Egg with Cheese Catering",
+  "readA": null,
+  "readB": [
+   3180,
+   210,
+   18,
+   283
+  ]
+ },
+ {
+  "name": "Make it a Scrambler Catering Low Range",
+  "readA": null,
+  "readB": [
+   1840,
+   120,
+   20,
+   174
+  ]
+ },
+ {
+  "name": "Make it a Scrambler Catering High Range",
+  "readA": null,
+  "readB": [
+   4900,
+   309,
+   22,
+   428
+  ]
+ },
+ {
+  "name": "Potato Sensations Catering Low Range",
+  "readA": null,
+  "readB": [
+   2240,
+   42,
+   207,
+   176
+  ]
+ },
+ {
+  "name": "Potato Sensations Catering High Range",
+  "readA": null,
+  "readB": [
+   5310,
+   231,
+   209,
+   430
+  ]
+ },
+ {
+  "name": "Biscuits and Gravy Catering",
+  "readA": null,
+  "readB": [
+   5790,
+   177,
+   583,
+   297
+  ]
+ },
+ {
+  "name": "Jumbo Chicken Biscuits Catering",
+  "readA": null,
+  "readB": [
+   6380,
+   303,
+   561,
+   353
+  ]
+ },
+ {
+  "name": "Fruit Platter Catering Low Range",
+  "readA": null,
+  "readB": [
+   450,
+   7,
+   110,
+   2
+  ]
+ },
+ {
+  "name": "Fruit Platter Catering High Range",
+  "readA": null,
+  "readB": [
+   620,
+   10,
+   153,
+   3.5
+  ]
+ },
+ {
+  "name": "Gluten-Friendly Shrimp'N Grits",
+  "readA": null,
+  "readB": [
+   990,
+   36,
+   62,
+   72
+  ]
+ },
+ {
+  "name": "Supreme Quiche Catering Box",
+  "readA": null,
+  "readB": [
+   1040,
+   35,
+   31,
+   78
+  ]
+ },
+ {
+  "name": "Veggie Quiche Catering Box",
+  "readA": null,
+  "readB": [
+   760,
+   23,
+   26,
+   30
+  ]
+ },
+ {
+  "name": "Chicken Egg and Cheese Biscuit",
+  "readA": null,
+  "readB": [
+   1170,
+   47,
+   97,
+   66
+  ]
+ },
+ {
+  "name": "Sliced Tomatoes Catering",
+  "readA": null,
+  "readB": [
+   160,
+   8,
+   34,
+   2
+  ]
+ },
+ {
+  "name": "Side of Biscuits Catering",
+  "readA": null,
+  "readB": [
+   3800,
+   90,
+   480,
+   160
+  ]
+ },
+ {
+  "name": "Side Country Potatoes Catering",
+  "readA": null,
+  "readB": [
+   2680,
+   45,
+   321,
+   135
+  ]
+ },
+ {
+  "name": "Grits Catering",
+  "readA": null,
+  "readB": [
+   1790,
+   33,
+   295,
+   54
+  ]
+ },
+ {
+  "name": "Cheese Grits Catering",
+  "readA": null,
+  "readB": [
+   2890,
+   103,
+   305,
+   144
+  ]
+ },
+ {
+  "name": "Biscuit Beignets Catering",
+  "readA": null,
+  "readB": [
+   1720,
+   10,
+   392,
+   24
+  ]
+ },
+ {
+  "name": "Bagels and Cream Cheese Catering",
+  "readA": null,
+  "readB": [
+   3600,
+   90,
+   400,
+   155
+  ]
+ },
+ {
+  "name": "Simply Orange® Juice Catering",
+  "readA": null,
+  "readB": [
+   720,
+   13,
+   169,
+   0
+  ]
+ },
+ {
+  "name": "Simply Apple® Juice Catering",
+  "readA": null,
+  "readB": [
+   780,
+   0,
+   195,
+   0
+  ]
+ },
+ {
+  "name": "Coffee Barista Blend Catering",
+  "readA": null,
+  "readB": [
+   35,
+   4,
+   0,
+   0.5
+  ]
+ },
+ {
+  "name": "Cold Brew (Water)",
+  "readA": null,
+  "readB": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Unsweet Tea Catering",
+  "readA": null,
+  "readB": [
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Sweet Tea Catering",
+  "readA": null,
+  "readB": [
+   2510,
+   0,
+   629,
+   0
+  ]
+ }
+]

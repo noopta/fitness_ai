@@ -1,0 +1,317 @@
+[
+ {
+  "name": "Garlic Butter",
+  "readA": [
+   140,
+   null,
+   null,
+   null
+  ],
+  "readB": [
+   140,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Brewski Onions®",
+  "readA": [
+   40,
+   null,
+   null,
+   null
+  ],
+  "readB": [
+   40,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Filet Mignon - 7 oz.",
+  "readA": [
+   300,
+   null,
+   null,
+   null
+  ],
+  "readB": [
+   300,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Grilled Meatloaf",
+  "readA": [
+   1200,
+   null,
+   null,
+   null
+  ],
+  "readB": [
+   1200,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Kid's Ribs",
+  "readA": [
+   450,
+   null,
+   null,
+   null
+  ],
+  "readB": [
+   450,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Strawberry Tea",
+  "readA": [
+   210,
+   null,
+   null,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Loaded Potato Skins",
+  "readA": null,
+  "readB": [
+   1490,
+   55,
+   124,
+   85
+  ]
+ },
+ {
+  "name": "Garlic Butter",
+  "readA": null,
+  "readB": [
+   140,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Brewski Onions®",
+  "readA": null,
+  "readB": [
+   40,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Filet Mignon - 7 oz.",
+  "readA": null,
+  "readB": [
+   300,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Grilled Meatloaf",
+  "readA": null,
+  "readB": [
+   1200,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Route 66 Chicken Bacon Ranch",
+  "readA": null,
+  "readB": [
+   614,
+   48,
+   52,
+   23
+  ]
+ },
+ {
+  "name": "Kid's Ribs",
+  "readA": null,
+  "readB": [
+   450,
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "name": "Hawaiian Bliss",
+  "readA": null,
+  "readB": [
+   193,
+   0,
+   40,
+   4
+  ]
+ },
+ {
+  "name": "Hawaiian Whip",
+  "readA": null,
+  "readB": [
+   197,
+   0,
+   40,
+   4
+  ]
+ },
+ {
+  "name": "Paloma",
+  "readA": null,
+  "readB": [
+   232,
+   0,
+   16,
+   0
+  ]
+ },
+ {
+  "name": "Rancher 'Rita",
+  "readA": null,
+  "readB": [
+   220,
+   0,
+   17,
+   0
+  ]
+ },
+ {
+  "name": "Raspberry Lemon Fizz",
+  "readA": null,
+  "readB": [
+   260,
+   0,
+   34,
+   0
+  ]
+ },
+ {
+  "name": "Beer-Battered Stuffed Jalapenos (1 serving)",
+  "readA": null,
+  "readB": [
+   429,
+   14,
+   61,
+   12
+  ]
+ },
+ {
+  "name": "Cedar Plank 1/4 BBQ Chicken (1 serving)",
+  "readA": null,
+  "readB": [
+   574,
+   32,
+   22,
+   37
+  ]
+ },
+ {
+  "name": "Texas Ribeye",
+  "readA": null,
+  "readB": [
+   1072,
+   91,
+   4,
+   73
+  ]
+ },
+ {
+  "name": "NOLA BBQ Shrimp",
+  "readA": null,
+  "readB": [
+   1553,
+   66,
+   110,
+   94
+  ]
+ },
+ {
+  "name": "BBQ Platter",
+  "readA": null,
+  "readB": [
+   1540,
+   75,
+   130,
+   82
+  ]
+ },
+ {
+  "name": "Carolina Gold Fried Ribs",
+  "readA": null,
+  "readB": [
+   1293,
+   52,
+   90,
+   78
+  ]
+ },
+ {
+  "name": "Grilled Zucchini Wedges",
+  "readA": null,
+  "readB": [
+   35,
+   2,
+   6,
+   3
+  ]
+ },
+ {
+  "name": "Potato Salad",
+  "readA": null,
+  "readB": [
+   426,
+   2,
+   22,
+   36
+  ]
+ },
+ {
+  "name": "Wedge Salad",
+  "readA": null,
+  "readB": [
+   368,
+   10,
+   9,
+   31
+  ]
+ },
+ {
+  "name": "Cucumber, Tomato & Onion Salad",
+  "readA": null,
+  "readB": [
+   48,
+   2,
+   9,
+   4
+  ]
+ },
+ {
+  "name": "The Patriot",
+  "readA": null,
+  "readB": [
+   935,
+   5,
+   100,
+   56
+  ]
+ }
+]

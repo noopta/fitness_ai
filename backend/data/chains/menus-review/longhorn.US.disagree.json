@@ -1,0 +1,627 @@
+[
+ {
+  "name": "Texas Margarita",
+  "readA": [
+   200,
+   0,
+   28,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Watermelon Margarita",
+  "readA": [
+   460,
+   0,
+   89,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Watermelon MargaritaLong Pour",
+  "readA": [
+   680,
+   0,
+   131,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "The Perfect",
+  "readA": [
+   290,
+   null,
+   46,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "The Perfect Long Pour",
+  "readA": [
+   410,
+   0,
+   64,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Strawberry",
+  "readA": [
+   310,
+   0,
+   52,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Strawberry Long Pour",
+  "readA": [
+   460,
+   0,
+   76,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Mango",
+  "readA": [
+   410,
+   0,
+   74,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Mango Long Pour",
+  "readA": [
+   630,
+   0,
+   118,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Patrón Dragon Fruit Margarita",
+  "readA": [
+   370,
+   1,
+   61,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Patrón Dragon Fruit Margarita Long Pour",
+  "readA": [
+   370,
+   1,
+   61,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Smoked LongHorn® Old Fashioned (with Small Batch 9 yr. Bourbon by Knob Creek)",
+  "readA": [
+   270,
+   0,
+   27,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Lemondrop Martini",
+  "readA": [
+   250,
+   0,
+   36,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Hurricane (where available)",
+  "readA": [
+   280,
+   0,
+   26,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Blazing Berry Sangria",
+  "readA": [
+   240,
+   0,
+   34,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Texas Tea",
+  "readA": [
+   240,
+   0,
+   35,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Spiked Strawberry Lemonade",
+  "readA": [
+   200,
+   0,
+   27,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Jack & Coke",
+  "readA": [
+   130,
+   0,
+   13,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Regular Bottle Beer 12 oz.",
+  "readA": [
+   150,
+   0,
+   12,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Light Draft/Bottle Beer 12 oz.",
+  "readA": [
+   100,
+   0,
+   6,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Michelob Ultra 16 oz.",
+  "readA": [
+   130,
+   0,
+   3,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Michelob Ultra 20 oz.",
+  "readA": [
+   160,
+   0,
+   4,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Regular Draft Beer 16 oz.",
+  "readA": [
+   200,
+   0,
+   16,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Regular Draft Beer 20 oz.",
+  "readA": [
+   250,
+   0,
+   20,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Light Draft Beer 16 oz.",
+  "readA": [
+   140,
+   0,
+   8,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Light Draft Beer 20 oz.",
+  "readA": [
+   170,
+   1,
+   10,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Cider Draft 16 oz.",
+  "readA": [
+   270,
+   null,
+   null,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "Cider Draft 20 oz.",
+  "readA": [
+   330,
+   null,
+   null,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "Cider Bottle",
+  "readA": [
+   200,
+   0,
+   21,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "IPA Draft 16 oz.",
+  "readA": [
+   270,
+   4,
+   1,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "IPA Draft 20 oz.",
+  "readA": [
+   340,
+   5,
+   2,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "IPA Bottle (where available)",
+  "readA": [
+   210,
+   3,
+   1,
+   null
+  ],
+  "readB": null
+ },
+ {
+  "name": "Non-Alcoholic Beer",
+  "readA": [
+   130,
+   1,
+   29,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "White - Glass",
+  "readA": [
+   150,
+   0,
+   4,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "White - LongPour",
+  "readA": [
+   220,
+   0,
+   6,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "White - Bottle",
+  "readA": [
+   630,
+   1,
+   16,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Red - Glass",
+  "readA": [
+   160,
+   0,
+   5,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Red - LongPour",
+  "readA": [
+   230,
+   0,
+   8,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Red - Bottle",
+  "readA": [
+   660,
+   1,
+   21,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Coke",
+  "readA": [
+   140,
+   null,
+   39,
+   0
+  ],
+  "readB": [
+   140,
+   null,
+   39,
+   0
+  ]
+ },
+ {
+  "name": "Sprite",
+  "readA": [
+   140,
+   null,
+   38,
+   null
+  ],
+  "readB": [
+   140,
+   null,
+   38,
+   null
+  ]
+ },
+ {
+  "name": "Pibb Xtra",
+  "readA": [
+   140,
+   null,
+   39,
+   null
+  ],
+  "readB": [
+   140,
+   null,
+   39,
+   null
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": [
+   230,
+   null,
+   2,
+   26
+  ],
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "Baby Back Ribs - Half-Rack",
+  "readA": [
+   820,
+   null,
+   null,
+   56
+  ],
+  "readB": null
+ },
+ {
+  "name": "Coke",
+  "readA": null,
+  "readB": [
+   140,
+   null,
+   39,
+   0
+  ]
+ },
+ {
+  "name": "Sprite",
+  "readA": null,
+  "readB": [
+   140,
+   null,
+   38,
+   null
+  ]
+ },
+ {
+  "name": "Pibb Xtra",
+  "readA": null,
+  "readB": [
+   140,
+   null,
+   39,
+   null
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ },
+ {
+  "name": "+ Garlic Butter",
+  "readA": null,
+  "readB": [
+   230,
+   null,
+   2,
+   26
+  ]
+ }
+]
