@@ -167,7 +167,7 @@ export function NutritionProfilePage() {
   // Coverage: every tracked nutrient across the systems, worst first.
   const coverage = useMemo(() => {
     const seen = new Map<string, any>();
-    for (const sys of (np.data?.systems ?? []) as any[]) for (const d of sys.drivers ?? []) if (d.tracked && !seen.has(d.key)) seen.set(d.key, d);
+    for (const sys of (np.data?.systems ?? []) as any[]) for (const d of sys.drivers ?? []) if (d.tracked && !d.unknown && !seen.has(d.key)) seen.set(d.key, d);
     return [...seen.values()].sort((a, b) => a.pct - b.pct).slice(0, 8);
   }, [np.data]);
   const meals = (s?.byMeal ?? []).filter((m) => m.avgKcal > 0);

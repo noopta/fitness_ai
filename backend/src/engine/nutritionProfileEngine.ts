@@ -23,6 +23,8 @@ export interface ProfileEngineInput {
   totals: Record<string, number>;
   bodyweightKg?: number | null;
   mealsLogged: number;
+  /** Nutrients no logged meal estimated: left out of the system scores instead of counting as 0%. */
+  unknownKeys?: string[];
 }
 
 export interface NutrientCoverage {
@@ -42,6 +44,8 @@ export interface SystemDriverLine {
   pct: number;
   status: Status;
   tracked: boolean;  // has a registry row → tappable to Nutrient Detail
+  /** No logged meal estimated it — excluded from the score, shown as unknown. */
+  unknown?: boolean;
 }
 
 export interface BodySystemScore {
@@ -131,16 +135,21 @@ export function runNutritionProfileEngine(input: ProfileEngineInput): ProfileEng
     const driverLines: SystemDriverLine[] = [];
     for (const { def, driver } of drivers) {
       const cov = coverageByKey.get(def.key)!;
-      acc += contribution(cov) * driver.weight;
-      weightSum += driver.weight;
+      // Unknown is not zero: a nutrient nothing estimated doesn't drag the system down.
+      const unknown = !!input.unknownKeys?.includes(def.key) && !cov.ceiling;
+      if (!unknown) {
+        acc += contribution(cov) * driver.weight;
+        weightSum += driver.weight;
+      }
       driverLines.push({
-        key: def.key, label: def.label, pct: cov.pct, status: cov.status, tracked: true,
+        key: def.key, label: def.label, pct: cov.pct, status: cov.status, tracked: true, ...(unknown ? { unknown: true } : {}),
       });
     }
     const score = weightSum > 0 ? Math.round((acc / weightSum) * 100) : 0;
     // Worst floor-driver first for the chip/driver ordering (that's the lever).
-    driverLines.sort((a, b) => a.pct - b.pct);
+    driverLines.sort((a, b) => (a.unknown ? 1 : 0) - (b.unknown ? 1 : 0) || a.pct - b.pct);
     const chips = driverLines
+      .filter(d => !d.unknown)
       .filter(d => {
         const def = getNutrient(d.key);
         return def && !def.drives.some(x => x.direction === 'ceiling');
@@ -153,7 +162,7 @@ export function runNutritionProfileEngine(input: ProfileEngineInput): ProfileEng
       score,
       drivers: driverLines,
       chips,
-      topDriverKey: driverLines[0]?.key ?? null,
+      topDriverKey: driverLines.find(d => !d.unknown)?.key ?? null,
     };
   });
 

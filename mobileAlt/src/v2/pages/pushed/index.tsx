@@ -280,13 +280,15 @@ function SystemPage({ id }: { id: string }) {
   const shell = useShellOptional();
   const q = useNpEffect(id);
   const d = q.data;
-  const drivers = [...(d?.drivers ?? [])].sort((a, b) => a.pct - b.pct);
+  // Unknown (nothing logged estimated it) sinks to the bottom and reads "not tracked", never 0%.
+  const drivers = [...(d?.drivers ?? [])].sort((a: any, b: any) => (a.unknown ? 1 : 0) - (b.unknown ? 1 : 0) || a.pct - b.pct);
+  const lever = drivers.find((x: any) => !x.unknown);
   return (
     <PushedPage back="Body systems" meta={d ? `7-day` : null} eyebrow={d?.name} title={d ? `${d.score}` : 'System'} hero={d ? { value: String(d.score), unit: d.status === 'ok' ? 'in band' : 'below band' } : null} lead={d?.summary ?? null} loading={q.isLoading} error={q.error ? 'Couldn\'t read this system.' : null} onRetry={() => void q.refetch()}
-      proposed={d && d.status !== 'ok' && drivers[0] ? { text: `${drivers[0].label} is the lever — ${drivers[0].pct}% of target.` } : null}
+      proposed={d && d.status !== 'ok' && lever ? { text: `${lever.label} is the lever — ${lever.pct}% of target.` } : null}
       cta={d && d.status !== 'ok' ? { label: 'Ask Anakin for tonight', onPress: () => { shell?.ask(`What should I eat tonight to bring up ${d.name.toLowerCase()}?`); router.replace('/(v2)' as any); } } : null}>
-      {drivers.map((dr, i) => <Row key={dr.key} name={dr.label} value={`${dr.pct}%`} emphasis={dr.pct < 100} muted={dr.pct >= 100} last={i === drivers.length - 1}
-        below={<CoverageBar pct={dr.pct} covered={dr.pct >= 100} width={300} />}
+      {drivers.map((dr: any, i) => <Row key={dr.key} name={dr.label} value={dr.unknown ? 'Not tracked' : `${dr.pct}%`} sub={dr.unknown ? 'Not in what you logged — left out of the score' : undefined} emphasis={!dr.unknown && dr.pct < 100} muted={dr.unknown || dr.pct >= 100} last={i === drivers.length - 1}
+        below={dr.unknown ? undefined : <CoverageBar pct={dr.pct} covered={dr.pct >= 100} width={300} />}
         onPress={dr.tracked ? () => router.push({ pathname: '/(v2)/p/[key]', params: { key: `mic:${dr.key}` } } as any) : undefined} />)}
       {d?.watchFor ? <Text style={[T.caption, { marginTop: 18 }]}>{d.watchFor}</Text> : null}
       <Text style={[T.caption, { marginTop: 14 }]}>Sorted by gap. Covered nutrients sink to the bottom and fade.</Text>

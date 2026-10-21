@@ -69,17 +69,31 @@ export type WindowMealRow = {
 // One meal row → its open nutrient map. Pre-migration entries have no
 // nutrientMapJson, so synthesize from macros + the legacy structured micros;
 // otherwise historical days would profile as empty (spec §7 "resolving").
+//
+// The macro columns always count: the open map from the photo and typed
+// pipelines carries micros only, so before Oct 2026 every new meal profiled as
+// "Protein 0%" and the body-system radar sat at the centre whatever was eaten.
+// Leucine and tryptophan, which no pipeline estimates, follow the meal's
+// protein (mixed-diet shares, USDA averages) when the meal doesn't state them.
+export const LEUCINE_PER_G_PROTEIN = 0.08;
+export const TRYPTOPHAN_PER_G_PROTEIN = 0.012;
+
 export function mealRowToNutrientMap(m: WindowMealRow): Record<string, number> {
   const open = parseJsonObject<Record<string, number>>(m.nutrientMapJson);
-  if (open && Object.keys(open).length > 0) return open;
-
-  const micros = parseJsonObject<Record<string, number>>(m.nutrientsJson) ?? {};
-  const synth: Record<string, number> = {};
-  if (m.proteinG) synth.proteinG = m.proteinG;
-  if (m.carbsG) synth.carbsG = m.carbsG;
-  if (m.fatG) synth.fatG = m.fatG;
-  for (const [k, v] of Object.entries(micros)) if (typeof v === 'number' && v) synth[k] = v;
-  return synth;
+  const out: Record<string, number> = {};
+  if (!open || Object.keys(open).length === 0) {
+    const micros = parseJsonObject<Record<string, number>>(m.nutrientsJson) ?? {};
+    for (const [k, v] of Object.entries(micros)) if (typeof v === 'number' && v) out[k] = v;
+  } else {
+    Object.assign(out, open);
+  }
+  if (m.proteinG) out.proteinG = m.proteinG;
+  if (m.carbsG) out.carbsG = m.carbsG;
+  if (m.fatG) out.fatG = m.fatG;
+  const p = out.proteinG ?? 0;
+  if (p > 0 && !(out.leucineG > 0)) out.leucineG = Math.round(p * LEUCINE_PER_G_PROTEIN * 100) / 100;
+  if (p > 0 && !(out.tryptophanG > 0)) out.tryptophanG = Math.round(p * TRYPTOPHAN_PER_G_PROTEIN * 1000) / 1000;
+  return out;
 }
 
 export function groupMealsByDate<T extends { date: string }>(rows: T[]): Map<string, T[]> {
@@ -115,6 +129,8 @@ export interface NutritionWindow {
   /** Per ceiling nutrient, how many logged days went over its daily target. */
   daysOverCeiling: Record<string, number>;
   days: WindowDay[];
+  /** Nutrient keys no meal in the window had an estimate for — unknown, not zero. */
+  unknownKeys: string[];
 }
 
 const CEILING_KEYS = NUTRIENTS
@@ -162,16 +178,16 @@ export async function loadWindow(
 
   // Walk the FULL calendar window, not just dates that happen to have meals —
   // unlogged days have to stay visible as gaps rather than collapsing out.
+  const seen = new Set<string>();
   for (const date of dateRange(startDate, windowDays)) {
     const dayMeals = byDate.get(date);
     if (!dayMeals || dayMeals.length === 0) {
       days.push({ date, logged: false, mealCount: 0, kcal: 0 });
       continue;
     }
-    const totals = sumNutrientMaps(
-      dayMeals.map(mealRowToNutrientMap),
-      dayMeals.map(m => m.calories),
-    );
+    const maps = dayMeals.map(mealRowToNutrientMap);
+    for (const mp of maps) for (const k of Object.keys(mp)) seen.add(k);
+    const totals = sumNutrientMaps(maps, dayMeals.map(m => m.calories));
     dayTotals.set(date, totals);
     days.push({
       date,
@@ -206,6 +222,7 @@ export async function loadWindow(
     mealCount: meals.length,
     daysOverCeiling,
     days,
+    unknownKeys: meals.length ? NUTRIENTS.map((n) => n.key).filter((k) => !seen.has(k)) : [],
   };
 }
 

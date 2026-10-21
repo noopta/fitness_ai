@@ -126,7 +126,8 @@ describe('GET /nutrition-profile', () => {
 describe('GET /nutrition-profile — windowed ranges', () => {
   const AUTH = { Authorization: `Bearer ${token}` };
   const at = (date: string, nutrients: Record<string, number>, over: Partial<any> = {}) =>
-    meal({ id: `m-${date}-${over.id ?? '0'}`, date, nutrientMapJson: JSON.stringify(nutrients), ...over });
+    // The macro columns match the map (the columns are what count — mealRowToNutrientMap).
+    meal({ id: `m-${date}-${over.id ?? '0'}`, date, nutrientMapJson: JSON.stringify(nutrients), proteinG: nutrients.proteinG ?? 0, carbsG: nutrients.carbsG ?? 0, fatG: nutrients.fatG ?? 0, ...over });
 
   it('averages over LOGGED days only — unlogged days are gaps, not zeros', async () => {
     const app = await buildApp();
@@ -378,7 +379,7 @@ describe('buildNutrientRec target scaling', () => {
     // contradict the "120 / 160 g" rendered directly above it.
     mocks.user.findUnique.mockResolvedValue({ weightKg: 100 });
     mocks.mealEntry.findMany.mockResolvedValue([meal({
-      nutrientMapJson: JSON.stringify({ proteinG: 120 }),
+      proteinG: 120, nutrientMapJson: JSON.stringify({ proteinG: 120 }),
     })]);
     const res = await request(app)
       .get('/api/nutrition-profile/nutrient/proteinG?date=2026-07-16')

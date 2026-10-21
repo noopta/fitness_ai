@@ -57,6 +57,7 @@ function runForWindow(win: NutritionWindow): ProfileEngineOutput {
     totals: win.avgTotals,
     bodyweightKg: win.bodyweightKg,
     mealsLogged: win.mealCount,
+    unknownKeys: win.unknownKeys,
   });
 }
 
@@ -86,7 +87,7 @@ function windowMeta(win: NutritionWindow) {
 // typical day", the trend chart is "day by day".
 function meanDailyStats(win: NutritionWindow) {
   const perDay = [...win.dayTotals.values()].map(totals =>
-    runNutritionProfileEngine({ totals, bodyweightKg: win.bodyweightKg, mealsLogged: 0 }));
+    runNutritionProfileEngine({ totals, bodyweightKg: win.bodyweightKg, mealsLogged: 0, unknownKeys: win.unknownKeys }));
   if (perDay.length === 0) return { meanDailyProfileScore: 0, meanDailyCoveragePct: 0 };
   const mean = (xs: number[]) => Math.round(xs.reduce((s, x) => s + x, 0) / xs.length);
   return {
@@ -130,7 +131,7 @@ function fallbackHeadline(out: ProfileEngineOutput, period: string): string {
   return `Under-supporting ${worst.name.toLowerCase()} at ${worst.score}/100${clause} — profile score ${out.profileScore}.`;
 }
 function fallbackDriver(sys: BodySystemScore, period: string): string {
-  const d = sys.drivers[0];
+  const d = sys.drivers.find((x) => !x.unknown);
   if (!d) return `${sys.name} scored ${sys.score} of 100 ${period}.`;
   return `${d.label} at ${d.pct}% of target is holding ${sys.name.toLowerCase()} to ${sys.score}.`;
 }
@@ -261,8 +262,10 @@ router.get('/nutrition-profile/effect/:systemId', requireAuth, async (req, res) 
         key: def.key, label: def.label, unit: def.unit,
         amount: cov.amount, target: cov.target, pct: cov.pct, status: cov.status,
         tracked: !!def.chain, // mapped nutrient → tappable to Nutrient Detail
+        // Nothing logged estimated it: unknown, not 0% (left out of the score).
+        ...(sys.drivers.find((x) => x.key === def.key)?.unknown ? { unknown: true } : {}),
       };
-    }).sort((a, b) => a.pct - b.pct);
+    }).sort((a, b) => ((a as any).unknown ? 1 : 0) - ((b as any).unknown ? 1 : 0) || a.pct - b.pct);
 
     // Mechanism sentences: the chains of the 2-3 most load-bearing drivers.
     const mechanisms = drivers
@@ -475,7 +478,7 @@ router.get('/nutrition-profile/trend', requireAuth, async (req, res) => {
         continue;
       }
       const eng = runNutritionProfileEngine({
-        totals, bodyweightKg: win.bodyweightKg, mealsLogged: day.mealCount,
+        totals, bodyweightKg: win.bodyweightKg, mealsLogged: day.mealCount, unknownKeys: win.unknownKeys,
       });
       series.push({ date: day.date, coveragePct: eng.microCoveragePct, profileScore: eng.profileScore, logged: true });
       for (const cov of eng.coverage) {
