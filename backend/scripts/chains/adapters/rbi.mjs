@@ -11,9 +11,16 @@ const brand = process.argv[2]; const cc = (process.argv[3] ?? 'CA').toUpperCase(
 const CHAIN = { th: 'tim-hortons', bk: 'burger-king', plk: 'popeyes' }[brand];
 if (!CHAIN) { console.error('usage: rbi.mjs <th|bk|plk> <US|CA>'); process.exit(2); }
 const SITE = { th: { CA: 'https://www.timhortons.ca', US: 'https://www.timhortons.com' }, bk: { CA: 'https://www.burgerking.ca', US: 'https://www.bk.com' }, plk: { CA: 'https://www.popeyeschicken.ca', US: 'https://www.popeyes.com' } }[brand][cc];
-const API = `https://czqk28jt.apicdn.sanity.io/v1/graphql/prod_${brand}_${cc.toLowerCase()}/default`;
-const NUT = 'calories proteins carbohydrates fat fiber sugar sodium saturatedFat cholesterol';
-const Q = (limit, offset) => `{allItems(limit:${limit}, offset:${offset}){_id name{en} isDummyItem nutrition{${NUT}} options{name{en} options{name{en} default nutrition{${NUT}} modifierMultiplier{multiplier modifier{name{en}}}}}}}`;
+// Burger King moved to its own Sanity project (Oct 2026: the old one holds an
+// 82-item stub, which is why BK never imported).
+const PROJECT = brand === 'bk' ? 'kjfd81ul' : 'czqk28jt';
+const API = `https://${PROJECT}.apicdn.sanity.io/v1/graphql/prod_${brand}_${cc.toLowerCase()}/default`;
+const NUT = 'calories proteins carbohydrates fat fiber sugar sodium saturatedFat transFat cholesterol';
+// nutritionWithModifiers is the item as served — what each brand's nutrition
+// explorer shows (BK Double Whopper 1,010 kcal; nutrition alone is 815, without
+// the default toppings). Tim Hortons drinks were imported from nutrition and
+// read low: Large Vanilla Soda Swirl 359 kcal vs 500 on timhortons.ca.
+const Q = (limit, offset) => `{allItems(limit:${limit}, offset:${offset}){_id name{en} isDummyItem nutrition{${NUT}} nutritionWithModifiers{${NUT}} options{name{en} options{name{en} default nutrition{${NUT}} modifierMultiplier{multiplier modifier{name{en}}}}}}}`;
 
 const docs = [];
 for (let off = 0; ; off += 400) {
@@ -27,11 +34,29 @@ console.log(`${docs.length} documents`);
 // Only items the live menu reaches (menu → sections → pickers → items). The
 // dataset also holds retired recipes under the same names (two "Medium Latte"
 // records, 124 and 229 kcal); the site shows the one its menu points to.
-const GROQ = `https://czqk28jt.apicdn.sanity.io/v1/data/query/prod_${brand}_${cc.toLowerCase()}`;
+const GROQ = `https://${PROJECT}.apicdn.sanity.io/v1/data/query/prod_${brand}_${cc.toLowerCase()}`;
 const groq = async (q, params = {}) => JSON.parse((await politeFetch(`${GROQ}?${new URLSearchParams({ query: q, ...Object.fromEntries(Object.entries(params).map(([k, v]) => [`$${k}`, JSON.stringify(v)])) })}`)).buf.toString()).result;
 const LEAF = new Set(['item', 'modifier', 'modifierMultiplier', 'itemOption', 'configOffer', 'offer', 'reward', 'systemwideOffer', 'sanity.imageAsset', 'restaurant']);
 const reachable = new Set();
+// The nutrition explorer's own menu comes first: where the dataset holds several
+// records under one name (three "Whopper®", 660/710/720 kcal), the one the
+// explorer shows wins. Other live menus add items the explorer doesn't list.
+const explorer = new Set();
 {
+  const page = await groq('*[_type=="staticPage" && path.current=="nutrition-explorer"][0]{widgets}');
+  const exRoot = (page?.widgets ?? []).find((w) => w._type === 'nutritionExplorerWidget')?.menu?._ref ?? null;
+  if (exRoot) {
+    const seen = new Set([exRoot]); let frontier = [exRoot];
+    while (frontier.length) {
+      const batch = frontier.slice(0, 80); frontier = frontier.slice(80);
+      for (const d of await groq('*[_id in $ids]', { ids: batch })) {
+        if (d._type === 'item') { explorer.add(d._id); continue; }
+        if (LEAF.has(d._type)) continue;
+        for (const [, ref] of JSON.stringify(d).matchAll(/"_ref":"([^"]+)"/g)) if (!seen.has(ref) && !ref.startsWith('image-')) { seen.add(ref); frontier.push(ref); }
+      }
+    }
+    console.log(`${explorer.size} items on the nutrition explorer`);
+  }
   const roots = (await groq('*[_type=="menu" && !(_id in path("drafts.**"))]{_id,"n":name.en}')).filter((m) => !/catering/i.test(m.n ?? '')).map((m) => m._id);
   const seen = new Set(roots); let frontier = [...roots];
   while (frontier.length) {
@@ -58,16 +83,24 @@ const splitSize = (name) => {
 const BACK_OFFICE = /\b(SM|MD|LG|XL)-|\((US|CA)\)|\bEach$|\bmodifier\b|\btest\b|^zz|\bdo not use\b/i;
 const macros = (n, k = 1) => {
   const r1 = (v) => Math.round((v / k) * 10) / 10;
-  const micros = Object.fromEntries([['fiberG', n.fiber], ['sugarG', n.sugar], ['sodiumMg', n.sodium], ['saturatedFatG', n.saturatedFat], ['cholesterolMg', n.cholesterol]].filter(([, v]) => num(v) != null).map(([key, v]) => [key, r1(v)]));
+  const micros = Object.fromEntries([['fiberG', n.fiber], ['sugarG', n.sugar], ['sodiumMg', n.sodium], ['saturatedFatG', n.saturatedFat], ['transFatG', n.transFat], ['cholesterolMg', n.cholesterol]].filter(([, v]) => num(v) != null).map(([key, v]) => [key, r1(v)]));
   return { calories: Math.round(n.calories / k), proteinG: r1(n.proteins ?? 0), carbsG: r1(n.carbohydrates ?? 0), fatG: r1(n.fat ?? 0), micros };
 };
 const today = new Date().toISOString().slice(0, 10);
 
 const items = new Map(); const modifiers = new Map();
+// As served when the brand publishes it, else the base record.
+const served = (d) => (num(d.nutritionWithModifiers?.calories) != null ? d.nutritionWithModifiers : d.nutrition);
+// Explorer records first; among those, the newest recipe (highest item number).
+// Tim Hortons lists two live "Matcha Latte" pickers (100 vs 210 kcal small) —
+// the newest wins and every such clash is written to menus-review for a look.
+const idNum = (d) => Number(String(d._id).match(/(\d+)$/)?.[1] ?? 0);
+docs.sort((a, b) => (explorer.has(b._id) ? 1 : 0) - (explorer.has(a._id) ? 1 : 0) || idNum(b) - idNum(a));
+const clashes = [];
 for (const d of docs) {
   const raw = clean(d.name?.en);
-  if (!raw || d.isDummyItem || BACK_OFFICE.test(raw) || num(d.nutrition?.calories) == null) continue;
-  if (reachable.size && !reachable.has(d._id)) continue;
+  if (!raw || d.isDummyItem || BACK_OFFICE.test(raw) || num(served(d)?.calories) == null) continue;
+  if (reachable.size && !reachable.has(d._id) && !explorer.has(d._id)) continue;
   const { size, base } = splitSize(raw);
   const includes = {}; const modValues = {};
   for (const g of d.options ?? []) {
@@ -94,9 +127,11 @@ for (const d of docs) {
   }
   const id = slug(base);
   const entry = items.get(id) ?? { id, name: base, sizes: [] };
-  if (!entry.sizes.some((s) => s.size === size)) {
+  const kept = entry.sizes.find((s) => s.size === size);
+  if (kept && explorer.has(d._id) && Math.abs(kept.calories - Math.round(served(d).calories)) > 5) clashes.push({ item: base, size, kept: kept.calories, alsoListed: Math.round(served(d).calories), id: d._id });
+  if (!kept) {
     // Only count includes we can price; the rest can't be removed or swapped anyway.
-    entry.sizes.push({ size, ...macros(d.nutrition), ...(Object.keys(includes).length ? { includes } : {}), modValues });
+    entry.sizes.push({ size, ...macros(served(d)), ...(Object.keys(includes).length ? { includes } : {}), modValues });
     for (const [mid, v] of Object.entries(modValues)) { const k = `${size}|${v.calories}`; const seen = modifiers.get(mid).seen; seen[k] = { n: (seen[k]?.n ?? 0) + 1, v }; }
   }
   items.set(id, entry);
@@ -128,9 +163,15 @@ for (const it of items.values()) for (const s of it.sizes) {
 // Drop includes that never got a price (e.g. a foam with no values).
 for (const it of items.values()) for (const s of it.sizes) if (s.includes) { for (const k of Object.keys(s.includes)) if (!modifiers.has(k)) delete s.includes[k]; if (!Object.keys(s.includes).length) delete s.includes; }
 
+if (clashes.length) {
+  const fs = await import('node:fs');
+  fs.mkdirSync('data/chains/menus-review', { recursive: true });
+  fs.writeFileSync(`data/chains/menus-review/${CHAIN}.${cc}.clashes.json`, JSON.stringify(clashes, null, 1));
+  console.log(`${clashes.length} same-name clashes on the explorer (newest kept) → menus-review/${CHAIN}.${cc}.clashes.json`);
+}
 writeMenu({
   chain: CHAIN, country: cc, defaultSize: brand === 'th' ? 'medium' : 'regular',
-  source: { url: `${SITE}/menu`, fetchedAt: today, note: `${CHAIN} public menu data (the CDN its own site reads); numbers only` },
+  source: { url: explorer.size ? `${SITE}/nutrition-explorer` : `${SITE}/menu`, fetchedAt: today, note: `${CHAIN} public nutrition data (the CDN its own site reads), as served; numbers only` },
   items: [...items.values()], modifiers: [...modifiers.values()].map((m) => ({ ...m, per: m.bySize.medium ?? m.bySize.regular ?? Object.values(m.bySize)[0] })),
 });
 process.exit(0);

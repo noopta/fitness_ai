@@ -1,0 +1,72 @@
+[
+ {
+  "item": "Montreal Smoked Meat Toasted Sandwich",
+  "size": "regular",
+  "kept": 640,
+  "alsoListed": 610,
+  "id": "item_107244"
+ },
+ {
+  "item": "Matcha Latte",
+  "size": "large",
+  "kept": 210,
+  "alsoListed": 310,
+  "id": "item_75035"
+ },
+ {
+  "item": "Matcha Latte",
+  "size": "small",
+  "kept": 100,
+  "alsoListed": 210,
+  "id": "item_75033"
+ },
+ {
+  "item": "Matcha Latte",
+  "size": "large",
+  "kept": 210,
+  "alsoListed": 310,
+  "id": "item_75032"
+ },
+ {
+  "item": "Matcha Latte",
+  "size": "medium",
+  "kept": 150,
+  "alsoListed": 230,
+  "id": "item_75031"
+ },
+ {
+  "item": "Matcha Latte",
+  "size": "small",
+  "kept": 100,
+  "alsoListed": 210,
+  "id": "item_75030"
+ },
+ {
+  "item": "Crispy Chicken Craveable",
+  "size": "regular",
+  "kept": 520,
+  "alsoListed": 470,
+  "id": "item_52458"
+ },
+ {
+  "item": "Cheese Croissant",
+  "size": "regular",
+  "kept": 310,
+  "alsoListed": 290,
+  "id": "item_31016"
+ },
+ {
+  "item": "Potato Wedges",
+  "size": "regular",
+  "kept": 180,
+  "alsoListed": 170,
+  "id": "item_26702"
+ },
+ {
+  "item": "Plain Croissant",
+  "size": "regular",
+  "kept": 290,
+  "alsoListed": 260,
+  "id": "item_26673"
+ }
+]

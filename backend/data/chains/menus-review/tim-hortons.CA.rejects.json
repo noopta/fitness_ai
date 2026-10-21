@@ -1,0 +1,173 @@
+[
+ {
+  "item": "Farmer's Breakfast Bundle for 2",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 2420,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Classic Breakfast Bundle for 2",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 2200,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Family Bundle (serves 12+)",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 8223,
+  "proteinG": 0.3,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Craveables Meal Bundle (serves 2)",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 2253,
+  "proteinG": 44.5,
+  "carbsG": 173.1,
+  "fatG": 57.4
+ },
+ {
+  "item": "Farmer's Breakfast Bundle (serves 4-6)",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 5089,
+  "proteinG": 91.5,
+  "carbsG": 281,
+  "fatG": 194.6
+ },
+ {
+  "item": "Classic Breakfast Bundle (serves 4-6)",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 4451,
+  "proteinG": 82.8,
+  "carbsG": 198.6,
+  "fatG": 162.7
+ },
+ {
+  "item": "PHILADELPHIA Original Cream Cheese",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 640,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Candy Cane Hot Chocolate",
+  "size": "large",
+  "why": "macros_mismatch",
+  "calories": 480,
+  "proteinG": 2,
+  "carbsG": 940,
+  "fatG": 11
+ },
+ {
+  "item": "12 Assorted Cookies",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 3360,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "6 Assorted Cookies",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 1860,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "50 Assorted Timbits",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 4500,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "20 Assorted Timbits",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 1800,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "10 Assorted Timbits",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 900,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "12 Assorted Bagels",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 3960,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "6 Assorted Bagels",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 1980,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "12 Assorted Muffins",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 5040,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "6 Assorted Muffins",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 2520,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "12 Assorted Donuts",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 3720,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "6 Assorted Donuts",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 1860,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ }
+]

@@ -1,0 +1,56 @@
+[
+ {
+  "item": "Spicy Chicken Sandwich",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 698,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Classic Chicken Sandwich",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 492,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Minute Maid Apple Juice",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 80,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "GoGo squeeZ AppleSauce",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 70,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "3PC MILD Dark",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 210,
+  "proteinG": 42,
+  "carbsG": 17,
+  "fatG": 39
+ },
+ {
+  "item": "Cajun Gravy Side",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 160,
+  "proteinG": 3,
+  "carbsG": 13,
+  "fatG": 6
+ }
+]

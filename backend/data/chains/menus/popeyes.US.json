@@ -4,8 +4,9 @@
  "defaultSize": "regular",
  "source": {
   "url": "https://www.popeyes.com/menu",
-  "fetchedAt": "2026-10-11",
-  "note": "popeyes public menu data (the CDN its own site reads); numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "popeyes public nutrition data (the CDN its own site reads), as served; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "items": [
   {
@@ -23,6 +24,7 @@
       "sugarG": 0,
       "sodiumMg": 7280,
       "saturatedFatG": 30,
+      "transFatG": 4,
       "cholesterolMg": 380
      },
      "includes": {
@@ -39,6 +41,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -52,6 +55,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -65,6 +69,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -78,6 +83,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -91,6 +97,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -104,6 +111,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -126,6 +134,7 @@
       "sugarG": 0,
       "sodiumMg": 1460,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 65
      },
      "includes": {
@@ -142,6 +151,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -155,6 +165,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -168,6 +179,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -181,6 +193,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -194,6 +207,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -207,6 +221,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -229,6 +244,7 @@
       "sugarG": 0,
       "sodiumMg": 7280,
       "saturatedFatG": 30,
+      "transFatG": 4,
       "cholesterolMg": 380
      },
      "includes": {
@@ -245,6 +261,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -258,6 +275,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -271,6 +289,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -284,6 +303,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -297,6 +317,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -310,6 +331,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -332,6 +354,7 @@
       "sugarG": 0,
       "sodiumMg": 610,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     }
@@ -352,6 +375,7 @@
       "sugarG": 0,
       "sodiumMg": 640,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     }
@@ -372,6 +396,7 @@
       "sugarG": 0,
       "sodiumMg": 4860,
       "saturatedFatG": 20,
+      "transFatG": 3,
       "cholesterolMg": 260
      },
      "includes": {
@@ -388,6 +413,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -401,6 +427,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -414,6 +441,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -427,6 +455,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -440,6 +469,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -453,6 +483,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -475,6 +506,7 @@
       "sugarG": 0,
       "sodiumMg": 2930,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 130
      },
      "includes": {
@@ -567,6 +599,7 @@
       "sugarG": 0,
       "sodiumMg": 9710,
       "saturatedFatG": 40,
+      "transFatG": 5,
       "cholesterolMg": 510
      },
      "includes": {
@@ -583,6 +616,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -596,6 +630,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -609,6 +644,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 10,
         "cholesterolMg": 10
        }
       },
@@ -622,6 +658,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -635,6 +672,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -657,6 +695,7 @@
       "sugarG": 0,
       "sodiumMg": 1230,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 125
      }
     }
@@ -677,6 +716,7 @@
       "sugarG": 0,
       "sodiumMg": 9710,
       "saturatedFatG": 40,
+      "transFatG": 5,
       "cholesterolMg": 510
      },
      "modValues": {
@@ -690,6 +730,7 @@
         "sugarG": 0,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -703,6 +744,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -715,7 +757,8 @@
         "fiberG": 0,
         "sugarG": 0,
         "sodiumMg": 450,
-        "saturatedFatG": 1
+        "saturatedFatG": 1,
+        "transFatG": 0
        }
       },
       "blackened-ranch-sauce": {
@@ -728,6 +771,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -740,7 +784,8 @@
         "fiberG": 1,
         "sugarG": 4,
         "sodiumMg": 240,
-        "saturatedFatG": 1
+        "saturatedFatG": 1,
+        "transFatG": 0
        }
       },
       "cocktail-sauce": {
@@ -753,6 +798,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -775,6 +821,7 @@
       "sugarG": 0,
       "sodiumMg": 460,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 40
      }
     }
@@ -795,6 +842,7 @@
       "sugarG": 0,
       "sodiumMg": 2200,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 100
      },
      "includes": {
@@ -811,6 +859,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -824,6 +873,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -837,6 +887,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -850,6 +901,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -863,6 +915,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -876,6 +929,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -898,6 +952,7 @@
       "sugarG": 1,
       "sodiumMg": 1820,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 95
      },
      "includes": {
@@ -914,6 +969,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -927,6 +983,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -940,6 +997,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -953,6 +1011,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -966,6 +1025,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -979,6 +1039,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1001,6 +1062,7 @@
       "sugarG": 0,
       "sodiumMg": 1230,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 125
      }
     }
@@ -1021,6 +1083,7 @@
       "sugarG": 0,
       "sodiumMg": 4860,
       "saturatedFatG": 20,
+      "transFatG": 3,
       "cholesterolMg": 260
      },
      "includes": {
@@ -1037,6 +1100,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1050,6 +1114,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1063,6 +1128,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1076,6 +1142,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1089,6 +1156,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1102,6 +1170,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1124,6 +1193,7 @@
       "sugarG": 0,
       "sodiumMg": 640,
       "saturatedFatG": 8,
+      "transFatG": 0,
       "cholesterolMg": 50
      }
     }
@@ -1144,6 +1214,7 @@
       "sugarG": 0,
       "sodiumMg": 3040,
       "saturatedFatG": 13,
+      "transFatG": 2,
       "cholesterolMg": 160
      },
      "includes": {
@@ -1160,6 +1231,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1173,6 +1245,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1186,6 +1259,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1199,6 +1273,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1212,6 +1287,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1225,6 +1301,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1246,6 +1323,7 @@
       "fiberG": 2,
       "sugarG": 2,
       "sodiumMg": 1470,
+      "transFatG": 1,
       "cholesterolMg": 75
      },
      "includes": {
@@ -1269,6 +1347,7 @@
       "sugarG": 0,
       "sodiumMg": 3040,
       "saturatedFatG": 13,
+      "transFatG": 2,
       "cholesterolMg": 160
      },
      "includes": {
@@ -1285,6 +1364,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1298,6 +1378,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1311,6 +1392,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1324,6 +1406,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1337,6 +1420,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1350,6 +1434,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1372,7 +1457,27 @@
       "sugarG": 0,
       "sodiumMg": 460,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "regular-mac-n-cheese",
+   "name": "Regular Mac N Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 9,
+     "carbsG": 13,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sodiumMg": 520,
+      "transFatG": 1,
+      "cholesterolMg": 45
      }
     }
    ]
@@ -1392,6 +1497,7 @@
       "sugarG": 0,
       "sodiumMg": 610,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 60
      }
     }
@@ -1412,6 +1518,7 @@
       "sugarG": 0,
       "sodiumMg": 920,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 40
      },
      "includes": {
@@ -1428,6 +1535,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1441,6 +1549,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1454,6 +1563,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1467,6 +1577,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1480,6 +1591,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1493,9 +1605,30 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
+     }
+    }
+   ]
+  },
+  {
+   "id": "mac-n-cheese",
+   "name": "Mac N Cheese",
+   "sizes": [
+    {
+     "size": "large",
+     "calories": 750,
+     "proteinG": 26,
+     "carbsG": 40,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1550,
+      "transFatG": 4,
+      "cholesterolMg": 135
      }
     }
    ]
@@ -1515,6 +1648,7 @@
       "sugarG": 0,
       "sodiumMg": 1820,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 95
      },
      "modValues": {
@@ -1528,6 +1662,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1541,6 +1676,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1554,6 +1690,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1567,6 +1704,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1580,6 +1718,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1593,6 +1732,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1615,6 +1755,7 @@
       "sugarG": 0,
       "sodiumMg": 550,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 25
      },
      "includes": {
@@ -1631,6 +1772,7 @@
         "sugarG": 13,
         "sodiumMg": 440,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1644,6 +1786,7 @@
         "sugarG": 1,
         "sodiumMg": 230,
         "saturatedFatG": 3,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1657,6 +1800,7 @@
         "sugarG": 0,
         "sodiumMg": 450,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       },
@@ -1670,6 +1814,7 @@
         "sugarG": 1,
         "sodiumMg": 250,
         "saturatedFatG": 2,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1683,6 +1828,7 @@
         "sugarG": 4,
         "sodiumMg": 240,
         "saturatedFatG": 1,
+        "transFatG": 0,
         "cholesterolMg": 10
        }
       },
@@ -1696,6 +1842,7 @@
         "sugarG": 7,
         "sodiumMg": 400,
         "saturatedFatG": 0,
+        "transFatG": 0,
         "cholesterolMg": 0
        }
       }
@@ -1840,6 +1987,7 @@
       "sugarG": 0,
       "sodiumMg": 75,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -1910,6 +2058,7 @@
       "fiberG": 1,
       "sugarG": 33,
       "sodiumMg": 160,
+      "transFatG": 0,
       "cholesterolMg": 38
      }
     }
@@ -1921,13 +2070,13 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 628,
-     "proteinG": 25.9,
-     "carbsG": 77.7,
+     "calories": 630,
+     "proteinG": 26,
+     "carbsG": 78,
      "fatG": 24,
      "micros": {
-      "fiberG": 2.8,
-      "sugarG": 26.9,
+      "fiberG": 3,
+      "sugarG": 27,
       "sodiumMg": 2020,
       "saturatedFatG": 11,
       "cholesterolMg": 65
@@ -1944,13 +2093,13 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 788,
-     "proteinG": 33.9,
-     "carbsG": 78.7,
+     "calories": 790,
+     "proteinG": 34,
+     "carbsG": 79,
      "fatG": 38,
      "micros": {
-      "fiberG": 2.8,
-      "sugarG": 26.9,
+      "fiberG": 3,
+      "sugarG": 27,
       "sodiumMg": 2470,
       "saturatedFatG": 18,
       "cholesterolMg": 100
@@ -1967,16 +2116,16 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 363,
-     "proteinG": 13.4,
-     "carbsG": 25,
-     "fatG": 22.5,
+     "calories": 420,
+     "proteinG": 17,
+     "carbsG": 26,
+     "fatG": 27,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 1.9,
-      "sodiumMg": 1005,
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1090,
       "saturatedFatG": 8,
-      "cholesterolMg": 41.5
+      "cholesterolMg": 55
      },
      "includes": {
       "pickle": 1,
@@ -1991,55 +2140,20 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 303,
-     "proteinG": 13.4,
-     "carbsG": 26,
-     "fatG": 15.5,
+     "calories": 360,
+     "proteinG": 17,
+     "carbsG": 27,
+     "fatG": 20,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 2.9,
-      "sodiumMg": 1085,
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 1170,
       "saturatedFatG": 7,
-      "cholesterolMg": 31.5
+      "cholesterolMg": 45
      },
      "includes": {
       "pickle": 1,
       "cheese": 1
-     }
-    }
-   ]
-  },
-  {
-   "id": "spicy-chicken-sandwich",
-   "name": "Spicy Chicken Sandwich",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 697,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {},
-     "includes": {
-      "pickle": 1
-     }
-    }
-   ]
-  },
-  {
-   "id": "classic-chicken-sandwich",
-   "name": "Classic Chicken Sandwich",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 285,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {},
-     "includes": {
-      "pickle": 1,
-      "mayo": 1
      }
     }
    ]
@@ -2058,6 +2172,7 @@
       "fiberG": 3,
       "sugarG": 28,
       "sodiumMg": 330,
+      "transFatG": 0,
       "cholesterolMg": 80
      }
     }
@@ -2078,6 +2193,7 @@
       "sugarG": 55.1,
       "sodiumMg": 653.4,
       "saturatedFatG": 34,
+      "transFatG": 0.7,
       "cholesterolMg": 163
      }
     }
@@ -2204,6 +2320,7 @@
       "sugarG": 15,
       "sodiumMg": 2190,
       "saturatedFatG": 26,
+      "transFatG": 1,
       "cholesterolMg": 100
      }
     }
@@ -2224,7 +2341,29 @@
       "sugarG": 4,
       "sodiumMg": 140,
       "saturatedFatG": 1.5,
+      "transFatG": 0,
       "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "cajun-style-turkey",
+   "name": "Cajun Style Turkey",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 16,
+     "carbsG": 0,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 490,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 60
      }
     }
    ]
@@ -2244,6 +2383,7 @@
       "sugarG": 0,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2264,6 +2404,7 @@
       "sugarG": 73,
       "sodiumMg": 65,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2284,6 +2425,7 @@
       "sugarG": 147,
       "sodiumMg": 130,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      },
      "includes": {
@@ -2301,6 +2443,7 @@
       "sugarG": 53,
       "sodiumMg": 50,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2321,6 +2464,7 @@
       "sugarG": 0,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2341,6 +2485,7 @@
       "sugarG": 0,
       "sodiumMg": 140,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2355,6 +2500,7 @@
       "sugarG": 0,
       "sodiumMg": 53,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2375,6 +2521,7 @@
       "sugarG": 0,
       "sodiumMg": 90,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2395,6 +2542,7 @@
       "sugarG": 0,
       "sodiumMg": 180,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2409,6 +2557,7 @@
       "sugarG": 0,
       "sodiumMg": 50,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2429,6 +2578,7 @@
       "sugarG": 0,
       "sodiumMg": 105,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2449,6 +2599,7 @@
       "sugarG": 0,
       "sodiumMg": 205,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2469,6 +2620,7 @@
       "sugarG": 70,
       "sodiumMg": 80,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2489,6 +2641,7 @@
       "sugarG": 140,
       "sodiumMg": 160,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2503,6 +2656,7 @@
       "sugarG": 51,
       "sodiumMg": 60,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2523,6 +2677,7 @@
       "sugarG": 79,
       "sodiumMg": 75,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2543,6 +2698,7 @@
       "sugarG": 157,
       "sodiumMg": 150,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2557,6 +2713,7 @@
       "sugarG": 57,
       "sodiumMg": 55,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2577,6 +2734,7 @@
       "sugarG": 81,
       "sodiumMg": 95,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2597,6 +2755,7 @@
       "sugarG": 162,
       "sodiumMg": 190,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2611,6 +2770,7 @@
       "sugarG": 51,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2631,6 +2791,7 @@
       "sugarG": 83,
       "sodiumMg": 65,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2651,6 +2812,7 @@
       "sugarG": 166,
       "sodiumMg": 135,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2665,6 +2827,7 @@
       "sugarG": 61,
       "sodiumMg": 50,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2685,6 +2848,7 @@
       "sugarG": 68,
       "sodiumMg": 190,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2705,6 +2869,7 @@
       "sugarG": 135,
       "sodiumMg": 370,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2719,6 +2884,7 @@
       "sugarG": 49,
       "sodiumMg": 135,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2739,6 +2905,7 @@
       "sugarG": 393,
       "sodiumMg": 1090,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2759,6 +2926,7 @@
       "sugarG": 197,
       "sodiumMg": 540,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2779,6 +2947,7 @@
       "sugarG": 72.5,
       "sodiumMg": 84.2,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      },
      "includes": {
@@ -2802,6 +2971,7 @@
       "sugarG": 137.8,
       "sodiumMg": 160,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2822,6 +2992,7 @@
       "sugarG": 80,
       "sodiumMg": 95,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2842,6 +3013,7 @@
       "sugarG": 161,
       "sodiumMg": 185,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2856,6 +3028,7 @@
       "sugarG": 58,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2876,6 +3049,7 @@
       "sugarG": 76,
       "sodiumMg": 60,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2896,6 +3070,7 @@
       "sugarG": 151,
       "sodiumMg": 120,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2916,6 +3091,7 @@
       "sugarG": 72,
       "sodiumMg": 80,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2936,6 +3112,7 @@
       "sugarG": 143,
       "sodiumMg": 160,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2956,6 +3133,7 @@
       "sugarG": 74,
       "sodiumMg": 60,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -2976,6 +3154,7 @@
       "sugarG": 149,
       "sodiumMg": 120,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -2990,6 +3169,7 @@
       "sugarG": 54,
       "sodiumMg": 45,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3010,6 +3190,7 @@
       "sugarG": 70,
       "sodiumMg": 125,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3030,6 +3211,7 @@
       "sugarG": 140,
       "sodiumMg": 250,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -3044,6 +3226,7 @@
       "sugarG": 51,
       "sodiumMg": 90,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3064,6 +3247,7 @@
       "sugarG": 45,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -3078,6 +3262,7 @@
       "sugarG": 90,
       "sodiumMg": 20,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3098,6 +3283,7 @@
       "sugarG": 262,
       "sodiumMg": 60,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3118,6 +3304,7 @@
       "sugarG": 131,
       "sodiumMg": 30,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3138,6 +3325,7 @@
       "sugarG": 0,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3158,6 +3346,7 @@
       "sugarG": 0,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3178,6 +3367,7 @@
       "sugarG": 0,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3198,6 +3388,7 @@
       "sugarG": 0,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3218,6 +3409,7 @@
       "sugarG": 2,
       "sodiumMg": 520,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3238,6 +3430,7 @@
       "sugarG": 10.2,
       "sodiumMg": 2998.4,
       "saturatedFatG": 45.5,
+      "transFatG": 1.2,
       "cholesterolMg": 4.9
      }
     }
@@ -3258,6 +3451,7 @@
       "sugarG": 12,
       "sodiumMg": 5220,
       "saturatedFatG": 72,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3278,6 +3472,7 @@
       "sugarG": 0.2,
       "sodiumMg": 445.4,
       "saturatedFatG": 0.9,
+      "transFatG": 0.1,
       "cholesterolMg": 0.2
      }
     }
@@ -3298,6 +3493,7 @@
       "sugarG": 1,
       "sodiumMg": 250,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -3358,6 +3554,7 @@
       "sugarG": 7,
       "sodiumMg": 400,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3418,6 +3615,7 @@
       "sugarG": 0.5,
       "sodiumMg": 230,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 15
      }
     }
@@ -3438,6 +3636,7 @@
       "sugarG": 14,
       "sodiumMg": 260,
       "saturatedFatG": 7,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3458,6 +3657,7 @@
       "sugarG": 19.1,
       "sodiumMg": 519,
       "saturatedFatG": 15.7,
+      "transFatG": 0.8,
       "cholesterolMg": 9.5
      }
     }
@@ -3478,6 +3678,7 @@
       "sugarG": 0,
       "sodiumMg": 1390,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 80
      }
     }
@@ -3498,6 +3699,7 @@
       "sugarG": 0,
       "sodiumMg": 620,
       "saturatedFatG": 7,
+      "transFatG": 1,
       "cholesterolMg": 10
      }
     }
@@ -3518,6 +3720,7 @@
       "sugarG": 1,
       "sodiumMg": 1720,
       "saturatedFatG": 18,
+      "transFatG": 2,
       "cholesterolMg": 35
      }
     }
@@ -3538,6 +3741,7 @@
       "sugarG": 0,
       "sodiumMg": 560,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     }
@@ -3558,6 +3762,7 @@
       "sugarG": 1,
       "sodiumMg": 1650,
       "saturatedFatG": 11,
+      "transFatG": 1,
       "cholesterolMg": 105
      }
     }
@@ -3578,6 +3783,7 @@
       "sugarG": 10,
       "sodiumMg": 21,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -3598,6 +3804,7 @@
       "sugarG": 30,
       "sodiumMg": 620,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 25
      }
     }
@@ -3618,6 +3825,7 @@
       "sugarG": 0,
       "sodiumMg": 170,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3638,6 +3846,7 @@
       "sugarG": 0,
       "sodiumMg": 510,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3658,6 +3867,7 @@
       "sugarG": 0,
       "sodiumMg": 1010,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3678,6 +3888,7 @@
       "sugarG": 0,
       "sodiumMg": 750,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 5
      }
     }
@@ -3698,6 +3909,7 @@
       "sugarG": 2,
       "sodiumMg": 2190,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -3709,15 +3921,16 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 219,
-     "proteinG": 6,
-     "carbsG": 20,
-     "fatG": 15.9,
+     "calories": 260,
+     "proteinG": 7,
+     "carbsG": 29,
+     "fatG": 16,
      "micros": {
-      "fiberG": 5.8,
+      "fiberG": 6,
       "sugarG": 1,
-      "sodiumMg": 579,
+      "sodiumMg": 580,
       "saturatedFatG": 4,
+      "transFatG": 0,
       "cholesterolMg": 10
      },
      "includes": {
@@ -3732,15 +3945,16 @@
    "sizes": [
     {
      "size": "large",
-     "calories": 518,
-     "proteinG": 15.1,
-     "carbsG": 46.1,
-     "fatG": 39.7,
+     "calories": 640,
+     "proteinG": 18,
+     "carbsG": 73,
+     "fatG": 40,
      "micros": {
-      "fiberG": 12.5,
-      "sugarG": 1.9,
-      "sodiumMg": 1417,
-      "saturatedFatG": 8.9,
+      "fiberG": 13,
+      "sugarG": 2,
+      "sodiumMg": 1420,
+      "saturatedFatG": 9,
+      "transFatG": 0,
       "cholesterolMg": 25
      },
      "includes": {
@@ -3764,6 +3978,7 @@
       "sugarG": 0,
       "sodiumMg": 8820,
       "saturatedFatG": 72,
+      "transFatG": 0,
       "cholesterolMg": 825
      }
     }
@@ -3784,6 +3999,7 @@
       "sugarG": 0,
       "sodiumMg": 11760,
       "saturatedFatG": 96,
+      "transFatG": 0,
       "cholesterolMg": 1100
      }
     }
@@ -3804,6 +4020,7 @@
       "sugarG": 0,
       "sodiumMg": 5922,
       "saturatedFatG": 72,
+      "transFatG": 0,
       "cholesterolMg": 825
      }
     }
@@ -3824,6 +4041,7 @@
       "sugarG": 0,
       "sodiumMg": 610,
       "saturatedFatG": 2.5,
+      "transFatG": 0,
       "cholesterolMg": 30
      }
     }
@@ -3844,6 +4062,7 @@
       "sugarG": 1,
       "sodiumMg": 1140,
       "saturatedFatG": 9,
+      "transFatG": 1,
       "cholesterolMg": 80
      }
     }
@@ -3864,6 +4083,7 @@
       "sugarG": 75,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3884,6 +4104,7 @@
       "sugarG": 105,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -3904,6 +4125,7 @@
       "sugarG": 0,
       "sodiumMg": 7896,
       "saturatedFatG": 96,
+      "transFatG": 0,
       "cholesterolMg": 1100
      }
     }
@@ -3924,6 +4146,7 @@
       "sugarG": 0,
       "sodiumMg": 1100,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 90
      }
     }
@@ -3944,6 +4167,7 @@
       "sugarG": 0,
       "sodiumMg": 740,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 90
      }
     }
@@ -3964,6 +4188,7 @@
       "sugarG": 0,
       "sodiumMg": 2450,
       "saturatedFatG": 16,
+      "transFatG": 0,
       "cholesterolMg": 245
      }
     }
@@ -3984,6 +4209,7 @@
       "sugarG": 0,
       "sodiumMg": 1644,
       "saturatedFatG": 16,
+      "transFatG": 0,
       "cholesterolMg": 245
      }
     }
@@ -4004,6 +4230,7 @@
       "sugarG": 0,
       "sodiumMg": 2940,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 275
      }
     }
@@ -4024,6 +4251,7 @@
       "sugarG": 0,
       "sodiumMg": 1974,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 275
      }
     }
@@ -4044,6 +4272,7 @@
       "sugarG": 0,
       "sodiumMg": 910,
       "saturatedFatG": 6,
+      "transFatG": 1,
       "cholesterolMg": 40
      }
     }
@@ -4064,6 +4293,7 @@
       "sugarG": 0,
       "sodiumMg": 1130,
       "saturatedFatG": 5,
+      "transFatG": 1,
       "cholesterolMg": 70
      }
     }
@@ -4084,6 +4314,7 @@
       "sugarG": 0,
       "sodiumMg": 570,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 55
      }
     }
@@ -4104,6 +4335,7 @@
       "sugarG": 0,
       "sodiumMg": 5880,
       "saturatedFatG": 48,
+      "transFatG": 0,
       "cholesterolMg": 550
      }
     }
@@ -4124,6 +4356,7 @@
       "sugarG": 0,
       "sodiumMg": 3948,
       "saturatedFatG": 48,
+      "transFatG": 0,
       "cholesterolMg": 550
      }
     }
@@ -4144,6 +4377,7 @@
       "sugarG": 65,
       "sodiumMg": 75,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4164,6 +4398,7 @@
       "sugarG": 0,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4184,6 +4419,7 @@
       "sugarG": 64,
       "sodiumMg": 110,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4204,6 +4440,7 @@
       "sugarG": 48,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4224,6 +4461,7 @@
       "sugarG": 82,
       "sodiumMg": 100,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4244,6 +4482,7 @@
       "sugarG": 163,
       "sodiumMg": 180,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4264,6 +4503,7 @@
       "sugarG": 237,
       "sodiumMg": 290,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4284,6 +4524,7 @@
       "sugarG": 474,
       "sodiumMg": 580,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4304,6 +4545,7 @@
       "sugarG": 0,
       "sodiumMg": 570,
       "saturatedFatG": 4,
+      "transFatG": 1,
       "cholesterolMg": 40
      }
     }
@@ -4315,16 +4557,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 527,
-     "proteinG": 24.6,
-     "carbsG": 63.6,
-     "fatG": 20.7,
+     "calories": 670,
+     "proteinG": 25,
+     "carbsG": 65,
+     "fatG": 36,
      "micros": {
-      "fiberG": 3.8,
-      "sugarG": 8.4,
-      "sodiumMg": 1568.5,
-      "saturatedFatG": 6.6,
-      "cholesterolMg": 68.3
+      "fiberG": 4,
+      "sugarG": 9,
+      "sodiumMg": 1960,
+      "saturatedFatG": 9,
+      "transFatG": 1,
+      "cholesterolMg": 79
      },
      "includes": {
       "tartar-sauce": 1,
@@ -4341,6 +4584,7 @@
         "sugarG": 0.5,
         "sodiumMg": 233.7,
         "saturatedFatG": 2.4,
+        "transFatG": 0.1,
         "cholesterolMg": 10.7
        }
       }
@@ -4363,6 +4607,7 @@
       "sugarG": 119,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4383,6 +4628,7 @@
       "sugarG": 1,
       "sodiumMg": 440,
       "saturatedFatG": 6,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4403,6 +4649,7 @@
       "sugarG": 88,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4423,6 +4670,7 @@
       "sugarG": 0,
       "sodiumMg": 880,
       "saturatedFatG": 11,
+      "transFatG": 2,
       "cholesterolMg": 80
      }
     }
@@ -4443,6 +4691,7 @@
       "sugarG": 0,
       "sodiumMg": 1320,
       "saturatedFatG": 16,
+      "transFatG": 2,
       "cholesterolMg": 120
      }
     }
@@ -4463,6 +4712,7 @@
       "sugarG": 1,
       "sodiumMg": 0,
       "saturatedFatG": 32.9,
+      "transFatG": 4.6,
       "cholesterolMg": 238.8
      }
     }
@@ -4483,6 +4733,7 @@
       "sugarG": 1.4,
       "sodiumMg": 0,
       "saturatedFatG": 49.3,
+      "transFatG": 6.8,
       "cholesterolMg": 358.2
      }
     }
@@ -4503,6 +4754,7 @@
       "sugarG": 0,
       "sodiumMg": 440,
       "saturatedFatG": 5,
+      "transFatG": 1,
       "cholesterolMg": 40
      }
     }
@@ -4523,47 +4775,8 @@
       "sugarG": 0,
       "sodiumMg": 660,
       "saturatedFatG": 8,
+      "transFatG": 1,
       "cholesterolMg": 60
-     }
-    }
-   ]
-  },
-  {
-   "id": "minute-maid-apple-juice",
-   "name": "Minute Maid Apple Juice",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 80,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 0,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "gogo-squeez-applesauce",
-   "name": "GoGo squeeZ AppleSauce",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 70,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 1.2,
-      "saturatedFatG": 0,
-      "cholesterolMg": 0
      }
     }
    ]
@@ -4583,6 +4796,7 @@
       "sugarG": 1.9,
       "sodiumMg": 0,
       "saturatedFatG": 65.8,
+      "transFatG": 9.1,
       "cholesterolMg": 477.6
      }
     }
@@ -4603,6 +4817,7 @@
       "sugarG": 3,
       "sodiumMg": 510,
       "saturatedFatG": 21,
+      "transFatG": 0.5,
       "cholesterolMg": 60
      }
     }
@@ -4623,6 +4838,7 @@
       "sugarG": 9,
       "sodiumMg": 1540,
       "saturatedFatG": 36,
+      "transFatG": 2,
       "cholesterolMg": 180
      }
     }
@@ -4643,6 +4859,7 @@
       "sugarG": 11,
       "sodiumMg": 290,
       "saturatedFatG": 9,
+      "transFatG": 0.5,
       "cholesterolMg": 10
      }
     }
@@ -4663,6 +4880,7 @@
       "sugarG": 0,
       "sodiumMg": 1840,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 185
      }
     }
@@ -4683,27 +4901,8 @@
       "sugarG": 0,
       "sodiumMg": 1234,
       "saturatedFatG": 12,
+      "transFatG": 0,
       "cholesterolMg": 185
-     }
-    }
-   ]
-  },
-  {
-   "id": "3pc-mild-dark",
-   "name": "3PC MILD Dark",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 210,
-     "proteinG": 42,
-     "carbsG": 17,
-     "fatG": 39,
-     "micros": {
-      "fiberG": 3,
-      "sugarG": 0,
-      "sodiumMg": 1560,
-      "saturatedFatG": 16,
-      "cholesterolMg": 130
      }
     }
    ]
@@ -4723,6 +4922,7 @@
       "sugarG": 0,
       "sodiumMg": 1050,
       "saturatedFatG": 16,
+      "transFatG": 0,
       "cholesterolMg": 130
      }
     }
@@ -4743,6 +4943,7 @@
       "sugarG": 26,
       "sodiumMg": 400,
       "saturatedFatG": 24,
+      "transFatG": 0,
       "cholesterolMg": 115
      }
     }
@@ -4763,6 +4964,7 @@
       "sugarG": 53,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4783,6 +4985,7 @@
       "sugarG": 91,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4794,16 +4997,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 622,
-     "proteinG": 35.7,
-     "carbsG": 50.2,
-     "fatG": 33,
+     "calories": 830,
+     "proteinG": 36,
+     "carbsG": 51,
+     "fatG": 53,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.4,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1710,
-      "saturatedFatG": 15.5,
-      "cholesterolMg": 104.2
+      "saturatedFatG": 19,
+      "transFatG": 1.5,
+      "cholesterolMg": 120
      },
      "includes": {
       "pickle": 1,
@@ -4818,15 +5022,16 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 828,
-     "proteinG": 35.9,
-     "carbsG": 50.7,
+     "calories": 830,
+     "proteinG": 36,
+     "carbsG": 51,
      "fatG": 53,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.9,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1710,
       "saturatedFatG": 19,
+      "transFatG": 1.5,
       "cholesterolMg": 120
      },
      "includes": {
@@ -4850,6 +5055,7 @@
       "sugarG": 118,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4870,6 +5076,7 @@
       "sugarG": 86,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4890,6 +5097,7 @@
       "sugarG": 62,
       "sodiumMg": 65,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4910,6 +5118,7 @@
       "sugarG": 77,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4930,6 +5139,7 @@
       "sugarG": 0,
       "sodiumMg": 70,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4950,6 +5160,7 @@
       "sugarG": 90,
       "sodiumMg": 95,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4970,6 +5181,7 @@
       "sugarG": 112,
       "sodiumMg": 100,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -4981,16 +5193,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 562,
-     "proteinG": 31.7,
-     "carbsG": 50.2,
-     "fatG": 28,
+     "calories": 770,
+     "proteinG": 32,
+     "carbsG": 51,
+     "fatG": 48,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.4,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1550,
-      "saturatedFatG": 14.5,
-      "cholesterolMg": 94.2
+      "saturatedFatG": 18,
+      "transFatG": 1.5,
+      "cholesterolMg": 110
      },
      "includes": {
       "pickle": 1,
@@ -5005,16 +5218,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 552,
-     "proteinG": 31.7,
-     "carbsG": 49.2,
-     "fatG": 27,
+     "calories": 760,
+     "proteinG": 32,
+     "carbsG": 50,
+     "fatG": 47,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.4,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1610,
-      "saturatedFatG": 12.5,
-      "cholesterolMg": 84.2
+      "saturatedFatG": 16,
+      "transFatG": 1.5,
+      "cholesterolMg": 100
      },
      "includes": {
       "pickle": 1,
@@ -5029,15 +5243,16 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 758,
-     "proteinG": 31.9,
-     "carbsG": 49.7,
+     "calories": 760,
+     "proteinG": 32,
+     "carbsG": 50,
      "fatG": 47,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.9,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1610,
       "saturatedFatG": 16,
+      "transFatG": 1.5,
       "cholesterolMg": 100
      },
      "includes": {
@@ -5052,15 +5267,16 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 768,
-     "proteinG": 31.9,
-     "carbsG": 50.7,
+     "calories": 770,
+     "proteinG": 32,
+     "carbsG": 51,
      "fatG": 48,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 7.9,
+      "fiberG": 2,
+      "sugarG": 8,
       "sodiumMg": 1550,
       "saturatedFatG": 18,
+      "transFatG": 1.5,
       "cholesterolMg": 110
      },
      "includes": {
@@ -5084,6 +5300,7 @@
       "sugarG": 0,
       "sodiumMg": 1420,
       "saturatedFatG": 17,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5104,6 +5321,7 @@
       "sugarG": 36,
       "sodiumMg": 650,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5124,6 +5342,7 @@
       "sugarG": 49,
       "sodiumMg": 2800,
       "saturatedFatG": 17,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5144,6 +5363,7 @@
       "sugarG": 14,
       "sodiumMg": 390,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5164,6 +5384,7 @@
       "sugarG": 46,
       "sodiumMg": 2240,
       "saturatedFatG": 17,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5184,6 +5405,7 @@
       "sugarG": 3,
       "sodiumMg": 2870,
       "saturatedFatG": 24,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5204,6 +5426,7 @@
       "sugarG": 11,
       "sodiumMg": 2340,
       "saturatedFatG": 26,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5215,16 +5438,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 269,
-     "proteinG": 15.2,
-     "carbsG": 29.6,
-     "fatG": 12.5,
+     "calories": 480,
+     "proteinG": 19,
+     "carbsG": 31,
+     "fatG": 32,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 1.5,
-      "sodiumMg": 1175,
-      "saturatedFatG": 7.3,
-      "cholesterolMg": 19.6
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1260,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 45
      },
      "includes": {
       "pickle": 1,
@@ -5253,16 +5477,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 423,
-     "proteinG": 15.4,
-     "carbsG": 31,
-     "fatG": 26.5,
+     "calories": 480,
+     "proteinG": 19,
+     "carbsG": 32,
+     "fatG": 31,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 1.9,
-      "sodiumMg": 1235,
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1320,
       "saturatedFatG": 10,
-      "cholesterolMg": 31.5
+      "transFatG": 0,
+      "cholesterolMg": 45
      },
      "includes": {
       "pickle": 1,
@@ -5286,6 +5511,7 @@
       "sugarG": 35,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5306,6 +5532,7 @@
       "sugarG": 35,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5326,6 +5553,7 @@
       "sugarG": 10,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5346,6 +5574,7 @@
       "sugarG": 10,
       "sodiumMg": 0,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5366,6 +5595,7 @@
       "sugarG": 52,
       "sodiumMg": 2520,
       "saturatedFatG": 17,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5377,16 +5607,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 303,
-     "proteinG": 12.4,
-     "carbsG": 28,
-     "fatG": 10.5,
+     "calories": 360,
+     "proteinG": 16,
+     "carbsG": 29,
+     "fatG": 15,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 4.9,
-      "sodiumMg": 1023,
+      "fiberG": 2,
+      "sugarG": 5,
+      "sodiumMg": 1108,
       "saturatedFatG": 9,
-      "cholesterolMg": 29.5
+      "transFatG": 0.5,
+      "cholesterolMg": 43
      },
      "includes": {
       "pickle": 1,
@@ -5410,6 +5641,7 @@
       "sugarG": 30,
       "sodiumMg": 390,
       "saturatedFatG": 18,
+      "transFatG": 1,
       "cholesterolMg": 115
      }
     }
@@ -5430,6 +5662,7 @@
       "sugarG": 45,
       "sodiumMg": 2230,
       "saturatedFatG": 17,
+      "transFatG": 2,
       "cholesterolMg": 210
      }
     }
@@ -5450,6 +5683,7 @@
       "sugarG": 26,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5470,6 +5704,7 @@
       "sugarG": 3,
       "sodiumMg": 10,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5490,6 +5725,7 @@
       "sugarG": 72,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5510,6 +5746,7 @@
       "sugarG": 103,
       "sodiumMg": 5,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5530,6 +5767,7 @@
       "sugarG": 21,
       "sodiumMg": 595.1,
       "saturatedFatG": 19.1,
+      "transFatG": 0.6,
       "cholesterolMg": 20.4
      }
     }
@@ -5550,6 +5788,7 @@
       "sugarG": 1,
       "sodiumMg": 2430,
       "saturatedFatG": 15,
+      "transFatG": 2,
       "cholesterolMg": 195
      }
     }
@@ -5570,6 +5809,7 @@
       "sugarG": 1,
       "sodiumMg": 2930,
       "saturatedFatG": 15,
+      "transFatG": 2,
       "cholesterolMg": 195
      }
     }
@@ -5581,16 +5821,17 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 209,
-     "proteinG": 13.2,
-     "carbsG": 24.6,
-     "fatG": 7.5,
+     "calories": 420,
+     "proteinG": 17,
+     "carbsG": 26,
+     "fatG": 27,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 1.5,
-      "sodiumMg": 1005,
-      "saturatedFatG": 5.3,
-      "cholesterolMg": 29.6
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1090,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 55
      },
      "includes": {
       "pickle": 1,
@@ -5619,40 +5860,21 @@
    "sizes": [
     {
      "size": "regular",
-     "calories": 353,
-     "proteinG": 13.4,
-     "carbsG": 25,
-     "fatG": 22.5,
+     "calories": 410,
+     "proteinG": 17,
+     "carbsG": 26,
+     "fatG": 27,
      "micros": {
-      "fiberG": 1.8,
-      "sugarG": 1.9,
-      "sodiumMg": 1065,
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1150,
       "saturatedFatG": 8,
-      "cholesterolMg": 41.5
+      "transFatG": 0,
+      "cholesterolMg": 55
      },
      "includes": {
       "pickle": 1,
       "cheese": 1
-     }
-    }
-   ]
-  },
-  {
-   "id": "cajun-gravy-side",
-   "name": "Cajun Gravy Side",
-   "sizes": [
-    {
-     "size": "regular",
-     "calories": 160,
-     "proteinG": 3,
-     "carbsG": 13,
-     "fatG": 6,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 750,
-      "saturatedFatG": 0,
-      "cholesterolMg": 5
      }
     }
    ]
@@ -5754,6 +5976,7 @@
       "sugarG": 11,
       "sodiumMg": 400,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5768,6 +5991,7 @@
      "sugarG": 11,
      "sodiumMg": 400,
      "saturatedFatG": 0,
+     "transFatG": 0,
      "cholesterolMg": 0
     }
    }
@@ -5788,6 +6012,7 @@
       "sugarG": 1,
       "sodiumMg": 200,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -5802,6 +6027,7 @@
      "sugarG": 1,
      "sodiumMg": 200,
      "saturatedFatG": 2,
+     "transFatG": 0,
      "cholesterolMg": 10
     }
    }
@@ -5822,6 +6048,7 @@
       "sugarG": 1,
       "sodiumMg": 230,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 5
      }
     }
@@ -5836,6 +6063,7 @@
      "sugarG": 1,
      "sodiumMg": 230,
      "saturatedFatG": 2,
+     "transFatG": 0,
      "cholesterolMg": 5
     }
    }
@@ -5856,6 +6084,7 @@
       "sugarG": 4,
       "sodiumMg": 150,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 10
      }
     }
@@ -5870,6 +6099,7 @@
      "sugarG": 4,
      "sodiumMg": 150,
      "saturatedFatG": 2,
+     "transFatG": 0,
      "cholesterolMg": 10
     }
    }
@@ -5890,6 +6120,7 @@
       "sugarG": 0,
       "sodiumMg": 400,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5904,6 +6135,7 @@
      "sugarG": 0,
      "sodiumMg": 400,
      "saturatedFatG": 1,
+     "transFatG": 0,
      "cholesterolMg": 0
     }
    }
@@ -5924,6 +6156,7 @@
       "sugarG": 3,
       "sodiumMg": 210,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 5
      }
     }
@@ -5938,6 +6171,7 @@
      "sugarG": 3,
      "sodiumMg": 210,
      "saturatedFatG": 1,
+     "transFatG": 0,
      "cholesterolMg": 5
     }
    }
@@ -5958,6 +6192,7 @@
       "sugarG": 16,
       "sodiumMg": 290,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -5972,6 +6207,7 @@
      "sugarG": 16,
      "sodiumMg": 290,
      "saturatedFatG": 0,
+     "transFatG": 0,
      "cholesterolMg": 0
     }
    }
@@ -5992,6 +6228,7 @@
       "sugarG": 6,
       "sodiumMg": 370,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
@@ -6006,6 +6243,7 @@
      "sugarG": 6,
      "sodiumMg": 370,
      "saturatedFatG": 0,
+     "transFatG": 0,
      "cholesterolMg": 0
     }
    }
@@ -6026,6 +6264,7 @@
       "sugarG": 0.5,
       "sodiumMg": 230,
       "saturatedFatG": 3,
+      "transFatG": 0,
       "cholesterolMg": 15
      }
     }
@@ -6040,6 +6279,7 @@
      "sugarG": 0.5,
      "sodiumMg": 230,
      "saturatedFatG": 3,
+     "transFatG": 0,
      "cholesterolMg": 15
     }
    }
@@ -6048,6 +6288,7 @@
    "id": "pickle",
    "name": "Pickle",
    "group": "pickle",
+   "swapGroup": "pickle",
    "bySize": {
     "regular": {
      "calories": 2,
@@ -6075,6 +6316,7 @@
    "id": "bacon",
    "name": "Bacon",
    "group": "bacon",
+   "swapGroup": "bacon",
    "bySize": {
     "regular": {
      "calories": 140,
@@ -6136,6 +6378,7 @@
    "id": "cheese",
    "name": "Cheese",
    "group": "cheese",
+   "swapGroup": "cheese",
    "bySize": {
     "regular": {
      "calories": 55,
@@ -6163,6 +6406,7 @@
    "id": "mayo",
    "name": "Mayo",
    "group": "mayo",
+   "swapGroup": "mayo",
    "bySize": {
     "regular": {
      "calories": 206,

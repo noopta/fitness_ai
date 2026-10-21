@@ -1,0 +1,74 @@
+[
+ {
+  "item": "10 Tenders",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 1140,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Bottle Sprite - 500 mL",
+  "size": "regular",
+  "why": "macros_mismatch",
+  "calories": 200,
+  "proteinG": 0,
+  "carbsG": 64,
+  "fatG": 0
+ },
+ {
+  "item": "Onion Rings",
+  "size": "medium",
+  "why": "calories_only",
+  "calories": 975,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "10Pc Chicken",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 2080,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Frozen Lemon Zester",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 430,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Frozen Strawberry Lemon Zester",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 480,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Chilled Strawberry Lemon Zester",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 360,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ },
+ {
+  "item": "Chilled Lemon Zester",
+  "size": "regular",
+  "why": "calories_only",
+  "calories": 300,
+  "proteinG": 0,
+  "carbsG": 0,
+  "fatG": 0
+ }
+]
