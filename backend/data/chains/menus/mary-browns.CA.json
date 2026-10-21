@@ -3,8 +3,9 @@
  "country": "CA",
  "source": {
   "url": "https://marybrowns.com/wp-content/uploads/Mary-Browns-Allergen-and-Nutritionals-July-2026.pdf",
-  "fetchedAt": "2026-10-11",
-  "note": "PDF → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "PDF \u2192 table parser + model read (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "defaultSize": "medium",
  "items": [
@@ -25,6 +26,7 @@
       "sugarG": 1.1,
       "sodiumMg": 663,
       "saturatedFatG": 1.6,
+      "transFatG": 0.4,
       "cholesterolMg": 0
      }
     },
@@ -40,6 +42,7 @@
       "sugarG": 2.5,
       "sodiumMg": 1459,
       "saturatedFatG": 3.6,
+      "transFatG": 0.9,
       "cholesterolMg": 0
      }
     },
@@ -55,6 +58,7 @@
       "sugarG": 1.8,
       "sodiumMg": 1061,
       "saturatedFatG": 2.6,
+      "transFatG": 0.6,
       "cholesterolMg": 0
      }
     }
@@ -77,6 +81,7 @@
       "sugarG": 1.9,
       "sodiumMg": 611,
       "saturatedFatG": 2.4,
+      "transFatG": 0.1,
       "cholesterolMg": 0
      }
     },
@@ -92,21 +97,7 @@
       "sugarG": 4.8,
       "sodiumMg": 1571,
       "saturatedFatG": 6,
-      "cholesterolMg": 0
-     }
-    },
-    {
-     "size": "large",
-     "label": "Large",
-     "calories": 840,
-     "proteinG": 16.8,
-     "carbsG": 112.5,
-     "fatG": 437,
-     "micros": {
-      "fiberG": 11.8,
-      "sugarG": 3.4,
-      "sodiumMg": 1091,
-      "saturatedFatG": 4.2,
+      "transFatG": 0.2,
       "cholesterolMg": 0
      }
     }
@@ -119,7 +110,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 668,
      "proteinG": 18.2,
      "carbsG": 54.6,
@@ -129,6 +119,7 @@
       "sugarG": 2.6,
       "sodiumMg": 1881,
       "saturatedFatG": 12.6,
+      "transFatG": 1.5,
       "cholesterolMg": 59
      }
     }
@@ -141,7 +132,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 726,
      "proteinG": 24.7,
      "carbsG": 72.3,
@@ -151,6 +141,7 @@
       "sugarG": 2.9,
       "sodiumMg": 1648,
       "saturatedFatG": 12.8,
+      "transFatG": 1.1,
       "cholesterolMg": 59
      }
     }
@@ -163,7 +154,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 820,
      "proteinG": 36,
      "carbsG": 78.4,
@@ -173,6 +163,7 @@
       "sugarG": 3,
       "sodiumMg": 1838,
       "saturatedFatG": 13.2,
+      "transFatG": 1.1,
       "cholesterolMg": 86
      }
     }
@@ -185,7 +176,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 869,
      "proteinG": 39.7,
      "carbsG": 75.4,
@@ -195,19 +185,19 @@
       "sugarG": 2.9,
       "sodiumMg": 2021,
       "saturatedFatG": 14.7,
+      "transFatG": 1.1,
       "cholesterolMg": 105
      }
     }
    ]
   },
   {
-   "id": "mashed-potatoes",
-   "name": "Mashed Potatoes",
+   "id": "mashed-potatoes-individual",
+   "name": "Mashed Potatoes Individual",
    "category": "SIDES",
    "sizes": [
     {
-     "size": "individual",
-     "label": "Individual",
+     "size": "regular",
      "calories": 152,
      "proteinG": 3.5,
      "carbsG": 30.3,
@@ -217,9 +207,17 @@
       "sugarG": 0.4,
       "sodiumMg": 743,
       "saturatedFatG": 1.5,
+      "transFatG": 0,
       "cholesterolMg": 7
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes",
+   "name": "Mashed Potatoes",
+   "category": "SIDES",
+   "sizes": [
     {
      "size": "large",
      "label": "Large",
@@ -232,6 +230,7 @@
       "sugarG": 0.1,
       "sodiumMg": 581,
       "saturatedFatG": 1.6,
+      "transFatG": 0,
       "cholesterolMg": 8
      }
     }
@@ -254,6 +253,7 @@
       "sugarG": 8.3,
       "sodiumMg": 296,
       "saturatedFatG": 0.7,
+      "transFatG": 0.1,
       "cholesterolMg": 7
      }
     },
@@ -269,6 +269,7 @@
       "sugarG": 14.7,
       "sodiumMg": 522,
       "saturatedFatG": 1.2,
+      "transFatG": 0.1,
       "cholesterolMg": 12
      }
     },
@@ -284,6 +285,7 @@
       "sugarG": 12,
       "sodiumMg": 426,
       "saturatedFatG": 1,
+      "transFatG": 0.1,
       "cholesterolMg": 10
      }
     }
@@ -306,6 +308,7 @@
       "sugarG": 0.8,
       "sodiumMg": 625,
       "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -321,6 +324,7 @@
       "sugarG": 1.5,
       "sodiumMg": 1233,
       "saturatedFatG": 0.1,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     },
@@ -336,19 +340,19 @@
       "sugarG": 1.5,
       "sodiumMg": 1233,
       "saturatedFatG": 0.1,
+      "transFatG": 0,
       "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "chicken-thigh",
-   "name": "Chicken Thigh",
+   "id": "thigh",
+   "name": "Thigh",
    "category": "CHICKEN",
    "sizes": [
     {
-     "size": "1 piece",
-     "label": "1 piece",
+     "size": "regular",
      "calories": 240,
      "proteinG": 19,
      "carbsG": 4,
@@ -358,19 +362,19 @@
       "sugarG": 0,
       "sodiumMg": 430,
       "saturatedFatG": 3.5,
+      "transFatG": 0.1,
       "cholesterolMg": 95
      }
     }
    ]
   },
   {
-   "id": "chicken-side-breast",
-   "name": "Chicken Side Breast",
+   "id": "side-breast",
+   "name": "Side Breast",
    "category": "CHICKEN",
    "sizes": [
     {
-     "size": "1 piece",
-     "label": "1 piece",
+     "size": "regular",
      "calories": 241,
      "proteinG": 32,
      "carbsG": 2,
@@ -380,19 +384,19 @@
       "sugarG": 0,
       "sodiumMg": 570,
       "saturatedFatG": 2,
+      "transFatG": 0.1,
       "cholesterolMg": 105
      }
     }
    ]
   },
   {
-   "id": "chicken-wing",
-   "name": "Chicken Wing",
+   "id": "wing",
+   "name": "Wing",
    "category": "CHICKEN",
    "sizes": [
     {
-     "size": "1 piece",
-     "label": "1 piece",
+     "size": "regular",
      "calories": 160,
      "proteinG": 14,
      "carbsG": 4,
@@ -402,19 +406,19 @@
       "sugarG": 0,
       "sodiumMg": 370,
       "saturatedFatG": 2,
+      "transFatG": 0,
       "cholesterolMg": 65
      }
     }
    ]
   },
   {
-   "id": "chicken-drumstick",
-   "name": "Chicken Drumstick",
+   "id": "drumstick",
+   "name": "Drumstick",
    "category": "CHICKEN",
    "sizes": [
     {
-     "size": "1 piece",
-     "label": "1 piece",
+     "size": "regular",
      "calories": 90,
      "proteinG": 11,
      "carbsG": 1,
@@ -424,19 +428,19 @@
       "sugarG": 0,
       "sodiumMg": 250,
       "saturatedFatG": 1,
+      "transFatG": 0,
       "cholesterolMg": 55
      }
     }
    ]
   },
   {
-   "id": "chicken-centre-breast",
-   "name": "Chicken Centre Breast",
+   "id": "centre-breast",
+   "name": "Centre Breast",
    "category": "CHICKEN",
    "sizes": [
     {
-     "size": "1 piece",
-     "label": "1 piece",
+     "size": "regular",
      "calories": 330,
      "proteinG": 39,
      "carbsG": 7,
@@ -446,6 +450,7 @@
       "sugarG": 0,
       "sodiumMg": 820,
       "saturatedFatG": 2.5,
+      "transFatG": 0.1,
       "cholesterolMg": 125
      }
     }
@@ -458,7 +463,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 330,
      "proteinG": 43,
      "carbsG": 3,
@@ -468,6 +472,7 @@
       "sugarG": 0,
       "sodiumMg": 820,
       "saturatedFatG": 3,
+      "transFatG": 0.1,
       "cholesterolMg": 160
      }
     }
@@ -480,7 +485,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 389,
      "proteinG": 33,
      "carbsG": 8,
@@ -490,6 +494,7 @@
       "sugarG": 0,
       "sodiumMg": 800,
       "saturatedFatG": 6.3,
+      "transFatG": 0.3,
       "cholesterolMg": 128
      }
     }
@@ -502,7 +507,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 641,
      "proteinG": 65,
      "carbsG": 10,
@@ -512,6 +516,7 @@
       "sugarG": 0,
       "sodiumMg": 1370,
       "saturatedFatG": 7.5,
+      "transFatG": 0.2,
       "cholesterolMg": 265
      }
     }
@@ -524,7 +529,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 571,
      "proteinG": 62,
      "carbsG": 7,
@@ -534,6 +538,7 @@
       "sugarG": 0,
       "sodiumMg": 1250,
       "saturatedFatG": 7,
+      "transFatG": 0.2,
       "cholesterolMg": 255
      }
     }
@@ -546,7 +551,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 366,
      "proteinG": 38,
      "carbsG": 5.5,
@@ -556,6 +560,7 @@
       "sugarG": 0,
       "sodiumMg": 810,
       "saturatedFatG": 4.5,
+      "transFatG": 0.1,
       "cholesterolMg": 160
      }
     }
@@ -568,7 +573,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 486,
      "proteinG": 54,
      "carbsG": 6.5,
@@ -578,6 +582,7 @@
       "sugarG": 0,
       "sodiumMg": 1095,
       "saturatedFatG": 5.5,
+      "transFatG": 0.2,
       "cholesterolMg": 213
      }
     }
@@ -590,7 +595,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 485,
      "proteinG": 47.5,
      "carbsG": 7.5,
@@ -600,29 +604,8 @@
       "sugarG": 0,
       "sodiumMg": 1025,
       "saturatedFatG": 6.3,
+      "transFatG": 0.2,
       "cholesterolMg": 208
-     }
-    }
-   ]
-  },
-  {
-   "id": "fan-favorite-6pc-2-thighs-drum-2-wing-and-side-breast",
-   "name": "Fan Favorite 6PC: 2 Thighs, Drum, 2 Wing, and Side Breast",
-   "category": "CHICKEN",
-   "sizes": [
-    {
-     "size": "regular",
-     "label": "Regular",
-     "calories": 725,
-     "proteinG": 31,
-     "carbsG": 5.9,
-     "fatG": 43.5,
-     "micros": {
-      "fiberG": 0,
-      "sugarG": 0,
-      "sodiumMg": 1525,
-      "saturatedFatG": 10.8,
-      "cholesterolMg": 106
      }
     }
    ]
@@ -634,7 +617,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 448,
      "proteinG": 48,
      "carbsG": 5.5,
@@ -644,6 +626,7 @@
       "sugarG": 0,
       "sodiumMg": 1015,
       "saturatedFatG": 5.1,
+      "transFatG": 0.1,
       "cholesterolMg": 191
      }
     }
@@ -656,7 +639,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 420,
      "proteinG": 44.5,
      "carbsG": 5.5,
@@ -666,6 +648,7 @@
       "sugarG": 0,
       "sodiumMg": 947,
       "saturatedFatG": 9.4,
+      "transFatG": 0.1,
       "cholesterolMg": 181
      }
     }
@@ -678,7 +661,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 398,
      "proteinG": 42.4,
      "carbsG": 4.9,
@@ -688,6 +670,7 @@
       "sugarG": 0,
       "sodiumMg": 902,
       "saturatedFatG": 4.6,
+      "transFatG": 0.1,
       "cholesterolMg": 170
      }
     }
@@ -700,7 +683,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 384,
      "proteinG": 41,
      "carbsG": 4.7,
@@ -710,6 +692,7 @@
       "sugarG": 0,
       "sodiumMg": 870,
       "saturatedFatG": 4.4,
+      "transFatG": 0.1,
       "cholesterolMg": 164
      }
     }
@@ -722,7 +705,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 596,
      "proteinG": 33,
      "carbsG": 44.3,
@@ -732,6 +714,7 @@
       "sugarG": 3.5,
       "sodiumMg": 655,
       "saturatedFatG": 4,
+      "transFatG": 0.6,
       "cholesterolMg": 72
      }
     }
@@ -744,7 +727,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 598,
      "proteinG": 33,
      "carbsG": 45.6,
@@ -754,6 +736,7 @@
       "sugarG": 3.5,
       "sodiumMg": 802,
       "saturatedFatG": 3,
+      "transFatG": 0.4,
       "cholesterolMg": 75
      }
     }
@@ -766,7 +749,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 700,
      "proteinG": 35,
      "carbsG": 65,
@@ -776,6 +758,7 @@
       "sugarG": 25,
       "sodiumMg": 1560,
       "saturatedFatG": 4.5,
+      "transFatG": 0.4,
       "cholesterolMg": 75
      }
     }
@@ -788,7 +771,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 394,
      "proteinG": 20.8,
      "carbsG": 8.6,
@@ -798,6 +780,7 @@
       "sugarG": 0.1,
       "sodiumMg": 160,
       "saturatedFatG": 2.5,
+      "transFatG": 0.7,
       "cholesterolMg": 50
      }
     }
@@ -810,7 +793,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 490,
      "proteinG": 22,
      "carbsG": 33,
@@ -820,6 +802,7 @@
       "sugarG": 2,
       "sodiumMg": 5260,
       "saturatedFatG": 3,
+      "transFatG": 0.5,
       "cholesterolMg": 50
      }
     }
@@ -832,7 +815,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 522,
      "proteinG": 21.4,
      "carbsG": 34,
@@ -842,6 +824,7 @@
       "sugarG": 22.8,
       "sodiumMg": 1492,
       "saturatedFatG": 3.1,
+      "transFatG": 0.7,
       "cholesterolMg": 50
      }
     }
@@ -854,7 +837,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 657,
      "proteinG": 34.7,
      "carbsG": 14.3,
@@ -864,6 +846,7 @@
       "sugarG": 0.1,
       "sodiumMg": 267,
       "saturatedFatG": 4.2,
+      "transFatG": 1.2,
       "cholesterolMg": 83
      }
     }
@@ -876,7 +859,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 827,
      "proteinG": 35.4,
      "carbsG": 48,
@@ -886,6 +868,7 @@
       "sugarG": 30,
       "sodiumMg": 2043,
       "saturatedFatG": 5,
+      "transFatG": 1.2,
       "cholesterolMg": 83
      }
     }
@@ -898,7 +881,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 760,
      "proteinG": 36,
      "carbsG": 39,
@@ -908,6 +890,7 @@
       "sugarG": 2,
       "sodiumMg": 5370,
       "saturatedFatG": 5,
+      "transFatG": 1,
       "cholesterolMg": 85
      }
     }
@@ -920,7 +903,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 533,
      "proteinG": 19,
      "carbsG": 65,
@@ -930,6 +912,7 @@
       "sugarG": 19,
       "sodiumMg": 1550,
       "saturatedFatG": 7,
+      "transFatG": 0.2,
       "cholesterolMg": 58
      }
     }
@@ -942,7 +925,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 336,
      "proteinG": 15.7,
      "carbsG": 48.7,
@@ -952,6 +934,7 @@
       "sugarG": 1.1,
       "sodiumMg": 1337,
       "saturatedFatG": 3.8,
+      "transFatG": 0,
       "cholesterolMg": 35
      }
     }
@@ -964,7 +947,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 355,
      "proteinG": 10.3,
      "carbsG": 21.2,
@@ -974,6 +956,7 @@
       "sugarG": 2.2,
       "sodiumMg": 348,
       "saturatedFatG": 3.2,
+      "transFatG": 0.5,
       "cholesterolMg": 24
      }
     }
@@ -986,7 +969,6 @@
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
      "calories": 355,
      "proteinG": 10.3,
      "carbsG": 21.9,
@@ -996,6 +978,7 @@
       "sugarG": 2.2,
       "sodiumMg": 348,
       "saturatedFatG": 2.2,
+      "transFatG": 0.3,
       "cholesterolMg": 27
      }
     }
@@ -1007,8 +990,7 @@
    "category": "SNACK MENU",
    "sizes": [
     {
-     "size": "2 pieces",
-     "label": "2 pieces",
+     "size": "regular",
      "calories": 419,
      "proteinG": 13.6,
      "carbsG": 37.3,
@@ -1018,6 +1000,7 @@
       "sugarG": 3.3,
       "sodiumMg": 757,
       "saturatedFatG": 4.6,
+      "transFatG": 0,
       "cholesterolMg": 26
      }
     }
@@ -1040,6 +1023,7 @@
       "sugarG": 10.8,
       "sodiumMg": 541,
       "saturatedFatG": 0.5,
+      "transFatG": 0,
       "cholesterolMg": 43
      }
     },
@@ -1055,6 +1039,7 @@
       "sugarG": 21.6,
       "sodiumMg": 1081,
       "saturatedFatG": 1.1,
+      "transFatG": 0,
       "cholesterolMg": 86
      }
     },
@@ -1070,6 +1055,7 @@
       "sugarG": 27.1,
       "sodiumMg": 1504,
       "saturatedFatG": 1.6,
+      "transFatG": 0,
       "cholesterolMg": 129
      }
     }
@@ -1092,6 +1078,7 @@
       "sugarG": 0,
       "sodiumMg": 446,
       "saturatedFatG": 0.5,
+      "transFatG": 0.1,
       "cholesterolMg": 43
      }
     },
@@ -1107,6 +1094,7 @@
       "sugarG": 0.2,
       "sodiumMg": 892,
       "saturatedFatG": 1.1,
+      "transFatG": 0.1,
       "cholesterolMg": 86
      }
     },
@@ -1122,29 +1110,338 @@
       "sugarG": 0.3,
       "sodiumMg": 1338,
       "saturatedFatG": 1.6,
+      "transFatG": 0.2,
       "cholesterolMg": 129
      }
     }
    ]
   },
   {
-   "id": "apple-pies",
-   "name": "Apple Pies",
-   "category": "DESSERTS",
+   "id": "ketchup",
+   "name": "Ketchup",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
-     "label": "Regular",
-     "calories": 236,
-     "proteinG": 2,
-     "carbsG": 29,
-     "fatG": 4.1,
+     "calories": 10,
+     "proteinG": 0.1,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 79,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vinegar",
+   "name": "Vinegar",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "louisiana-hot-sauce",
+   "name": "Louisiana Hot Sauce",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 250,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo",
+   "name": "Buffalo",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 42,
+     "proteinG": 0.2,
+     "carbsG": 8.4,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 7.5,
+      "sodiumMg": 439,
+      "saturatedFatG": 0.2,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot-honey",
+   "name": "Hot Honey",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 80,
+     "proteinG": 0.1,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 21,
+      "sodiumMg": 1,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq",
+   "name": "BBQ",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 40,
+     "proteinG": 0.5,
+     "carbsG": 9,
+     "fatG": 0.2,
      "micros": {
       "fiberG": 1,
-      "sugarG": 8,
-      "sodiumMg": 250,
-      "saturatedFatG": 5.3,
+      "sugarG": 7,
+      "sodiumMg": 300,
+      "saturatedFatG": 0,
+      "transFatG": 0,
       "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-mustard",
+   "name": "Honey Mustard",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 60,
+     "proteinG": 1,
+     "carbsG": 14,
+     "fatG": 1,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 12,
+      "sodiumMg": 70,
+      "saturatedFatG": 0.1,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-dill",
+   "name": "Honey Dill",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 140,
+     "proteinG": 0.2,
+     "carbsG": 10,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 140,
+      "saturatedFatG": 1,
+      "transFatG": 0.1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-and-sour",
+   "name": "Sweet and Sour",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 45,
+     "proteinG": 0.1,
+     "carbsG": 10,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 60,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-thai-chilli",
+   "name": "Sweet Thai Chilli",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 50,
+     "proteinG": 0.1,
+     "carbsG": 12,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 10,
+      "sodiumMg": 220,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-mayo",
+   "name": "Spicy Mayo",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 168,
+     "proteinG": 0.4,
+     "carbsG": 0.9,
+     "fatG": 17.7,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 149,
+      "saturatedFatG": 1.4,
+      "transFatG": 0.1,
+      "cholesterolMg": 14
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-habanero",
+   "name": "Mango Habanero",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 50,
+     "proteinG": 0.1,
+     "carbsG": 13,
+     "fatG": 0.1,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 140,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "eh-sauce",
+   "name": "EH Sauce",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 140,
+     "proteinG": 0.4,
+     "carbsG": 3,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 310,
+      "saturatedFatG": 1,
+      "transFatG": 0.1,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mb-sauce",
+   "name": "MB Sauce",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 0.3,
+     "carbsG": 5,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 220,
+      "saturatedFatG": 1,
+      "transFatG": 0.1,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch",
+   "name": "Ranch",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 143,
+     "proteinG": 0.4,
+     "carbsG": 2.4,
+     "fatG": 14.3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2.4,
+      "sodiumMg": 226,
+      "saturatedFatG": 1.2,
+      "transFatG": 0.1,
+      "cholesterolMg": 12
      }
     }
    ]
@@ -1155,8 +1452,7 @@
    "category": "DESSERTS",
    "sizes": [
     {
-     "size": "1 container",
-     "label": "1 container",
+     "size": "regular",
      "calories": 300,
      "proteinG": 3,
      "carbsG": 35,
@@ -1166,6 +1462,7 @@
       "sugarG": 26,
       "sodiumMg": 200,
       "saturatedFatG": 11,
+      "transFatG": 0.4,
       "cholesterolMg": 50
      }
     }
@@ -1177,8 +1474,7 @@
    "category": "DESSERTS",
    "sizes": [
     {
-     "size": "1 container",
-     "label": "1 container",
+     "size": "regular",
      "calories": 235,
      "proteinG": 2.4,
      "carbsG": 31,
@@ -1188,297 +1484,12 @@
       "sugarG": 21,
       "sodiumMg": 248,
       "saturatedFatG": 10.4,
+      "transFatG": 0,
       "cholesterolMg": 2
      }
     }
    ]
   }
  ],
- "modifiers": [
-  {
-   "id": "ketchup",
-   "name": "Ketchup",
-   "group": "sauce",
-   "unit": "1 packet",
-   "per": {
-    "calories": 10,
-    "proteinG": 0.1,
-    "carbsG": 2,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2,
-     "sodiumMg": 79,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "vinegar",
-   "name": "Vinegar",
-   "group": "sauce",
-   "unit": "1 packet",
-   "per": {
-    "calories": 2,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 0,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "louisiana-hot-sauce",
-   "name": "Louisiana Hot Sauce",
-   "group": "sauce",
-   "unit": "1 packet",
-   "per": {
-    "calories": 0,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 250,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "buffalo",
-   "name": "Buffalo",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 42,
-    "proteinG": 0.2,
-    "carbsG": 8.4,
-    "fatG": 0.5,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 7.5,
-     "sodiumMg": 439,
-     "saturatedFatG": 0.2,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "hot-honey",
-   "name": "Hot Honey",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 80,
-    "proteinG": 0.1,
-    "carbsG": 22,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 21,
-     "sodiumMg": 1,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "bbq",
-   "name": "BBQ",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 40,
-    "proteinG": 0.5,
-    "carbsG": 9,
-    "fatG": 0.2,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 7,
-     "sodiumMg": 300,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "honey-mustard",
-   "name": "Honey Mustard",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 60,
-    "proteinG": 1,
-    "carbsG": 14,
-    "fatG": 1,
-    "micros": {
-     "fiberG": 1,
-     "sugarG": 12,
-     "sodiumMg": 70,
-     "saturatedFatG": 0.1,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "honey-dill",
-   "name": "Honey Dill",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 140,
-    "proteinG": 0.2,
-    "carbsG": 10,
-    "fatG": 11,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 6,
-     "sodiumMg": 140,
-     "saturatedFatG": 1,
-     "cholesterolMg": 10
-    }
-   }
-  },
-  {
-   "id": "sweet-and-sour",
-   "name": "Sweet and Sour",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 45,
-    "proteinG": 0.1,
-    "carbsG": 10,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 9,
-     "sodiumMg": 60,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "sweet-thai-chilli",
-   "name": "Sweet Thai Chilli",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 50,
-    "proteinG": 0.1,
-    "carbsG": 12,
-    "fatG": 0,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 10,
-     "sodiumMg": 220,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "spicy-mayo",
-   "name": "Spicy Mayo",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 168,
-    "proteinG": 0.4,
-    "carbsG": 0.9,
-    "fatG": 17.7,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 0,
-     "sodiumMg": 149,
-     "saturatedFatG": 1.4,
-     "cholesterolMg": 14
-    }
-   }
-  },
-  {
-   "id": "mango-habanero",
-   "name": "Mango Habanero",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 50,
-    "proteinG": 0.1,
-    "carbsG": 13,
-    "fatG": 0.1,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 9,
-     "sodiumMg": 140,
-     "saturatedFatG": 0,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "eh-sauce",
-   "name": "EH Sauce",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 140,
-    "proteinG": 0.4,
-    "carbsG": 3,
-    "fatG": 14,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2,
-     "sodiumMg": 310,
-     "saturatedFatG": 1,
-     "cholesterolMg": 0
-    }
-   }
-  },
-  {
-   "id": "mb-sauce",
-   "name": "MB Sauce",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 150,
-    "proteinG": 0.3,
-    "carbsG": 5,
-    "fatG": 14,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 5,
-     "sodiumMg": 220,
-     "saturatedFatG": 1,
-     "cholesterolMg": 10
-    }
-   }
-  },
-  {
-   "id": "ranch",
-   "name": "Ranch",
-   "group": "sauce",
-   "unit": "1 serving",
-   "per": {
-    "calories": 143,
-    "proteinG": 0.4,
-    "carbsG": 2.4,
-    "fatG": 14.3,
-    "micros": {
-     "fiberG": 0,
-     "sugarG": 2.4,
-     "sodiumMg": 226,
-     "saturatedFatG": 1.2,
-     "cholesterolMg": 12
-    }
-   }
-  }
- ]
+ "modifiers": []
 }

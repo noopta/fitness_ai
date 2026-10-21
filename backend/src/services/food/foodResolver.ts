@@ -260,7 +260,7 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   const emit = (phase: ResolveStep, state: ResolveEvent['state'], text: string) => ctx.onEvent?.({ item: index, brand: item.brand, phase, state, text });
   const what = [item.brand, item.product].join(' ');
   const done = (r: ResolvedItem) => {
-    d.log({ at: new Date().toISOString(), userId: ctx.userId ?? null, surface: ctx.surface, brand: item.brand, product: item.product, size: item.size, step: r.step, kind: r.result.kind, reason: r.result.kind === 'found' ? null : r.result.reason, web: r.web, gate: r.gateReason ?? null, ms: r.ms, webCalls: r.web === 'used' ? 1 : 0 });
+    d.log({ at: new Date().toISOString(), userId: ctx.userId ?? null, surface: ctx.surface, brand: item.brand, product: item.product, size: item.size, step: r.step, kind: r.result.kind, reason: r.result.kind === 'found' ? null : r.result.reason, source: r.result.kind === 'found' ? (r.result.facts.sources?.[0]?.uri || r.result.facts.sources?.[0]?.title || null) : null, web: r.web, gate: r.gateReason ?? null, ms: r.ms, webCalls: r.web === 'used' ? 1 : 0 });
     return r;
   };
 
@@ -272,13 +272,13 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   const menu = (() => { try { return d.chainMenu(item, countryKey(ctx.tz) || 'US'); } catch { return null; } })();
   if (menu && plausible({ ...item, estimate: { ...item.estimate, calories: item.estimate.calories } }, menu.facts)) {
     const mods = menu.applied.length ? ` + ${menu.applied.map((a) => `${a.quantity < 0 ? 'no ' : a.quantity > 1 ? `${a.quantity}× ` : ''}${a.name}${a.official ? '' : ' (est.)'}`).join(', ')}` : '';
-    emit('chain', 'found', `${what} — from ${menu.facts.sources[0]?.title} menu${mods}`);
+    emit('chain', 'found', `${what} — verified${mods}`);
     return done({ result: found(menu.facts), step: 'chain', web: 'not_needed', ms: Date.now() - t0, modifiers: menu.applied, unmatched: menu.unmatched });
   }
   if (ctx.userId) {
     emit('history', 'checking', `${what} — your past scans`);
     const h = await d.history(ctx.userId, item).catch(() => null);
-    if (h && plausible(item, h)) { emit('history', 'found', `${what} — from ${h.sources[0]?.title}`); return done({ result: found(h), step: 'history', web: 'not_needed', ms: Date.now() - t0 }); }
+    if (h && plausible(item, h)) { emit('history', 'found', `${what} — from your past scans`); return done({ result: found(h), step: 'history', web: 'not_needed', ms: Date.now() - t0 }); }
   }
   const rec = await d.records(item, ctx.tz).catch(() => null);
   if (rec && plausible(item, rec)) { emit('records', 'found', `${what} — already verified`); return done({ result: found(rec), step: 'records', web: 'not_needed', ms: Date.now() - t0 }); }
@@ -286,12 +286,12 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   // Food databases hold chains' grocery products (bottled Frappuccino), not
   // their menu items — so a chain's menu item skips straight to the web gate.
   const chain = isKnownChain(item.brand);
-  if (!chain) emit('database', 'checking', `${what} — food databases`);
+  if (!chain) emit('database', 'checking', `${what} — checking nutrition`);
   const db: DbOutcome = chain
     ? { kind: 'not_found', reason: 'chain_menu_item', brandSeen: true }
     : await d.database(item, ctx.tz).then((r) => (r.kind === 'found' && !plausible(item, r.facts) ? { kind: 'not_found' as const, reason: 'implausible', brandSeen: true } : r)).catch((): DbOutcome => ({ kind: 'unavailable', reason: 'error', brandSeen: false }));
   if (db.kind === 'found') {
-    emit('database', 'found', `${what} — from ${db.facts.sources[0]?.title}`);
+    emit('database', 'found', `${what} — verified`);
     void d.remember(item, ctx.tz, db.facts, 'database');
     return done({ result: found(db.facts), step: 'database', web: 'not_needed', ms: Date.now() - t0 });
   }
@@ -301,11 +301,11 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
     emit('estimate', 'skipped', `${what} — not in food databases, estimated`);
     return done({ result: { kind: 'not_found', reason: `gated:${gate.reason}` }, step: 'estimate', web: 'gated', gateReason: gate.reason, ms: Date.now() - t0 });
   }
-  emit('web', 'checking', `${what} — searching the web`);
+  emit('web', 'checking', `${what} — checking nutrition`);
   const w0 = await d.web(item, ctx.tz).catch((): BrandedLookup => ({ kind: 'unavailable', reason: 'error' }));
   const w: BrandedLookup = w0.kind === 'found' && !plausible(item, w0.facts) ? { kind: 'not_found', reason: 'implausible' } : w0;
   if (w.kind === 'found') {
-    emit('web', 'found', `${what} — from ${w.facts.sources[0]?.title ?? 'the web'}`);
+    emit('web', 'found', `${what} — verified`);
     // Keep it for everyone only when it's the chain's own site, or when a
     // second independent lookup agrees (within 5%) — so one odd answer never
     // becomes everyone's answer. The check runs after this reply.

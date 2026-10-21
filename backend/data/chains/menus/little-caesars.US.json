@@ -1,0 +1,1598 @@
+{
+ "chain": "little-caesars",
+ "country": "US",
+ "source": {
+  "url": "https://littlecaesars.com/static/usnutritionguide.pdf",
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → table parser + model read (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "pepperoni",
+   "name": "Pepperoni",
+   "category": "LARGE EXTRAMOSTBESTEST PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2500,
+     "proteinG": 122,
+     "carbsG": 252,
+     "fatG": 113,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 19,
+      "sodiumMg": 5640,
+      "saturatedFatG": 50,
+      "transFatG": 3.5,
+      "cholesterolMg": 275
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese",
+   "name": "Cheese",
+   "category": "LARGE EXTRAMOSTBESTEST PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2220,
+     "proteinG": 117,
+     "carbsG": 252,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 17,
+      "sodiumMg": 4430,
+      "saturatedFatG": 42,
+      "transFatG": 3,
+      "cholesterolMg": 215
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage",
+   "name": "Italian Sausage",
+   "category": "LARGE EXTRAMOSTBESTEST PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2660,
+     "proteinG": 129,
+     "carbsG": 252,
+     "fatG": 128,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 19,
+      "sodiumMg": 5680,
+      "saturatedFatG": 53,
+      "transFatG": 2.5,
+      "cholesterolMg": 310
+     }
+    }
+   ]
+  },
+  {
+   "id": "5-meat-feast",
+   "name": "5 Meat Feast®",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2830,
+     "proteinG": 139,
+     "carbsG": 252,
+     "fatG": 142,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 20,
+      "sodiumMg": 7120,
+      "saturatedFatG": 58,
+      "transFatG": 3.5,
+      "cholesterolMg": 345
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-supreme",
+   "name": "Ultimate Supreme",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2500,
+     "proteinG": 118,
+     "carbsG": 259,
+     "fatG": 112,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 23,
+      "sodiumMg": 5780,
+      "saturatedFatG": 47,
+      "transFatG": 3,
+      "cholesterolMg": 265
+     }
+    }
+   ]
+  },
+  {
+   "id": "3-meat-treat",
+   "name": "3 Meat Treat®",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2860,
+     "proteinG": 135,
+     "carbsG": 252,
+     "fatG": 147,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 20,
+      "sodiumMg": 6590,
+      "saturatedFatG": 61,
+      "transFatG": 3,
+      "cholesterolMg": 340
+     }
+    }
+   ]
+  },
+  {
+   "id": "hula-hawaiian",
+   "name": "Hula Hawaiian®",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2180,
+     "proteinG": 121,
+     "carbsG": 272,
+     "fatG": 70,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 35,
+      "sodiumMg": 5570,
+      "saturatedFatG": 31,
+      "transFatG": 2,
+      "cholesterolMg": 220
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie",
+   "name": "Veggie",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2240,
+     "proteinG": 100,
+     "carbsG": 266,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 25,
+      "sodiumMg": 5430,
+      "saturatedFatG": 38,
+      "transFatG": 2,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "slices-n-stix",
+   "name": "Slices-N-Stix®",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2300,
+     "proteinG": 107,
+     "carbsG": 253,
+     "fatG": 97,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 20,
+      "sodiumMg": 5220,
+      "saturatedFatG": 41,
+      "transFatG": 2.5,
+      "cholesterolMg": 205
+     }
+    }
+   ]
+  },
+  {
+   "id": "slices-n-stix-bacon",
+   "name": "Slices-N-Stix® Bacon",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2980,
+     "proteinG": 116,
+     "carbsG": 252,
+     "fatG": 115,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 19,
+      "sodiumMg": 5560,
+      "saturatedFatG": 48,
+      "transFatG": 3,
+      "cholesterolMg": 235
+     }
+    }
+   ]
+  },
+  {
+   "id": "slices-n-stix-jalapeno",
+   "name": "Slices-N-Stix® Jalapeño",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2330,
+     "proteinG": 107,
+     "carbsG": 255,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 15,
+      "sugarG": 20,
+      "sodiumMg": 6000,
+      "saturatedFatG": 41,
+      "transFatG": 2.5,
+      "cholesterolMg": 205
+     }
+    }
+   ]
+  },
+  {
+   "id": "stuffed-crust-pepperoni",
+   "name": "Stuffed Crust Pepperoni",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2980,
+     "proteinG": 144,
+     "carbsG": 259,
+     "fatG": 153,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 20,
+      "sodiumMg": 7040,
+      "saturatedFatG": 70,
+      "transFatG": 4.5,
+      "cholesterolMg": 385
+     }
+    }
+   ]
+  },
+  {
+   "id": "pretzel-crust-pizza-with-pizza-sauce",
+   "name": "Pretzel Crust Pizza with Pizza Sauce",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2080,
+     "proteinG": 91,
+     "carbsG": 240,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 14,
+      "sodiumMg": 10500,
+      "saturatedFatG": 34,
+      "transFatG": 2,
+      "cholesterolMg": 170
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-pretzel-crust-pizza-with-cheese-sauce",
+   "name": "Cheese Pretzel Crust Pizza with Cheese Sauce",
+   "category": "LARGE SPECIALTY PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1940,
+     "proteinG": 85,
+     "carbsG": 243,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 12,
+      "sodiumMg": 10080,
+      "saturatedFatG": 28,
+      "transFatG": 1.5,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-large-classic-pizzas",
+   "name": "Pepperoni (Large Classic Pizzas)",
+   "category": "LARGE CLASSIC PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2300,
+     "proteinG": 109,
+     "carbsG": 250,
+     "fatG": 97,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 19,
+      "sodiumMg": 5050,
+      "saturatedFatG": 42,
+      "transFatG": 3,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-large-classic-pizzas",
+   "name": "Cheese (Large Classic Pizzas)",
+   "category": "LARGE CLASSIC PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1950,
+     "proteinG": 95,
+     "carbsG": 248,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 17,
+      "sodiumMg": 3740,
+      "saturatedFatG": 31,
+      "transFatG": 2,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage-large-classic-pizzas",
+   "name": "Italian Sausage (Large Classic Pizzas)",
+   "category": "LARGE CLASSIC PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2270,
+     "proteinG": 111,
+     "carbsG": 255,
+     "fatG": 91,
+     "micros": {
+      "fiberG": 13,
+      "sugarG": 17,
+      "sodiumMg": 4480,
+      "saturatedFatG": 40,
+      "transFatG": 2,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-detroit-style-deep-dish-pizzas",
+   "name": "Pepperoni (Detroit-Style Deep Dish Pizzas)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2770,
+     "proteinG": 129,
+     "carbsG": 319,
+     "fatG": 111,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 20,
+      "sodiumMg": 5280,
+      "saturatedFatG": 47,
+      "transFatG": 3,
+      "cholesterolMg": 240
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-detroit-style-deep-dish-pizzas",
+   "name": "Cheese (Detroit-Style Deep Dish Pizzas)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2500,
+     "proteinG": 118,
+     "carbsG": 317,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 19,
+      "sodiumMg": 4230,
+      "saturatedFatG": 38,
+      "transFatG": 2.5,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage-detroit-style-deep-dish-pizzas",
+   "name": "Italian Sausage (Detroit-Style Deep Dish Pizzas)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2820,
+     "proteinG": 133,
+     "carbsG": 319,
+     "fatG": 114,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 20,
+      "sodiumMg": 5130,
+      "saturatedFatG": 48,
+      "transFatG": 2.5,
+      "cholesterolMg": 250
+     }
+    }
+   ]
+  },
+  {
+   "id": "ultimate-supreme-detroit-style-deep-dish-pizzas-specialty",
+   "name": "Ultimate Supreme (Detroit-Style Deep Dish Pizzas Specialty)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS SPECIALTY",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 3050,
+     "proteinG": 141,
+     "carbsG": 332,
+     "fatG": 130,
+     "micros": {
+      "fiberG": 20,
+      "sugarG": 27,
+      "sodiumMg": 6270,
+      "saturatedFatG": 54,
+      "transFatG": 3,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "3-meat-treat-detroit-style-deep-dish-pizzas-specialty",
+   "name": "3 Meat Treat (Detroit-Style Deep Dish Pizzas Specialty)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS SPECIALTY",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 3480,
+     "proteinG": 159,
+     "carbsG": 321,
+     "fatG": 175,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 22,
+      "sodiumMg": 7240,
+      "saturatedFatG": 70,
+      "transFatG": 3.5,
+      "cholesterolMg": 365
+     }
+    }
+   ]
+  },
+  {
+   "id": "hula-hawaiian-detroit-style-deep-dish-pizzas-specialty",
+   "name": "Hula Hawaiian (Detroit-Style Deep Dish Pizzas Specialty)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS SPECIALTY",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2690,
+     "proteinG": 137,
+     "carbsG": 341,
+     "fatG": 88,
+     "micros": {
+      "fiberG": 17,
+      "sugarG": 37,
+      "sodiumMg": 5610,
+      "saturatedFatG": 38,
+      "transFatG": 2.5,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "veggie-detroit-style-deep-dish-pizzas-specialty",
+   "name": "Veggie (Detroit-Style Deep Dish Pizzas Specialty)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS SPECIALTY",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2730,
+     "proteinG": 123,
+     "carbsG": 333,
+     "fatG": 99,
+     "micros": {
+      "fiberG": 22,
+      "sugarG": 26,
+      "sodiumMg": 5760,
+      "saturatedFatG": 43,
+      "transFatG": 2.5,
+      "cholesterolMg": 180
+     }
+    }
+   ]
+  },
+  {
+   "id": "5-meat-feast-detroit-style-deep-dish-pizzas-specialty",
+   "name": "5 Meat Feast (Detroit-Style Deep Dish Pizzas Specialty)",
+   "category": "DETROIT-STYLE DEEP DISH PIZZAS SPECIALTY",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 3500,
+     "proteinG": 171,
+     "carbsG": 322,
+     "fatG": 172,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 23,
+      "sodiumMg": 8140,
+      "saturatedFatG": 69,
+      "transFatG": 4,
+      "cholesterolMg": 400
+     }
+    }
+   ]
+  },
+  {
+   "id": "crazy-combo",
+   "name": "Crazy Combo®",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 840,
+     "proteinG": 26,
+     "carbsG": 135,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 1860,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "crazy-bread-8-bread-sticks",
+   "name": "Crazy Bread® 8 bread sticks",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 800,
+     "proteinG": 25,
+     "carbsG": 128,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 6,
+      "sodiumMg": 1290,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "crazy-sauce-1-sauce-cup",
+   "name": "Crazy Sauce® 1 sauce cup",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 30,
+     "proteinG": 1,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 570,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-cheese-bread-10-bread-sticks",
+   "name": "Italian Cheese Bread 10 bread sticks",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1340,
+     "proteinG": 59,
+     "carbsG": 156,
+     "fatG": 54,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 8,
+      "sodiumMg": 2250,
+      "saturatedFatG": 21,
+      "transFatG": 1.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-cheese-bread-10-bread-sticks",
+   "name": "Pepperoni Cheese Bread 10 bread sticks",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1520,
+     "proteinG": 66,
+     "carbsG": 155,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 7,
+      "sodiumMg": 2840,
+      "saturatedFatG": 27,
+      "transFatG": 2,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "zesty-cheese-bread-10-bread-sticks-at-participating-location",
+   "name": "Zesty Cheese Bread 10 bread sticks — at participating locations",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1490,
+     "proteinG": 55,
+     "carbsG": 158,
+     "fatG": 71,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 10,
+      "sodiumMg": 2540,
+      "saturatedFatG": 24,
+      "transFatG": 1.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "stuffed-crazy-bread-3-bread-sticks-and-crazy-sauce",
+   "name": "Stuffed Crazy Bread® 3 bread sticks & Crazy Sauce",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 980,
+     "proteinG": 36,
+     "carbsG": 126,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 10,
+      "sodiumMg": 2200,
+      "saturatedFatG": 13,
+      "transFatG": 1,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-crazy-puffs",
+   "name": "Pepperoni Crazy Puffs®",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 680,
+     "proteinG": 34,
+     "carbsG": 56,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1520,
+      "saturatedFatG": 16,
+      "transFatG": 1,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "4-cheese-crazy-puffs",
+   "name": "4 Cheese Crazy Puffs",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 580,
+     "proteinG": 30,
+     "carbsG": 56,
+     "fatG": 26,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 1230,
+      "saturatedFatG": 13,
+      "transFatG": 1,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "cookie-dough-brownie-made-with-m-and-m-s-minis-chocolate-can",
+   "name": "Cookie Dough Brownie made with M&M’S® MINIS Chocolate Candies full package",
+   "category": "SIDES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 840,
+     "proteinG": 12,
+     "carbsG": 96,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 68,
+      "sodiumMg": 300,
+      "saturatedFatG": 22,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "oven-roasted",
+   "name": "Oven Roasted",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 510,
+     "proteinG": 47,
+     "carbsG": 3,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1740,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 285
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo",
+   "name": "Buffalo",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 520,
+     "proteinG": 47,
+     "carbsG": 7,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 3330,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 285
+     }
+    }
+   ]
+  },
+  {
+   "id": "bbq",
+   "name": "BBQ",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 620,
+     "proteinG": 48,
+     "carbsG": 32,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 24,
+      "sodiumMg": 2300,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 285
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-parmesan",
+   "name": "Garlic Parmesan",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 670,
+     "proteinG": 49,
+     "carbsG": 5,
+     "fatG": 51,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 2510,
+      "saturatedFatG": 13,
+      "transFatG": 0,
+      "cholesterolMg": 290
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheezy-jalapeno",
+   "name": "Cheezy Jalapeño",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 1,
+     "carbsG": 3,
+     "fatG": 21,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 460,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch",
+   "name": "Ranch",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 2,
+     "carbsG": 4,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 32,
+      "sodiumMg": 48,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo-ranch",
+   "name": "Buffalo Ranch",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 230,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 580,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "butter-garlic-flavor",
+   "name": "Butter Garlic Flavor",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 370,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 330,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-cheese-sauce-at-participating-locations",
+   "name": "Cheddar Cheese Sauce — at participating locations",
+   "category": "CAESAR WINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 4,
+     "carbsG": 7,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 770,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-thin-crust-pizzas",
+   "name": "Pepperoni (Thin Crust Pizzas)",
+   "category": "THIN CRUST PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2130,
+     "proteinG": 94,
+     "carbsG": 148,
+     "fatG": 128,
+     "micros": {
+      "fiberG": 9,
+      "sugarG": 5,
+      "sodiumMg": 4270,
+      "saturatedFatG": 50,
+      "transFatG": 3.5,
+      "cholesterolMg": 255
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheese-thin-crust-pizzas",
+   "name": "Cheese (Thin Crust Pizzas)",
+   "category": "THIN CRUST PIZZAS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1980,
+     "proteinG": 99,
+     "carbsG": 150,
+     "fatG": 109,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 3,
+      "sodiumMg": 3390,
+      "saturatedFatG": 48,
+      "transFatG": 3,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "add-stuffed-crust-to-any-round-pizza",
+   "name": "Add Stuffed Crust to any round pizza",
+   "category": "MAKE IT STUFFED CRUST",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 29,
+     "carbsG": 8,
+     "fatG": 46,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 1610,
+      "saturatedFatG": 23,
+      "transFatG": 1.5,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "add-stuffed-crust-to-any-detroit-style-deep-dish",
+   "name": "Add Stuffed Crust to any Detroit-Style Deep Dish",
+   "category": "MAKE IT STUFFED CRUST",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 530,
+     "proteinG": 33,
+     "carbsG": 9,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 1710,
+      "saturatedFatG": 24,
+      "transFatG": 1.5,
+      "cholesterolMg": 145
+     }
+    }
+   ]
+  },
+  {
+   "id": "base-pizza",
+   "name": "Base Pizza",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1950,
+     "proteinG": 95,
+     "carbsG": 248,
+     "fatG": 65,
+     "micros": {
+      "fiberG": 12,
+      "sugarG": 17,
+      "sodiumMg": 3740,
+      "saturatedFatG": 31,
+      "transFatG": 2,
+      "cholesterolMg": 150
+     }
+    }
+   ]
+  },
+  {
+   "id": "pepperoni-toppings",
+   "name": "Pepperoni (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 350,
+     "proteinG": 13,
+     "carbsG": 2,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1310,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon",
+   "name": "Bacon",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 380,
+     "proteinG": 16,
+     "carbsG": 0,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1060,
+      "saturatedFatG": 12,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasoned-beef",
+   "name": "Seasoned Beef",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 330,
+     "proteinG": 16,
+     "carbsG": 1,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1080,
+      "saturatedFatG": 12,
+      "transFatG": 1.5,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "italian-sausage-toppings",
+   "name": "Italian Sausage (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 430,
+     "proteinG": 19,
+     "carbsG": 2,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1180,
+      "saturatedFatG": 13,
+      "transFatG": 0,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoky-ham",
+   "name": "Smoky Ham",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 140,
+     "proteinG": 26,
+     "carbsG": 3,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 1830,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-peppers",
+   "name": "Green Peppers",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 20,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "onions",
+   "name": "Onions",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 35,
+     "proteinG": 1,
+     "carbsG": 8,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushrooms-canned",
+   "name": "Mushrooms, canned",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 40,
+     "proteinG": 2,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 3,
+      "sodiumMg": 560,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mushrooms-fresh",
+   "name": "Mushrooms, fresh",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 35,
+     "proteinG": 5,
+     "carbsG": 5,
+     "fatG": 0.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 3,
+      "sodiumMg": 10,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-olives",
+   "name": "Black Olives",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 1,
+     "carbsG": 4,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 1080,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapeno-peppers",
+   "name": "Jalapeño Peppers",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 4,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 2000,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mild-banana-peppers",
+   "name": "Mild Banana Peppers",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 50,
+     "proteinG": 0,
+     "carbsG": 7,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 2840,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "pineapple",
+   "name": "Pineapple",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 22,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 16,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "extra-cheese",
+   "name": "Extra Cheese",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 21,
+     "carbsG": 4,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 690,
+      "saturatedFatG": 12,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-mozzarella",
+   "name": "Fresh Mozzarella",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 200,
+     "proteinG": 15,
+     "carbsG": 2,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 360,
+      "saturatedFatG": 10,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "base-pizza-toppings",
+   "name": "Base Pizza (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2500,
+     "proteinG": 118,
+     "carbsG": 317,
+     "fatG": 85,
+     "micros": {
+      "fiberG": 16,
+      "sugarG": 19,
+      "sodiumMg": 4230,
+      "saturatedFatG": 38,
+      "transFatG": 2.5,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "seasoned-beef-toppings",
+   "name": "Seasoned Beef (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 12,
+     "carbsG": 1,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 830,
+      "saturatedFatG": 9,
+      "transFatG": 1.5,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "smoky-ham-toppings",
+   "name": "Smoky Ham (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 19,
+     "carbsG": 2,
+     "fatG": 3,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 1380,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-peppers-toppings",
+   "name": "Green Peppers (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 15,
+     "proteinG": 1,
+     "carbsG": 3,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 2,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "onions-toppings",
+   "name": "Onions (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 25,
+     "proteinG": 1,
+     "carbsG": 6,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "black-olives-toppings",
+   "name": "Black Olives (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 1,
+     "carbsG": 3,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 810,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "jalapeno-peppers-toppings",
+   "name": "Jalapeño Peppers (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 1460,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mild-banana-peppers-toppings",
+   "name": "Mild Banana Peppers (Toppings)",
+   "category": "TOPPINGS",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 35,
+     "proteinG": 0,
+     "carbsG": 5,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 2120,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

@@ -137,6 +137,7 @@ describe('the resolver checks the menu first', () => {
 describe('user corrections', () => {
   beforeEach(() => { process.env.FOOD_OVERRIDES_PATH = '/tmp/axiom-test-overrides.json'; _resetOverridesForTests(); });
   it('reads the one looked-up item from a meal’s notes', () => {
+    expect(singleLookedUpItem('Starbucks Caramel Protein Latte Grande: verified nutrition · Based on…')).toBe('Starbucks Caramel Protein Latte Grande');
     expect(singleLookedUpItem('Starbucks Caramel Protein Latte Grande: from starbucks.com (https://x) · Based on…')).toBe('Starbucks Caramel Protein Latte Grande');
     expect(singleLookedUpItem('A: from x; B: from y')).toBeNull();
   });

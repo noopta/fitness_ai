@@ -1,0 +1,1428 @@
+{
+ "chain": "bob-evans",
+ "country": "US",
+ "source": {
+  "url": "https://assets.ctfassets.net/81w9kb7f1jq4/2A9f5Tf5lGRHb20qCFWy1q/25301c677d211595df3e09f995514055/Nutritional_Guide_Fall_FY2027_Lunch_Dinner.pdf",
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "double-stacked-cheeseburger",
+   "name": "Double Stacked Cheeseburger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1330,
+     "proteinG": 37,
+     "carbsG": 41,
+     "fatG": 84,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 14,
+      "sodiumMg": 1930,
+      "saturatedFatG": 35,
+      "transFatG": 3.5,
+      "cholesterolMg": 185
+     }
+    }
+   ]
+  },
+  {
+   "id": "served-with-french-fries",
+   "name": "Served with French Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 47,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 480,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bacon-cheeseburger",
+   "name": "Bacon Cheeseburger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 790,
+     "proteinG": 52,
+     "carbsG": 37,
+     "fatG": 47,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 1520,
+      "saturatedFatG": 19,
+      "transFatG": 2,
+      "cholesterolMg": 165
+     }
+    }
+   ]
+  },
+  {
+   "id": "rise-and-shine-burger",
+   "name": "Rise & Shine Burger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1220,
+     "proteinG": 58,
+     "carbsG": 84,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 32,
+      "sodiumMg": 1440,
+      "saturatedFatG": 23,
+      "transFatG": 2,
+      "cholesterolMg": 345
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheeseburger",
+   "name": "Cheeseburger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 630,
+     "proteinG": 42,
+     "carbsG": 36,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 8,
+      "sodiumMg": 750,
+      "saturatedFatG": 13,
+      "transFatG": 1.5,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-strawberry-salad",
+   "name": "Fresh Strawberry Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 460,
+     "proteinG": 33,
+     "carbsG": 38,
+     "fatG": 20,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 28,
+      "sodiumMg": 1160,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-salad-fruit-plate",
+   "name": "Chicken Salad Fruit Plate",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 510,
+     "proteinG": 15,
+     "carbsG": 41,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 20,
+      "sodiumMg": 710,
+      "saturatedFatG": 5,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "cranberry-pecan-chicken-salad",
+   "name": "Cranberry Pecan Chicken Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 610,
+     "proteinG": 46,
+     "carbsG": 35,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 24,
+      "sodiumMg": 1520,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 130
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-fry-sandwich",
+   "name": "Fish Fry Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 480,
+     "proteinG": 30,
+     "carbsG": 38,
+     "fatG": 23,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1390,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "all-american-blt",
+   "name": "All American BLT",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 630,
+     "proteinG": 26,
+     "carbsG": 53,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 1610,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-cheese-pot-roast-dip",
+   "name": "Double Cheese Pot Roast Dip",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1020,
+     "proteinG": 56,
+     "carbsG": 52,
+     "fatG": 63,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 10,
+      "sodiumMg": 2290,
+      "saturatedFatG": 27,
+      "transFatG": 3.5,
+      "cholesterolMg": 160
+     }
+    }
+   ]
+  },
+  {
+   "id": "legendary-turkey-sandwich",
+   "name": "Legendary Turkey Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 700,
+     "proteinG": 50,
+     "carbsG": 61,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 13,
+      "sodiumMg": 1740,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 95
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-salad-sandwich",
+   "name": "Chicken Salad Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 630,
+     "proteinG": 21,
+     "carbsG": 69,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 17,
+      "sodiumMg": 1270,
+      "saturatedFatG": 5,
+      "transFatG": 0.5,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-2-fresh-strawberry-salad",
+   "name": "1/2 Fresh Strawberry Salad",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 18,
+     "carbsG": 19,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 14,
+      "sodiumMg": 650,
+      "saturatedFatG": 4,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "wildfire-ranch-dressing",
+   "name": "Wildfire Ranch Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 80,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 4,
+      "sodiumMg": 200,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 5
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-2-chicken-salad-sandwich",
+   "name": "1/2 Chicken Salad Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 420,
+     "proteinG": 15,
+     "carbsG": 40,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 10,
+      "sodiumMg": 920,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-2-double-cheese-pot-roast-dip-with-gravy",
+   "name": "1/2 Double Cheese Pot Roast Dip With Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 670,
+     "proteinG": 31,
+     "carbsG": 45,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1550,
+      "saturatedFatG": 15,
+      "transFatG": 3,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-2-all-american-blt",
+   "name": "1/2 All American BLT",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 310,
+     "proteinG": 13,
+     "carbsG": 26,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 810,
+      "saturatedFatG": 4.5,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "1-2-legendary-turkey-sandwich",
+   "name": "1/2 Legendary Turkey Sandwich",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 400,
+     "proteinG": 29,
+     "carbsG": 31,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 7,
+      "sodiumMg": 1080,
+      "saturatedFatG": 7,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "hearty-vegetable-soup-includes-2-saltine-crackers-cup",
+   "name": "Hearty Vegetable Soup includes 2 Saltine Crackers Cup",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 5,
+     "carbsG": 17,
+     "fatG": 2.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 630,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-n-noodles-includes-2-saltine-crackers",
+   "name": "Chicken-N-Noodles includes 2 Saltine Crackers",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 7,
+     "carbsG": 13,
+     "fatG": 5,
+     "micros": {
+      "sodiumMg": 560,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-baked-potato-includes-2-saltine-crackers",
+   "name": "Cheddar Baked Potato includes 2 Saltine Crackers",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 900,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-butter-chicken-and-biscuit-dinner",
+   "name": "Honey Butter Chicken & Biscuit Dinner",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 870,
+     "proteinG": 72,
+     "carbsG": 62,
+     "fatG": 38,
+     "micros": {
+      "sugarG": 28,
+      "sodiumMg": 2070,
+      "saturatedFatG": 13,
+      "transFatG": 0.5,
+      "cholesterolMg": 230
+     }
+    }
+   ]
+  },
+  {
+   "id": "hand-breaded-fried-chicken-breasts",
+   "name": "Hand-Breaded Fried Chicken Breasts",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 520,
+     "proteinG": 68,
+     "carbsG": 12,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 1310,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "lemon-garlic-grilled-chicken",
+   "name": "Lemon Garlic Grilled Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 430,
+     "proteinG": 49,
+     "carbsG": 6,
+     "fatG": 22,
+     "micros": {
+      "sodiumMg": 1120,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 140
+     }
+    }
+   ]
+  },
+  {
+   "id": "hand-breaded-chicken-tenders",
+   "name": "Hand-Breaded Chicken Tenders",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 450,
+     "proteinG": 52,
+     "carbsG": 22,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 810,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "grilled-to-perfection-chicken",
+   "name": "Grilled to Perfection Chicken",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 55,
+     "carbsG": 1,
+     "fatG": 4.5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 1020,
+      "saturatedFatG": 1.5,
+      "transFatG": 0,
+      "cholesterolMg": 155
+     }
+    }
+   ]
+  },
+  {
+   "id": "fish-fry-platter",
+   "name": "Fish Fry Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 440,
+     "proteinG": 30,
+     "carbsG": 38,
+     "fatG": 19,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 1350,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "chopped-steak-with-mushrooms-and-onions",
+   "name": "Chopped Steak with Mushrooms and Onions",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 610,
+     "proteinG": 35,
+     "carbsG": 17,
+     "fatG": 44,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 830,
+      "saturatedFatG": 12,
+      "transFatG": 1.5,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-pudding-pie",
+   "name": "Banana Pudding Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 640,
+     "proteinG": 7,
+     "carbsG": 67,
+     "fatG": 39,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 39,
+      "sodiumMg": 470,
+      "saturatedFatG": 22,
+      "transFatG": 1,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "southern-country-combo",
+   "name": "Southern Country Combo",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1510,
+     "proteinG": 68,
+     "carbsG": 105,
+     "fatG": 90,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 12,
+      "sodiumMg": 3500,
+      "saturatedFatG": 35,
+      "transFatG": 1,
+      "cholesterolMg": 225
+     }
+    }
+   ]
+  },
+  {
+   "id": "taste-of-the-farm-trio",
+   "name": "Taste of the Farm Trio",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1670,
+     "proteinG": 85,
+     "carbsG": 172,
+     "fatG": 72,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 36,
+      "sodiumMg": 6910,
+      "saturatedFatG": 21,
+      "transFatG": 1.5,
+      "cholesterolMg": 175
+     }
+    }
+   ]
+  },
+  {
+   "id": "fork-tender-pot-roast",
+   "name": "Fork-Tender Pot Roast",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 740,
+     "proteinG": 32,
+     "carbsG": 61,
+     "fatG": 42,
+     "micros": {
+      "fiberG": 10,
+      "sugarG": 24,
+      "sodiumMg": 2220,
+      "saturatedFatG": 14,
+      "transFatG": 1,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-n-noodles-deep-dish",
+   "name": "Chicken-N-Noodles Deep-Dish",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 480,
+     "proteinG": 11,
+     "carbsG": 53,
+     "fatG": 25,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 2100,
+      "saturatedFatG": 11,
+      "transFatG": 1.5,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "slow-roasted-turkey-and-dressing",
+   "name": "Slow Roasted Turkey & Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 820,
+     "proteinG": 34,
+     "carbsG": 81,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 6,
+      "sugarG": 23,
+      "sodiumMg": 3220,
+      "saturatedFatG": 12,
+      "transFatG": 0.5,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "country-fried-steak-platter",
+   "name": "Country-Fried Steak Platter",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1300,
+     "proteinG": 46,
+     "carbsG": 110,
+     "fatG": 76,
+     "micros": {
+      "fiberG": 11,
+      "sugarG": 3,
+      "sodiumMg": 3600,
+      "saturatedFatG": 25,
+      "transFatG": 1.5,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "french-fries",
+   "name": "French Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 330,
+     "proteinG": 0,
+     "carbsG": 47,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 0,
+      "sodiumMg": 480,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "shredded-hash-browns",
+   "name": "Shredded Hash Browns",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 200,
+     "proteinG": 2,
+     "carbsG": 22,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 2,
+      "sodiumMg": 110,
+      "saturatedFatG": 2,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "home-fries",
+   "name": "Home Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 180,
+     "proteinG": 2,
+     "carbsG": 21,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 15,
+      "saturatedFatG": 2.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "bread-and-celery-dressing",
+   "name": "Bread & Celery Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 410,
+     "proteinG": 7,
+     "carbsG": 46,
+     "fatG": 22,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1570,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "broccoli-buttered",
+   "name": "Broccoli Buttered",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 110,
+     "proteinG": 3,
+     "carbsG": 5,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 110,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "corn-buttered",
+   "name": "Corn Buttered",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 170,
+     "proteinG": 3,
+     "carbsG": 20,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 2,
+      "sodiumMg": 90,
+      "saturatedFatG": 30,
+      "transFatG": 0,
+      "cholesterolMg": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "green-beans-with-ham",
+   "name": "Green Beans with Ham",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 30,
+     "proteinG": 2,
+     "carbsG": 4,
+     "fatG": 1.5,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 0,
+      "sodiumMg": 460,
+      "saturatedFatG": 0,
+      "transFatG": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "macaroni-and-cheese",
+   "name": "Macaroni & Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 9,
+     "carbsG": 31,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 5,
+      "sodiumMg": 940,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "mashed-potatoes-and-chicken-gravy",
+   "name": "Mashed Potatoes & Chicken Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 160,
+     "proteinG": 3,
+     "carbsG": 18,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 920,
+      "saturatedFatG": 3.5,
+      "transFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "fresh-cut-fruit-apples-blueberries-bananas",
+   "name": "Fresh-Cut Fruit Apples, Blueberries, Bananas",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 80,
+     "proteinG": 1,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 12,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheesy-potato-bake",
+   "name": "Cheesy Potato Bake",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 410,
+     "proteinG": 13,
+     "carbsG": 60,
+     "fatG": 14,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 3,
+      "sodiumMg": 460,
+      "saturatedFatG": 8,
+      "transFatG": 0,
+      "cholesterolMg": 40
+     }
+    }
+   ]
+  },
+  {
+   "id": "onion-rings-5",
+   "name": "Onion Rings 5",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 8,
+     "carbsG": 63,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1080,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-french-fries",
+   "name": "Loaded French Fries",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 510,
+     "proteinG": 16,
+     "carbsG": 7,
+     "fatG": 47,
+     "micros": {
+      "sugarG": 6,
+      "sodiumMg": 630,
+      "saturatedFatG": 25,
+      "transFatG": 0,
+      "cholesterolMg": 125
+     }
+    }
+   ]
+  },
+  {
+   "id": "loaded-mashed-potatoes",
+   "name": "Loaded Mashed Potatoes",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 7,
+     "carbsG": 17,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 710,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "cheddar-baked-potato-includes-2-crackers",
+   "name": "Cheddar Baked Potato includes 2 Crackers",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 210,
+     "proteinG": 9,
+     "carbsG": 16,
+     "fatG": 12,
+     "micros": {
+      "sugarG": 2,
+      "sodiumMg": 900,
+      "saturatedFatG": 6,
+      "transFatG": 0,
+      "cholesterolMg": 35
+     }
+    }
+   ]
+  },
+  {
+   "id": "chicken-n-noodles-includes-2-crackers",
+   "name": "Chicken-N-Noodles includes 2 Crackers",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 7,
+     "carbsG": 13,
+     "fatG": 5,
+     "micros": {
+      "sodiumMg": 560,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "farmhouse-garden-side-salad-no-dressing",
+   "name": "Farmhouse Garden Side Salad No Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 100,
+     "proteinG": 5,
+     "carbsG": 7,
+     "fatG": 6,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 1,
+      "sodiumMg": 180,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sundae",
+   "name": "Sundae",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 400,
+     "proteinG": 5,
+     "carbsG": 50,
+     "fatG": 22,
+     "micros": {
+      "sugarG": 40,
+      "sodiumMg": 170,
+      "saturatedFatG": 11,
+      "transFatG": 0,
+      "cholesterolMg": 55
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-crust-apple-pie",
+   "name": "Double-Crust Apple Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 580,
+     "proteinG": 4,
+     "carbsG": 80,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 45,
+      "sodiumMg": 250,
+      "saturatedFatG": 12,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "double-crust-apple-pie-a-la-mode",
+   "name": "Double Crust Apple Pie A La Mode",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 700,
+     "proteinG": 6,
+     "carbsG": 92,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 56,
+      "sodiumMg": 290,
+      "saturatedFatG": 15,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "holy-cow-chocolate-cake",
+   "name": "Holy Cow Chocolate Cake",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 610,
+     "proteinG": 8,
+     "carbsG": 86,
+     "fatG": 29,
+     "micros": {
+      "sugarG": 67,
+      "sodiumMg": 610,
+      "saturatedFatG": 14,
+      "transFatG": 0,
+      "cholesterolMg": 50
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chip-cookie-dough-pie",
+   "name": "Chocolate Chip Cookie Dough Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 810,
+     "proteinG": 10,
+     "carbsG": 113,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 76,
+      "sodiumMg": 65,
+      "saturatedFatG": 19,
+      "transFatG": 0,
+      "cholesterolMg": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "chocolate-chunk-cookie",
+   "name": "Chocolate Chunk Cookie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 520,
+     "proteinG": 4,
+     "carbsG": 72,
+     "fatG": 24,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 36,
+      "sodiumMg": 380,
+      "saturatedFatG": 12,
+      "transFatG": 0,
+      "cholesterolMg": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "peanut-butter-pie-slice",
+   "name": "Peanut Butter Pie, Slice",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 670,
+     "proteinG": 10,
+     "carbsG": 67,
+     "fatG": 43,
+     "micros": {
+      "fiberG": 5,
+      "sugarG": 49,
+      "sodiumMg": 520,
+      "saturatedFatG": 24,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "strawberry-supreme-pie",
+   "name": "Strawberry Supreme Pie",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 550,
+     "proteinG": 5,
+     "carbsG": 51,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 30,
+      "sodiumMg": 320,
+      "saturatedFatG": 21,
+      "transFatG": 1,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "down-home-country-fried-steak",
+   "name": "Down-Home Country Fried Steak",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 740,
+     "proteinG": 25,
+     "carbsG": 67,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 7,
+      "sugarG": 2,
+      "sodiumMg": 2440,
+      "saturatedFatG": 14,
+      "transFatG": 1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "smaller-portion-turkey-and-dressing",
+   "name": "Smaller Portion Turkey & Dressing",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 650,
+     "proteinG": 21,
+     "carbsG": 67,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 13,
+      "sodiumMg": 2820,
+      "saturatedFatG": 10,
+      "transFatG": 0,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "hickory-smoked-ham-steaks",
+   "name": "Hickory-Smoked Ham Steaks",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 370,
+     "proteinG": 39,
+     "carbsG": 29,
+     "fatG": 11,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 7,
+      "sodiumMg": 4150,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "hand-breaded-chicken-breast",
+   "name": "Hand-Breaded Chicken Breast",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 600,
+     "proteinG": 40,
+     "carbsG": 47,
+     "fatG": 30,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 6,
+      "sodiumMg": 1660,
+      "saturatedFatG": 9,
+      "transFatG": 0,
+      "cholesterolMg": 135
+     }
+    }
+   ]
+  },
+  {
+   "id": "biscuits-2-with-whipped-butter-blend",
+   "name": "Biscuits 2 with Whipped Butter Blend",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 510,
+     "proteinG": 7,
+     "carbsG": 53,
+     "fatG": 31,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 3,
+      "sodiumMg": 1520,
+      "saturatedFatG": 16,
+      "transFatG": 1,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "banana-nut-bread",
+   "name": "Banana Nut Bread",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 260,
+     "proteinG": 4,
+     "carbsG": 30,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 24,
+      "sodiumMg": 350,
+      "saturatedFatG": 1.5,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "dinner-rolls-2-after-11-am-with-whipped-butter-blend",
+   "name": "Dinner Rolls 2 After 11 AM with Whipped Butter Blend",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 370,
+     "proteinG": 7,
+     "carbsG": 50,
+     "fatG": 17,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 8,
+      "sodiumMg": 470,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}

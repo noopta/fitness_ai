@@ -15,9 +15,16 @@ import { execFileSync } from 'node:child_process';
 import { GoogleGenAI } from '@google/genai';
 import { politeFetch, BlockedError } from './politeFetch.mjs';
 import { writeMenu } from './writeMenu.mjs';
+import { parseNutritionTables } from './tableParse.mjs';
 
-const [chainId, country, urlArg] = process.argv.slice(2);
-if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url]'); process.exit(2); }
+// A local file (a PDF someone downloaded by hand from the chain's own site, for
+// chains that refuse automated access) is read from disk — same two reads, same
+// gate. Pass the official URL it came from as the 4th argument; it's recorded
+// as the source (internal only — customers never see where numbers came from).
+//   node scripts/chains/ingest.mjs subway CA /home/ubuntu/chain-pdfs/subway-ca.pdf https://…/CAN_Nutrition_ENG_9-16-26.pdf
+const [chainId, country, urlArg, officialUrl] = process.argv.slice(2);
+if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url | local-file officialUrl]'); process.exit(2); }
+const localFile = urlArg && !/^https?:/i.test(urlArg) ? urlArg : null;
 const root = process.cwd();
 const dataDir = path.join(root, 'data', 'chains');
 const registry = JSON.parse(fs.readFileSync(path.join(dataDir, 'registry.json'), 'utf8'));
@@ -32,25 +39,16 @@ const MODEL = process.env.CHAIN_EXTRACT_MODEL || 'gemini-3.8-flash';
 const genai = new GoogleGenAI({ vertexai: true, project: process.env.GCP_PROJECT_NUMBER ?? '656267185967', location: 'global' });
 
 const NUM = { type: 'NUMBER', nullable: true };
-const MACROS = { calories: NUM, proteinG: NUM, carbsG: NUM, fatG: NUM, fiberG: NUM, sugarG: NUM, sodiumMg: NUM, saturatedFatG: NUM, cholesterolMg: NUM };
-const SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    items: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name', 'sizes'], properties: {
-      name: { type: 'STRING' }, category: { type: 'STRING', nullable: true },
-      sizes: { type: 'ARRAY', items: { type: 'OBJECT', required: ['size'], properties: { size: { type: 'STRING', description: 'Menu size as printed (Small/Medium/Large/Tall/Grande/Venti/6-inch/Footlong/Regular…), or "Regular" if only one' }, ...MACROS } } },
-    } } },
-    modifiers: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name'], properties: {
-      name: { type: 'STRING' }, group: { type: 'STRING', nullable: true, description: 'syrup | milk | sauce | topping | cheese | protein | bread | dressing | add-on | other' },
-      unit: { type: 'STRING', nullable: true, description: 'what one serving is, as printed: "1 pump", "1 slice", "1 portion", "per 6-inch"' }, ...MACROS,
-    } } },
-  },
-};
-const PROMPT = `This is ${chain.name}'s official nutrition information (${country}). Extract ONLY numbers that are printed in it.
-- Every menu item with its published values, one entry per size it is sold in (use the size names as printed).
-- Add-ons, sauces, syrups, dressings, milk options, toppings, extra cheese/protein, breads etc. that are listed with their own values go in "modifiers" with the unit as printed.
-- Calories in kcal; protein/carbs/fat/fibre/sugar/saturated fat in g; sodium and cholesterol in mg. If a value is not printed, use null — never estimate.
-- Skip allergen-only tables, marketing text and anything without numbers.`;
+// One row per printed line — the nested items → sizes → modifiers schema made
+// the model return one item from a 73-row PDF (Oct 2026); flat rows read all 73.
+const SCHEMA = { type: 'OBJECT', properties: { rows: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name'], properties: {
+  name: { type: 'STRING', description: 'The item exactly as printed on its row, including any size words in it, e.g. "Fries (Small)", "Grande Caffè Latte", "6-inch Turkey"' },
+  calories: NUM, proteinG: NUM, carbsG: NUM, fatG: NUM, fiberG: NUM, sugarG: NUM, sodiumMg: NUM, saturatedFatG: NUM, transFatG: NUM, cholesterolMg: NUM,
+} } } } };
+const PROMPT = `This is ${chain.name}'s official nutrition information (${country}). List EVERY menu item row in it with the numbers printed on that row.
+- One entry per printed row; keep the item name exactly as printed (with its size words).
+- Calories in kcal; protein, carbs, fat, fibre, sugar, saturated and trans fat in g; sodium and cholesterol in mg. A value not printed is null — never estimate.
+- Line each number up with its column header. Skip allergen-only tables, marketing text and rows without numbers.`;
 
 function htmlToText(html) {
   return html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -65,10 +63,6 @@ function chunksOf(text, size = 24000) {
   return out;
 }
 
-async function extract(text) {
-  const r = await genai.models.generateContent({ model: MODEL, contents: `${PROMPT}\n\n---\n${text}`, config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: 'LOW' } } });
-  return JSON.parse(r.text);
-}
 
 const SIZE_WORDS = ['extra large', 'kids', 'short', 'tall', 'grande', 'venti', 'trenta', 'small', 'medium', 'large', 'regular', 'junior', 'footlong', '6 inch', 'single', 'double', 'triple', 'snack', 'value'];
 const norm = (s) => String(s ?? '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -78,7 +72,10 @@ const n = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.r
 const micros = (o) => Object.fromEntries(['fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'cholesterolMg'].map((k) => [k, n(o[k])]).filter(([, v]) => v != null));
 
 let fetched;
-try { fetched = await politeFetch(url); } catch (e) {
+if (localFile) {
+  const buf = fs.readFileSync(localFile);
+  fetched = { buf, type: buf.subarray(0, 5).toString() === '%PDF-' ? 'application/pdf' : 'text/html', finalUrl: officialUrl ?? `file://${localFile}` };
+} else try { fetched = await politeFetch(url); } catch (e) {
   if (e instanceof BlockedError) { console.log(`${chainId}.${country}: ${e.why} — skipped (no workaround by policy)`); process.exit(0); }
   throw e;
 }
@@ -106,71 +103,114 @@ if (isPdf) {
 else text = htmlToText(fetched.buf.toString());
 if (!(isPdf && process.env.CHAIN_PDF_MODE !== 'text') && text.replace(/\s/g, '').length < 800) { console.log(`${chainId}.${country}: page has no readable nutrition text (likely a JS app) — needs an adapter, skipped`); process.exit(0); }
 
-// PDFs go to the model as the PDF itself (tables read as laid out — text
-// conversion scrambled columns: 20–75% macro mismatches). Split into page
-// ranges so long guides don't hit the output limit. Text is the fallback.
-let parts = chunksOf(text);
-const results = [];
-if (isPdf && process.env.CHAIN_PDF_MODE !== 'text') {
-  const pages = Number((execFileSync('pdfinfo', ['-'], { input: fetched.buf }).toString().match(/Pages:\s+(\d+)/) ?? [])[1] ?? 1);
-  const per = 4; const ranges = [];
-  for (let p = 1; p <= pages; p += per) ranges.push([p, Math.min(pages, p + per - 1)]);
-  parts = ranges;
-  const dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'chainpdf-'));
-  const src = path.join(dirTmp, 'in.pdf'); fs.writeFileSync(src, fetched.buf);
-  const pieceOf = (a, b) => {
-    const piece = path.join(dirTmp, `p${a}-${b}.pdf`);
-    execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
-    const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
-    if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
-    return fs.readFileSync(piece).toString('base64');
-  };
-  const ask = async (data, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT + note }, { inlineData: { mimeType: 'application/pdf', data } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text);
-  // Self-check: kcal should be close to 4·protein + 4·carbs + 9·fat. A chunk
-  // where many rows aren't was misread (skipped or shifted columns) — redo it.
-  const badRate = (r) => { let n = 0, bad = 0; for (const it of r.items ?? []) for (const z of it.sizes ?? []) { if (!(z.calories > 40)) continue; n++; const k = 4 * (z.proteinG ?? 0) + 4 * (z.carbsG ?? 0) + 9 * (z.fatG ?? 0); if (!k || Math.abs(k - z.calories) / z.calories > 0.35) bad++; } return n ? bad / n : 0; };
-  const RECHECK = '\n- Read EVERY column of each row: wide tables put carbohydrates, fibre, sugars and protein to the right of fat, sodium and cholesterol. Line each number up with its column header; do not leave a printed value null.';
-  const doRange = async (a, b) => {
-    const data = pieceOf(a, b);
-    let r;
-    try { r = await ask(data, 'LOW'); }
-    catch (e) {
-      if (b > a) { console.log(`  pages ${a}-${b}: ${String(e.message).slice(0, 60)} — one page at a time`); for (let p = a; p <= b; p++) await doRange(p, p); return; }
-      console.log(`  page ${a} failed: ${String(e.message).slice(0, 120)}`); return;
+// Two independent reads of the chain's own document (Oct 2026). One model read
+// per page went live unchecked (Mary Brown's Taters 437 g fat — printed so in
+// their own PDF; Chick-fil-A Waffle 0 g protein/carbs — misread). Now:
+//   read A — the table parser (tableParse.mjs), exact, no model; when it can't
+//            read the layout, a second model read at a higher thinking level
+//   read B — the model
+// A row is published only when both reads agree on calories, protein, carbs
+// and fat (1 unit or 5%), and it then passes chainNutritionGate in writeMenu.
+const RECHECK = '\n- Read EVERY column of each row: wide tables put carbohydrates, fibre, sugars and protein to the right of fat, sodium and cholesterol.';
+const askPdf = async (data, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT + note }, { inlineData: { mimeType: 'application/pdf', data } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text).rows ?? [];
+const askText = async (part, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: `${PROMPT}${note}\n\n---\n${part}`, config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text).rows ?? [];
+
+async function modelRead(level, note = '') {
+  const rows = [];
+  if (isPdf) {
+    const pages = Number((execFileSync('pdfinfo', ['-'], { input: fetched.buf }).toString().match(/Pages:\s+(\d+)/) ?? [])[1] ?? 1);
+    const dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'chainpdf-'));
+    const src = path.join(dirTmp, 'in.pdf'); fs.writeFileSync(src, fetched.buf);
+    const pieceOf = (a, b) => {
+      const piece = path.join(dirTmp, `p${a}-${b}.pdf`);
+      execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
+      const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
+      if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
+      return fs.readFileSync(piece).toString('base64');
+    };
+    const doRange = async (a, b) => {
+      try { rows.push(...await askPdf(pieceOf(a, b), level, note)); }
+      catch (e) {
+        if (b > a) { for (let p = a; p <= b; p++) await doRange(p, p); return; }
+        console.log(`  [model ${level}] page ${a} failed: ${String(e.message).slice(0, 100)}`);
+      }
+    };
+    for (let p = 1; p <= pages; p += 4) await doRange(p, Math.min(pages, p + 3));
+    fs.rmSync(dirTmp, { recursive: true, force: true }); // the PDF is never kept
+  } else {
+    for (const [i, part] of chunksOf(text).entries()) {
+      try { rows.push(...await askText(part, level, note)); } catch (e) { console.log(`  [model ${level}] chunk ${i + 1} failed: ${String(e.message).slice(0, 100)}`); }
     }
-    if (badRate(r) > 0.25) {
-      try { const r2 = await ask(data, 'MEDIUM', RECHECK); console.log(`  pages ${a}-${b}: ${Math.round(badRate(r) * 100)}% rows inconsistent → recheck ${Math.round(badRate(r2) * 100)}%`); if (badRate(r2) < badRate(r)) r = r2; } catch { /* keep first read */ }
-    }
-    // Pages we still can't read consistently are left out rather than dragging the good ones into review.
-    if (badRate(r) > 0.5) { console.log(`  pages ${a}-${b}: left out (still inconsistent)`); return; }
-    results.push(r);
-  };
-  for (const [a, b] of ranges) await doRange(a, b);
-  fs.rmSync(dirTmp, { recursive: true, force: true }); // the PDF is never kept
-} else {
-  for (const [i, part] of parts.entries()) {
-    try { results.push(await extract(part)); } catch (e) { console.log(`  chunk ${i + 1}/${parts.length} failed: ${String(e.message).slice(0, 120)}`); }
+  }
+  return rows.map((r) => ({ name: String(r.name ?? '').trim(), values: Object.fromEntries(['calories', 'proteinG', 'carbsG', 'fatG', 'fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'transFatG', 'cholesterolMg'].map((k) => [k, n(r[k])])) })).filter((r) => r.name && r.values.calories != null);
+}
+
+const parsed = isPdf ? parseNutritionTables(text).map((r) => ({ name: r.name, section: r.section, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, n(v)])) })) : [];
+let useParser = parsed.length >= 5;
+let readA = useParser ? parsed : await modelRead('LOW', RECHECK); // MEDIUM thinking returned 1 row of 82 (Little Caesars) — same level, column-by-column prompt
+const readB = await modelRead('LOW');
+let method = useParser ? 'table parser + model read' : 'two model reads';
+console.log(`  read A (${useParser ? 'parser' : 'model, column-by-column'}): ${readA.length} rows · read B (model): ${readB.length} rows`);
+
+const agree = (x, y) => x != null && y != null && Math.abs(x - y) <= Math.max(1, 0.05 * Math.max(x, y));
+const CORE = ['calories', 'proteinG', 'carbsG', 'fatG'];
+const key = (s) => norm(s).replace(/\b(the|a|an)\b/g, ' ').replace(/\s+/g, ' ').trim();
+// The parser misread this layout when it barely agrees with the model (Pizza
+// Hut Canada: 0 of 607 rows — shifted columns). Fall back to a second,
+// column-by-column model read rather than publish nothing.
+if (useParser) {
+  const bNames = new Map(readB.map((r) => [key(r.name), r]));
+  const ok = readA.filter((a) => { const b = bNames.get(key(a.name)); return b && CORE.every((k) => agree(a.values[k], b.values[k])); }).length;
+  if (ok / Math.max(1, readA.length) < 0.3) {
+    console.log(`  parser agreed on ${ok}/${readA.length} rows — layout misread; second model read instead`);
+    readA = await modelRead('LOW', RECHECK); useParser = false; method = 'two model reads';
   }
 }
-const items = new Map(); const modifiers = new Map();
-for (const r of results) {
-  for (const it of r.items ?? []) {
-    const id = slug(it.name); if (!id) continue;
-    const sizes = (it.sizes ?? []).map((s) => ({ size: sizeKey(s.size), label: String(s.size ?? '').slice(0, 40) || undefined, calories: n(s.calories), proteinG: n(s.proteinG) ?? 0, carbsG: n(s.carbsG) ?? 0, fatG: n(s.fatG) ?? 0, micros: micros(s) })).filter((s) => s.calories != null);
-    if (!sizes.length) continue;
-    const cur = items.get(id);
-    if (cur) { for (const s of sizes) if (!cur.sizes.some((x) => x.size === s.size)) cur.sizes.push(s); }
-    else items.set(id, { id, name: String(it.name).trim().slice(0, 100), ...(it.category ? { category: String(it.category).slice(0, 40) } : {}), sizes });
-  }
-  for (const m of r.modifiers ?? []) {
-    const id = slug(m.name); if (!id || n(m.calories) == null || modifiers.has(id)) continue;
-    modifiers.set(id, { id, name: String(m.name).trim().slice(0, 80), ...(m.group ? { group: String(m.group).toLowerCase().slice(0, 20) } : {}), ...(m.unit ? { unit: String(m.unit).slice(0, 30) } : {}), per: { calories: n(m.calories), proteinG: n(m.proteinG) ?? 0, carbsG: n(m.carbsG) ?? 0, fatG: n(m.fatG) ?? 0, micros: micros(m) } });
-  }
+const byKeyB = new Map(); for (const r of readB) { const k = key(r.name); if (!byKeyB.has(k)) byKeyB.set(k, []); byKeyB.get(k).push(r); }
+const disagreements = []; const agreed = [];
+for (const a of readA) {
+  const list = byKeyB.get(key(a.name)) ?? [];
+  const b = list.find((x) => CORE.every((k) => agree(a.values[k], x.values[k])));
+  if (b) {
+    list.splice(list.indexOf(b), 1);
+    // Micros: the parser's exact value when it read one; otherwise only where both model reads agree.
+    const micros = {};
+    for (const k of ['fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'transFatG', 'cholesterolMg']) {
+      if (useParser && a.values[k] != null && (b.values[k] == null || agree(a.values[k], b.values[k]))) micros[k] = a.values[k];
+      else if (agree(a.values[k], b.values[k])) micros[k] = a.values[k];
+    }
+    agreed.push({ name: a.name, section: a.section, values: a.values, micros });
+  } else disagreements.push({ name: a.name, readA: CORE.map((k) => a.values[k]), readB: list[0] ? CORE.map((k) => list[0].values[k]) : null });
 }
+for (const [, list] of byKeyB) for (const b of list) disagreements.push({ name: b.name, readA: null, readB: CORE.map((k) => b.values[k]) });
+{
+  const rev = path.join(dataDir, 'menus-review', `${chainId}.${country}.disagree.json`);
+  fs.mkdirSync(path.dirname(rev), { recursive: true });
+  if (disagreements.length) fs.writeFileSync(rev, JSON.stringify(disagreements, null, 1)); else if (fs.existsSync(rev)) fs.unlinkSync(rev);
+  console.log(`  ${method}: ${agreed.length} rows agree, ${disagreements.length} disagree or appear in one read only (→ menus-review)`);
+}
+
+// Rows → items with sizes: "Fries (Small)", "Small Fries", "Grande Latte", "6-inch Turkey".
+const SIZE_RE = /\b(extra[- ]large|x-?large|kids?|junior|short|tall|grande|venti|trenta|small|medium|large|regular|footlong|6[- ]?inch|snack|value)\b/i;
+const items = new Map();
+for (const r of agreed) {
+  const m = r.name.match(SIZE_RE);
+  const size = m ? sizeKey(m[1]) : 'regular';
+  const base = (m ? r.name.replace(m[0], ' ') : r.name).replace(/[()]/g, ' ').replace(/\s*[-–,:]\s*$/, '').replace(/\s+/g, ' ').trim();
+  let id = slug(base); if (!id) continue;
+  let name = base;
+  // The same name printed in two sections ("Pepperoni" pizza vs topping) with different numbers: name it by section.
+  const clash = items.get(id)?.sizes.find((x) => x.size === size);
+  if (clash && clash.calories !== r.values.calories && r.section) { name = `${base} (${r.section.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())})`; id = slug(name); }
+  const it = items.get(id) ?? { id, name, ...(r.section ? { category: r.section } : {}), sizes: [] };
+  if (!it.sizes.some((x) => x.size === size)) it.sizes.push({ size, label: m?.[1], calories: r.values.calories, proteinG: r.values.proteinG, carbsG: r.values.carbsG, fatG: r.values.fatG, micros: r.micros });
+  items.set(id, it);
+}
+const modifiers = new Map();
 const sizeCounts = {};
 for (const it of items.values()) for (const s of it.sizes) sizeCounts[s.size] = (sizeCounts[s.size] ?? 0) + 1;
 const defaultSize = sizeCounts.medium ? 'medium' : sizeCounts.grande ? 'grande' : sizeCounts.regular ? 'regular' : undefined;
-const menu = { chain: chainId, country, source: { url, fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${MODEL} extraction; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
+const menu = { chain: chainId, country, source: { url: localFile ? (officialUrl ?? 'local file') : url, ...(localFile ? { via: 'downloaded by hand from the official site' } : {}), fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${method} (${MODEL}), published only where both agree; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
 if (!menu.items.length) { console.log(`${chainId}.${country}: no items with calories extracted — not written`); process.exit(0); }
 // Quality gate (shared): a partial or garbled extraction never goes live — it waits in menus-review/.
 writeMenu(menu);
