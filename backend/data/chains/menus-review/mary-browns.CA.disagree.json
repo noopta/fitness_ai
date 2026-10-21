@@ -1,0 +1,62 @@
+[
+ {
+  "name": "Ketchup 1 packet",
+  "readA": [
+   10,
+   0.1,
+   2,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Vinegar 1 packet",
+  "readA": [
+   2,
+   0,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Louisiana Hot Sauce 1 packet",
+  "readA": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "readB": null
+ },
+ {
+  "name": "Ketchup",
+  "readA": null,
+  "readB": [
+   10,
+   0.1,
+   2,
+   0
+  ]
+ },
+ {
+  "name": "Vinegar",
+  "readA": null,
+  "readB": [
+   2,
+   0,
+   0,
+   0
+  ]
+ },
+ {
+  "name": "Louisiana Hot Sauce",
+  "readA": null,
+  "readB": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+]

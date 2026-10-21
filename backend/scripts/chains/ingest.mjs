@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { GoogleGenAI } from '@google/genai';
 import { politeFetch, BlockedError } from './politeFetch.mjs';
 import { writeMenu } from './writeMenu.mjs';
+import { parseNutritionTables } from './tableParse.mjs';
 
 const [chainId, country, urlArg] = process.argv.slice(2);
 if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url]'); process.exit(2); }
@@ -32,25 +33,16 @@ const MODEL = process.env.CHAIN_EXTRACT_MODEL || 'gemini-3.8-flash';
 const genai = new GoogleGenAI({ vertexai: true, project: process.env.GCP_PROJECT_NUMBER ?? '656267185967', location: 'global' });
 
 const NUM = { type: 'NUMBER', nullable: true };
-const MACROS = { calories: NUM, proteinG: NUM, carbsG: NUM, fatG: NUM, fiberG: NUM, sugarG: NUM, sodiumMg: NUM, saturatedFatG: NUM, cholesterolMg: NUM };
-const SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    items: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name', 'sizes'], properties: {
-      name: { type: 'STRING' }, category: { type: 'STRING', nullable: true },
-      sizes: { type: 'ARRAY', items: { type: 'OBJECT', required: ['size'], properties: { size: { type: 'STRING', description: 'Menu size as printed (Small/Medium/Large/Tall/Grande/Venti/6-inch/Footlong/Regular…), or "Regular" if only one' }, ...MACROS } } },
-    } } },
-    modifiers: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name'], properties: {
-      name: { type: 'STRING' }, group: { type: 'STRING', nullable: true, description: 'syrup | milk | sauce | topping | cheese | protein | bread | dressing | add-on | other' },
-      unit: { type: 'STRING', nullable: true, description: 'what one serving is, as printed: "1 pump", "1 slice", "1 portion", "per 6-inch"' }, ...MACROS,
-    } } },
-  },
-};
-const PROMPT = `This is ${chain.name}'s official nutrition information (${country}). Extract ONLY numbers that are printed in it.
-- Every menu item with its published values, one entry per size it is sold in (use the size names as printed).
-- Add-ons, sauces, syrups, dressings, milk options, toppings, extra cheese/protein, breads etc. that are listed with their own values go in "modifiers" with the unit as printed.
-- Calories in kcal; protein/carbs/fat/fibre/sugar/saturated fat in g; sodium and cholesterol in mg. If a value is not printed, use null — never estimate.
-- Skip allergen-only tables, marketing text and anything without numbers.`;
+// One row per printed line — the nested items → sizes → modifiers schema made
+// the model return one item from a 73-row PDF (Oct 2026); flat rows read all 73.
+const SCHEMA = { type: 'OBJECT', properties: { rows: { type: 'ARRAY', items: { type: 'OBJECT', required: ['name'], properties: {
+  name: { type: 'STRING', description: 'The item exactly as printed on its row, including any size words in it, e.g. "Fries (Small)", "Grande Caffè Latte", "6-inch Turkey"' },
+  calories: NUM, proteinG: NUM, carbsG: NUM, fatG: NUM, fiberG: NUM, sugarG: NUM, sodiumMg: NUM, saturatedFatG: NUM, transFatG: NUM, cholesterolMg: NUM,
+} } } } };
+const PROMPT = `This is ${chain.name}'s official nutrition information (${country}). List EVERY menu item row in it with the numbers printed on that row.
+- One entry per printed row; keep the item name exactly as printed (with its size words).
+- Calories in kcal; protein, carbs, fat, fibre, sugar, saturated and trans fat in g; sodium and cholesterol in mg. A value not printed is null — never estimate.
+- Line each number up with its column header. Skip allergen-only tables, marketing text and rows without numbers.`;
 
 function htmlToText(html) {
   return html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -102,107 +94,99 @@ if (isPdf) {
 else text = htmlToText(fetched.buf.toString());
 if (!(isPdf && process.env.CHAIN_PDF_MODE !== 'text') && text.replace(/\s/g, '').length < 800) { console.log(`${chainId}.${country}: page has no readable nutrition text (likely a JS app) — needs an adapter, skipped`); process.exit(0); }
 
-// Two independent reads of the chain's own document (Oct 2026). One read per
-// page went live unchecked: misread columns shipped as Mary Brown's Taters with
-// 437 g fat and Chick-fil-A's Waffle with 0 g protein and carbs. Now a second
-// read (more thinking, column-by-column instruction) must agree on calories,
-// protein, carbs and fat — within 1 unit or 5% — or the item waits in review.
-const RECHECK = '\n- Read EVERY column of each row: wide tables put carbohydrates, fibre, sugars and protein to the right of fat, sodium and cholesterol. Line each number up with its column header; do not leave a printed value null.';
-let parts = chunksOf(text);
-let dirTmp = null; let pieceOf = null; let ranges = [];
-if (isPdf && process.env.CHAIN_PDF_MODE !== 'text') {
-  const pages = Number((execFileSync('pdfinfo', ['-'], { input: fetched.buf }).toString().match(/Pages:\s+(\d+)/) ?? [])[1] ?? 1);
-  const per = 4;
-  for (let p = 1; p <= pages; p += per) ranges.push([p, Math.min(pages, p + per - 1)]);
-  dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'chainpdf-'));
-  const src = path.join(dirTmp, 'in.pdf'); fs.writeFileSync(src, fetched.buf);
-  pieceOf = (a, b) => {
-    const piece = path.join(dirTmp, `p${a}-${b}.pdf`);
-    execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
-    const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
-    if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
-    return fs.readFileSync(piece).toString('base64');
-  };
-}
-const ask = async (data, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT + note }, { inlineData: { mimeType: 'application/pdf', data } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text);
-const askText = async (part, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: `${PROMPT}${note}\n\n---\n${part}`, config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text);
+// Two independent reads of the chain's own document (Oct 2026). One model read
+// per page went live unchecked (Mary Brown's Taters 437 g fat — printed so in
+// their own PDF; Chick-fil-A Waffle 0 g protein/carbs — misread). Now:
+//   read A — the table parser (tableParse.mjs), exact, no model; when it can't
+//            read the layout, a second model read at a higher thinking level
+//   read B — the model
+// A row is published only when both reads agree on calories, protein, carbs
+// and fat (1 unit or 5%), and it then passes chainNutritionGate in writeMenu.
+const RECHECK = '\n- Read EVERY column of each row: wide tables put carbohydrates, fibre, sugars and protein to the right of fat, sodium and cholesterol.';
+const askPdf = async (data, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: [{ role: 'user', parts: [{ text: PROMPT + note }, { inlineData: { mimeType: 'application/pdf', data } }] }], config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text).rows ?? [];
+const askText = async (part, level, note = '') => JSON.parse((await genai.models.generateContent({ model: MODEL, contents: `${PROMPT}${note}\n\n---\n${part}`, config: { responseMimeType: 'application/json', responseSchema: SCHEMA, maxOutputTokens: 60000, thinkingConfig: { thinkingLevel: level } } })).text).rows ?? [];
 
-async function readAll(variant) {
-  const level = variant === 'A' ? 'LOW' : 'MEDIUM';
-  const note = variant === 'A' ? '' : RECHECK;
-  const results = [];
-  if (pieceOf) {
+async function modelRead(level, note = '') {
+  const rows = [];
+  if (isPdf) {
+    const pages = Number((execFileSync('pdfinfo', ['-'], { input: fetched.buf }).toString().match(/Pages:\s+(\d+)/) ?? [])[1] ?? 1);
+    const dirTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'chainpdf-'));
+    const src = path.join(dirTmp, 'in.pdf'); fs.writeFileSync(src, fetched.buf);
+    const pieceOf = (a, b) => {
+      const piece = path.join(dirTmp, `p${a}-${b}.pdf`);
+      execFileSync('pdfseparate', ['-f', String(a), '-l', String(b), src, path.join(dirTmp, 'pg-%d.pdf')]);
+      const files = []; for (let p = a; p <= b; p++) files.push(path.join(dirTmp, `pg-${p}.pdf`));
+      if (files.length > 1) execFileSync('pdfunite', [...files, piece]); else fs.copyFileSync(files[0], piece);
+      return fs.readFileSync(piece).toString('base64');
+    };
     const doRange = async (a, b) => {
-      const data = pieceOf(a, b);
-      try { results.push(await ask(data, level, note)); }
+      try { rows.push(...await askPdf(pieceOf(a, b), level, note)); }
       catch (e) {
-        if (b > a) { console.log(`  [${variant}] pages ${a}-${b}: ${String(e.message).slice(0, 60)} — one page at a time`); for (let p = a; p <= b; p++) await doRange(p, p); return; }
-        console.log(`  [${variant}] page ${a} failed: ${String(e.message).slice(0, 120)}`);
+        if (b > a) { for (let p = a; p <= b; p++) await doRange(p, p); return; }
+        console.log(`  [model ${level}] page ${a} failed: ${String(e.message).slice(0, 100)}`);
       }
     };
-    for (const [a, b] of ranges) await doRange(a, b);
+    for (let p = 1; p <= pages; p += 4) await doRange(p, Math.min(pages, p + 3));
+    fs.rmSync(dirTmp, { recursive: true, force: true }); // the PDF is never kept
   } else {
-    for (const [i, part] of parts.entries()) {
-      try { results.push(await askText(part, level, note)); } catch (e) { console.log(`  [${variant}] chunk ${i + 1}/${parts.length} failed: ${String(e.message).slice(0, 120)}`); }
+    for (const [i, part] of chunksOf(text).entries()) {
+      try { rows.push(...await askText(part, level, note)); } catch (e) { console.log(`  [model ${level}] chunk ${i + 1} failed: ${String(e.message).slice(0, 100)}`); }
     }
   }
-  return results;
+  return rows.map((r) => ({ name: String(r.name ?? '').trim(), values: Object.fromEntries(['calories', 'proteinG', 'carbsG', 'fatG', 'fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'transFatG', 'cholesterolMg'].map((k) => [k, n(r[k])])) })).filter((r) => r.name && r.values.calories != null);
 }
 
-function build(results) {
-  const items = new Map(); const modifiers = new Map();
-  for (const r of results) {
-    for (const it of r.items ?? []) {
-      const id = slug(it.name); if (!id) continue;
-      // A value the source doesn't print stays missing — it used to become 0, and
-      // calories-only rows went live as "0 g protein, carbs, fat" (Oct 2026).
-      const sizes = (it.sizes ?? []).map((s) => ({ size: sizeKey(s.size), label: String(s.size ?? '').slice(0, 40) || undefined, calories: n(s.calories), proteinG: n(s.proteinG), carbsG: n(s.carbsG), fatG: n(s.fatG), micros: micros(s) })).filter((s) => s.calories != null);
-      if (!sizes.length) continue;
-      const cur = items.get(id);
-      if (cur) { for (const s of sizes) if (!cur.sizes.some((x) => x.size === s.size)) cur.sizes.push(s); }
-      else items.set(id, { id, name: String(it.name).trim().slice(0, 100), ...(it.category ? { category: String(it.category).slice(0, 40) } : {}), sizes });
-    }
-    for (const m of r.modifiers ?? []) {
-      const id = slug(m.name); if (!id || n(m.calories) == null || modifiers.has(id)) continue;
-      modifiers.set(id, { id, name: String(m.name).trim().slice(0, 80), ...(m.group ? { group: String(m.group).toLowerCase().slice(0, 20) } : {}), ...(m.unit ? { unit: String(m.unit).slice(0, 30) } : {}), per: { calories: n(m.calories), proteinG: n(m.proteinG), carbsG: n(m.carbsG), fatG: n(m.fatG), micros: micros(m) } });
-    }
-  }
-  return { items, modifiers };
-}
+const parsed = isPdf ? parseNutritionTables(text).map((r) => ({ name: r.name, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, n(v)])) })) : [];
+const useParser = parsed.length >= 5;
+const readA = useParser ? parsed : await modelRead('MEDIUM', RECHECK);
+const readB = await modelRead('LOW');
+const method = useParser ? 'table parser + model read' : 'two model reads';
+console.log(`  read A (${useParser ? 'parser' : 'model MEDIUM'}): ${readA.length} rows · read B (model): ${readB.length} rows`);
 
 const agree = (x, y) => x != null && y != null && Math.abs(x - y) <= Math.max(1, 0.05 * Math.max(x, y));
-const sameFacts = (a, b) => agree(a.calories, b.calories) && agree(a.proteinG, b.proteinG) && agree(a.carbsG, b.carbsG) && agree(a.fatG, b.fatG);
-// Micros kept only where both reads print the same value.
-const agreedMicros = (a = {}, b = {}) => Object.fromEntries(Object.entries(a).filter(([k, v]) => agree(v, b[k])));
-
-const A = build(await readAll('A'));
-const B = build(await readAll('B'));
-if (dirTmp) fs.rmSync(dirTmp, { recursive: true, force: true }); // the PDF is never kept
-const disagreements = [];
-const items = new Map();
-for (const [id, it] of A.items) {
-  const other = B.items.get(id);
-  const sizes = [];
-  for (const s of it.sizes) {
-    const o = other?.sizes.find((x) => x.size === s.size);
-    if (o && sameFacts(s, o)) sizes.push({ ...s, micros: agreedMicros(s.micros, o.micros) });
-    else disagreements.push({ item: it.name, size: s.size, readA: [s.calories, s.proteinG, s.carbsG, s.fatG], readB: o ? [o.calories, o.proteinG, o.carbsG, o.fatG] : null });
-  }
-  if (sizes.length) items.set(id, { ...it, sizes });
+const CORE = ['calories', 'proteinG', 'carbsG', 'fatG'];
+const key = (s) => norm(s).replace(/\b(the|a|an)\b/g, ' ').replace(/\s+/g, ' ').trim();
+const byKeyB = new Map(); for (const r of readB) { const k = key(r.name); if (!byKeyB.has(k)) byKeyB.set(k, []); byKeyB.get(k).push(r); }
+const disagreements = []; const agreed = [];
+for (const a of readA) {
+  const list = byKeyB.get(key(a.name)) ?? [];
+  const b = list.find((x) => CORE.every((k) => agree(a.values[k], x.values[k])));
+  if (b) {
+    list.splice(list.indexOf(b), 1);
+    // Micros: the parser's exact value when it read one; otherwise only where both model reads agree.
+    const micros = {};
+    for (const k of ['fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'transFatG', 'cholesterolMg']) {
+      if (useParser && a.values[k] != null && (b.values[k] == null || agree(a.values[k], b.values[k]))) micros[k] = a.values[k];
+      else if (agree(a.values[k], b.values[k])) micros[k] = a.values[k];
+    }
+    agreed.push({ name: a.name, values: a.values, micros });
+  } else disagreements.push({ name: a.name, readA: CORE.map((k) => a.values[k]), readB: list[0] ? CORE.map((k) => list[0].values[k]) : null });
 }
-for (const [id, it] of B.items) if (!A.items.has(id)) for (const s of it.sizes) disagreements.push({ item: it.name, size: s.size, readA: null, readB: [s.calories, s.proteinG, s.carbsG, s.fatG] });
-const modifiers = new Map();
-for (const [id, m] of A.modifiers) { const o = B.modifiers.get(id); if (o && sameFacts(m.per, o.per)) modifiers.set(id, { ...m, per: { ...m.per, micros: agreedMicros(m.per.micros, o.per.micros) } }); }
+for (const [, list] of byKeyB) for (const b of list) disagreements.push({ name: b.name, readA: null, readB: CORE.map((k) => b.values[k]) });
 {
   const rev = path.join(dataDir, 'menus-review', `${chainId}.${country}.disagree.json`);
   fs.mkdirSync(path.dirname(rev), { recursive: true });
   if (disagreements.length) fs.writeFileSync(rev, JSON.stringify(disagreements, null, 1)); else if (fs.existsSync(rev)) fs.unlinkSync(rev);
-  console.log(`  two reads: ${[...items.values()].reduce((k, it) => k + it.sizes.length, 0)} sizes agree, ${disagreements.length} disagree (→ menus-review)`);
+  console.log(`  ${method}: ${agreed.length} rows agree, ${disagreements.length} disagree or appear in one read only (→ menus-review)`);
 }
+
+// Rows → items with sizes: "Fries (Small)", "Small Fries", "Grande Latte", "6-inch Turkey".
+const SIZE_RE = /\b(extra[- ]large|x-?large|kids?|junior|short|tall|grande|venti|trenta|small|medium|large|regular|footlong|6[- ]?inch|snack|value)\b/i;
+const items = new Map();
+for (const r of agreed) {
+  const m = r.name.match(SIZE_RE);
+  const size = m ? sizeKey(m[1]) : 'regular';
+  const base = (m ? r.name.replace(m[0], ' ') : r.name).replace(/[()]/g, ' ').replace(/\s*[-–,:]\s*$/, '').replace(/\s+/g, ' ').trim();
+  const id = slug(base); if (!id) continue;
+  const it = items.get(id) ?? { id, name: base, sizes: [] };
+  if (!it.sizes.some((x) => x.size === size)) it.sizes.push({ size, label: m?.[1], calories: r.values.calories, proteinG: r.values.proteinG, carbsG: r.values.carbsG, fatG: r.values.fatG, micros: r.micros });
+  items.set(id, it);
+}
+const modifiers = new Map();
 const sizeCounts = {};
 for (const it of items.values()) for (const s of it.sizes) sizeCounts[s.size] = (sizeCounts[s.size] ?? 0) + 1;
 const defaultSize = sizeCounts.medium ? 'medium' : sizeCounts.grande ? 'grande' : sizeCounts.regular ? 'regular' : undefined;
-const menu = { chain: chainId, country, source: { url, fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${MODEL}, two independent reads that agree; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
+const menu = { chain: chainId, country, source: { url, fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${method} (${MODEL}), published only where both agree; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
 if (!menu.items.length) { console.log(`${chainId}.${country}: no items with calories extracted — not written`); process.exit(0); }
 // Quality gate (shared): a partial or garbled extraction never goes live — it waits in menus-review/.
 writeMenu(menu);
