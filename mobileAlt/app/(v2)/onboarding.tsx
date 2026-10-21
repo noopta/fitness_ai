@@ -100,6 +100,17 @@ function OnboardingScreenInner() {
   };
   useEffect(() => { if (s.screen === 'plan' && !s.phases.length && !s.error) void build(); }, [s.screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Opened from inside the app ("Build a program" on Training): there's always a way out.
+  // First-run onboarding (nothing to go back to) keeps its no-exit flow.
+  const [canLeave] = useState(() => { try { return router.canGoBack(); } catch { return false; } });
+  const leave = () => {
+    const started = s.screen !== 'goal' || !!s.goal.trim();
+    if (!started || s.screen === 'plan' && s.phases.length) { router.back(); return; }
+    Alert.alert('Leave without a program?', 'Your answers so far won’t be kept.', [
+      { text: 'Stay', style: 'cancel' },
+      { text: 'Leave', style: 'destructive', onPress: () => router.back() },
+    ]);
+  };
   const begin = () => { haptics.light(); const pro = user?.tier === 'pro' || user?.tier === 'enterprise'; router.replace((pro ? '/(v2)' : '/(v2)/paywall') as any); };
   const status = s.screen === 'working' ? 'Working' : s.screen === 'gaps' ? `${s.sources} source${s.sources === 1 ? '' : 's'} read` : s.screen === 'plan' && s.phases.length ? 'Ready' : s.screen === 'redflag' ? 'Paused' : '';
   const q: Question | undefined = s.screen === 'ask' ? s.questions[s.qi] : s.screen === 'health' ? s.health[s.hi] : undefined;
@@ -112,6 +123,7 @@ function OnboardingScreenInner() {
         <Mark working={s.screen === 'working' || busy} />
         {status ? <Text style={T.caption}>{status}</Text> : null}
         {(s.screen === 'ask' || s.screen === 'health') ? <Dots states={askDots(s)} /> : null}
+        {canLeave ? <Pressable onPress={leave} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close"><Text style={[T.body, { color: v2.color.muted }]}>Close</Text></Pressable> : null}
       </View>
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 48 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
