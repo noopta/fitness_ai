@@ -17,8 +17,14 @@ import { politeFetch, BlockedError } from './politeFetch.mjs';
 import { writeMenu } from './writeMenu.mjs';
 import { parseNutritionTables } from './tableParse.mjs';
 
-const [chainId, country, urlArg] = process.argv.slice(2);
-if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url]'); process.exit(2); }
+// A local file (a PDF someone downloaded by hand from the chain's own site, for
+// chains that refuse automated access) is read from disk — same two reads, same
+// gate. Pass the official URL it came from as the 4th argument; it's recorded
+// as the source (internal only — customers never see where numbers came from).
+//   node scripts/chains/ingest.mjs subway CA /home/ubuntu/chain-pdfs/subway-ca.pdf https://…/CAN_Nutrition_ENG_9-16-26.pdf
+const [chainId, country, urlArg, officialUrl] = process.argv.slice(2);
+if (!chainId || !country) { console.error('usage: ingest.mjs <chainId> <US|CA> [url | local-file officialUrl]'); process.exit(2); }
+const localFile = urlArg && !/^https?:/i.test(urlArg) ? urlArg : null;
 const root = process.cwd();
 const dataDir = path.join(root, 'data', 'chains');
 const registry = JSON.parse(fs.readFileSync(path.join(dataDir, 'registry.json'), 'utf8'));
@@ -66,7 +72,10 @@ const n = (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.r
 const micros = (o) => Object.fromEntries(['fiberG', 'sugarG', 'sodiumMg', 'saturatedFatG', 'cholesterolMg'].map((k) => [k, n(o[k])]).filter(([, v]) => v != null));
 
 let fetched;
-try { fetched = await politeFetch(url); } catch (e) {
+if (localFile) {
+  const buf = fs.readFileSync(localFile);
+  fetched = { buf, type: buf.subarray(0, 5).toString() === '%PDF-' ? 'application/pdf' : 'text/html', finalUrl: officialUrl ?? `file://${localFile}` };
+} else try { fetched = await politeFetch(url); } catch (e) {
   if (e instanceof BlockedError) { console.log(`${chainId}.${country}: ${e.why} — skipped (no workaround by policy)`); process.exit(0); }
   throw e;
 }
@@ -137,15 +146,26 @@ async function modelRead(level, note = '') {
 }
 
 const parsed = isPdf ? parseNutritionTables(text).map((r) => ({ name: r.name, section: r.section, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, n(v)])) })) : [];
-const useParser = parsed.length >= 5;
-const readA = useParser ? parsed : await modelRead('LOW', RECHECK); // MEDIUM thinking returned 1 row of 82 (Little Caesars) — same level, column-by-column prompt
+let useParser = parsed.length >= 5;
+let readA = useParser ? parsed : await modelRead('LOW', RECHECK); // MEDIUM thinking returned 1 row of 82 (Little Caesars) — same level, column-by-column prompt
 const readB = await modelRead('LOW');
-const method = useParser ? 'table parser + model read' : 'two model reads';
+let method = useParser ? 'table parser + model read' : 'two model reads';
 console.log(`  read A (${useParser ? 'parser' : 'model, column-by-column'}): ${readA.length} rows · read B (model): ${readB.length} rows`);
 
 const agree = (x, y) => x != null && y != null && Math.abs(x - y) <= Math.max(1, 0.05 * Math.max(x, y));
 const CORE = ['calories', 'proteinG', 'carbsG', 'fatG'];
 const key = (s) => norm(s).replace(/\b(the|a|an)\b/g, ' ').replace(/\s+/g, ' ').trim();
+// The parser misread this layout when it barely agrees with the model (Pizza
+// Hut Canada: 0 of 607 rows — shifted columns). Fall back to a second,
+// column-by-column model read rather than publish nothing.
+if (useParser) {
+  const bNames = new Map(readB.map((r) => [key(r.name), r]));
+  const ok = readA.filter((a) => { const b = bNames.get(key(a.name)); return b && CORE.every((k) => agree(a.values[k], b.values[k])); }).length;
+  if (ok / Math.max(1, readA.length) < 0.3) {
+    console.log(`  parser agreed on ${ok}/${readA.length} rows — layout misread; second model read instead`);
+    readA = await modelRead('LOW', RECHECK); useParser = false; method = 'two model reads';
+  }
+}
 const byKeyB = new Map(); for (const r of readB) { const k = key(r.name); if (!byKeyB.has(k)) byKeyB.set(k, []); byKeyB.get(k).push(r); }
 const disagreements = []; const agreed = [];
 for (const a of readA) {
@@ -190,7 +210,7 @@ const modifiers = new Map();
 const sizeCounts = {};
 for (const it of items.values()) for (const s of it.sizes) sizeCounts[s.size] = (sizeCounts[s.size] ?? 0) + 1;
 const defaultSize = sizeCounts.medium ? 'medium' : sizeCounts.grande ? 'grande' : sizeCounts.regular ? 'regular' : undefined;
-const menu = { chain: chainId, country, source: { url, fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${method} (${MODEL}), published only where both agree; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
+const menu = { chain: chainId, country, source: { url: localFile ? (officialUrl ?? 'local file') : url, ...(localFile ? { via: 'downloaded by hand from the official site' } : {}), fetchedAt: new Date().toISOString().slice(0, 10), note: `${isPdf ? 'PDF' : 'page'} → ${method} (${MODEL}), published only where both agree; numbers only` }, ...(defaultSize ? { defaultSize } : {}), items: [...items.values()], modifiers: [...modifiers.values()] };
 if (!menu.items.length) { console.log(`${chainId}.${country}: no items with calories extracted — not written`); process.exit(0); }
 // Quality gate (shared): a partial or garbled extraction never goes live — it waits in menus-review/.
 writeMenu(menu);

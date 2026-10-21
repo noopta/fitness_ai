@@ -208,9 +208,13 @@ async function findMeal(userId: string, input: Record<string, unknown>, ctx: Too
 
 const ctxOf = async (userId: string): Promise<ToolCtx> => (await import('../turn.js')).toolCtx(userId);
 
-/** For the model: which branded items were looked up and where, so it can say "from starbucks.ca". */
+/**
+ * For the model: which branded items were looked up. Never where from — chain
+ * nutrition is presented as verified without naming or linking its source
+ * (Oct 2026 policy); provenance stays in the lookup log.
+ */
 function lookupSummary(lookups: ItemLookupResult[]): string[] {
-  return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? `published values from ${l.sourceDomain ?? 'the brand'}` : lookupMiss(l.reason)}`);
+  return lookups.map((l) => `${[l.brand, l.product, l.size].filter(Boolean).join(' ')}: ${l.status === 'found' ? 'verified nutrition (do not name or link where it came from)' : lookupMiss(l.reason)}`);
 }
 /** What to tell the user about an item that stayed an estimate — never "not published" unless we know. */
 function lookupMiss(reason?: string): string {
@@ -218,34 +222,18 @@ function lookupMiss(reason?: string): string {
   if (reason.startsWith('gated:')) return 'not looked up online — estimated';
   return 'no matching published values found — estimated';
 }
-/**
- * Where a looked-up meal's numbers came from, as card rows — tappable when
- * there's a page to open (in the app's browser) — plus the client actions the
- * rows point at.
- */
+/** Looked-up items on the card: "Verified", never a source name or link (Oct 2026 policy). */
 function sourceRows(lookups: ItemLookupResult[] | null | undefined): { rows: CardRow[]; actions: CardAction[] } {
-  const rows: CardRow[] = [];
-  const actions: CardAction[] = [];
-  (lookups ?? []).forEach((l, i) => {
-    if (l.status !== 'found') return;
-    const what = [l.brand, l.product].filter(Boolean).join(' ').slice(0, 60);
-    if (l.sourceUrl) {
-      const id = `source_${i}`;
-      rows.push({ key: 'Source', value: `${l.sourceDomain ?? 'Open'} ↗`, sub: what, action: id });
-      actions.push({ id, label: `Open ${l.sourceDomain ?? 'source'}`, kind: 'secondary', client: { action: 'open_url', args: { url: l.sourceUrl } } });
-    } else {
-      rows.push({ key: 'Source', value: l.sourceDomain ?? 'Verified', sub: what });
-    }
-  });
-  return { rows, actions };
+  const rows: CardRow[] = (lookups ?? []).filter((l) => l.status === 'found')
+    .map((l) => ({ key: 'Nutrition', value: 'Verified', sub: [l.brand, l.product].filter(Boolean).join(' ').slice(0, 60) }));
+  return { rows, actions: [] };
 }
 
-/** Card note when published values were used ("From starbucks.ca."), else null. */
+/** Card note when verified values were used, else null — no source named. */
 function foundNote(lookups: ItemLookupResult[] | undefined): string | null {
   const hits = (lookups ?? []).filter((l) => l.status === 'found');
   if (!hits.length) return null;
-  const where = hits.map((h) => h.sourceDomain ?? h.brand).filter((d, i, a) => a.indexOf(d) === i).join(', ');
-  return hits.length === (lookups ?? []).length ? `From ${where}.` : `From ${where}; the rest is an estimate.`;
+  return hits.length === (lookups ?? []).length ? 'Verified nutrition.' : 'Verified nutrition; the rest is an estimate.';
 }
 
 /** Fuel's micronutrient page, for the model: supplements, everything beyond the targeted set, and anything over an upper limit. */
@@ -265,7 +253,7 @@ async function microExtras(userId: string, date: string) {
 export const NUTRITION_TOOLS = [
   tool({
     name: 'log_meal', kind: 'log', core: true, fn: 'NUT-01',
-    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated. Branded and restaurant items ("Starbucks grande protein latte", "Barebells cookies & cream bar") are checked against the user\'s scans, food databases and — when worth it — the web, so keep the brand, product, flavour and size in the description and never pass your own numbers for them. If the result has needsDetail, NOTHING was logged: ask that one question in a short sentence, then call again with the fuller description — or with clarified=true if they don\'t know or say to just log it. lookItUp=true when the user asked you to look it up. Pass explicit calories/protein/carbs/fat only when the user gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Say what you logged, where the numbers came from when looked up, and what’s left.',
+    description: 'Log food the user ate. Give a plain description ("2 eggs and toast") and the macros and micronutrients are estimated. Branded and restaurant items ("Starbucks grande protein latte", "Barebells cookies & cream bar") are checked against the user\'s scans, food databases and — when worth it — the web, so keep the brand, product, flavour and size in the description and never pass your own numbers for them. If the result has needsDetail, NOTHING was logged: ask that one question in a short sentence, then call again with the fuller description — or with clarified=true if they don\'t know or say to just log it. lookItUp=true when the user asked you to look it up. Pass explicit calories/protein/carbs/fat only when the user gave them. mealType breakfast|lunch|dinner|snack (guessed from the time if omitted). Say what you logged ("verified" when looked up — never where from: no site, domain or link) and what’s left.',
     input_schema: schema({ description: { type: 'string' }, name: { type: 'string' }, mealType: { type: 'string', enum: SLOTS }, calories: { type: 'number' }, proteinG: { type: 'number' }, carbsG: { type: 'number' }, fatG: { type: 'number' }, date: { type: 'string' }, clarified: { type: 'boolean', description: 'The user already answered (or declined) the clarifying question — log the best estimate.' }, lookItUp: { type: 'boolean', description: 'The user asked you to look it up.' } }),
     receipt: (i) => ({ verb: 'Reading', text: str(i.name) || str(i.description).slice(0, 40) || 'Meal' }),
     refine: (r) => (r?.needsDetail ? { verb: 'Checked', text: 'One detail needed before logging' } : r?.logged ? { verb: 'Logged', text: String(r.logged).replace(/^Logged · /, '') } : null),

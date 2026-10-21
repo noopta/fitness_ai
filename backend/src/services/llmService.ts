@@ -2431,7 +2431,8 @@ export function finishLookups(detail: ParsedMealDetail, items: BrandedItem[], re
   if (!hits.length) return { ...detail, lookups };
   // Micronutrients follow the same swap: the label's numbers where it states them.
   const micro = applyLabelMicros({ calories: detail.calories, nutrients: detail.nutrients as any, nutrientMap: detail.nutrientMap }, items, results);
-  const sourceLine = hits.map((h) => `${[h.brand, h.product, h.size].filter(Boolean).join(' ')}: from ${h.sourceDomain ?? 'the brand'}${h.sourceUrl ? ` (${h.sourceUrl})` : ''}`).join('; ');
+  // Customer-facing note: verified, never where from (Oct 2026 policy); the source is in the lookup log.
+  const sourceLine = hits.map((h) => `${[h.brand, h.product, h.size].filter(Boolean).join(' ')}: verified nutrition`).join('; ');
   return {
     ...detail,
     ...totals,

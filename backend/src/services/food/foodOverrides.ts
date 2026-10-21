@@ -27,8 +27,9 @@ export function _resetOverridesForTests() { data = {}; }
 
 /** The one looked-up item a meal's notes describe ("X: from Y"), or null if it's several. */
 export function singleLookedUpItem(notes: string | null | undefined): string | null {
-  const segs = (notes ?? '').split(' · ')[0].split('; ').filter((s) => /: from /.test(s));
-  return segs.length === 1 ? segs[0].split(': from ')[0].trim() : null;
+  // "Item: verified nutrition" (Oct 2026), or older notes' "Item: from site (url)".
+  const segs = (notes ?? '').split(' · ')[0].split('; ').filter((s) => /: (from |verified nutrition)/.test(s));
+  return segs.length === 1 ? segs[0].split(/: (?:from |verified nutrition)/)[0].trim() : null;
 }
 
 /** Remember a user's correction of a single looked-up item. */

@@ -33,7 +33,9 @@ describe('parseMealMacros with the resolver', () => {
     expect(d.calories).toBe(1010);
     expect(d.proteinG).toBe(72);
     expect(d.lookups?.[0]).toMatchObject({ status: 'found', step: 'web', sourceDomain: 'starbucks.ca' });
-    expect(d.notes).toMatch(/from starbucks\.ca/);
+    // Verified, never where from (Oct 2026 policy).
+    expect(d.notes).toMatch(/verified nutrition/);
+    expect(d.notes).not.toMatch(/starbucks\.ca|https?:/);
     expect(d.confidence).toBe('high');
   });
 

@@ -4,7 +4,7 @@
  "source": {
   "url": "https://marybrowns.com/wp-content/uploads/Mary-Browns-Allergen-and-Nutritionals-July-2026.pdf",
   "fetchedAt": "2026-10-21",
-  "note": "PDF → table parser + model read (gemini-3.8-flash), published only where both agree; numbers only",
+  "note": "PDF \u2192 table parser + model read (gemini-3.8-flash), published only where both agree; numbers only",
   "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
  "defaultSize": "medium",
@@ -12,6 +12,7 @@
   {
    "id": "fries",
    "name": "Fries",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "small",
@@ -66,6 +67,7 @@
   {
    "id": "taters",
    "name": "Taters",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "small",
@@ -104,6 +106,7 @@
   {
    "id": "fries-poutine",
    "name": "Fries Poutine",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "regular",
@@ -125,6 +128,7 @@
   {
    "id": "taters-poutine",
    "name": "Taters Poutine",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "regular",
@@ -146,6 +150,7 @@
   {
    "id": "taters-poutine-and-pop-ins",
    "name": "Taters Poutine and Pop-ins",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "regular",
@@ -167,6 +172,7 @@
   {
    "id": "taters-poutine-and-pulled-chicken",
    "name": "Taters Poutine and Pulled Chicken",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "regular",
@@ -188,6 +194,7 @@
   {
    "id": "mashed-potatoes-individual",
    "name": "Mashed Potatoes Individual",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "regular",
@@ -209,6 +216,7 @@
   {
    "id": "mashed-potatoes",
    "name": "Mashed Potatoes",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "large",
@@ -231,6 +239,7 @@
   {
    "id": "coleslaw",
    "name": "Coleslaw",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "small",
@@ -285,6 +294,7 @@
   {
    "id": "gravy",
    "name": "Gravy",
+   "category": "SIDES",
    "sizes": [
     {
      "size": "small",
@@ -339,6 +349,7 @@
   {
    "id": "thigh",
    "name": "Thigh",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -360,6 +371,7 @@
   {
    "id": "side-breast",
    "name": "Side Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -381,6 +393,7 @@
   {
    "id": "wing",
    "name": "Wing",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -402,6 +415,7 @@
   {
    "id": "drumstick",
    "name": "Drumstick",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -423,6 +437,7 @@
   {
    "id": "centre-breast",
    "name": "Centre Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -444,6 +459,7 @@
   {
    "id": "2-pc-drumstick-and-side-breast",
    "name": "2 PC: Drumstick and Side Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -465,6 +481,7 @@
   {
    "id": "2-pc-thigh-and-wing",
    "name": "2 PC: Thigh and Wing",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -486,6 +503,7 @@
   {
    "id": "3-pc-thigh-side-breast-and-wing",
    "name": "3 PC: Thigh, Side Breast and Wing",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -507,6 +525,7 @@
   {
    "id": "3-pc-thigh-side-breast-and-drumstick",
    "name": "3 PC: Thigh, Side Breast, and Drumstick",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -528,6 +547,7 @@
   {
    "id": "4-pc-thigh-drum-wing-and-side-breast",
    "name": "4 PC: Thigh, Drum, Wing, and Side Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -549,6 +569,7 @@
   {
    "id": "5-pc-thigh-drum-wing-2-side-breast",
    "name": "5 PC: Thigh, Drum, Wing, 2 Side Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -570,6 +591,7 @@
   {
    "id": "5-pc-2-thighs-drum-wing-and-side-breast",
    "name": "5 PC: 2 Thighs, Drum, Wing, and Side Breast",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -591,6 +613,7 @@
   {
    "id": "9-pc-2-thighs-2-drum-2-wing-2-side-breast-centre",
    "name": "9 PC: 2 Thighs, 2 Drum, 2 Wing, 2 Side Breast, Centre",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -612,6 +635,7 @@
   {
    "id": "13-pc-3-thigh-3-drum-3-wing-3-side-breast-centre",
    "name": "13 PC: 3 Thigh, 3 Drum, 3 Wing, 3 Side Breast, Centre",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -633,6 +657,7 @@
   {
    "id": "18-pc-4-thigh-4-drum-4-wing-4-side-breast-2-centre",
    "name": "18 PC: 4 Thigh, 4 Drum, 4 Wing, 4 Side Breast, 2 Centre",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -654,6 +679,7 @@
   {
    "id": "27-pc-6-thigh-6-drum-6-wing-6-side-breast-3-centre",
    "name": "27 PC: 6 Thigh, 6 Drum, 6 Wing, 6 Side Breast, 3 Centre",
+   "category": "CHICKEN",
    "sizes": [
     {
      "size": "regular",
@@ -675,6 +701,7 @@
   {
    "id": "big-mary",
    "name": "Big Mary",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -696,6 +723,7 @@
   {
    "id": "spicy-big-mary",
    "name": "Spicy Big Mary",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -717,6 +745,7 @@
   {
    "id": "buffalo-mary-sandwich",
    "name": "Buffalo Mary Sandwich",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -738,6 +767,7 @@
   {
    "id": "3-pc-chicken-tenders",
    "name": "3 PC: Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -759,6 +789,7 @@
   {
    "id": "3-pc-spicy-chicken-tenders",
    "name": "3 PC: Spicy Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -780,6 +811,7 @@
   {
    "id": "3-pc-buffalo-chicken-tenders",
    "name": "3 PC: Buffalo Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -801,6 +833,7 @@
   {
    "id": "5-pc-chicken-tenders",
    "name": "5 PC: Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -822,6 +855,7 @@
   {
    "id": "5-pc-buffalo-chicken-tenders",
    "name": "5 PC: Buffalo Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -843,6 +877,7 @@
   {
    "id": "5-pc-spicy-chicken-tenders",
    "name": "5 PC: Spicy Chicken Tenders",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -864,6 +899,7 @@
   {
    "id": "chicken-wings",
    "name": "Chicken Wings",
+   "category": "SANDWICHES & EXTRAS",
    "sizes": [
     {
      "size": "regular",
@@ -885,6 +921,7 @@
   {
    "id": "mash-up-bowl",
    "name": "Mash-up Bowl",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "regular",
@@ -906,6 +943,7 @@
   {
    "id": "mini-mary",
    "name": "Mini Mary",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "regular",
@@ -927,6 +965,7 @@
   {
    "id": "spicy-mini-mary",
    "name": "Spicy Mini Mary",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "regular",
@@ -948,6 +987,7 @@
   {
    "id": "crispy-chicken-twists",
    "name": "Crispy Chicken Twists",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "regular",
@@ -969,6 +1009,7 @@
   {
    "id": "chicken-thai-pop-ins",
    "name": "Chicken Thai Pop-ins",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "kids",
@@ -1023,6 +1064,7 @@
   {
    "id": "chicken-pop-ins",
    "name": "Chicken Pop-ins",
+   "category": "SNACK MENU",
    "sizes": [
     {
      "size": "kids",
@@ -1075,8 +1117,75 @@
    ]
   },
   {
+   "id": "ketchup",
+   "name": "Ketchup",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 10,
+     "proteinG": 0.1,
+     "carbsG": 2,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 79,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "vinegar",
+   "name": "Vinegar",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 2,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 0,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "louisiana-hot-sauce",
+   "name": "Louisiana Hot Sauce",
+   "category": "SAUCES",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 250,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
    "id": "buffalo",
    "name": "Buffalo",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1098,6 +1207,7 @@
   {
    "id": "hot-honey",
    "name": "Hot Honey",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1119,6 +1229,7 @@
   {
    "id": "bbq",
    "name": "BBQ",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1140,6 +1251,7 @@
   {
    "id": "honey-mustard",
    "name": "Honey Mustard",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1161,6 +1273,7 @@
   {
    "id": "honey-dill",
    "name": "Honey Dill",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1182,6 +1295,7 @@
   {
    "id": "sweet-and-sour",
    "name": "Sweet and Sour",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1203,6 +1317,7 @@
   {
    "id": "sweet-thai-chilli",
    "name": "Sweet Thai Chilli",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1224,6 +1339,7 @@
   {
    "id": "spicy-mayo",
    "name": "Spicy Mayo",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1245,6 +1361,7 @@
   {
    "id": "mango-habanero",
    "name": "Mango Habanero",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1266,6 +1383,7 @@
   {
    "id": "eh-sauce",
    "name": "EH Sauce",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1287,6 +1405,7 @@
   {
    "id": "mb-sauce",
    "name": "MB Sauce",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1308,6 +1427,7 @@
   {
    "id": "ranch",
    "name": "Ranch",
+   "category": "SAUCES",
    "sizes": [
     {
      "size": "regular",
@@ -1329,6 +1449,7 @@
   {
    "id": "caramilk-chocolate-cake-cup",
    "name": "Caramilk Chocolate Cake Cup",
+   "category": "DESSERTS",
    "sizes": [
     {
      "size": "regular",
@@ -1350,6 +1471,7 @@
   {
    "id": "banana-pudding",
    "name": "Banana Pudding",
+   "category": "DESSERTS",
    "sizes": [
     {
      "size": "regular",
