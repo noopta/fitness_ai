@@ -3,1601 +3,1692 @@
  "country": "US",
  "source": {
   "url": "https://www.slimchickens.com/nutritional-and-allergen-info/",
-  "fetchedAt": "2026-10-11",
-  "note": "page → gemini-3.8-flash extraction; numbers only"
+  "fetchedAt": "2026-10-21",
+  "note": "page → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
  },
+ "defaultSize": "regular",
  "items": [
   {
-   "id": "fried-tender",
-   "name": "Fried Tender",
+   "id": "cayenne-ranch",
+   "name": "Cayenne Ranch",
    "sizes": [
     {
-     "size": "1 each",
-     "label": "1 Each",
-     "calories": 95,
+     "size": "regular",
+     "calories": 163,
+     "proteinG": 1,
+     "carbsG": 1,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 206,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "ranch",
+   "name": "Ranch",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 163,
+     "proteinG": 1,
+     "carbsG": 1,
+     "fatG": 16,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 206,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-mustard",
+   "name": "Honey Mustard",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 195,
+     "proteinG": 0,
+     "carbsG": 9,
+     "fatG": 18,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 9,
+      "sodiumMg": 203,
+      "saturatedFatG": 3,
+      "transFatG": 0,
+      "cholesterolMg": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "blue-cheese",
+   "name": "Blue Cheese",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 0,
+     "carbsG": 2,
+     "fatG": 29,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 2,
+      "sodiumMg": 330,
+      "saturatedFatG": 5,
+      "transFatG": 0,
+      "cholesterolMg": 23
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweet-red-chili",
+   "name": "Sweet Red Chili",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 120,
+     "proteinG": 0,
+     "carbsG": 30,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 27,
+      "sodiumMg": 600,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "buffalo",
+   "name": "Buffalo",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 75,
      "proteinG": 0,
      "carbsG": 0,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 810,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "hot",
+   "name": "Hot",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 45,
+     "proteinG": 2,
+     "carbsG": 8,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 0,
+      "sodiumMg": 930,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "honey-bbq",
+   "name": "Honey BBQ",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 23,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 23,
+      "sodiumMg": 480,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "spicy-bbq",
+   "name": "Spicy BBQ",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 81,
+     "proteinG": 0,
+     "carbsG": 20,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 9,
+      "sodiumMg": 432,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "mango-habanero",
+   "name": "Mango Habanero",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 75,
+     "proteinG": 0,
+     "carbsG": 18,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 12,
+      "sodiumMg": 255,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "garlic-parmesan",
+   "name": "Garlic Parmesan",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 150,
+     "proteinG": 0,
+     "carbsG": 3,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 720,
+      "saturatedFatG": 2,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "korean-bbq",
+   "name": "Korean BBQ",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 105,
+     "proteinG": 2,
+     "carbsG": 20,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 17,
+      "sodiumMg": 885,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "gravy",
+   "name": "Gravy",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 57,
+     "proteinG": 0,
+     "carbsG": 10,
+     "fatG": 2,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 314,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "lite-italian",
+   "name": "Lite Italian",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 60,
+     "proteinG": 0,
+     "carbsG": 3,
      "fatG": 5,
      "micros": {
-      "sugarG": 0,
-      "saturatedFatG": 1
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 405,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "barq-s-root-beer",
-   "name": "Barq’s Root Beer",
+   "id": "balsamic",
+   "name": "Balsamic",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
+     "calories": 90,
+     "proteinG": 0,
+     "carbsG": 6,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 6,
+      "sodiumMg": 285,
+      "saturatedFatG": 1,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer-12oz",
+   "name": "Barq’s Root Beer – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 160,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 45,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 45,
       "sodiumMg": 70,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer-20oz",
+   "name": "Barq’s Root Beer – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 267,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 75,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 75,
       "sodiumMg": 117,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "barq-s-root-beer-32oz",
+   "name": "Barq’s Root Beer – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 427,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 120,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 120,
       "sodiumMg": 187,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "cherry-coke",
-   "name": "Cherry Coke",
+   "id": "cherry-coke-12oz",
+   "name": "Cherry Coke – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 150,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 42,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 42,
       "sodiumMg": 35,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cherry-coke-20oz",
+   "name": "Cherry Coke – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 250,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 70,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 70,
       "sodiumMg": 58,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "cherry-coke-32oz",
+   "name": "Cherry Coke – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 400,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 112,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 112,
       "sodiumMg": 93,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "coke",
-   "name": "Coke",
+   "id": "coke-12oz",
+   "name": "Coke – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 140,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 39,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 39,
       "sodiumMg": 45,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "coke-20oz",
+   "name": "Coke – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 233,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 65,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 65,
       "sodiumMg": 75,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "coke-32oz",
+   "name": "Coke – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 373,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 104,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 104,
       "sodiumMg": 120,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "coke-zero",
-   "name": "Coke Zero",
+   "id": "coke-zero-12oz",
+   "name": "Coke Zero – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 35,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "coke-zero-20oz",
+   "name": "Coke Zero – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 58,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32oz",
-     "label": "32oz",
-     "calories": 0,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 0,
-      "sodiumMg": 107,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "diet-coke",
-   "name": "Diet Coke",
+   "id": "coke-zero-32oz",
+   "name": "Coke Zero – 32oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 107,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "diet-coke-12oz",
+   "name": "Diet Coke – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 0,
+     "proteinG": 0,
+     "carbsG": 0,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 40,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "diet-coke-20oz",
+   "name": "Diet Coke – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 67,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "diet-coke-32oz",
+   "name": "Diet Coke – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 107,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "dr-pepper-zero",
-   "name": "Dr Pepper Zero",
+   "id": "dr-pepper-zero-12oz",
+   "name": "Dr Pepper Zero – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 54,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-zero-20oz",
+   "name": "Dr Pepper Zero – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 90,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-zero-32oz",
+   "name": "Dr Pepper Zero – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 140,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "dr-pepper",
-   "name": "Dr Pepper",
+   "id": "dr-pepper-12oz",
+   "name": "Dr Pepper – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 150,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 41,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 41,
       "sodiumMg": 53,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-20oz",
+   "name": "Dr Pepper – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 250,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 68,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 68,
       "sodiumMg": 88,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "dr-pepper-32oz",
+   "name": "Dr Pepper – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 400,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 108,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 108,
       "sodiumMg": 140,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "fanta-orange",
-   "name": "Fanta Orange",
+   "id": "fanta-orange-12oz",
+   "name": "Fanta Orange – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 160,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 45,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 44,
       "sodiumMg": 60,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fanta-orange-20oz",
+   "name": "Fanta Orange – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 267,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 75,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 73,
       "sodiumMg": 100,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fanta-orange-32oz",
+   "name": "Fanta Orange – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 427,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 120,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 117,
       "sodiumMg": 160,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "fanta-strawberry",
-   "name": "Fanta Strawberry",
+   "id": "fanta-strawberry-12oz",
+   "name": "Fanta Strawberry – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 180,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 48,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 48,
       "sodiumMg": 45,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fanta-strawberry-20oz",
+   "name": "Fanta Strawberry – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 300,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 80,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 80,
       "sodiumMg": 75,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fanta-strawberry-32oz",
+   "name": "Fanta Strawberry – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 480,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 128,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 128,
       "sodiumMg": 120,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "fuze-black-tea-lemon",
-   "name": "Fuze Black Tea Lemon",
+   "id": "fuze-black-tea-lemon-12oz",
+   "name": "Fuze Black Tea Lemon – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 89,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 24,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 24,
       "sodiumMg": 11,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fuze-black-tea-lemon-20oz",
+   "name": "Fuze Black Tea Lemon – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 148,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 40,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 40,
       "sodiumMg": 18,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fuze-black-tea-lemon-32oz",
+   "name": "Fuze Black Tea Lemon – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 236,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 64,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 64,
       "sodiumMg": 28,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "fuze-raspberry-tea",
-   "name": "Fuze Raspberry Tea",
+   "id": "fuze-raspberry-tea-12oz",
+   "name": "Fuze Raspberry Tea – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 89,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 24,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 24,
       "sodiumMg": 96,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fuze-raspberry-tea-20oz",
+   "name": "Fuze Raspberry Tea – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 148,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 40,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 40,
       "sodiumMg": 160,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "fuze-raspberry-tea-32oz",
+   "name": "Fuze Raspberry Tea – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 236,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 64,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 64,
       "sodiumMg": 256,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "hi-c-pink-lemonade",
-   "name": "Hi-C Pink Lemonade",
+   "id": "hi-c-pink-lemonade-12oz",
+   "name": "Hi-C Pink Lemonade – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 180,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 45,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 42,
       "sodiumMg": 15,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "hi-c-pink-lemonade-20oz",
+   "name": "Hi-C Pink Lemonade – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 300,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 75,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 70,
       "sodiumMg": 25,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "hi-c-pink-lemonade-32oz",
+   "name": "Hi-C Pink Lemonade – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 480,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 120,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 112,
       "sodiumMg": 40,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "hi-c-fruit-punch",
-   "name": "Hi-C Fruit Punch",
+   "id": "hi-c-fruit-punch-12oz",
+   "name": "Hi-C Fruit Punch – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 160,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 44,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 44,
       "sodiumMg": 27,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "hi-c-fruit-punch-20oz",
+   "name": "Hi-C Fruit Punch – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 267,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 74,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 74,
       "sodiumMg": 44,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "hi-c-fruit-punch-32oz",
+   "name": "Hi-C Fruit Punch – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 427,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 118,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 118,
       "sodiumMg": 71,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "mello-yellow",
-   "name": "Mello Yellow",
+   "id": "mello-yellow-12oz",
+   "name": "Mello Yellow – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 170,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 47,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 47,
       "sodiumMg": 45,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "mello-yellow-20oz",
+   "name": "Mello Yellow – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 283,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 78,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 78,
       "sodiumMg": 75,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "mello-yellow-32oz",
+   "name": "Mello Yellow – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 453,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 125,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 125,
       "sodiumMg": 120,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "sprite",
-   "name": "Sprite",
+   "id": "sprite-12oz",
+   "name": "Sprite – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 140,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 38,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 38,
       "sodiumMg": 65,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20oz",
-     "label": "20oz",
-     "calories": 233,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 63,
-      "sodiumMg": 108,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32oz",
-     "label": "32oz",
-     "calories": 373,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 101,
-      "sodiumMg": 173,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "sprite-zero",
-   "name": "Sprite Zero",
+   "id": "sprite-20oz",
+   "name": "Sprite – 20oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
+     "calories": 233,
+     "proteinG": 0,
+     "carbsG": 63,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 63,
+      "sodiumMg": 108,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite-32oz",
+   "name": "Sprite – 32oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 373,
+     "proteinG": 0,
+     "carbsG": 101,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 101,
+      "sodiumMg": 173,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sprite-zero-12oz",
+   "name": "Sprite Zero – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 4,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 10,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "sprite-zero-20oz",
+   "name": "Sprite Zero – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 6,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 16,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "sprite-zero-32oz",
+   "name": "Sprite Zero – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 10,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 26,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "peach-tea",
-   "name": "Peach Tea",
+   "id": "peach-tea-12oz",
+   "name": "Peach Tea – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 122,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 31,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 31,
       "sodiumMg": 11,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20oz",
-     "label": "20oz",
-     "calories": 203,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 52,
-      "sodiumMg": 18,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32oz",
-     "label": "32oz",
-     "calories": 325,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 84,
-      "sodiumMg": 29,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "1 gallon",
-     "label": "1 gallon",
-     "calories": 1300,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 335,
-      "sodiumMg": 117,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "raspberry-tea",
-   "name": "Raspberry Tea",
+   "id": "peach-tea-20oz",
+   "name": "Peach Tea – 20oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
+     "calories": 203,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 18,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-tea-32oz",
+   "name": "Peach Tea – 32oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 325,
+     "proteinG": 0,
+     "carbsG": 84,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 29,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "peach-tea-1-gallon",
+   "name": "Peach Tea – 1 gallon",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1300,
+     "proteinG": 0,
+     "carbsG": 336,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 335,
+      "sodiumMg": 117,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-tea-12oz",
+   "name": "Raspberry Tea – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 122,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 31,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 31,
       "sodiumMg": 11,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20oz",
-     "label": "20oz",
-     "calories": 203,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 52,
-      "sodiumMg": 18,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32oz",
-     "label": "32oz",
-     "calories": 325,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 84,
-      "sodiumMg": 29,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "1 gallon",
-     "label": "1 gallon",
-     "calories": 1300,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 335,
-      "sodiumMg": 117,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "sweetened-ice-tea",
-   "name": "Sweetened Ice Tea",
+   "id": "raspberry-tea-20oz",
+   "name": "Raspberry Tea – 20oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
+     "calories": 203,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 18,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-tea-32oz",
+   "name": "Raspberry Tea – 32oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 325,
+     "proteinG": 0,
+     "carbsG": 84,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 29,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "raspberry-tea-1-gallon",
+   "name": "Raspberry Tea – 1 gallon",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1300,
+     "proteinG": 0,
+     "carbsG": 336,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 335,
+      "sodiumMg": 117,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweetened-ice-tea-12oz",
+   "name": "Sweetened Ice Tea – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 122,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 31,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 31,
       "sodiumMg": 11,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20oz",
-     "label": "20oz",
-     "calories": 203,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 52,
-      "sodiumMg": 18,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32oz",
-     "label": "32oz",
-     "calories": 325,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 84,
-      "sodiumMg": 29,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "1 gallon",
-     "label": "1 gallon",
-     "calories": 1300,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 335,
-      "sodiumMg": 117,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "unsweetened-ice-tea",
-   "name": "Unsweetened Ice Tea",
+   "id": "sweetened-ice-tea-20oz",
+   "name": "Sweetened Ice Tea – 20oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
+     "calories": 203,
+     "proteinG": 0,
+     "carbsG": 52,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 52,
+      "sodiumMg": 18,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweetened-ice-tea-32oz",
+   "name": "Sweetened Ice Tea – 32oz",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 325,
+     "proteinG": 0,
+     "carbsG": 84,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 84,
+      "sodiumMg": 29,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "sweetened-ice-tea-1-gallon",
+   "name": "Sweetened Ice Tea – 1 gallon",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 1300,
+     "proteinG": 0,
+     "carbsG": 336,
+     "fatG": 0,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 335,
+      "sodiumMg": 117,
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-ice-tea-12oz",
+   "name": "Unsweetened Ice Tea – 12oz",
+   "sizes": [
+    {
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 11,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-ice-tea-20oz",
+   "name": "Unsweetened Ice Tea – 20oz",
+   "sizes": [
     {
-     "size": "20oz",
-     "label": "20oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 18,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-ice-tea-32oz",
+   "name": "Unsweetened Ice Tea – 32oz",
+   "sizes": [
     {
-     "size": "32oz",
-     "label": "32oz",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 28,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
-    },
+    }
+   ]
+  },
+  {
+   "id": "unsweetened-ice-tea-1-gallon",
+   "name": "Unsweetened Ice Tea – 1 gallon",
+   "sizes": [
     {
-     "size": "1 gallon",
-     "label": "1 gallon",
+     "size": "regular",
      "calories": 0,
      "proteinG": 0,
      "carbsG": 0,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 0,
       "sodiumMg": 114,
-      "saturatedFatG": 0
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   },
   {
-   "id": "lemonade",
-   "name": "Lemonade",
+   "id": "lemonade-12oz",
+   "name": "Lemonade – 12oz",
    "sizes": [
     {
-     "size": "12oz",
-     "label": "12oz",
+     "size": "regular",
      "calories": 150,
      "proteinG": 0,
-     "carbsG": 0,
+     "carbsG": 39,
      "fatG": 0,
      "micros": {
+      "fiberG": 0,
       "sugarG": 38,
       "sodiumMg": 0,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20 fl oz",
-     "label": "20 fl oz",
-     "calories": 250,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 63,
-      "sodiumMg": 0,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32 fl oz",
-     "label": "32 fl oz",
-     "calories": 400,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 100,
-      "sodiumMg": 0,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "1 gallon",
-     "label": "1 gallon",
-     "calories": 1600,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 400,
-      "sodiumMg": 0,
-      "saturatedFatG": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "powerade",
-   "name": "Powerade",
-   "sizes": [
-    {
-     "size": "12 fl oz",
-     "label": "12 fl oz",
-     "calories": 80,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 21,
-      "sodiumMg": 150,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20 fl oz",
-     "label": "20 fl oz",
-     "calories": 133,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 35,
-      "sodiumMg": 250,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32 fl oz",
-     "label": "32 fl oz",
-     "calories": 213,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 56,
-      "sodiumMg": 400,
-      "saturatedFatG": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "vernor-s-ginger-ale",
-   "name": "Vernor’s Ginger Ale",
-   "sizes": [
-    {
-     "size": "12 fl oz",
-     "label": "12 fl oz",
-     "calories": 140,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 38,
-      "sodiumMg": 45,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "20 fl oz",
-     "label": "20 fl oz",
-     "calories": 234,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 64,
-      "sodiumMg": 75,
-      "saturatedFatG": 0
-     }
-    },
-    {
-     "size": "32 fl oz",
-     "label": "32 fl oz",
-     "calories": 374,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 102,
-      "sodiumMg": 120,
-      "saturatedFatG": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "apple-juice",
-   "name": "Apple Juice",
-   "sizes": [
-    {
-     "size": "6 fl oz",
-     "label": "6 fl oz",
-     "calories": 35,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 0,
-     "micros": {
-      "sugarG": 8,
-      "sodiumMg": 15,
-      "saturatedFatG": 0
-     }
-    }
-   ]
-  },
-  {
-   "id": "organic-valley-1-white-milk",
-   "name": "Organic Valley 1% White Milk",
-   "sizes": [
-    {
-     "size": "8 fl oz",
-     "label": "8 fl oz",
-     "calories": 110,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 3,
-     "micros": {
-      "sugarG": 12,
-      "sodiumMg": 125,
-      "saturatedFatG": 2
-     }
-    }
-   ]
-  },
-  {
-   "id": "organic-valley-1-chocolate-milk",
-   "name": "Organic Valley 1% Chocolate Milk",
-   "sizes": [
-    {
-     "size": "8 fl oz",
-     "label": "8 fl oz",
-     "calories": 150,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 3,
-     "micros": {
-      "sugarG": 21,
-      "sodiumMg": 200,
-      "saturatedFatG": 2
-     }
-    }
-   ]
-  },
-  {
-   "id": "vanilla-milkshake",
-   "name": "Vanilla Milkshake",
-   "sizes": [
-    {
-     "size": "16 oz",
-     "label": "16 oz",
-     "calories": 563,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 16,
-     "micros": {
-      "sugarG": 82,
-      "sodiumMg": 444,
-      "saturatedFatG": 12
-     }
-    }
-   ]
-  },
-  {
-   "id": "oreo-milkshake",
-   "name": "OREO Milkshake",
-   "sizes": [
-    {
-     "size": "16 oz",
-     "label": "16 oz",
-     "calories": 660,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 21,
-     "micros": {
-      "sugarG": 84,
-      "sodiumMg": 555,
-      "saturatedFatG": 14
-     }
-    }
-   ]
-  },
-  {
-   "id": "chocolate-milkshake",
-   "name": "Chocolate Milkshake",
-   "sizes": [
-    {
-     "size": "16 oz",
-     "label": "16 oz",
-     "calories": 665,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 16,
-     "micros": {
-      "sugarG": 101,
-      "sodiumMg": 454,
-      "saturatedFatG": 12
-     }
-    }
-   ]
-  },
-  {
-   "id": "strawberry-milkshake",
-   "name": "Strawberry Milkshake",
-   "sizes": [
-    {
-     "size": "16 oz",
-     "label": "16 oz",
-     "calories": 566,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 16,
-     "micros": {
-      "sugarG": 82,
-      "sodiumMg": 440,
-      "saturatedFatG": 12
-     }
-    }
-   ]
-  },
-  {
-   "id": "strawberry-cheesecake-jar",
-   "name": "Strawberry Cheesecake Jar",
-   "sizes": [
-    {
-     "size": "1 jar",
-     "label": "1 jar",
-     "calories": 530,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 27,
-     "micros": {
-      "sugarG": 39,
-      "sodiumMg": 350,
-      "saturatedFatG": 12
-     }
-    }
-   ]
-  },
-  {
-   "id": "oreo-cheesecake-jar",
-   "name": "OREO Cheesecake Jar",
-   "sizes": [
-    {
-     "size": "1 jar",
-     "label": "1 jar",
-     "calories": 760,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 37,
-     "micros": {
-      "sugarG": 56,
-      "sodiumMg": 530,
-      "saturatedFatG": 15
-     }
-    }
-   ]
-  },
-  {
-   "id": "chocolate-brownie-pudding-jar",
-   "name": "Chocolate Brownie Pudding Jar",
-   "sizes": [
-    {
-     "size": "1 jar",
-     "label": "1 jar",
-     "calories": 670,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 26,
-     "micros": {
-      "sugarG": 58,
-      "sodiumMg": 290,
-      "saturatedFatG": 9
-     }
-    }
-   ]
-  },
-  {
-   "id": "nilla-banana-pudding-jar",
-   "name": "NILLA Banana Pudding Jar",
-   "sizes": [
-    {
-     "size": "1 jar",
-     "label": "1 jar",
-     "calories": 602,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 27,
-     "micros": {
-      "sugarG": 59,
-      "sodiumMg": 362,
-      "saturatedFatG": 17
-     }
-    }
-   ]
-  },
-  {
-   "id": "key-lime-pie",
-   "name": "Key Lime Pie",
-   "sizes": [
-    {
-     "size": "1 jar",
-     "label": "1 jar",
-     "calories": 890,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 33,
-     "micros": {
-      "sugarG": 91,
-      "sodiumMg": 150,
-      "saturatedFatG": 17
-     }
-    }
-   ]
-  },
-  {
-   "id": "chocolate-chip-brownie",
-   "name": "Chocolate Chip Brownie",
-   "sizes": [
-    {
-     "size": "1 brownie",
-     "label": "1 brownie",
-     "calories": 433,
-     "proteinG": 0,
-     "carbsG": 0,
-     "fatG": 20,
-     "micros": {
-      "sugarG": 32,
-      "sodiumMg": 225,
-      "saturatedFatG": 6
+      "saturatedFatG": 0,
+      "transFatG": 0,
+      "cholesterolMg": 0
      }
     }
    ]
   }
  ],
- "modifiers": [
-  {
-   "id": "cayenne-ranch",
-   "name": "Cayenne Ranch",
-   "per": {
-    "calories": 163,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 16,
-    "micros": {
-     "sugarG": 1,
-     "sodiumMg": 206,
-     "saturatedFatG": 3
-    }
-   }
-  },
-  {
-   "id": "ranch",
-   "name": "Ranch",
-   "per": {
-    "calories": 163,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 16,
-    "micros": {
-     "sugarG": 1,
-     "sodiumMg": 206,
-     "saturatedFatG": 3
-    }
-   }
-  },
-  {
-   "id": "honey-mustard",
-   "name": "Honey Mustard",
-   "per": {
-    "calories": 195,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 18,
-    "micros": {
-     "sugarG": 9,
-     "sodiumMg": 203,
-     "saturatedFatG": 3
-    }
-   }
-  },
-  {
-   "id": "blue-cheese",
-   "name": "Blue Cheese",
-   "per": {
-    "calories": 270,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 29,
-    "micros": {
-     "sugarG": 2,
-     "sodiumMg": 330,
-     "saturatedFatG": 5
-    }
-   }
-  },
-  {
-   "id": "sweet-red-chili",
-   "name": "Sweet Red Chili",
-   "per": {
-    "calories": 120,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "sugarG": 27,
-     "sodiumMg": 600,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "buffalo",
-   "name": "Buffalo",
-   "per": {
-    "calories": 75,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 9,
-    "micros": {
-     "sugarG": 0,
-     "sodiumMg": 810,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "hot",
-   "name": "Hot",
-   "per": {
-    "calories": 45,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 2,
-    "micros": {
-     "sugarG": 0,
-     "sodiumMg": 930,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "honey-bbq",
-   "name": "Honey BBQ",
-   "per": {
-    "calories": 90,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "sugarG": 23,
-     "sodiumMg": 480,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "spicy-bbq",
-   "name": "Spicy BBQ",
-   "per": {
-    "calories": 81,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "sugarG": 9,
-     "sodiumMg": 432,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "mango-habanero",
-   "name": "Mango Habanero",
-   "per": {
-    "calories": 75,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 0,
-    "micros": {
-     "sugarG": 12,
-     "sodiumMg": 255,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "garlic-parmesan",
-   "name": "Garlic Parmesan",
-   "per": {
-    "calories": 150,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 15,
-    "micros": {
-     "sugarG": 0,
-     "sodiumMg": 720,
-     "saturatedFatG": 2
-    }
-   }
-  },
-  {
-   "id": "korean-bbq",
-   "name": "Korean BBQ",
-   "per": {
-    "calories": 105,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 2,
-    "micros": {
-     "sugarG": 17,
-     "sodiumMg": 885,
-     "saturatedFatG": 0
-    }
-   }
-  },
-  {
-   "id": "gravy",
-   "name": "Gravy",
-   "per": {
-    "calories": 57,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 2,
-    "micros": {
-     "sugarG": 3,
-     "sodiumMg": 314,
-     "saturatedFatG": 1
-    }
-   }
-  },
-  {
-   "id": "lite-italian",
-   "name": "Lite Italian",
-   "per": {
-    "calories": 60,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 5,
-    "micros": {
-     "sugarG": 3,
-     "sodiumMg": 405,
-     "saturatedFatG": 1
-    }
-   }
-  },
-  {
-   "id": "balsamic",
-   "name": "Balsamic",
-   "per": {
-    "calories": 90,
-    "proteinG": 0,
-    "carbsG": 0,
-    "fatG": 8,
-    "micros": {
-     "sugarG": 6,
-     "sodiumMg": 285,
-     "saturatedFatG": 1
-    }
-   }
-  }
- ]
+ "modifiers": []
 }

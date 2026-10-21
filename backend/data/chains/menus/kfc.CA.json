@@ -1,0 +1,538 @@
+{
+ "chain": "kfc",
+ "country": "CA",
+ "source": {
+  "url": "https://assets.ctfassets.net/a2mgcrjjefyo/3AUi2N7aacNo4rjQ1jE3di/ab5513730957082e372dd36fd0a7c950/KFC_Nutritional_Information__W8__EN_FR.pdf",
+  "fetchedAt": "2026-10-21",
+  "note": "PDF → two model reads (gemini-3.8-flash), published only where both agree; numbers only",
+  "verified": "every size has full macros that match its calories (chainNutritionGate)"
+ },
+ "defaultSize": "regular",
+ "items": [
+  {
+   "id": "zinger-twister",
+   "name": "Zinger Twister",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 660,
+     "proteinG": 24,
+     "carbsG": 59,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 4,
+      "sodiumMg": 1410,
+      "saturatedFatG": 6,
+      "transFatG": 0.4
+     }
+    }
+   ]
+  },
+  {
+   "id": "deluxe-zinger",
+   "name": "Deluxe Zinger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 680,
+     "proteinG": 32,
+     "carbsG": 60,
+     "fatG": 35,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1380,
+      "saturatedFatG": 7,
+      "transFatG": 0.4,
+      "cholesterolMg": 75
+     }
+    }
+   ]
+  },
+  {
+   "id": "poitrine",
+   "name": "Poitrine",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 290,
+     "proteinG": 35,
+     "carbsG": 8,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 420,
+      "saturatedFatG": 2,
+      "transFatG": 0.1,
+      "cholesterolMg": 105
+     }
+    }
+   ]
+  },
+  {
+   "id": "cote",
+   "name": "Côte",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 29,
+     "carbsG": 6,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 420,
+      "saturatedFatG": 2.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 90
+     }
+    }
+   ]
+  },
+  {
+   "id": "pilon",
+   "name": "Pilon",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 140,
+     "proteinG": 15,
+     "carbsG": 2,
+     "fatG": 8,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 150,
+      "saturatedFatG": 1.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "aile",
+   "name": "Aile",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 160,
+     "proteinG": 14,
+     "carbsG": 4,
+     "fatG": 9,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 210,
+      "saturatedFatG": 1.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 65
+     }
+    }
+   ]
+  },
+  {
+   "id": "haut-de-cuisse",
+   "name": "Haut de cuisse",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 220,
+     "proteinG": 15,
+     "carbsG": 6,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 0,
+      "sodiumMg": 300,
+      "saturatedFatG": 3,
+      "transFatG": 0.1,
+      "cholesterolMg": 80
+     }
+    }
+   ]
+  },
+  {
+   "id": "filet",
+   "name": "Filet",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 100,
+     "proteinG": 10,
+     "carbsG": 5,
+     "fatG": 5,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 1,
+      "sodiumMg": 350,
+      "saturatedFatG": 0.5,
+      "transFatG": 0,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "twister",
+   "name": "Twister",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 550,
+     "proteinG": 25,
+     "carbsG": 49,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1190,
+      "saturatedFatG": 5,
+      "transFatG": 0.2,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "twister-epice",
+   "name": "Twister épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 560,
+     "proteinG": 25,
+     "carbsG": 49,
+     "fatG": 28,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 4,
+      "sodiumMg": 1210,
+      "saturatedFatG": 5,
+      "transFatG": 0.2,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "twister-avec-batonnets-croustillants",
+   "name": "Twister avec bâtonnets croustillants",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 570,
+     "proteinG": 23,
+     "carbsG": 53,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1140,
+      "saturatedFatG": 6,
+      "transFatG": 0.1,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "twister-epice-avec-batonnets-croustillants",
+   "name": "Twister épicé avec bâtonnets croustillants",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 580,
+     "proteinG": 23,
+     "carbsG": 53,
+     "fatG": 32,
+     "micros": {
+      "fiberG": 1,
+      "sugarG": 7,
+      "sodiumMg": 1160,
+      "saturatedFatG": 5,
+      "transFatG": 0.1,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "fameux-sandwich-au-poulet",
+   "name": "Fameux sandwich au poulet",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 690,
+     "proteinG": 35,
+     "carbsG": 58,
+     "fatG": 36,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1400,
+      "saturatedFatG": 5,
+      "transFatG": 0.4,
+      "cholesterolMg": 85
+     }
+    }
+   ]
+  },
+  {
+   "id": "fameux-sandwich-au-poulet-epice",
+   "name": "Fameux sandwich au poulet épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 700,
+     "proteinG": 35,
+     "carbsG": 58,
+     "fatG": 37,
+     "micros": {
+      "fiberG": 2,
+      "sugarG": 11,
+      "sodiumMg": 1370,
+      "saturatedFatG": 5,
+      "transFatG": 0.3,
+      "cholesterolMg": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "fameux-sandwich-au-poulet-deluxe",
+   "name": "Fameux sandwich au poulet deluxe",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 755,
+     "proteinG": 39,
+     "carbsG": 60,
+     "fatG": 40,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 1506,
+      "saturatedFatG": 5.5,
+      "transFatG": 0.3,
+      "cholesterolMg": 98
+     }
+    }
+   ]
+  },
+  {
+   "id": "fameux-sandwich-au-poulet-deluxe-epice",
+   "name": "Fameux sandwich au poulet deluxe épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 760,
+     "proteinG": 39,
+     "carbsG": 61,
+     "fatG": 41,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 13,
+      "sodiumMg": 1480,
+      "saturatedFatG": 8,
+      "transFatG": 0.5,
+      "cholesterolMg": 110
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-super-croque",
+   "name": "Sandwich Super-Croque®",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 620,
+     "proteinG": 25,
+     "carbsG": 57,
+     "fatG": 34,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 5,
+      "sodiumMg": 1100,
+      "saturatedFatG": 4,
+      "transFatG": 0.4,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-super-croque-epice",
+   "name": "Sandwich Super-Croque® épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 630,
+     "proteinG": 25,
+     "carbsG": 58,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1120,
+      "saturatedFatG": 4,
+      "transFatG": 0.1,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-super-croque-deluxe",
+   "name": "Sandwich Super-Croque® deluxe",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 690,
+     "proteinG": 28,
+     "carbsG": 59,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1210,
+      "saturatedFatG": 5,
+      "transFatG": 0.2,
+      "cholesterolMg": 60
+     }
+    }
+   ]
+  },
+  {
+   "id": "sandwich-super-croque-epice-deluxe",
+   "name": "Sandwich Super-Croque® épicé deluxe",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 690,
+     "proteinG": 29,
+     "carbsG": 60,
+     "fatG": 38,
+     "micros": {
+      "fiberG": 4,
+      "sugarG": 7,
+      "sodiumMg": 1180,
+      "saturatedFatG": 7,
+      "transFatG": 0.4,
+      "cholesterolMg": 70
+     }
+    }
+   ]
+  },
+  {
+   "id": "zinger",
+   "name": "Zinger",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 640,
+     "proteinG": 25,
+     "carbsG": 60,
+     "fatG": 33,
+     "micros": {
+      "fiberG": 3,
+      "sugarG": 6,
+      "sodiumMg": 1290,
+      "saturatedFatG": 4.5,
+      "transFatG": 0.2,
+      "cholesterolMg": 45
+     }
+    }
+   ]
+  },
+  {
+   "id": "bouchee-recette-originale",
+   "name": "Bouchée Recette® Originale",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 240,
+     "proteinG": 13,
+     "carbsG": 25,
+     "fatG": 10,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 540,
+      "saturatedFatG": 1,
+      "transFatG": 0.1,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "bouchee-recette-originale-epice",
+   "name": "Bouchée Recette® Originale épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 270,
+     "proteinG": 13,
+     "carbsG": 25,
+     "fatG": 13,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 3,
+      "sodiumMg": 560,
+      "saturatedFatG": 1.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "bouchee-batonnet-croustillant",
+   "name": "Bouchée Bâtonnet Croustillant",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 250,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 12,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 520,
+      "saturatedFatG": 1.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "bouchee-batonnet-croustillant-epice",
+   "name": "Bouchée Bâtonnet Croustillant épicé",
+   "sizes": [
+    {
+     "size": "regular",
+     "calories": 280,
+     "proteinG": 11,
+     "carbsG": 27,
+     "fatG": 15,
+     "micros": {
+      "fiberG": 0,
+      "sugarG": 5,
+      "sodiumMg": 540,
+      "saturatedFatG": 1.5,
+      "transFatG": 0.1,
+      "cholesterolMg": 30
+     }
+    }
+   ]
+  }
+ ],
+ "modifiers": []
+}
