@@ -105,6 +105,20 @@ function toOpenRouterParams<
   };
 }
 
+// A 429 from the pinned hosts means the next calls get one too. Oct 17–24 2026
+// ~4,300 primary calls 429'd (of the four pinned hosts only DeepInfra serves
+// V4 Flash) and each paid ~2 s before the fallback, on every Fuel load among
+// others. After a rate limit, go straight to OpenAI for a while.
+export const PRIMARY_COOLDOWN_MS = 2 * 60_000;
+let primaryCoolUntil = 0;
+const rateLimited = (reason: string) => /\b429\b|rate.?limit|no (endpoints|providers)/i.test(reason);
+function notePrimaryFailure(reason: string) {
+  if (rateLimited(reason)) primaryCoolUntil = Date.now() + PRIMARY_COOLDOWN_MS;
+}
+/** True while the pinned primary is being skipped after a rate limit. */
+export function primaryCoolingDown(now = Date.now()): boolean { return now < primaryCoolUntil; }
+export function resetPrimaryCooldownForTests() { primaryCoolUntil = 0; }
+
 export async function chatComplete(
   params: NonStreamingParams,
   opts: ChatCompleteOptions = {},
@@ -114,6 +128,9 @@ export async function chatComplete(
   let reason: string;
   if (opts.sensitive && sensitiveRoutingOn()) {
     reason = 'sensitive prompt';
+  } else if (!params.modelOverride && primaryCoolingDown()) {
+    // The cooldown is for the pinned primary only; an override routes elsewhere.
+    reason = 'primary cooling down after a rate limit';
   } else {
     try {
       const res = await openrouter.chat.completions.create(
@@ -131,6 +148,7 @@ export async function chatComplete(
     } catch (err) {
       reason = (err as Error)?.message ?? String(err);
     }
+    if (!params.modelOverride) notePrimaryFailure(reason);
     console.warn(`[chatClient] ${opts.label ?? 'call'}: OpenRouter primary unusable (${reason}) after ${Date.now() - t0}ms, falling back to OpenAI`);
   }
   const { modelOverride: _ignored, ...fallbackParams } = params;
@@ -166,11 +184,13 @@ function logCall(label: string, res: OpenAI.Chat.Completions.ChatCompletion, t0:
 export async function chatStream(params: StreamingParams, opts: { sensitive?: boolean } = {}) {
   // Health-bearing prompts never take the OpenRouter tier.
   if (opts.sensitive && sensitiveRoutingOn()) return openaiDirect.chat.completions.create({ ...params, model: FALLBACK_CHAT_MODEL });
+  if (primaryCoolingDown()) return openaiDirect.chat.completions.create({ ...params, model: FALLBACK_CHAT_MODEL });
   try {
     return await openrouter.chat.completions.create(
       toOpenRouterParams(params) as OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming,
     );
   } catch (err) {
+    notePrimaryFailure((err as Error)?.message ?? String(err));
     console.warn(
       '[chatClient] OpenRouter stream failed, falling back to OpenAI:',
       (err as Error)?.message,

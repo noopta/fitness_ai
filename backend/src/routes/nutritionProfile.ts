@@ -34,7 +34,10 @@ import { recommendFoods } from '../engine/nutritionRecommendations.js';
 import {
   NUTRIENTS, BODY_SYSTEMS, getNutrient, driversForSystem, type BodySystemId,
 } from '../engine/nutrientRegistry.js';
-import { generateProfileNarration, generateNutrientWhy } from '../services/llmService.js';
+import {
+  generateProfileNarration, generateNutrientWhy,
+  type ProfileNarration, type ProfileNarrationInput,
+} from '../services/llmService.js';
 import { buildRAGContext } from '../services/ragService.js';
 import { parseJsonObject, isValidIsoDate } from '../services/nutritionShared.js';
 import {
@@ -136,6 +139,33 @@ function fallbackDriver(sys: BodySystemScore, period: string): string {
   return `${d.label} at ${d.pct}% of target is holding ${sys.name.toLowerCase()} to ${sys.score}.`;
 }
 
+// Narration is the one slow step here: an uncached LLM call made on every
+// load (p50 ~4.7 s, p90 ~9 s in Oct 2026, with users leaving before it
+// returned). Its input is a few rounded figures that repeat across loads, so
+// cache it by those figures, and never hold the page past the budget: the
+// deterministic sentences show instead, and a late answer still fills the cache.
+let narrationBudgetMs = 3_000;
+const NARRATION_TTL_MS = 6 * 60 * 60_000;
+const NARRATION_CACHE_MAX = 1_000;
+const narrationCache = new Map<string, { at: number; value: ProfileNarration }>();
+export function resetNarrationCacheForTests(budgetMs = 3_000) { narrationCache.clear(); narrationBudgetMs = budgetMs; }
+
+async function narrate(userId: string, input: ProfileNarrationInput): Promise<ProfileNarration | null> {
+  const key = `${userId}:${JSON.stringify(input)}`;
+  const hit = narrationCache.get(key);
+  if (hit && Date.now() - hit.at < NARRATION_TTL_MS) return hit.value;
+  const pending = generateProfileNarration(input).then((value) => {
+    narrationCache.delete(key);
+    narrationCache.set(key, { at: Date.now(), value });
+    if (narrationCache.size > NARRATION_CACHE_MAX) narrationCache.delete(narrationCache.keys().next().value!);
+    return value;
+  });
+  pending.catch(() => { /* the fallback sentences cover it */ });
+  let timer: NodeJS.Timeout | undefined;
+  const budget = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), narrationBudgetMs); });
+  try { return await Promise.race([pending, budget]); } finally { clearTimeout(timer); }
+}
+
 // GET /nutrition-profile?date=&range=
 router.get('/nutrition-profile', requireAuth, async (req, res) => {
   try {
@@ -168,7 +198,7 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
     try {
       const coverageNote = isToday ? '' : `, across ${win.loggedDays} of ${win.windowDays} days logged`;
       const kcalNote = isToday ? `kcal ${engine.kcalLogged}` : `avg ${engine.kcalLogged} kcal/day`;
-      const narration = await generateProfileNarration({
+      const narration = await narrate(userId, {
         headlineFacts: `${kcalNote}, micronutrient coverage ${engine.microCoveragePct}%, profile score ${engine.profileScore}${coverageNote}`,
         systems: engine.systems.map(s => ({
           name: s.name, status: s.status, score: s.score,
@@ -180,8 +210,8 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
           windowDays: win.windowDays,
         }),
       });
-      if (narration.headline) headline = narration.headline;
-      for (const [name, sentence] of Object.entries(narration.drivers)) {
+      if (narration?.headline) headline = narration.headline;
+      for (const [name, sentence] of Object.entries(narration?.drivers ?? {})) {
         if (sentence) driverByName[name] = sentence;
       }
     } catch { /* keep fallbacks */ }

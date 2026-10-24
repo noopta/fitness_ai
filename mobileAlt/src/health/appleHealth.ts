@@ -20,6 +20,12 @@ export function healthKit(): HK | null {
   hk = null;
   if (Platform.OS !== 'ios') return hk;
   try {
+    // The JS ships by OTA before the native module does: build 171 (runtime
+    // 3.2.0) has no HealthKit, and requiring it there throws inside Metro's
+    // module guard, which reports to Sentry even though we catch it
+    // (REACT-NATIVE-G). Ask the Nitro registry first.
+    const { NitroModules } = require('react-native-nitro-modules');
+    if (!NitroModules?.hasHybridObject?.('CoreModule')) return hk;
     const mod: HK = require('@kingstinct/react-native-healthkit');
     hk = mod.isHealthDataAvailable() ? mod : null;
   } catch {

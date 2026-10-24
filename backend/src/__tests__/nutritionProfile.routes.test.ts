@@ -59,7 +59,8 @@ async function buildApp() {
   return app;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  (await import('../routes/nutritionProfile.js')).resetNarrationCacheForTests();
   mocks.user.findUnique.mockReset().mockResolvedValue({ weightKg: 80 });
   mocks.user.update.mockReset().mockResolvedValue({});
   mocks.mealEntry.findMany.mockReset();
@@ -528,5 +529,30 @@ describe('GET /nutrition-profile/recommendations', () => {
     expect(r.gain).toMatch(/^\+\d+/);
     expect(r.prefill.source).toBe('recommendation');
     expect(r.prefill.name).toContain(r.name);
+  });
+});
+
+describe('GET /nutrition-profile narration latency', () => {
+  it('reuses the narration for the same figures instead of calling the model again', async () => {
+    mocks.mealEntry.findMany.mockResolvedValue([meal()]);
+    mockNarration.mockResolvedValue({ headline: 'Cached verdict at 500 kcal.', drivers: {} });
+    const app = await buildApp();
+    const a = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    const b = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(a.body.headline).toBe('Cached verdict at 500 kcal.');
+    expect(b.body.headline).toBe('Cached verdict at 500 kcal.');
+    expect(mockNarration).toHaveBeenCalledTimes(1);
+  });
+
+  it('answers with the deterministic sentences when the model is slower than the budget', async () => {
+    (await import('../routes/nutritionProfile.js')).resetNarrationCacheForTests(50);
+    mocks.mealEntry.findMany.mockResolvedValue([meal()]);
+    mockNarration.mockImplementation(() => new Promise(() => {})); // never answers
+    const app = await buildApp();
+    const t0 = Date.now();
+    const res = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(Date.now() - t0).toBeLessThan(2_000);
+    expect(res.body.headline).toMatch(/\d/); // a fallback sentence carries a number
   });
 });

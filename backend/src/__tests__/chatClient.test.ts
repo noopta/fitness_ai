@@ -8,12 +8,12 @@ vi.mock('openai', () => ({
   }),
 }));
 
-import { chatComplete, incompleteJson, OPENROUTER_PROVIDERS } from '../services/chatClient.js';
+import { chatComplete, incompleteJson, OPENROUTER_PROVIDERS, primaryCoolingDown, resetPrimaryCooldownForTests, PRIMARY_COOLDOWN_MS } from '../services/chatClient.js';
 
 const reply = (content: string, finish = 'stop', extra: any = {}) =>
   ({ model: 'm', choices: [{ finish_reason: finish, message: { content } }], usage: { completion_tokens: 10 }, ...extra }) as any;
 
-beforeEach(() => { h.router.mockReset(); h.direct.mockReset(); vi.spyOn(console, 'warn').mockImplementation(() => {}); vi.spyOn(console, 'log').mockImplementation(() => {}); });
+beforeEach(() => { resetPrimaryCooldownForTests(); h.router.mockReset(); h.direct.mockReset(); vi.spyOn(console, 'warn').mockImplementation(() => {}); vi.spyOn(console, 'log').mockImplementation(() => {}); });
 
 describe('chatComplete routing', () => {
   it('pins the configured providers with no open fallback and JSON mode required', async () => {
@@ -117,3 +117,30 @@ describe('chatComplete health-data routing (audit HIGH-4)', () => {
   });
 });
 
+
+describe('chatComplete rate-limit cooldown', () => {
+  it('skips the primary for a while after a 429, then tries it again', async () => {
+    h.router.mockRejectedValue(new Error('429 Provider returned error'));
+    h.direct.mockResolvedValue(reply('{}'));
+    await chatComplete({ messages: [] });
+    expect(h.router).toHaveBeenCalledTimes(1);
+    expect(primaryCoolingDown()).toBe(true);
+
+    await chatComplete({ messages: [] });
+    expect(h.router).toHaveBeenCalledTimes(1); // went straight to OpenAI
+    expect(h.direct).toHaveBeenCalledTimes(2);
+
+    expect(primaryCoolingDown(Date.now() + PRIMARY_COOLDOWN_MS + 1)).toBe(false);
+  });
+
+  it('does not cool down on an ordinary failure, and never for a model override', async () => {
+    h.router.mockRejectedValue(new Error('socket hang up'));
+    h.direct.mockResolvedValue(reply('{}'));
+    await chatComplete({ messages: [] });
+    expect(primaryCoolingDown()).toBe(false);
+
+    h.router.mockRejectedValue(new Error('429 Provider returned error'));
+    await chatComplete({ messages: [], modelOverride: 'z-ai/glm-5.2' } as any);
+    expect(primaryCoolingDown()).toBe(false);
+  });
+});
