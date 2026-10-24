@@ -6,6 +6,7 @@ import { registerToolkit } from '../registry.js';
 import { defineOp } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
+import { buildChoiceCard } from './intake.js';
 import { getCurrentWeekSchedule, buildSwapProposal, applyProposedWeek, generateProgramForUser, saveProgramForUser, SwapProposalError } from '../../routes/coach.js';
 import { buildPlanPatchProposal, issueRebuild, REBUILD_MARKER } from '../applyTools.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
@@ -705,9 +706,18 @@ export const PROGRAM_TOOLS = [
       if (input.fromLogs !== true && input.confirmed !== true) {
         const { cleanInjuryText, lowerBodyBlocked } = await import('../../services/injuryGuard.js');
         const injury = cleanInjuryText(u?.constraintsText, typeof blob.injuries === 'string' ? blob.injuries : null);
+        const known = { goal: current?.goal ?? u?.coachGoal ?? blob.primaryGoal ?? null, level: u?.trainingAge ?? null, daysPerWeek: blob.daysPerWeek ?? current?.daysPerWeek ?? null, equipment: u?.equipment ?? null, injury: injury || null };
+        // A mostly empty intake (direct entry skips the interview): offer the
+        // two ways — one question at a time here, or the interview screen.
+        if ([known.goal, known.level, known.daysPerWeek, known.equipment].filter((v) => v == null).length >= 3) {
+          return {
+            needsAnswers: true, emptyIntake: true, known,
+            instruction: 'Their intake is empty. The card offers two ways: answer here one question at a time, or the intake interview. Say that in one short line and stop — don’t list the questions. If they pick here, call next_intake_question (search for it if it isn’t loaded).',
+          };
+        }
         return {
           needsAnswers: true,
-          known: { goal: current?.goal ?? u?.coachGoal ?? blob.primaryGoal ?? null, level: u?.trainingAge ?? null, daysPerWeek: blob.daysPerWeek ?? current?.daysPerWeek ?? null, equipment: u?.equipment ?? null, injury: injury || null },
+          known,
           ask: [
             'The goal, and what success looks like by when (e.g. "bench 225 by March", "lose 6 kg in 12 weeks")',
             injury && lowerBodyBlocked(injury) ? 'How many days a week and how long a session (with the lower body off-limits, 3–4 upper-body days is the useful range)' : 'How many days a week and how long a session',
@@ -785,6 +795,7 @@ export const PROGRAM_TOOLS = [
       }
     },
     card: (_i, r) => {
+      if (r.emptyIntake) return buildChoiceCard();
       if (r.error || r.needsAnswers) return null;
       if (r.proOnly) return { fn: 'PRG-04', pattern: 'proposal', rule: 'propose', pro: true, meta: { label: 'New program · Pro' }, rows: [{ key: 'Goal', value: String(r.goal ?? '—').slice(0, 60) }, { key: 'Length', value: `${r.durationWeeks} weeks` }, { key: 'Days', value: `${r.daysPerWeek} a week` }], actions: [{ id: 'pro', label: 'Unlock with Pro', kind: 'primary', client: { action: 'purchase' } }] };
       const p = r.program;

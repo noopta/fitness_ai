@@ -107,12 +107,20 @@ export const ACCOUNT_TOOLS = [
   }),
   tool({
     name: 'update_account', kind: 'set', fn: 'ACC-02',
-    description: 'Change the user’s display name, @username or date of birth — only when they ask. One field per call. A taken username returns alternatives instead of changing anything.',
-    input_schema: schema({ field: { type: 'string', enum: ['name', 'username', 'dateOfBirth'] }, value: { type: 'string', description: 'New value. dateOfBirth as YYYY-MM-DD.' } }, ['field', 'value']),
+    description: 'Change the user’s display name, @username or date of birth — only when they ask. One field per call. A taken username returns alternatives instead of changing anything. If they haven’t said the new value ("change my username"), call it WITHOUT value: the card asks for it, with suggestions — don’t ask in words.',
+    input_schema: schema({ field: { type: 'string', enum: ['name', 'username', 'dateOfBirth'] }, value: { type: 'string', description: 'New value. dateOfBirth as YYYY-MM-DD. Leave out when they haven’t said it.' } }, ['field']),
     receipt: (i) => ({ verb: 'Adjusted', text: i.field === 'username' ? 'Username' : i.field === 'dateOfBirth' ? 'Date of birth' : 'Name' }),
     execute: async (input, userId) => {
       const field = str(input.field);
       const value = str(input.value);
+      // No value yet: the card asks for it (a new Pro user tapped "Change my
+      // username" twice and got "what would you like it to be?" both times).
+      if (!value) {
+        const u = await prisma.user.findUnique({ where: { id: userId }, select: { username: true, name: true } });
+        const current = field === 'username' ? (u?.username ? `@${u.username}` : null) : field === 'name' ? (u?.name ?? null) : null;
+        const suggestions = field === 'username' ? await suggestUsernames(userId, (u?.name ?? u?.username ?? 'axiom').replace(/\s+/g, '').toLowerCase()) : [];
+        return { askValue: true, field, current, suggestions };
+      }
       if (field === 'username') {
         const clean = value.replace(/^@/, '');
         const check = await callApi<{ available: boolean }>(userId, 'GET', `/auth/check-username?username=${encodeURIComponent(clean)}`).catch(() => ({ available: true }));
@@ -125,6 +133,14 @@ export const ACCOUNT_TOOLS = [
       return { changed: change.summary, field, _change: change };
     },
     card: (input, r) => {
+      if (r.askValue) {
+        const label = r.field === 'username' ? 'Username' : r.field === 'dateOfBirth' ? 'Date of birth' : 'Name';
+        return {
+          fn: r.field === 'username' ? 'ACC-03' : r.field === 'dateOfBirth' ? 'ACC-05' : 'ACC-02', pattern: 'ask', rule: 'show', meta: { label, open: { page: 'account' } },
+          ask: { q: r.field === 'username' ? `New username?${r.current ? ` Now ${r.current}.` : ''}` : r.field === 'dateOfBirth' ? 'Your date of birth?' : `New name?${r.current ? ` Now ${r.current}.` : ''}`, options: r.suggestions ?? [], typeInstead: true },
+          pending: { answer: { op: 'account.set', args: { field: r.field }, valueKey: 'value' } },
+        } as CardDraft;
+      }
       if (r.taken) {
         return {
           fn: 'ACC-03', pattern: 'setting', rule: 'change_undo', meta: { label: 'Username', open: { page: 'account' } },

@@ -3,6 +3,7 @@ import './core.js';
 import './account.js';
 import './prefs.js';
 import './profile.js';
+import './intake.js';
 import './program.js';
 import './adaptation.js';
 import './workouts.js';

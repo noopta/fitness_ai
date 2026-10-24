@@ -196,9 +196,14 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
       source = 'fallback';
     }
 
-    const suggestions = session?.isToday
-      ? [`What's the plan for ${shortSessionName(session.name).toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
-      : ["I can't train tomorrow. Move it?", 'How\'s my deadlift?', 'Log lunch'];
+    // No program yet (direct entry skips the intake): suggestions that work
+    // without one. Program-shaped ones ("move tomorrow") only dead-end.
+    const hasProgram = !!(schedule?.weekNumber || schedule?.weekDays?.length);
+    const suggestions = !hasProgram
+      ? ['Build my program', 'What should I train today?', 'Log a meal']
+      : session?.isToday
+        ? [`What's the plan for ${shortSessionName(session.name).toLowerCase()} today?`, 'I slept badly — adjust today?', 'Log lunch']
+        : ["I can't train tomorrow. Move it?", 'How\'s my deadlift?', 'Log lunch'];
 
     const checkedInToday = ctx.lastWellness?.date === date;
     const ask = !checkedInToday && session?.isToday

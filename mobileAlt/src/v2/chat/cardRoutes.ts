@@ -43,6 +43,8 @@ export function destinationFor(route: CardRoute): Destination | null {
   const p = route.params ?? {};
   if (page in TABS) return { kind: 'tab', index: TABS[page] };
   if (page === 'session') return { kind: 'push', pathname: '/(v2)/session' };
+  // The intake interview (program onboarding), offered from chat when the intake is empty.
+  if (page === 'intake' || page === 'onboarding') return { kind: 'push', pathname: '/(v2)/onboarding' };
   // Search-first food logging (bug fixes 5 Oct, 4a); `from: chat` sends the Logged card back here.
   if (page === 'foodsearch' || page === 'log_food') return { kind: 'push', pathname: '/(v2)/food-search', params: p };
   if (page in PUSHED) {
