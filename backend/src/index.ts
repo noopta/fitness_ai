@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import posthog from './services/posthogClient.js';
 import { errorReporting, reportServerError } from './middleware/errorReporting.js';
+import { opsTiming, startOpsWatch } from './services/opsWatch.js';
 import libraryRoutes from './routes/library.js';
 import sessionsRoutes from './routes/sessions.js';
 import liftDiagnosticsRoutes from './routes/liftDiagnostics.js';
@@ -205,6 +206,8 @@ app.use((req, res, next) => {
 // being reported; see middleware/errorReporting.ts for why the central error
 // handler below isn't sufficient on its own.
 app.use(errorReporting);
+// Route timing + client aborts for the ops watchdog (services/opsWatch.ts).
+app.use(opsTiming);
 
 // Health check — before the rate limiter so uptime probes are never throttled.
 app.get('/health', (req, res) => {
@@ -405,6 +408,10 @@ setInterval(() => {
 // closes, run check-in schedules, record trainer notifications, and have
 // each trainer's briefing ready by 6 AM their time.
 startPersonalTrainingJobs();
+
+// Ops watchdog: Telegram alerts for quiet degradation (LLM fallbacks, slow or
+// abandoned routes, thin provider coverage). OPS_ALERTS=0 turns it off.
+startOpsWatch();
 
 // ── Notification schedulers ────────────────────────────────────────────────
 // Nightly at 8pm ET: contextual push notifications (session reminders, re-engagement, streaks)

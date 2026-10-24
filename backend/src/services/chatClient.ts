@@ -12,6 +12,7 @@
 // APIs, different providers.
 import OpenAI from 'openai';
 import { parseModelJson } from './modelJson.js';
+import { recordLlmPrimary } from './opsWatch.js';
 
 const openrouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -131,6 +132,7 @@ export async function chatComplete(
   } else if (!params.modelOverride && primaryCoolingDown()) {
     // The cooldown is for the pinned primary only; an override routes elsewhere.
     reason = 'primary cooling down after a rate limit';
+    recordLlmPrimary(false);
   } else {
     try {
       const res = await openrouter.chat.completions.create(
@@ -143,12 +145,12 @@ export async function chatComplete(
       const bad = !res?.choices?.length
         ? `no choices${(res as any)?.error?.message ? `: ${(res as any).error.message}` : ''}`
         : opts.requireJson ? incompleteJson(res) : null;
-      if (!bad) return res;
+      if (!bad) { if (!params.modelOverride) recordLlmPrimary(true); return res; }
       reason = bad;
     } catch (err) {
       reason = (err as Error)?.message ?? String(err);
     }
-    if (!params.modelOverride) notePrimaryFailure(reason);
+    if (!params.modelOverride) { notePrimaryFailure(reason); recordLlmPrimary(false); }
     console.warn(`[chatClient] ${opts.label ?? 'call'}: OpenRouter primary unusable (${reason}) after ${Date.now() - t0}ms, falling back to OpenAI`);
   }
   const { modelOverride: _ignored, ...fallbackParams } = params;

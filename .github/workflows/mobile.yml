@@ -43,6 +43,11 @@ jobs:
       - name: Install dependencies
         working-directory: mobileAlt
         run: npm ci
+      - name: Native dependency guard
+        working-directory: mobileAlt
+        # Fails when a native dependency changed without a runtimeVersion bump:
+        # the OTA would reach binaries that don't contain it (scripts/check-native-deps.js).
+        run: node scripts/check-native-deps.js
       - name: Push OTA → dev
         working-directory: mobileAlt
         env:
@@ -70,6 +75,11 @@ jobs:
       - name: Install dependencies
         working-directory: mobileAlt
         run: npm ci
+      - name: Native dependency guard
+        working-directory: mobileAlt
+        # Fails when a native dependency changed without a runtimeVersion bump:
+        # the OTA would reach binaries that don't contain it (scripts/check-native-deps.js).
+        run: node scripts/check-native-deps.js
       - name: Push OTA → production
         working-directory: mobileAlt
         env:
@@ -116,6 +126,11 @@ jobs:
       - name: Install dependencies
         working-directory: mobileAlt
         run: npm ci
+      - name: Native dependency guard
+        working-directory: mobileAlt
+        # Fails when a native dependency changed without a runtimeVersion bump:
+        # the OTA would reach binaries that don't contain it (scripts/check-native-deps.js).
+        run: node scripts/check-native-deps.js
       - name: Push OTA → production (iOS)
         working-directory: mobileAlt
         env:
