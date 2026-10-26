@@ -192,26 +192,34 @@ export function stripQualifiers(name: string): string {
 
 // ─── Levenshtein Distance ─────────────────────────────────────────────────────
 
-function levenshtein(a: string, b: string): number {
+/** Edit distance, or `limit + 1` as soon as it must exceed `limit` (one row, no matrix). */
+function levenshtein(a: string, b: string, limit = Infinity): number {
   const m = a.length, n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
-    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
-  );
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i - 1] === b[j - 1]
-        ? dp[i - 1][j - 1]
-        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-  return dp[m][n];
+  if (Math.abs(m - n) > limit) return limit + 1;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  let cur = new Array<number>(n + 1);
+  for (let i = 1; i <= m; i++) {
+    cur[0] = i;
+    let rowMin = i;
+    for (let j = 1; j <= n; j++) {
+      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : 1 + Math.min(prev[j], cur[j - 1], prev[j - 1]);
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > limit) return limit + 1;
+    [prev, cur] = [cur, prev];
+  }
+  return prev[n];
 }
 
 export function fuzzyMatch(stripped: string): (Omit<NormalizedExercise, 'rawName'>) | null {
   let best: string | null = null;
   let bestDist = Infinity;
   for (const key of Object.keys(SEED)) {
-    const dist = levenshtein(stripped, key);
     // Allow up to 30% of key length as edit distance
-    if (dist < bestDist && dist <= Math.max(2, Math.floor(key.length * 0.3))) {
+    const limit = Math.min(Math.max(2, Math.floor(key.length * 0.3)), bestDist - 1);
+    if (limit < 0) continue;
+    const dist = levenshtein(stripped, key, limit);
+    if (dist <= limit) {
       bestDist = dist;
       best = key;
     }
@@ -228,10 +236,21 @@ export function fuzzyMatch(stripped: string): (Omit<NormalizedExercise, 'rawName
 export function canonicalizeSync(rawName: string): Omit<NormalizedExercise, 'rawName'> | null {
   const trimmed = (rawName ?? '').trim();
   if (!trimmed) return null;
+  // SEED never changes, so a name's answer never does. The strength profile
+  // canonicalizes every exercise of every log, and the fuzzy match against
+  // ~400 seed names cost a heavy logger ~1.3 s of blocked event loop per
+  // recompute (Oct 2026 lag). Names repeat, so remember them.
+  const hit = canonicalMemo.get(trimmed);
+  if (hit !== undefined) return hit;
   const lower = trimmed.toLowerCase();
   const stripped = stripQualifiers(trimmed);
-  return SEED[lower] ?? SEED[stripped] ?? fuzzyMatch(stripped) ?? null;
+  const out = SEED[lower] ?? SEED[stripped] ?? fuzzyMatch(stripped) ?? null;
+  if (canonicalMemo.size >= CANONICAL_MEMO_MAX) canonicalMemo.delete(canonicalMemo.keys().next().value!);
+  canonicalMemo.set(trimmed, out);
+  return out;
 }
+const CANONICAL_MEMO_MAX = 20_000;
+const canonicalMemo = new Map<string, Omit<NormalizedExercise, 'rawName'> | null>();
 
 
 /**

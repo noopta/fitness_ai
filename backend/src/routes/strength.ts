@@ -18,6 +18,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 const CACHE_KEY = (userId: string) => `strength:profile:${userId}`;
+const INSIGHTS_BUDGET_MS = 3_000;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -221,9 +222,12 @@ export async function computeStrengthProfile(userId: string) {
     .filter(Boolean)
     .slice(0, 3) as string[];
 
+  // The insights are one LLM call; everything else here is the user's own
+  // numbers. Don't hold a cold Training screen on the model: past the budget
+  // the profile goes out without them, and they're added to the cached
+  // profile when they land (Oct 2026 lag: cold loads took up to 7.6 s).
   let aiInsights: string[] = [];
-  try {
-    aiInsights = await generateStrengthProfileInsights({
+  const insights = generateStrengthProfileInsights({
       lifts: lifts.slice(0, 6).map(l => ({
         name: l.canonicalName,
         current1RMkg: l.current1RMkg,
@@ -238,9 +242,21 @@ export async function computeStrengthProfile(userId: string) {
       recentDiagnoses,
       totalLogs,
       unitPreference,
-    });
-  } catch (err) {
+    }).catch((err) => {
     console.error('[strength] insights error:', err);
+    return [] as string[];
+  });
+  let budget: NodeJS.Timeout | undefined;
+  const timedOut = Symbol('timedOut');
+  const first = await Promise.race([insights, new Promise<typeof timedOut>((r) => { budget = setTimeout(() => r(timedOut), INSIGHTS_BUDGET_MS); })]);
+  clearTimeout(budget);
+  if (first === timedOut) {
+    void insights.then((late) => {
+      const cached = cacheGet<{ aiInsights?: string[] }>(CACHE_KEY(userId));
+      if (cached && late.length && !cached.aiInsights?.length) cacheSet(CACHE_KEY(userId), { ...cached, aiInsights: late });
+    });
+  } else {
+    aiInsights = first;
   }
 
   // Muscle-level scores for the radar drill-down (Phase 1 of Body Build).

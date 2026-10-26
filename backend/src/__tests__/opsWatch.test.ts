@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 vi.mock('../services/growth/telegramPublisher.js', () => ({ sendTelegramMessage: vi.fn() }));
 
 import {
-  recordLlmPrimary, recordRoute, evaluate, due, servingProviders, resetOpsWatchForTests,
+  recordLlmPrimary, recordRoute, evaluate, due, servingProviders, resetOpsWatchForTests, eventLoopAlert,
   WINDOW_MS, REALERT_MS, SLOW_P90_MS,
 } from '../services/opsWatch.js';
 
@@ -66,5 +66,12 @@ describe('ops watchdog: middleware', () => {
       res.emit('close');
     }
     expect(evaluate().map((a) => a.key)).toEqual(['aborts:GET /nutrition-profile']);
+  });
+});
+
+describe('ops watchdog: event loop', () => {
+  it('alerts on a long synchronous stall, not on ordinary jitter', () => {
+    expect(eventLoopAlert(40)).toBeNull();
+    expect(eventLoopAlert(1_048)?.key).toBe('event_loop');
   });
 });

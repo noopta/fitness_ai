@@ -10,12 +10,14 @@
 //   aborts:<route>   users leaving before a route answers (nginx 499s)
 //   slow:<route>     a route that should be quick is slow at p90
 //   provider_cover   too few pinned hosts actually serve the primary model
+//   event_loop       synchronous work froze the server (every request waits)
 //
 // Counters live in memory over a 15-minute window; each alert key is sent at
 // most once per 6 hours. Long-running routes (agent turns, video, program
 // generation…) are expected to be slow and are not watched for latency.
 
 import type { NextFunction, Request, Response } from 'express';
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { sendTelegramMessage } from './growth/telegramPublisher.js';
 
 export const WINDOW_MS = 15 * 60_000;
@@ -24,6 +26,8 @@ export const SLOW_P90_MS = 5_000;
 const MIN_SAMPLES = 8;
 const MIN_ABORTS = 3;
 const MIN_LLM_FAILS = 10;
+/** A single stall this long means every in-flight request waited on it (Oct 2026: 1–3 s from exercise-name fuzzy matching). */
+export const EVENT_LOOP_BLOCK_MS = 750;
 
 /** Routes that are long by design: never alerted for latency or client aborts. */
 export const LONG_ROUTE = /agent|coach|form-analysis|program|diagnostic|stream|photo|scan|analy[sz]|generate|import|upload|transcri|video|chat|lookup|backfill/i;
@@ -74,6 +78,12 @@ export interface OpsAlert { key: string; text: string }
 function p90(values: number[]): number {
   const s = [...values].sort((a, b) => a - b);
   return s[Math.min(s.length - 1, Math.floor(s.length * 0.9))] ?? 0;
+}
+
+/** Pure: an alert for the worst event-loop stall since the last check, if it was long. */
+export function eventLoopAlert(maxBlockMs: number): OpsAlert | null {
+  if (maxBlockMs < EVENT_LOOP_BLOCK_MS) return null;
+  return { key: 'event_loop', text: `The server froze for ${(maxBlockMs / 1000).toFixed(1)} s on synchronous work: every request in flight waited. Profile the slow route (node --cpu-prof).` };
 }
 
 /** Pure: the alerts the current window supports. */
@@ -143,7 +153,13 @@ export function resetOpsWatchForTests() { routes.clear(); llm = []; lastSent.cle
 /** Start the 5-minute evaluation and the daily provider check. OPS_ALERTS=0 turns it off. */
 export function startOpsWatch() {
   if (process.env.OPS_ALERTS === '0' || process.env.VITEST) return;
-  setInterval(() => { void send(due(evaluate())); }, 5 * 60_000).unref();
+  const loop = monitorEventLoopDelay({ resolution: 20 });
+  loop.enable();
+  setInterval(() => {
+    const stall = eventLoopAlert(loop.max / 1e6);
+    loop.reset();
+    void send(due([...evaluate(), ...(stall ? [stall] : [])]));
+  }, 5 * 60_000).unref();
   const daily = async () => { const a = await checkProviderCoverage(); if (a) await send(due([a])); };
   setTimeout(() => { void daily(); }, 60_000).unref();
   setInterval(() => { void daily(); }, 24 * 60 * 60_000).unref();
