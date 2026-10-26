@@ -340,9 +340,10 @@ export function recomputeStrengthProfileInBackground(userId: string): void {
   cacheDelete(trainingSummaryCacheKey(userId));
   cacheDelete(phaseCacheKey(userId));
 
-  computeStrengthProfile(userId)
-    .then(profile => {
-      cacheSet(CACHE_KEY(userId), profile);
+  // A recompute already running read the logs before this mutation: start fresh after it.
+  const after = inFlight.get(userId) ?? Promise.resolve();
+  after.catch(() => {}).then(() => computeOnce(userId))
+    .then(() => {
       console.log(`[strength] background recompute done for user ${userId}`);
     })
     .catch(err => {
@@ -384,14 +385,25 @@ export function forecastFromSeries(
 
 // ─── GET /api/strength/profile ────────────────────────────────────────────────
 
+// One computation per user at a time: a cold app open asks for the profile
+// from Training (overview) and the profile route at once, and each used to
+// compute it separately (two LLM calls, twice the CPU).
+const inFlight = new Map<string, Promise<Awaited<ReturnType<typeof computeStrengthProfile>>>>();
+function computeOnce(userId: string) {
+  const running = inFlight.get(userId);
+  if (running) return running;
+  const job = computeStrengthProfile(userId)
+    .then((profile) => { cacheSet(CACHE_KEY(userId), profile); return profile; })
+    .finally(() => inFlight.delete(userId));
+  inFlight.set(userId, job);
+  return job;
+}
+
 /** The cached profile, computing and caching it on a miss. */
 export async function getStrengthProfileCached(userId: string) {
-  const cacheKey = CACHE_KEY(userId);
-  const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(cacheKey);
+  const cached = cacheGet<Awaited<ReturnType<typeof computeStrengthProfile>>>(CACHE_KEY(userId));
   if (cached) return cached;
-  const profile = await computeStrengthProfile(userId);
-  cacheSet(cacheKey, profile);
-  return profile;
+  return computeOnce(userId);
 }
 
 router.get('/strength/profile', requireAuth, async (req, res) => {
@@ -405,8 +417,7 @@ router.get('/strength/profile', requireAuth, async (req, res) => {
     if (cached) {
       res.setHeader('X-Cache', 'HIT');
     } else {
-      profile = await computeStrengthProfile(userId);
-      cacheSet(cacheKey, profile);
+      profile = await computeOnce(userId);
       res.setHeader('X-Cache', 'MISS');
     }
 
