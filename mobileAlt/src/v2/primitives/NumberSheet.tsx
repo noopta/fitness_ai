@@ -35,6 +35,8 @@ export interface NumberSheetProps {
   min?: number;
   max?: number;
   saveLabel?: string;
+  /** A second answer that isn't a number (the session's "It's bodyweight"). */
+  secondary?: { label: string; onPress: () => void };
   onSubmit: (value: number) => void;
   onClose: () => void;
 }
@@ -50,7 +52,7 @@ export function parseNumberInput(text: string, opts: { decimal?: boolean; min?: 
   return { value: opts.decimal ? Math.round(n * 10) / 10 : n };
 }
 
-export function NumberSheet({ visible, title, sub, current, unit, decimal, min = 0, max, saveLabel = 'Use this', onSubmit, onClose }: NumberSheetProps) {
+export function NumberSheet({ visible, title, sub, current, unit, decimal, min = 0, max, saveLabel = 'Use this', secondary, onSubmit, onClose }: NumberSheetProps) {
   const insets = useSafeAreaInsets();
   const kc = useKeyboardController();
   const { height: kb, progress } = useReanimatedKeyboardAnimation();
@@ -99,6 +101,7 @@ export function NumberSheet({ visible, title, sub, current, unit, decimal, min =
         {error ? <Text style={[T.caption, { color: v2.color.crimson, marginTop: 6 }]}>{error}</Text> : null}
         <View style={styles.actions}>
           <TextAction primary onPress={submit}>{saveLabel}</TextAction>
+          {secondary ? <TextAction arrow={false} onPress={() => { Keyboard.dismiss(); secondary.onPress(); }}>{secondary.label}</TextAction> : null}
           <TextAction muted arrow={false} onPress={close}>Cancel</TextAction>
         </View>
       </Animated.View>

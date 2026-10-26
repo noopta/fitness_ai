@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
+import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, loadKind, type LoadKind, type Rating, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
 import { todayStr } from '../../src/lib/localDate';
 import { v2, T } from '../../src/v2/theme';
 import { Row, Eyebrow } from '../../src/v2/primitives/Row';
@@ -113,7 +113,8 @@ function SessionScreenInner() {
         // The progression target wins; otherwise repeat the last top set.
         try { const last: any = await v2Api.lastExercise(name); const kg = last?.target?.targetWeightKg ?? last?.exposures?.[0]?.top?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
         const reps = parseReps(e.reps);
-        return { name, sets: Math.max(1, Number(e.sets) || 3), reps, load: e.bodyweight ? null : load, rest: Number(e.restSeconds) || rules.restForReps(reps), cue: e.notes || e.cue || e.intensity || null };
+        const kind = loadKind(name, e.bodyweight);
+        return { name, sets: Math.max(1, Number(e.sets) || 3), reps, load: kind === 'bodyweight' ? null : load, rest: Number(e.restSeconds) || rules.restForReps(reps), cue: e.notes || e.cue || e.intensity || null, kind };
       }));
       setPlan(out);
       dispatch({ type: 'load_plan', plan: out });
@@ -144,8 +145,17 @@ function SessionScreenInner() {
   const load = state.loads[state.ex];
   // What they're about to do (editable) — and whether the lift is bodyweight, where weight means added weight.
   const repsNow = state.reps?.[state.ex] ?? cur?.reps;
-  const bodyweight = !!cur && !cur.load;
+  // Bodyweight comes from the lift, not from a missing weight: a new user has no
+  // history, and "no weight yet" used to show bench press as BW and save it so
+  // (Oct 2026). A lift that takes a weight asks for it before the set counts;
+  // 'either' (lunges, step-ups) asks which. Old drafts without `kind` keep the old rule.
+  const kind: LoadKind = cur?.kind ?? (cur && !cur.load ? 'bodyweight' : 'weighted');
+  const bodyweight = !!cur && kind === 'bodyweight';
+  const needsWeight = !!cur && !bodyweight && load == null;
   const [editing, setEditing] = useState<null | 'load' | 'reps'>(null);
+  // A rating tapped before the weight was known: it counts once the weight (or "bodyweight") is in.
+  const [pendingRate, setPendingRate] = useState<Rating | null>(null);
+  const setKind = (k: LoadKind) => setPlan((p) => (p ? p.map((x, i) => (i === state.ex ? { ...x, kind: k } : x)) : p));
   const progress = exerciseProgress(state, P);
 
   const back = () => {
@@ -164,7 +174,16 @@ function SessionScreenInner() {
       { text: 'Leave for now', onPress: () => router.back() },
     ]);
   };
-  const rate = (rating: 'easy' | 'hard' | 'miss') => { haptics.select(); setTimeout(() => dispatch({ type: 'rate', rating, now: Date.now(), plan: P, rules }), 300); };
+  const rate = (rating: Rating) => {
+    haptics.select();
+    if (needsWeight) { setPendingRate(rating); setEditing('load'); return; }
+    setTimeout(() => dispatch({ type: 'rate', rating, now: Date.now(), plan: P, rules }), 300);
+  };
+  const finishPending = () => {
+    const r = pendingRate;
+    setPendingRate(null);
+    if (r) setTimeout(() => dispatch({ type: 'rate', rating: r, now: Date.now(), plan: P, rules }), 300);
+  };
   // The draft is already on the phone; handing off to chat keeps it for when they come back.
   const handOff = (m: string) => { dispatch({ type: 'pause', now: Date.now() }); shell?.ask(m); router.back(); };
   const summaryMsg = () => {
@@ -185,7 +204,7 @@ function SessionScreenInner() {
         // A freestyle seed is ad hoc — never scored against a program day.
         programDayRef: seed ? null : today.data?.programDayRef ?? null,
         exercises: body.exercises.map((e) => ({
-          name: e.name, sets: e.sets, reps: e.reps, weightKg: kg(e.weight), rpe: e.rpe ?? null, notes: e.notes ?? null, bodyweight: !e.weight,
+          name: e.name, sets: e.sets, reps: e.reps, weightKg: kg(e.weight), rpe: e.rpe ?? null, notes: e.notes ?? null, bodyweight: (P.find((p) => p.name === e.name)?.kind ?? (e.weight ? 'weighted' : 'bodyweight')) === 'bodyweight',
           setEntries: e.setEntries.map((x) => ({ weightKg: kg(x.weight), reps: x.reps, rpe: x.rpe })),
         })),
       } as any);
@@ -278,9 +297,9 @@ function SessionScreenInner() {
             <Text style={[T.eyebrow, eyebrowTone]}>{cur.name} · set {state.set + 1} of {cur.sets}</Text>
             {/* Tap the weight or the reps to type what you actually did (Oct 2026 feedback: couldn't log heavier dips or extra reps). */}
             <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: 14 }}>
-              <Pressable style={{ flexShrink: 1 }} onPress={() => { haptics.select(); setEditing('load'); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Weight: ${load ? `${bodyweight ? 'bodyweight plus ' : ''}${load} ${unit}` : 'bodyweight'}. Tap to change.`}>
+              <Pressable style={{ flexShrink: 1 }} onPress={() => { haptics.select(); setEditing('load'); }} hitSlop={8} accessibilityRole="button" accessibilityLabel={needsWeight ? 'Weight not set. Tap to enter it.' : `Weight: ${load ? `${bodyweight ? 'bodyweight plus ' : ''}${load} ${unit}` : 'bodyweight'}. Tap to change.`}>
                 <View style={{ flexDirection: 'row', alignItems: 'baseline', flexShrink: 1 }}>
-                  <Text style={[T.display, { flexShrink: 1 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{load != null ? `${bodyweight ? '+' : ''}${load}` : 'BW'}</Text>
+                  <Text style={[T.display, { flexShrink: 1 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>{load != null ? `${bodyweight ? '+' : ''}${load}` : needsWeight ? '—' : 'BW'}</Text>
                   {load != null ? <Text style={[T.read, { color: v2.color.muted, marginLeft: 8 }]}>{unit}</Text> : null}
                 </View>
               </Pressable>
@@ -289,6 +308,12 @@ function SessionScreenInner() {
               </Pressable>
             </View>
             {bodyweight && load != null ? <Text style={[T.caption, { marginTop: 4 }]}>Bodyweight + {load} {unit}</Text> : null}
+            {needsWeight ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 22, rowGap: 6, marginTop: 6 }}>
+                <TextAction size={15} onPress={() => { haptics.select(); setEditing('load'); }}>{kind === 'either' ? 'Add weight' : 'Enter the weight'}</TextAction>
+                {kind === 'either' ? <TextAction muted arrow={false} size={15} onPress={() => { haptics.select(); setKind('bodyweight'); }}>Bodyweight</TextAction> : null}
+              </View>
+            ) : null}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 22, rowGap: 6, marginTop: 8 }}>
               {load != null ? <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: -rules.step })}>− {rules.step} {unit}</TextAction> : null}
               <TextAction arrow={false} muted size={15} onPress={() => dispatch({ type: 'adjust_load', delta: rules.step })}>+ {rules.step} {unit}{bodyweight && load == null ? ' added' : ''}</TextAction>
@@ -340,10 +365,12 @@ function SessionScreenInner() {
         ) : null}
       </View>
       {/* Weight and reps, typed — rides the keyboard (NumberSheet), rendered once over the whole screen. */}
-      <NumberSheet visible={editing === 'load'} title={bodyweight ? `Added weight (${unit})` : `Weight (${unit})`}
-        sub={bodyweight ? 'On top of bodyweight. 0 for bodyweight only.' : 'What’s on the bar for this set.'}
-        current={load != null ? String(load) : '0'} unit={unit} decimal min={0} max={unit === 'kg' ? 700 : 1500}
-        onSubmit={(n) => { dispatch({ type: 'set_load', load: n }); setEditing(null); }} onClose={() => setEditing(null)} />
+      <NumberSheet visible={editing === 'load'} title={bodyweight ? `Added weight (${unit})` : `${cur?.name ?? 'Weight'} (${unit})`}
+        sub={bodyweight ? 'On top of bodyweight. 0 for bodyweight only.' : needsWeight ? 'What’s on the bar (or in your hands) for this set. It saves with the set.' : 'What’s on the bar for this set.'}
+        current={load != null ? String(load) : bodyweight ? '0' : ''} unit={unit} decimal min={bodyweight ? 0 : 0.5} max={unit === 'kg' ? 700 : 1500}
+        secondary={bodyweight ? undefined : { label: 'It’s bodyweight', onPress: () => { setKind('bodyweight'); setEditing(null); finishPending(); } }}
+        onSubmit={(n) => { if (kind === 'either') setKind('weighted'); dispatch({ type: 'set_load', load: n }); setEditing(null); finishPending(); }}
+        onClose={() => { setEditing(null); setPendingRate(null); }} />
       <NumberSheet visible={editing === 'reps'} title="Reps" sub="How many you did — or will do — this set."
         current={String(parseInt(String(repsNow), 10) || '')} min={1} max={100}
         onSubmit={(n) => { dispatch({ type: 'set_reps', reps: n }); setEditing(null); }} onClose={() => setEditing(null)} />

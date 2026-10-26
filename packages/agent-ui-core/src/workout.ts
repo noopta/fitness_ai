@@ -21,11 +21,34 @@ export interface PlanExercise {
   name: string;
   sets: number;
   reps: number | string;
-  /** Working load in the user's display unit; 0 or null = bodyweight. */
+  /** Working load in the user's display unit; null = not known yet (or bodyweight, see kind). */
   load: number | null;
   /** Rest between sets, seconds. */
   rest: number;
   cue: string | null;
+  /** Whether the lift takes a weight (loadKind). Missing on drafts saved before Oct 26 2026. */
+  kind?: LoadKind;
+}
+
+/**
+ * Whether a lift takes a weight (Oct 2026). 'weighted' needs one before a set
+ * counts; 'bodyweight' is bodyweight, where a weight means added weight;
+ * 'either' asks which. The session used to call any lift with no known weight
+ * bodyweight, so a new user's bench press and deadlift showed "BW" and saved
+ * with no weight.
+ */
+export type LoadKind = 'weighted' | 'bodyweight' | 'either';
+const BODYWEIGHT_LIFT = /\b(pull[- ]?ups?|chin[- ]?ups?|push[- ]?ups?|press[- ]?ups?|dips?|planks?|side planks?|sit[- ]?ups?|crunch(es)?|burpees?|mountain climbers?|jumping jacks?|(hanging )?(leg|knee) raises?|inverted rows?|pistols?( squats?)?|muscle[- ]?ups?|handstands?( push[- ]?ups?)?|bird dogs?|dead bugs?|hollow (body|holds?)|supermans?|air squats?|bodyweight [a-z ]+|jump squats?|box jumps?|nordic( hamstring)? curls?|l[- ]?sits?|bear crawls?|flutter kicks?|v[- ]?ups?|toes[- ]to[- ]bar)\b/i;
+const EITHER_LIFT = /\b(lunges?|split squats?|step[- ]?ups?|calf raises?|back extensions?|hyperextensions?|glute bridges?|russian twists?|sissy squats?|reverse hypers?|bulgarian)\b/i;
+const EQUIPMENT = /\b(barbell|dumbbells?|db|bb|kettlebells?|kb|cable|machine|smith|goblet|trap[- ]bar|ez[- ]?bar|landmine|plate|sled|banded)\b/i;
+export function loadKind(name: string, serverBodyweight?: boolean | null): LoadKind {
+  const n = String(name ?? '');
+  if (serverBodyweight) return 'bodyweight';
+  // "Cable crunch", "machine dip", "dumbbell lunge": the equipment decides. "Weighted pull-up" stays bodyweight + added weight.
+  if (EQUIPMENT.test(n)) return 'weighted';
+  if (BODYWEIGHT_LIFT.test(n)) return 'bodyweight';
+  if (EITHER_LIFT.test(n)) return 'either';
+  return 'weighted';
 }
 
 export type Rating = 'easy' | 'hard' | 'miss';
