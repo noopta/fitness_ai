@@ -50,4 +50,10 @@ describe('away rows', () => {
     expect(b.since).toBe('Since Sunday');
     expect(kindOf({ fn: 'WRK-10', pattern: 'glance' } as any)).toBeNull();
   });
+  it('a log check already finished reads as done, not "0 entries need review"', () => {
+    const done = new Map<string, any>([['log0', { id: 'log0', fn: 'LOG-01', pattern: 'review', meta: { label: 'Log check' }, review: { pending: 0, rows: [], period: 'Oct 19' } }]]);
+    const { items } = buildAwayItems([t('2026-10-27T09:00:00Z', 'One entry doesn’t look right.', ['log0'])], done, '2026-10-27T01:00:00Z', new Set(), now);
+    expect(items[0]).toMatchObject({ kind: 'needs_you', title: 'Log check · all reviewed' });
+    expect(items[0].resolvedAt).toBeTruthy();
+  });
 });

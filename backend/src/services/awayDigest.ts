@@ -58,7 +58,7 @@ export function buildAwayItems(turns: AwayTurn[], cards: Map<string, Card>, sinc
       const kind = kindOf(c)!;
       const label = String(c.meta?.label ?? '').replace(/^Proposed · /, '');
       const pending = c.review?.pending;
-      const title = kind === 'needs_you' ? `${pending ?? ''} log ${pending === 1 ? 'entry needs' : 'entries need'} review`.trim()
+      const title = kind === 'needs_you' ? (pending === 0 ? 'Log check · all reviewed' : `${pending ?? ''} log ${pending === 1 ? 'entry needs' : 'entries need'} review`.trim())
         : clip(label || firstSentence(t.text), 48);
       const detail = clip(kind === 'needs_you' ? firstSentence(t.text) : (c.why ?? c.note ?? t.text), 140);
       const cta = { label: kind === 'needs_you' ? 'Review' : kind === 'program_change' ? 'Review suggestion' : kind === 'insight' ? 'See it' : 'Read', turnAt: t.at, cardId: c.id };
