@@ -263,7 +263,7 @@ export function HomePage() {
   const editDraft = useCallback((c: Card) => { setDraftEdit(c.id); setText(c.draft?.body ?? ''); inputRef.current?.focus(); }, []);
   const handlers = useMemo<CardHandlers>(() => ({
     act: (c, a, x) => (c.pattern === 'draft' && a.id === 'edit' ? Promise.resolve(editDraft(c)) : actions.act(c, a, x)),
-    undo: actions.undo, edit: actions.edit, toggle: actions.toggle, answer: actions.answer,
+    undo: actions.undo, review: actions.review, edit: actions.edit, toggle: actions.toggle, answer: actions.answer,
     open: (c, r) => actions.open(c, r),
     typeInstead: () => { setAnswering(true); inputRef.current?.focus(); },
     editDraft,

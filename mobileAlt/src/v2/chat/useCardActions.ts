@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { openExternal } from '../../lib/openExternal';
 import * as Updates from 'expo-updates';
 import type { Card, CardAction, CardRoute, ClientAction } from '@axiom/agent-ui-core';
-import { v2Api, type CardActionExtra } from '../api';
+import { v2Api, type CardActionExtra, type ReviewOp } from '../api';
 import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
 import { useAuth } from '../../context/AuthContext';
@@ -72,6 +72,16 @@ export function useCardActions(thread: Thread) {
     }
     catch (e) { noteError(find(card.id) ?? card, e); }
   }, [invalidate, receiptOnCard]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Log review: every tap comes back as the re-rendered digest; fixes change strength numbers.
+  const review = useCallback(async (card: Card, op: ReviewOp, id: string) => {
+    try {
+      const r = await v2Api.logReview(op, id);
+      setCard(r.card);
+      if (op === 'apply' || op === 'apply_all') haptics.success?.(); else haptics.light();
+      if (op !== 'expand') void invalidate.all();
+    } catch (e) { noteError(find(card.id) ?? card, e); }
+  }, [invalidate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runClient = useCallback(async (card: Card, action: ClientAction, args: Record<string, any> = {}) => {
     await dismissKeyboard();
@@ -201,5 +211,5 @@ export function useCardActions(thread: Thread) {
     if (card) void answer(card, { text: ids.join(',') }).catch(() => {});
   }), [answer]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return useMemo(() => ({ act, undo, edit, toggle, answer, open, runClient }), [act, undo, edit, toggle, answer, open, runClient]);
+  return useMemo(() => ({ act, undo, review, edit, toggle, answer, open, runClient }), [act, undo, review, edit, toggle, answer, open, runClient]);
 }

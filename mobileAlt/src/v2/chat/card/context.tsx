@@ -9,7 +9,7 @@
 import React, { createContext, useContext } from 'react';
 import type { View } from 'react-native';
 import type { Card, CardAction, CardRoute, CardRow } from '@axiom/agent-ui-core';
-import type { CardActionExtra } from '../../api';
+import type { CardActionExtra, ReviewOp } from '../../api';
 
 export interface EditSession {
   cardId: string;
@@ -23,6 +23,8 @@ export interface EditSession {
 export interface CardHandlers {
   act: (card: Card, action: CardAction, extra?: CardActionExtra) => Promise<void>;
   undo: (card: Card) => Promise<void>;
+  /** Log review digest (LOG-01): `id` is the flag, or the card for apply_all / expand. */
+  review: (card: Card, op: ReviewOp, id: string) => Promise<void>;
   /** Resolves false when the server refused (the row reverts, the note says so). */
   edit: (card: Card, field: string, value: string) => Promise<boolean>;
   toggle: (card: Card, field: string, on: boolean) => Promise<void>;
@@ -48,7 +50,7 @@ export interface CardHandlers {
 
 const noop = async () => {};
 const Ctx = createContext<CardHandlers>({
-  act: noop, undo: noop, edit: async () => false, toggle: noop, answer: noop,
+  act: noop, undo: noop, review: noop, edit: async () => false, toggle: noop, answer: noop,
   open: () => {}, typeInstead: () => {}, editDraft: () => {}, say: () => {}, reveal: () => {}, scrollToLatest: () => {},
   setTypedFocus: () => {}, editing: null, beginEdit: () => {}, setEditValue: () => {}, endEdit: () => {},
 });

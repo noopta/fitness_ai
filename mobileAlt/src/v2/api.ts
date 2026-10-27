@@ -13,6 +13,8 @@ import { createSseParser, parseJsonFrame, type StreamEvent, type Receipt as Core
 /** What a tap can carry besides its action id: a typed confirm, a segmented choice, a batch card's ticks and dates. */
 export interface CardActionExtra { typed?: string; choice?: number; selection?: { skip?: number[]; dates?: Record<string, string> } }
 
+export type ReviewOp = 'apply' | 'keep' | 'undo' | 'apply_all' | 'expand';
+
 /** This client renders server cards (card2 events, /coach/agent/cards/*). */
 const CARD_CONTRACT = { 'X-Card-Contract': '2' };
 
@@ -163,6 +165,9 @@ export const v2Api = {
   cardAction: (id: string, actionId: string, extra: CardActionExtra = {}): Promise<{ card: Card }> =>
     post(`/coach/agent/cards/${id}/action`, { actionId, ...extra }),
   cardUndo: (id: string): Promise<{ card: Card }> => post(`/coach/agent/cards/${id}/undo`),
+  /** Log review (design 1a): one flag's Apply / Keep as is / Undo, or the whole digest's Apply all / Show more. */
+  logReview: (op: ReviewOp, id: string): Promise<{ card: Card }> =>
+    post(op === 'apply_all' ? `/coach/agent/log-review/${id}/apply-all` : op === 'expand' ? `/coach/agent/log-review/${id}/expand` : `/coach/agent/log-review/flags/${id}/${op}`),
   cardEdit: (id: string, field: string, value: string | number): Promise<{ card: Card }> =>
     post(`/coach/agent/cards/${id}/edit`, { field, value }),
   cardToggle: (id: string, field: string, on: boolean): Promise<{ card: Card }> =>

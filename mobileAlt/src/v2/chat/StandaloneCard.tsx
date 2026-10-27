@@ -54,6 +54,7 @@ export function StandaloneCard({ card: initial, onChange }: { card: Card; onChan
           if (r.card.state?.status === 'applied') { haptics.success(); void invalidate.all(); }
         } catch (e) { setCard({ ...c, note: errText(e) }); haptics.warning?.(); }
       },
+      review: async (c, op, id) => { try { setCard((await v2Api.logReview(op, id)).card); if (op !== 'expand') void invalidate.all(); } catch (e) { setCard({ ...c, note: errText(e) }); } },
       undo: async (c) => { try { setCard((await v2Api.cardUndo(c.id)).card); haptics.light(); void invalidate.all(); } catch (e) { setCard({ ...c, note: errText(e) }); } },
       edit: async (c, field, value) => { try { setCard((await v2Api.cardEdit(c.id, field, value)).card); void invalidate.all(); return true; } catch { setCard({ ...c, note: 'Couldn’t save — try again' }); return false; } },
       toggle: async (c, field, on) => { try { setCard((await v2Api.cardToggle(c.id, field, on)).card); void invalidate.all(); } catch (e) { setCard({ ...c, note: errText(e) }); } },

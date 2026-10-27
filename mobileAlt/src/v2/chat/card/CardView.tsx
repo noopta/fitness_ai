@@ -16,6 +16,7 @@ import {
 } from './primitives';
 import { Hero, Sparkline, Bars, WeekTiles, Media, Skeleton, CapturePlaceholder } from './charts';
 import { BatchView, type BatchPick } from './Batch';
+import { ReviewView } from './Review';
 import { MomentPrompt, useOpenMoment } from '../../moments/MomentPrompt';
 
 const REVEAL_MS = 30_000;
@@ -50,8 +51,9 @@ export function CardView({ card }: { card: Card }) {
   // Acted on (applied, undone, replaced, logged, changed) → the card folds to its meta line at .45
   // plus one state line at full ink ("Applied 1:58 · Undo"); Pro previews sit at .40 while live.
   // A batch card stays open at .45 once acted on: the list is the record of what went in (spec E).
-  const collapsed = !live && !!card.state?.line && !card.batch;
-  const target = !live ? K.actedOpacity : card.pro ? K.proOpacity : 1;
+  // The log review digest stays open too: resolved rows keep their Undo while the card is in view.
+  const collapsed = !live && !!card.state?.line && !card.batch && !card.review;
+  const target = card.review ? 1 : !live ? K.actedOpacity : card.pro ? K.proOpacity : 1;
   const o = useSharedValue(target);
   useEffect(() => { o.value = withTiming(target, { duration: K.fade }); }, [target, o]);
   const body = useAnimatedStyle(() => ({ opacity: o.value }));
@@ -76,8 +78,9 @@ export function CardView({ card }: { card: Card }) {
   return (
     <Animated.View ref={shellRef as any} collapsable={false} style={st.shell} layout={COLLAPSE} accessible={false}
       accessibilityRole="summary" accessibilityLabel={`${card.meta?.label ?? card.fn}, ${card.pattern}`}>
-      <Animated.View style={[st.body, body]} pointerEvents={live ? 'auto' : 'box-none'}>
-        {card.meta ? <MetaLine label={card.step ? `${card.meta.label} · ${card.step.i} of ${card.step.n}` : card.meta.label} onOpen={open} /> : null}
+      <Animated.View style={[st.body, body]} pointerEvents={live || card.review ? 'auto' : 'box-none'}>
+        {card.review ? <ReviewView card={card} /> : null}
+        {card.meta && !card.review ? <MetaLine label={card.step ? `${card.meta.label} · ${card.step.i} of ${card.step.n}` : card.meta.label} onOpen={open} /> : null}
         {collapsed ? null : (<>
         {card.step?.done.length ? <FlowProgress done={card.step.done} /> : null}
         {card.invite ? <CoachInvite invite={card.invite} /> : null}
@@ -122,7 +125,7 @@ export function CardView({ card }: { card: Card }) {
           disabledFor={card.batch?.selectable ? (a) => a.id === 'apply' && batchTicked === 0 : undefined}
         />
       ) : null}
-      {!live && card.state?.line ? (
+      {!live && card.state?.line && !card.review ? (
         <StateLine card={card} line={card.state.line} onUndo={() => void h.undo(card)} onOpen={card.batch ? undefined : open} onReplaced={h.scrollToLatest}
           accent={!!card.batch}
           onRedo={card.state.status === 'undone' && card.state.redoUntil && Date.parse(card.state.redoUntil) > Date.now()
