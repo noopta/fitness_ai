@@ -23,6 +23,7 @@ import { estimateWorkoutCalories } from './workoutCalories.js';
 import { todayForTz } from './localDate.js';
 import { runPostWorkout } from '../adaptation/proposalService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
+import { scheduleReview } from './logReview/index.js';
 import { momentForWorkout, dropMomentsForWorkout } from './moments/index.js';
 import type { ProgressMoment } from './moments/types.js';
 
@@ -59,6 +60,11 @@ export const exerciseSchema = z.object({
   // but we don't fail validation if it doesn't — we just trust whichever
   // value is the source of truth (setEntries.length).
   setEntries: z.array(setEntrySchema).max(WORKOUT_LIMITS.setEntries).optional().nullable(),
+  // Machine, cable or free weight, when known (log review asks when a number
+  // only fits a machine). Free text: descriptive fields never gate a save.
+  equipment: z.string().max(20).optional().nullable(),
+  // Numbers Anakin assumed ("average 8–10 reps" → 9): kept out of PRs and progression.
+  estimated: z.boolean().optional(),
 });
 
 // Which planned program day this log fulfils. Sent by the client when the
@@ -118,6 +124,9 @@ function invalidate(userId: string) {
   cacheClearByPrefix(`schedule:${userId}:`);
   cacheClearByPrefix(`today:${userId}:`);
   recomputeStrengthProfileInBackground(userId);
+  // Log review: duplicates, odd values and gaps are flagged for the user to
+  // approve (design "Log review 1a"). Debounced, so a quick correction lands first.
+  scheduleReview(userId);
 }
 
 /** A workout dated after the user's today. */

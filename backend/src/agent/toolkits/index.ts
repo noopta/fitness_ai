@@ -7,6 +7,7 @@ import './intake.js';
 import './program.js';
 import './adaptation.js';
 import './workouts.js';
+import './logReview.js';
 import './nutrition.js';
 import './health.js';
 import './goals.js';

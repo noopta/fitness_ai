@@ -78,7 +78,11 @@ export async function computeStrengthProfile(userId: string) {
   const liftDisplay = new Map<string, string>();
   const categoryVolume = new Map<string, number>();
   // Parsed once; reused by month tonnage and the athlete model below.
-  const parsedLogs = logs.map((log) => ({ date: log.date, exercises: parseExercises(log.exercises) }));
+  // Flagged entries (pending log review) and assumed numbers sit out of e1RM,
+  // PRs and volume until the user resolves them (design "Log review 1a").
+  const { excludedEntries, countableExercises } = await import('../services/logReview/index.js');
+  const excluded = await excludedEntries(userId);
+  const parsedLogs = logs.map((log) => ({ date: log.date, exercises: countableExercises(log.id, parseExercises(log.exercises) as any[], excluded) as ReturnType<typeof parseExercises> }));
 
   for (const log of parsedLogs) {
     for (const ex of log.exercises) {

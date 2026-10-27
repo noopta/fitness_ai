@@ -136,6 +136,8 @@ export async function detectStrengthPRs(
   /** A backfilled session is a best against what came before it, not against later logs. */
   onOrBefore?: string,
 ): Promise<DetectedPR[]> {
+  // Assumed numbers ("average 8–10 reps" logged as 9) never set a record.
+  newExercises = newExercises.filter((e: any) => !e?.estimated);
   if (bestE1RMByLift(newExercises).size === 0) return [];
 
   // Pull prior logs (excluding this one) — keep this bounded; 200 most recent
@@ -144,8 +146,11 @@ export async function detectStrengthPRs(
     where: { userId, NOT: { id: newWorkoutId }, ...(onOrBefore ? { date: { lte: onOrBefore } } : {}) },
     orderBy: { date: 'desc' },
     take: 200,
-    select: { exercises: true },
+    select: { id: true, exercises: true },
   });
+  // Entries under a pending log-review flag (a duplicate, an odd value) don't set the baseline either.
+  const { excludedEntries, countableExercises } = await import('./logReview/index.js');
+  const excluded = await excludedEntries(userId);
 
   // Parse once, then key BOTH sides (today's lifts and the history) through the
   // same canonical key function — so "Barbell Bench Press" last month and
@@ -154,7 +159,7 @@ export async function detectStrengthPRs(
   for (const log of prior) {
     let exs: LoggedExercise[];
     try { exs = JSON.parse(log.exercises); } catch { continue; }
-    if (Array.isArray(exs)) priorLists.push(exs);
+    if (Array.isArray(exs)) priorLists.push(countableExercises(log.id, exs as any[], excluded));
   }
   const names = [...newExercises, ...priorLists.flat()].map((e) => e?.name).filter(Boolean) as string[];
   const { key: liftKey } = await loadCanonicalResolver(prisma, names);

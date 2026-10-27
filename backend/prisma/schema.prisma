@@ -151,6 +151,7 @@ model User {
   savedPosts               SavedPost[]
   agentMemory              AgentMemory?
   agentCards               AgentCard[]
+  logFlags                 LogFlag[]
   agentChanges             AgentChange[]
   agentConversation        AgentConversation?
   // Group chats (#4)
@@ -2371,4 +2372,35 @@ model ProgressMoment {
   @@unique([userId, category, date])
   @@index([userId, createdAt])
   @@index([workoutLogId])
+}
+
+/// Log review (design "Log review 1a", Oct 2026): a suspect log entry Anakin
+/// asks the user to approve a fix for. Nothing in the log changes without a tap;
+/// an applied fix is an AgentChange (changeId), so Undo restores it.
+model LogFlag {
+  id          String    @id @default(uuid())
+  userId      String
+  digestId    String?   // the AgentCard (LOG-01) listing this flag
+  type        String    // duplicate | fuzzy_duplicate | outlier | conflict | missing | equipment
+  ruleKey     String    // rule + entries (or alias pair): what a "Keep as is" suppresses for good
+  entryIds    String    // JSON string[]: "<logId>" or "<logId>#<exerciseIndex>"
+  confidence  String    // high | medium | low
+  reason      String    // one sentence, shown as "Why:"
+  impact      String?
+  title       String
+  fix         String    // "→ Remove the second copy"
+  before      String
+  after       String
+  doneLabel   String    // "Removed duplicate"
+  suggestion  String    // JSON { op: delete | merge | update | fill, payload }
+  entryDate   String    // YYYY-MM-DD of the flagged entry
+  status      String    @default("pending") // pending | applied | dismissed | invalidated
+  changeId    String?
+  detectedAt  DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolvedVia String?   // row | apply_all
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, ruleKey])
 }

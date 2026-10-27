@@ -4,7 +4,7 @@
 
 import type { ProgressMoment } from '../../services/moments/types.js';
 
-export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff';
+export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff' | 'review';
 export type CardRule = 'show' | 'log_undo' | 'change_undo' | 'propose' | 'draft_send' | 'confirm_delete' | 'handoff';
 export type ClientAction =
   | 'start_session' | 'sign_out' | 'open_os_settings' | 'check_updates' | 'manage_subscription' | 'restore_purchases'
@@ -116,6 +116,8 @@ export interface Card {
   handoff?: { label: string; action: ClientAction; args?: Record<string, unknown> };
   actions?: CardAction[];
   batch?: BatchBlock;
+  /** Log review digest (LOG-01). */
+  review?: ReviewBlock;
   /** A personal trainer's invite (coach_invite): who, which practice, until when. The token stays server-side. */
   invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
   /** A progress moment (MOM-01, or a logged batch): the congratulation and its share cards. */
@@ -155,4 +157,38 @@ export interface PendingActions {
   idempotent?: boolean;
   /** What Apply ran, so Redo can run it again after an Undo. */
   applied?: { op: string; args: Record<string, unknown>; status?: CardStatus; line?: string };
+}
+
+/**
+ * Log review digest (design "Log review 1a", Oct 2026): suspect log entries
+ * and the fix Anakin proposes for each. Nothing changes without a tap; every
+ * fix is a reversible change.
+ */
+export type ReviewFlagType = 'duplicate' | 'fuzzy_duplicate' | 'outlier' | 'conflict' | 'missing' | 'equipment';
+export interface ReviewRow {
+  id: string;
+  type: ReviewFlagType;
+  /** Pill text: Duplicate, Likely duplicate, Unusual value, Conflict, Missing, Equipment. */
+  typeLabel: string;
+  /** "Tue, Oct 20". */
+  date: string;
+  title: string;
+  /** "Remove the Apple Health copy" (shown as "→ …"). */
+  fix: string;
+  before: string;
+  after: string;
+  why: string;
+  confidence: 'high' | 'medium' | 'low';
+  impact?: string;
+  status: 'pending' | 'applied' | 'dismissed';
+  /** "Removed duplicate" — shown as "✓ …" once applied. */
+  doneLabel: string;
+}
+export interface ReviewBlock {
+  /** "Oct 20–24". */
+  period: string;
+  pending: number;
+  rows: ReviewRow[];
+  /** Rows hidden past the first five ("Show N more"). */
+  hiddenCount?: number;
 }

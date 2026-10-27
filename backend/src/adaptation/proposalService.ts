@@ -66,10 +66,20 @@ export async function loadContext(userId: string, now = new Date()): Promise<Ada
     select: { savedProgram: true, unitPreference: true, email: true, timezone: true },
   });
   const timeZone = user?.timezone ?? null;
-  const workouts = await prisma.workoutLog.findMany({
+  const allWorkouts = await prisma.workoutLog.findMany({
     where: { userId },
     orderBy: { date: 'asc' },
     select: { id: true, date: true, exercises: true, programDayRef: true },
+  });
+  // Suggestions are built only from numbers the user actually logged: entries
+  // under a pending log-review flag and assumed reps ("average 8–10" saved as
+  // 9) are left out — they drove "ahead of plan" cards that weren't (Oct 2026).
+  const { excludedEntries, countableExercises } = await import('../services/logReview/index.js');
+  const excluded = await excludedEntries(userId);
+  const workouts = allWorkouts.map((w) => {
+    let exs: unknown;
+    try { exs = JSON.parse(w.exercises); } catch { return w; }
+    return Array.isArray(exs) ? { ...w, exercises: JSON.stringify(countableExercises(w.id, exs as any[], excluded)) } : w;
   });
 
   // Names → canonical from the normalization table (LLM classifications of

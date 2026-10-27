@@ -23,7 +23,7 @@ import type { ProgressMoment } from '../../services/moments/types.js';
 import type { ToolCtx } from '../types.js';
 
 type Unit = 'metric' | 'imperial';
-interface ChatExercise { name: string; sets?: number; reps?: string | number; weight?: number; rpe?: number; bodyweight?: boolean; notes?: string; setEntries?: { weight?: number; reps: number; rpe?: number }[] }
+interface ChatExercise { name: string; sets?: number; reps?: string | number; weight?: number; rpe?: number; bodyweight?: boolean; notes?: string; estimated?: boolean; equipment?: string; setEntries?: { weight?: number; reps: number; rpe?: number }[] }
 
 /** Chat input (user's unit) → the service's schema (kg). */
 function toServiceExercises(exs: ChatExercise[], unit: Unit): WorkoutLogInput['exercises'] {
@@ -38,7 +38,11 @@ function toServiceExercises(exs: ChatExercise[], unit: Unit): WorkoutLogInput['e
       weightKg: w != null && !e.bodyweight ? Math.round(toKg(unit, Number(w)) * 100) / 100 : null,
       rpe: e.rpe != null ? Number(e.rpe) : top?.rpe != null ? Number(top.rpe) : null,
       notes: e.notes ?? null,
-      bodyweight: !!e.bodyweight || w == null,
+      // Bodyweight only when it is one: a lift logged without its weight used
+      // to be saved as bodyweight (Oct 2026). Log review asks for the number.
+      bodyweight: !!e.bodyweight,
+      ...(e.estimated ? { estimated: true } : {}),
+      ...(e.equipment ? { equipment: String(e.equipment).slice(0, 20) } : {}),
       ...(entries.length ? { setEntries: entries.map((s) => ({ weightKg: s.weight != null ? Math.round(toKg(unit, Number(s.weight)) * 100) / 100 : null, reps: Math.round(Number(s.reps)), rpe: s.rpe != null ? Number(s.rpe) : null })) } : {}),
     };
   });
@@ -278,7 +282,7 @@ export const WORKOUT_TOOLS = [
     name: 'log_workout', kind: 'log', core: true, fn: 'WRK-02',
     description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. reps is always a number (or a range like "8-10"), never words like "varies": if they didn’t say the reps for a lift, ask for them in one short line before logging. Otherwise log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
-      exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
+      exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, estimated: { type: 'boolean', description: 'true when YOU filled numbers they didn’t state (“average 8–10 reps”, “same weights as last time”). Keep reps as the range they gave (“8-10”). Kept out of PRs and progression.' }, equipment: { type: 'string', description: 'machine | cable | free — only when they said so.' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
       date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' }, unit: UNIT_FIELD,
     }, ['exercises']),
     receipt: (i) => ({ verb: 'Logged', text: str(i.title) || 'Workout' }),
@@ -446,8 +450,8 @@ export const WORKOUT_TOOLS = [
   }),
   tool({
     name: 'update_workout', kind: 'log', fn: 'WRK-05',
-    description: 'Correct a logged workout ("that was 195 not 185", "I did 4 sets"). Finds the workout by logId, date, or the most recent one with that exercise. Pass the corrected weight (user’s unit), reps and/or sets for the exercise.',
-    input_schema: schema({ logId: { type: 'string' }, date: { type: 'string' }, exercise: { type: 'string' }, weight: { type: 'number' }, reps: { type: 'number' }, sets: { type: 'number' }, newName: { type: 'string' } }, ['exercise']),
+    description: 'Correct a logged workout ("that was 195 not 185", "I did 4 sets", "change it to moderate", "make it 2 hours", "add a note"). ANY correction to something already logged comes here — never log it again (that saved one climb four times). Finds the workout by logId, date, or the most recent one with that exercise. Pass the corrected weight (user’s unit), reps and/or sets for the exercise, and/or durationMin, notes, title for the session.',
+    input_schema: schema({ logId: { type: 'string' }, date: { type: 'string' }, exercise: { type: 'string' }, weight: { type: 'number' }, reps: { type: 'number' }, sets: { type: 'number' }, newName: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string', description: 'Replaces the session note.' }, title: { type: 'string' } }, ['exercise']),
     receipt: (i) => ({ verb: 'Corrected', text: str(i.exercise) }),
     execute: async (input, userId) => {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true, timezone: true } });
@@ -465,7 +469,11 @@ export const WORKOUT_TOOLS = [
       if (numOr(input.reps) != null) { e.reps = String(Math.round(numOr(input.reps)!)); if (Array.isArray(e.setEntries)) e.setEntries = e.setEntries.map((s: any) => ({ ...s, reps: Math.round(numOr(input.reps)!) })); }
       if (numOr(input.sets) != null) { const n = Math.max(1, Math.round(numOr(input.sets)!)); e.sets = n; if (Array.isArray(e.setEntries) && e.setEntries.length) { const last = e.setEntries[e.setEntries.length - 1]; e.setEntries = Array.from({ length: n }, (_x, k) => e.setEntries[k] ?? { ...last }); } }
       if (str(input.newName)) e.name = str(input.newName);
-      const change = await executeOp(userId, 'workout.update', { id: log.id, input: { date: log.date, title: log.title, exercises: exs, notes: log.notes, duration: log.duration }, summary: `Corrected · ${e.name} ${before} → ${exLine(e, unit)}` });
+      const duration = numOr(input.durationMin) ? Math.max(1, Math.round(numOr(input.durationMin)!)) : log.duration;
+      const notes = input.notes != null ? (str(input.notes) || null) : log.notes;
+      const title = str(input.title) || log.title;
+      const session = [duration !== log.duration ? `${duration} min` : null, notes !== log.notes ? 'note' : null, title !== log.title ? `“${title}”` : null].filter(Boolean).join(', ');
+      const change = await executeOp(userId, 'workout.update', { id: log.id, input: { date: log.date, title, exercises: exs, notes, duration }, summary: `Corrected · ${e.name} ${before} → ${exLine(e, unit)}${session ? ` · ${session}` : ''}` });
       return { corrected: change.summary, id: log.id, date: log.date, title: log.title, index: i, before, _exercises: exs, _change: change };
     },
     card: (_i, r, ctx) => {

@@ -12,12 +12,13 @@ import { appendInitiated } from '../agent/conversation.js';
 import { cardRef } from '../agent/cardNotes.js';
 import '../agent/toolkits/index.js';
 import { runNativeTool, NativeToolError } from '../agent/nativeTools.js';
+import { applyFlag, keepFlag, undoFlag, applyAll, expandDigest, ReviewError } from '../services/logReview/index.js';
 
 const router = Router();
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
 const AGENT_ALLOWLIST = (process.env.AGENT_USER_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
 
-router.use(['/coach/agent/cards', '/coach/agent/changes'], (req, res, next) => {
+router.use(['/coach/agent/cards', '/coach/agent/changes', '/coach/agent/log-review'], (req, res, next) => {
   if (!AGENT_ENABLED) return res.status(404).json({ error: 'Not found' });
   next();
 });
@@ -28,6 +29,7 @@ function access(req: any, res: any, next: any) {
 function fail(res: any, err: any, what: string) {
   if (err instanceof CardError) return res.status(err.status).json({ error: err.message });
   if (err instanceof UndoError) return res.status(409).json({ error: err.message });
+  if (err instanceof ReviewError) return res.status(err.status).json({ error: err.message });
   if (err?.name === 'ZodError') return res.status(400).json({ error: 'Invalid request', details: err.errors });
   console.error(`[cards] ${what} failed:`, err?.message ?? err);
   return res.status(400).json({ error: err?.message ?? `Couldn’t ${what}` });
@@ -180,6 +182,24 @@ router.get('/coach/agent/changes', requireAuth, access, async (req, res) => {
 // `fromChat` — the chat path ("undo that") reverses past the window.
 router.post('/coach/agent/changes/:id/revert', requireAuth, access, async (req, res) => {
   try { res.json(await revertChange(req.user!.id, req.params.id)); } catch (e) { fail(res, e, 'undo that'); }
+});
+
+// ─── Log review (design "Log review 1a") ─────────────────────────────────────
+// Each tap returns the re-rendered digest card. Nothing changes without one.
+router.post('/coach/agent/log-review/flags/:id/apply', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await applyFlag(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'apply that fix'); }
+});
+router.post('/coach/agent/log-review/flags/:id/keep', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await keepFlag(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'keep that entry'); }
+});
+router.post('/coach/agent/log-review/flags/:id/undo', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await undoFlag(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'undo that'); }
+});
+router.post('/coach/agent/log-review/:digestId/apply-all', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await applyAll(req.user!.id, req.params.digestId) }); } catch (e) { fail(res, e, 'apply the fixes'); }
+});
+router.post('/coach/agent/log-review/:digestId/expand', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await expandDigest(req.user!.id, req.params.digestId) }); } catch (e) { fail(res, e, 'show the rest'); }
 });
 
 export default router;
