@@ -165,6 +165,9 @@ export const v2Api = {
   cardAction: (id: string, actionId: string, extra: CardActionExtra = {}): Promise<{ card: Card }> =>
     post(`/coach/agent/cards/${id}/action`, { actionId, ...extra }),
   cardUndo: (id: string): Promise<{ card: Card }> => post(`/coach/agent/cards/${id}/undo`),
+  /** While you were away (design 3b): one card per absence, posted when chat opens; a row opened. */
+  awayOpen: (lastOpenAt: string | null): Promise<{ posted: boolean; card: Card | null }> => post('/coach/agent/away', { lastOpenAt }),
+  awayItemOpened: (cardId: string, itemId: string): Promise<{ card: Card }> => post(`/coach/agent/away/${cardId}/items/${encodeURIComponent(itemId)}/open`),
   /** Log review (design 1a): one flag's Apply / Keep as is / Undo, or the whole digest's Apply all / Show more. */
   logReview: (op: ReviewOp, id: string): Promise<{ card: Card }> =>
     post(op === 'apply_all' ? `/coach/agent/log-review/${id}/apply-all` : op === 'expand' ? `/coach/agent/log-review/${id}/expand` : `/coach/agent/log-review/flags/${id}/${op}`),

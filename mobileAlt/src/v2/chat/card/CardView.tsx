@@ -17,6 +17,7 @@ import {
 import { Hero, Sparkline, Bars, WeekTiles, Media, Skeleton, CapturePlaceholder } from './charts';
 import { BatchView, type BatchPick } from './Batch';
 import { ReviewView } from './Review';
+import { AwayView } from './Away';
 import { MomentPrompt, useOpenMoment } from '../../moments/MomentPrompt';
 
 const REVEAL_MS = 30_000;
@@ -24,6 +25,11 @@ const REVEAL_MS = 30_000;
 const COLLAPSE = LinearTransition.duration(350).easing(Easing.bezier(0.16, 1, 0.3, 1));
 
 export function CardView({ card }: { card: Card }) {
+  // While you were away (design 3b) is its own dark card, not the hairline card shell.
+  return card.away ? <AwayView card={card} /> : <CardBody card={card} />;
+}
+
+function CardBody({ card }: { card: Card }) {
   const h = useCardHandlers();
   const openMoment = useOpenMoment();
   const live = isLive(card);

@@ -49,7 +49,9 @@ function toReviewLog(r: { id: string; date: string; createdAt: Date; title: stri
 
 /** "<logId>" (whole log) or "<logId>#<index>" entries under a pending flag. */
 export async function excludedEntries(userId: string): Promise<Set<string>> {
-  const rows = await (prisma as any).logFlag.findMany({ where: { userId, status: 'pending' }, select: { entryIds: true, type: true } }).catch(() => []);
+  // No LogFlag table (a client generated before it, a test double): nothing is excluded.
+  let rows: unknown[] = [];
+  try { rows = await (prisma as any).logFlag?.findMany({ where: { userId, status: 'pending' }, select: { entryIds: true, type: true } }) ?? []; } catch { rows = []; }
   const out = new Set<string>();
   for (const r of rows as { entryIds: string; type: string }[]) {
     let ids: string[] = [];

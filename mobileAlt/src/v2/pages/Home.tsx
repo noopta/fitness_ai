@@ -28,7 +28,8 @@
 
 import { todayStr } from '../../lib/localDate';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, AppState, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pressable } from '../primitives/Pressable';
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedReaction, useFrameCallback, runOnJS, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,13 +43,13 @@ import { CardHandlersProvider, type CardHandlers, type EditSession } from '../ch
 import { useCardActions } from '../chat/useCardActions';
 import { v2Api } from '../api';
 import { v2, T } from '../theme';
-import { Enter } from '../primitives/Enter';
 import { headerClearance } from '../shell/Header';
 import { useShell } from '../shell/ShellContext';
 import { useRequirePro } from '../shell/proGate';
 import { useBrief, useInvalidate } from '../data';
 import { useThread } from '../chat/useThread';
 import { SignedTurn, TURN_GAP } from '../chat/SignedTurn';
+import { CardView } from '../chat/card/CardView';
 import { Orb } from '../home/Orb';
 import { HomeVideo, useHomePlayer } from '../home/HomeVideo';
 import { coachApi } from '../../lib/api';
@@ -158,16 +159,35 @@ export function HomePage() {
     shell.registerAsk((m) => { void thread.send(m); });
     if (shell.pendingAsk.current) { const m = shell.pendingAsk.current; shell.pendingAsk.current = null; void thread.send(m); }
   }, [shell, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
-  // "While you were away · N" (spec §9): Anakin-initiated turns since the user last spoke, folded once at open.
-  const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
   // Load the thread, then pick up a turn Anakin is still working on (the app was closed or the screen left mid-answer).
-  useEffect(() => { void thread.hydrate().then(setAway).then(() => thread.resume()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // While you were away (design 3b): after ≥ 8 h away the server folds what Anakin
+  // posted into one card at the bottom; the last time chat was open lives on the phone.
+  useEffect(() => {
+    void (async () => {
+      await thread.hydrate();
+      let last: string | null = null;
+      try { last = await AsyncStorage.getItem(LAST_OPEN_KEY); } catch { /* first open on this phone: the server uses their last message */ }
+      try { const r = await v2Api.awayOpen(last); if (r?.posted) await thread.hydrate(); } catch { /* the thread shows the messages unfolded */ }
+      markOpen();
+      thread.resume();
+    })();
+    const sub = AppState.addEventListener('change', (st) => { if (st !== 'active') markOpen(); });
+    return () => sub.remove();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Turns folded into an away card stay hidden until one of its rows unfolds them.
+  const [unfolded, setUnfolded] = useState<Set<number>>(() => new Set());
+  const turnY = useRef(new Map<number, number>());
+  const folded = useMemo(() => {
+    const s = new Set<number>();
+    for (const c of allCards(thread.state)) if (c.fn === 'AWAY-01') for (const at of c.away?.foldedAts ?? []) s.add(Date.parse(at));
+    return s;
+  }, [thread.state]);
   // Suggestions reach chat (feedback 8 Oct): pending ones chat hasn't shown yet arrive as Anakin's turn. At most every 10 min.
   const surfacedAt = useRef(0);
   const surface = useCallback(() => {
     if (Date.now() - surfacedAt.current < 10 * 60_000) return;
     surfacedAt.current = Date.now();
-    void v2Api.surfaceAdaptations().then((r) => { if (r?.posted) void thread.hydrate().then(setAway); }).catch(() => {});
+    void v2Api.surfaceAdaptations().then((r) => { if (r?.posted) void thread.hydrate(); }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { surface(); }, [surface]);
   useEffect(() => threadBus.on(() => { void thread.hydrate(); }), []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -263,7 +283,14 @@ export function HomePage() {
   const editDraft = useCallback((c: Card) => { setDraftEdit(c.id); setText(c.draft?.body ?? ''); inputRef.current?.focus(); }, []);
   const handlers = useMemo<CardHandlers>(() => ({
     act: (c, a, x) => (c.pattern === 'draft' && a.id === 'edit' ? Promise.resolve(editDraft(c)) : actions.act(c, a, x)),
-    undo: actions.undo, review: actions.review, edit: actions.edit, toggle: actions.toggle, answer: actions.answer,
+    undo: actions.undo, review: actions.review, awayOpened: actions.awayOpened, edit: actions.edit,
+    unfold: (turnAt) => {
+      const at = Date.parse(turnAt);
+      setUnfolded((prev) => new Set(prev).add(at));
+      pinned.current = false;
+      // After the unfolded turn lays out, bring it into view.
+      setTimeout(() => { const y = turnY.current.get(at); if (y != null) scrollRef.current?.scrollTo({ y: Math.max(0, y - 24), animated: true }); }, 120);
+    }, toggle: actions.toggle, answer: actions.answer,
     open: (c, r) => actions.open(c, r),
     typeInstead: () => { setAnswering(true); inputRef.current?.focus(); },
     editDraft,
@@ -467,11 +494,22 @@ export function HomePage() {
               ) : null}
               <CardHandlersProvider value={handlers}>
               {thread.state.turns.map((t, i) => {
-                // What Anakin posted while they were gone is shown open, under a divider — never folded behind a tap (Oct 2026).
+                // While you were away (design 3b): its turn is a "Today · h:mm" divider and the card;
+                // the turns it folds stay hidden until a row unfolds one.
+                const awayCard = t.cards?.find((c) => c.fn === 'AWAY-01');
+                if (awayCard) {
+                  return (
+                    <View key={t.id} style={{ marginTop: i === 0 ? 0 : TURN_GAP, gap: 12 }}>
+                      {t.at ? <ReturnDivider at={t.at} /> : null}
+                      <CardView card={awayCard} />
+                    </View>
+                  );
+                }
+                if (t.at && folded.has(t.at) && !unfolded.has(t.at)) return null;
                 const sl = slots[i];
-                const turn = <SignedTurn key={t.id} turn={t} first={i === 0 && !(away && i === away.start)} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
+                const turn = <SignedTurn key={t.id} turn={t} first={i === 0} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
                   dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
-                if (away && i === away.start) return <React.Fragment key={`away-${t.id}`}><View style={{ marginTop: i === 0 ? 0 : TURN_GAP }}><AwayDivider count={away.count} /></View>{turn}</React.Fragment>;
+                if (t.at && folded.has(t.at)) return <View key={t.id} onLayout={(e) => turnY.current.set(t.at!, e.nativeEvent.layout.y)}>{turn}</View>;
                 return turn;
               })}
               </CardHandlersProvider>
@@ -619,14 +657,19 @@ function sessionLabel(session: NonNullable<BriefSession>): string {
 
 export function dismissKeyboard() { Keyboard.dismiss(); }
 
-/** "While you were away · 3" — a divider over what Anakin posted while they were gone; the messages show open below it. */
-function AwayDivider({ count }: { count: number }) {
+const LAST_OPEN_KEY = 'v2.chat.lastOpenAt';
+/** The last time chat was open on this phone: the start of the next absence. */
+function markOpen() { void AsyncStorage.setItem(LAST_OPEN_KEY, new Date().toISOString()).catch(() => {}); }
+
+/** "Today · 7:58 AM" — marks where they came back, above the away card (design 3b). */
+function ReturnDivider({ at }: { at: number }) {
+  const d = new Date(at);
+  const today = new Date().toDateString() === d.toDateString();
+  const label = `${today ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
   return (
-    <Enter exit={false}>
-      <View style={styles.awayRow} accessibilityRole="header" accessibilityLabel={`While you were away, ${count} new from Anakin`}>
-        <Text style={[T.eyebrow, { flex: 1 }]}>While you were away · {count} new</Text>
-      </View>
-    </Enter>
+    <View style={styles.returnRow} accessibilityRole="header">
+      <View style={styles.returnLine} /><Text style={[T.caption, { color: C.muted }]}>{label}</Text><View style={styles.returnLine} />
+    </View>
   );
 }
 
@@ -655,7 +698,8 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: v2.font.regular, fontSize: 17, padding: 0 },
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0, height: 56 },
-  awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingTop: 10, borderTopWidth: 1, borderColor: C.hairline },
+  returnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  returnLine: { flex: 1, height: 1, backgroundColor: C.hairline },
   saveBar: { justifyContent: 'space-between' },
   editingRow: { position: 'absolute', left: 0, right: 0, bottom: COMPOSER_H, height: 32, flexDirection: 'row', alignItems: 'center', backgroundColor: C.white },
   newPillWrap: { position: 'absolute', left: 0, right: 0, bottom: 84, alignItems: 'center' },

@@ -83,6 +83,10 @@ export function useCardActions(thread: Thread) {
     } catch (e) { noteError(find(card.id) ?? card, e); }
   }, [invalidate]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const awayOpened = useCallback(async (card: Card, itemId: string) => {
+    try { setCard((await v2Api.awayItemOpened(card.id, itemId)).card); } catch { /* the row still opens; the badge catches up next load */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const runClient = useCallback(async (card: Card, action: ClientAction, args: Record<string, any> = {}) => {
     await dismissKeyboard();
     switch (action) {
@@ -211,5 +215,5 @@ export function useCardActions(thread: Thread) {
     if (card) void answer(card, { text: ids.join(',') }).catch(() => {});
   }), [answer]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return useMemo(() => ({ act, undo, review, edit, toggle, answer, open, runClient }), [act, undo, review, edit, toggle, answer, open, runClient]);
+  return useMemo(() => ({ act, undo, review, awayOpened, edit, toggle, answer, open, runClient }), [act, undo, review, awayOpened, edit, toggle, answer, open, runClient]);
 }
