@@ -14,6 +14,7 @@ import '../agent/toolkits/index.js';
 import { runNativeTool, NativeToolError } from '../agent/nativeTools.js';
 import { applyFlag, keepFlag, undoFlag, applyAll, expandDigest, ReviewError } from '../services/logReview/index.js';
 import { openAwayDigest, markAwayOpened } from '../services/awayDigest.js';
+import { logReviewAvailableFor, awayDigestAvailableFor } from '../services/featureFlags.js';
 
 const router = Router();
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
@@ -187,6 +188,11 @@ router.post('/coach/agent/changes/:id/revert', requireAuth, access, async (req, 
 
 // ─── Log review (design "Log review 1a") ─────────────────────────────────────
 // Each tap returns the re-rendered digest card. Nothing changes without one.
+// Behind LOG_REVIEW_ENABLED / LOG_REVIEW_USERS: 404 for everyone else.
+router.use('/coach/agent/log-review', requireAuth, (req, res, next) => {
+  if (!logReviewAvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
+  next();
+});
 router.post('/coach/agent/log-review/flags/:id/apply', requireAuth, access, async (req, res) => {
   try { res.json({ card: await applyFlag(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'apply that fix'); }
 });
@@ -207,6 +213,8 @@ router.post('/coach/agent/log-review/:digestId/expand', requireAuth, access, asy
 // Called when chat opens: posts one card per absence (≥ AWAY_HOURS) with ≥ 1 unseen update.
 router.post('/coach/agent/away', requireAuth, access, async (req, res) => {
   try {
+    // Behind AWAY_DIGEST_ENABLED / AWAY_DIGEST_USERS: off = nothing posted (the app keeps its divider).
+    if (!awayDigestAvailableFor(req.user!.id, req.user!.email)) return res.json({ posted: false, card: null });
     const lastOpenAt = typeof req.body?.lastOpenAt === 'string' ? req.body.lastOpenAt : null;
     const card = await openAwayDigest(req.user!.id, lastOpenAt);
     res.json({ posted: !!card, card });

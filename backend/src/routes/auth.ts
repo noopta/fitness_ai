@@ -9,7 +9,7 @@ import { requireAuth, requireExportToken, EXPORT_TOKEN_TTL_SEC } from '../middle
 import { invalidateAuthCache } from '../middleware/authSessionCache.js';
 import { isAdminEmail } from '../middleware/requireAdmin.js';
 import { scheduleWelcomeEmail } from '../services/welcomeEmailService.js';
-import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor, wearablesAvailableFor } from '../services/featureFlags.js';
+import { onboardingHookAvailableFor, diagnosticFirstAvailableFor, liftConversationAvailableFor, directEntryPaywallEnabled, isOnboardingTestAccount, uiV2AvailableFor, personalTrainingAvailableFor, freestyleAvailableFor, logAdaptationAvailableFor, phaseInferenceAvailableFor, mealPhotoV2AvailableFor, webFoodSearchAvailableFor, wearablesAvailableFor, logReviewAvailableFor, awayDigestAvailableFor } from '../services/featureFlags.js';
 import { resetOnboardingTestAccount } from '../services/onboardingTestReset.js';
 import { resizeAvatarBase64 } from '../services/avatarImage.js';
 import { cancelActiveSubscriptions, liveSubscriptionEnd } from '../services/stripeService.js';
@@ -1120,6 +1120,8 @@ router.get('/auth/me', requireAuth, async (req, res) => {
         phaseInference: phaseInferenceAvailableFor(user.id, user.email),
         mealPhotoV2: mealPhotoV2AvailableFor(user.id, user.email),
         webFoodSearch: webFoodSearchAvailableFor(user.id, user.email),
+        logReview: logReviewAvailableFor(user.id, user.email),
+        awayDigest: awayDigestAvailableFor(user.id, user.email),
       },
     });
   } catch (err) {

@@ -16,6 +16,7 @@ import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
 import { loadCanonicalResolver } from '../../services/liftCanonical.js';
+import { logReviewOn } from '../../services/logReview/flag.js';
 import { adaptationCard } from './adaptation.js';
 import { weight, toKg, kgTo, dayLabel, plural, num } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
@@ -26,7 +27,7 @@ type Unit = 'metric' | 'imperial';
 interface ChatExercise { name: string; sets?: number; reps?: string | number; weight?: number; rpe?: number; bodyweight?: boolean; notes?: string; estimated?: boolean; equipment?: string; setEntries?: { weight?: number; reps: number; rpe?: number }[] }
 
 /** Chat input (user's unit) → the service's schema (kg). */
-function toServiceExercises(exs: ChatExercise[], unit: Unit): WorkoutLogInput['exercises'] {
+function toServiceExercises(exs: ChatExercise[], unit: Unit, review = false): WorkoutLogInput['exercises'] {
   return exs.filter((e) => str(e.name)).map((e) => {
     const entries = (e.setEntries ?? []).filter((s) => Number.isFinite(Number(s.reps)));
     const top = entries.length ? entries.reduce((a, b) => ((Number(b.weight) || 0) > (Number(a.weight) || 0) ? b : a)) : null;
@@ -38,11 +39,12 @@ function toServiceExercises(exs: ChatExercise[], unit: Unit): WorkoutLogInput['e
       weightKg: w != null && !e.bodyweight ? Math.round(toKg(unit, Number(w)) * 100) / 100 : null,
       rpe: e.rpe != null ? Number(e.rpe) : top?.rpe != null ? Number(top.rpe) : null,
       notes: e.notes ?? null,
-      // Bodyweight only when it is one: a lift logged without its weight used
-      // to be saved as bodyweight (Oct 2026). Log review asks for the number.
-      bodyweight: !!e.bodyweight,
-      ...(e.estimated ? { estimated: true } : {}),
-      ...(e.equipment ? { equipment: String(e.equipment).slice(0, 20) } : {}),
+      // With log review on, bodyweight only when it is one: a lift logged
+      // without its weight used to be saved as bodyweight (Oct 2026), and log
+      // review asks for the number instead.
+      bodyweight: !!e.bodyweight || (!review && w == null),
+      ...(review && e.estimated ? { estimated: true } : {}),
+      ...(review && e.equipment ? { equipment: String(e.equipment).slice(0, 20) } : {}),
       ...(entries.length ? { setEntries: entries.map((s) => ({ weightKg: s.weight != null ? Math.round(toKg(unit, Number(s.weight)) * 100) / 100 : null, reps: Math.round(Number(s.reps)), rpe: s.rpe != null ? Number(s.rpe) : null })) } : {}),
     };
   });
@@ -289,7 +291,7 @@ export const WORKOUT_TOOLS = [
     execute: async (input, userId) => {
       const u = await prisma.user.findUnique({ where: { id: userId }, select: { unitPreference: true } });
       const unit: Unit = unitArg(input.unit, u?.unitPreference === 'metric' ? 'metric' : 'imperial');
-      const exercises = toServiceExercises((input.exercises ?? []) as ChatExercise[], unit);
+      const exercises = toServiceExercises((input.exercises ?? []) as ChatExercise[], unit, await logReviewOn(userId));
       if (!exercises.length) throw new Error('Tell me at least one exercise.');
       const tz = (await import('../cards/store.js')).userTz;
       const today = (await import('../cards/format.js')).todayIn(await tz(userId));
@@ -376,12 +378,13 @@ export const WORKOUT_TOOLS = [
       } else {
         const text = input.useMessage ? turnMessage(userId) : str(input.notes);
         const parsed = text.trim() ? await parseWorkoutNotes(text, unit, today) : { workouts: [], unparsed: [] };
+        const review = await logReviewOn(userId);
         const candidates = [
-          ...parsed.workouts.map((w) => ({ date: w.date, title: w.title, exercises: toServiceExercises(w.exercises as unknown as ChatExercise[], unit) })),
+          ...parsed.workouts.map((w) => ({ date: w.date, title: w.title, exercises: toServiceExercises(w.exercises as unknown as ChatExercise[], unit, review) })),
           ...((Array.isArray(input.workouts) ? input.workouts : []) as any[]).map((w) => ({
             date: /^\d{4}-\d{2}-\d{2}$/.test(str(w?.date)) ? str(w.date) : null,
             title: str(w?.title) || null,
-            exercises: toServiceExercises((Array.isArray(w?.exercises) ? w.exercises : []) as ChatExercise[], unit),
+            exercises: toServiceExercises((Array.isArray(w?.exercises) ? w.exercises : []) as ChatExercise[], unit, review),
           })),
         ];
         if (!candidates.some((c) => c.exercises.length)) {

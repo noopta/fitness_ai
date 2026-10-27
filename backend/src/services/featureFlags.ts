@@ -230,3 +230,13 @@ const WEARABLES_SIMULATOR_ALLOWLIST = list(process.env.WEARABLES_SIMULATOR_USERS
 export function wearablesSimulatorFor(userId: string, email?: string | null): boolean {
   return inList(WEARABLES_SIMULATOR_ALLOWLIST, userId, email);
 }
+
+/**
+ * Log review + While you were away (design PDF, Oct 2026). Off unless
+ * LOG_REVIEW_ENABLED=1 / AWAY_DIGEST_ENABLED=1, or the user is in the _USERS
+ * allowlist (ids and/or emails). Log review off = no checks run, no digest
+ * cards, and the agent keeps its old logging rules; away off = the old
+ * "While you were away · N" divider.
+ */
+export const logReviewAvailableFor = flagFor('LOG_REVIEW_ENABLED', 'LOG_REVIEW_USERS');
+export const awayDigestAvailableFor = flagFor('AWAY_DIGEST_ENABLED', 'AWAY_DIGEST_USERS');

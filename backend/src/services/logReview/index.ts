@@ -15,6 +15,7 @@ import { PrismaClient } from '@prisma/client';
 import { detect, type Finding, type ReviewLog } from './detect.js';
 import { loadCanonicalResolver } from '../liftCanonical.js';
 import { cacheDelete } from '../cacheService.js';
+import { logReviewOn } from './flag.js';
 import type { ReviewBlock, ReviewRow, ReviewFlagType } from '../../agent/cards/types.js';
 
 const prisma = new PrismaClient();
@@ -74,12 +75,13 @@ export function countableExercises<T extends { estimated?: boolean | null }>(log
 const timers = new Map<string, NodeJS.Timeout>();
 /** After a save, edit or delete: one review per burst of changes (a correction often follows a log). */
 export function scheduleReview(userId: string, delayMs = 20_000): void {
-  if (process.env.LOG_REVIEW_ENABLED === '0' || process.env.VITEST) return;
+  if (process.env.VITEST) return;
   const t = timers.get(userId);
   if (t) clearTimeout(t);
   timers.set(userId, setTimeout(() => {
     timers.delete(userId);
-    runReview(userId).catch((err) => console.error('[log-review] run failed:', err?.message ?? err));
+    // Behind LOG_REVIEW_ENABLED / LOG_REVIEW_USERS: off = no checks, no card.
+    logReviewOn(userId).then((on) => (on ? runReview(userId) : null)).catch((err) => console.error('[log-review] run failed:', err?.message ?? err));
   }, delayMs).unref());
 }
 

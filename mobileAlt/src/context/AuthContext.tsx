@@ -212,7 +212,7 @@ interface AuthContextType {
    */
   getLatestUser: () => AuthUser | null;
   /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
-  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean };
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -256,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // that are on for everyone (the new UI since 11 Oct, direct entry since
   // 4 Oct): off-by-default there showed the classic app whenever /auth/me was
   // slow. The server's kill switch still wins as soon as /auth/me lands.
-  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean }>({
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean }>({
     onboardingFormHook: false,
     diagnosticFirstOnboarding: false,
     directEntryPaywall: true,
@@ -271,6 +271,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mealPhotoV2: false,
     webFoodSearch: false,
     wearables: false,
+    // Log review + While you were away (Oct 2026): off = the old divider.
+    logReview: false,
+    awayDigest: false,
   });
   const commitFeatures = useCallback((f: any) => {
     featuresRef.current = {
@@ -288,6 +291,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mealPhotoV2: f?.mealPhotoV2 === true,
       webFoodSearch: f?.webFoodSearch === true,
       wearables: f?.wearables === true,
+      logReview: f?.logReview === true,
+      awayDigest: f?.awayDigest === true,
     };
   }, []);
   const getFeatures = useCallback(() => featuresRef.current, []);

@@ -31,6 +31,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, TextInput, ScrollView, StyleSheet, Keyboard, Platform, Dimensions, AppState, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pressable } from '../primitives/Pressable';
+import { Enter } from '../primitives/Enter';
+import { useAuth } from '../../context/AuthContext';
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedReaction, useFrameCallback, runOnJS, interpolate, interpolateColor, FadeIn, FadeInDown, FadeOut, Extrapolation, withRepeat, withSequence, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -160,9 +162,13 @@ export function HomePage() {
     if (shell.pendingAsk.current) { const m = shell.pendingAsk.current; shell.pendingAsk.current = null; void thread.send(m); }
   }, [shell, thread.send]); // eslint-disable-line react-hooks/exhaustive-deps
   // Load the thread, then pick up a turn Anakin is still working on (the app was closed or the screen left mid-answer).
-  // While you were away (design 3b): after ≥ 8 h away the server folds what Anakin
+  // While you were away (design 3b, flag awayDigest): after ≥ 8 h away the server folds what Anakin
   // posted into one card at the bottom; the last time chat was open lives on the phone.
+  // Flag off: "While you were away · N" (spec §9) over the turns Anakin posted since the user last spoke.
+  const awayCardOn = useAuth().getFeatures().awayDigest;
+  const [away, setAway] = useState<{ start: number; end: number; count: number } | null>(null);
   useEffect(() => {
+    if (!awayCardOn) { void thread.hydrate().then(setAway).then(() => thread.resume()); return; }
     void (async () => {
       await thread.hydrate();
       let last: string | null = null;
@@ -187,7 +193,7 @@ export function HomePage() {
   const surface = useCallback(() => {
     if (Date.now() - surfacedAt.current < 10 * 60_000) return;
     surfacedAt.current = Date.now();
-    void v2Api.surfaceAdaptations().then((r) => { if (r?.posted) void thread.hydrate(); }).catch(() => {});
+    void v2Api.surfaceAdaptations().then((r) => { if (r?.posted) void thread.hydrate().then((a) => { if (!awayCardOn) setAway(a); }); }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { surface(); }, [surface]);
   useEffect(() => threadBus.on(() => { void thread.hydrate(); }), []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -507,8 +513,9 @@ export function HomePage() {
                 }
                 if (t.at && folded.has(t.at) && !unfolded.has(t.at)) return null;
                 const sl = slots[i];
-                const turn = <SignedTurn key={t.id} turn={t} first={i === 0} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
+                const turn = <SignedTurn key={t.id} turn={t} first={i === 0 && !(away && i === away.start)} stamp={sl?.stamp ?? null} showLabel={sl?.showLabel ?? true} showSignature={sl?.showSignature ?? true} grouped={sl?.grouped ?? false}
                   dispatch={thread.dispatch} ask={askInComposer} onAsk={onAskPick} />;
+                if (away && i === away.start) return <React.Fragment key={`away-${t.id}`}><View style={{ marginTop: i === 0 ? 0 : TURN_GAP }}><AwayDivider count={away.count} /></View>{turn}</React.Fragment>;
                 if (t.at && folded.has(t.at)) return <View key={t.id} onLayout={(e) => turnY.current.set(t.at!, e.nativeEvent.layout.y)}>{turn}</View>;
                 return turn;
               })}
@@ -661,6 +668,17 @@ const LAST_OPEN_KEY = 'v2.chat.lastOpenAt';
 /** The last time chat was open on this phone: the start of the next absence. */
 function markOpen() { void AsyncStorage.setItem(LAST_OPEN_KEY, new Date().toISOString()).catch(() => {}); }
 
+/** "While you were away · 3" (flag off) — a divider over what Anakin posted while they were gone; the messages show open below it. */
+function AwayDivider({ count }: { count: number }) {
+  return (
+    <Enter exit={false}>
+      <View style={styles.awayRow} accessibilityRole="header" accessibilityLabel={`While you were away, ${count} new from Anakin`}>
+        <Text style={[T.eyebrow, { flex: 1 }]}>While you were away · {count} new</Text>
+      </View>
+    </Enter>
+  );
+}
+
 /** "Today · 7:58 AM" — marks where they came back, above the away card (design 3b). */
 function ReturnDivider({ at }: { at: number }) {
   const d = new Date(at);
@@ -698,6 +716,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: v2.font.regular, fontSize: 17, padding: 0 },
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0, height: 56 },
+  awayRow: { flexDirection: 'row', alignItems: 'center', minHeight: 32, paddingTop: 10, borderTopWidth: 1, borderColor: C.hairline },
   returnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   returnLine: { flex: 1, height: 1, backgroundColor: C.hairline },
   saveBar: { justifyContent: 'space-between' },
