@@ -13,12 +13,13 @@ import { cardRef } from '../agent/cardNotes.js';
 import '../agent/toolkits/index.js';
 import { runNativeTool, NativeToolError } from '../agent/nativeTools.js';
 import { applyFlag, keepFlag, undoFlag, applyAll, expandDigest, ReviewError } from '../services/logReview/index.js';
+import { openAwayDigest, markAwayOpened } from '../services/awayDigest.js';
 
 const router = Router();
 const AGENT_ENABLED = process.env.AGENT_ENABLED === 'true';
 const AGENT_ALLOWLIST = (process.env.AGENT_USER_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
 
-router.use(['/coach/agent/cards', '/coach/agent/changes', '/coach/agent/log-review'], (req, res, next) => {
+router.use(['/coach/agent/cards', '/coach/agent/changes', '/coach/agent/log-review', '/coach/agent/away'], (req, res, next) => {
   if (!AGENT_ENABLED) return res.status(404).json({ error: 'Not found' });
   next();
 });
@@ -200,6 +201,19 @@ router.post('/coach/agent/log-review/:digestId/apply-all', requireAuth, access, 
 });
 router.post('/coach/agent/log-review/:digestId/expand', requireAuth, access, async (req, res) => {
   try { res.json({ card: await expandDigest(req.user!.id, req.params.digestId) }); } catch (e) { fail(res, e, 'show the rest'); }
+});
+
+// ─── While you were away (design 3b) ─────────────────────────────────────────
+// Called when chat opens: posts one card per absence (≥ AWAY_HOURS) with ≥ 1 unseen update.
+router.post('/coach/agent/away', requireAuth, access, async (req, res) => {
+  try {
+    const lastOpenAt = typeof req.body?.lastOpenAt === 'string' ? req.body.lastOpenAt : null;
+    const card = await openAwayDigest(req.user!.id, lastOpenAt);
+    res.json({ posted: !!card, card });
+  } catch (e) { fail(res, e, 'load what you missed'); }
+});
+router.post('/coach/agent/away/:cardId/items/:itemId/open', requireAuth, access, async (req, res) => {
+  try { res.json({ card: await markAwayOpened(req.user!.id, req.params.cardId, decodeURIComponent(req.params.itemId)) }); } catch (e: any) { if (e?.status === 404) return res.status(404).json({ error: e.message }); fail(res, e, 'open that'); }
 });
 
 export default router;

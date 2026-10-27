@@ -246,6 +246,7 @@ async function afterTap(userId: string, digestId: string | null, opts: { reopene
   const card = await renderDigest(userId, digestId);
   // All resolved: Anakin posts the follow-up once (counts, then the resulting e1RM).
   if (!card.review.pending && before?.status === 'live' && !opts.reopened) await postFollowUp(userId, digestId).catch((err) => console.error('[log-review] follow-up failed:', err?.message ?? err));
+  if (!card.review.pending) await (await import('../awayDigest.js')).resolveNeedsYou(userId, digestId).catch(() => {});
   return card;
 }
 

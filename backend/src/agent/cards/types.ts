@@ -4,7 +4,7 @@
 
 import type { ProgressMoment } from '../../services/moments/types.js';
 
-export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff' | 'review';
+export type CardPattern = 'glance' | 'logged' | 'setting' | 'proposal' | 'ask' | 'capture' | 'draft' | 'confirm' | 'flow' | 'handoff' | 'review' | 'away';
 export type CardRule = 'show' | 'log_undo' | 'change_undo' | 'propose' | 'draft_send' | 'confirm_delete' | 'handoff';
 export type ClientAction =
   | 'start_session' | 'sign_out' | 'open_os_settings' | 'check_updates' | 'manage_subscription' | 'restore_purchases'
@@ -118,6 +118,8 @@ export interface Card {
   batch?: BatchBlock;
   /** Log review digest (LOG-01). */
   review?: ReviewBlock;
+  /** While you were away (AWAY-01). */
+  away?: AwayBlock;
   /** A personal trainer's invite (coach_invite): who, which practice, until when. The token stays server-side. */
   invite?: { trainer: string; practice: string; logoUrl?: string | null; expiresAt?: string };
   /** A progress moment (MOM-01, or a logged batch): the congratulation and its share cards. */
@@ -191,4 +193,40 @@ export interface ReviewBlock {
   rows: ReviewRow[];
   /** Rows hidden past the first five ("Show N more"). */
   hiddenCount?: number;
+}
+
+/**
+ * "While you were away" (design 3b, Oct 2026): one card per absence. Rows are
+ * one-line updates; each opens to a sentence and one action that unfolds the
+ * original message in the thread.
+ */
+export type AwayKind = 'needs_you' | 'program_change' | 'insight' | 'announcement';
+export interface AwayItem {
+  id: string;
+  kind: AwayKind;
+  /** ≤ 48 chars, one line. */
+  title: string;
+  /** ≤ 140 chars, shown when the row is open. */
+  detail: string;
+  /** The row's one action: unfold the turn posted at `turnAt` (and its card) in the thread. */
+  cta: { label: string; turnAt: string; cardId?: string };
+  occurredAt: string;
+  /** "Today", "Yesterday", "Sat". */
+  day: string;
+  openedAt?: string;
+  /** needs_you only. */
+  resolvedAt?: string;
+}
+export interface AwayBlock {
+  /** "Since Saturday". */
+  since: string;
+  /** "5 updates · 1 needs you". */
+  summary: string;
+  items: AwayItem[];
+  /** Rows shown before "+N more". */
+  shown: number;
+  /** Turns folded into this card: hidden from the thread until a row unfolds one. */
+  foldedAts: string[];
+  /** Badge: rows not opened yet. */
+  unopened: number;
 }
