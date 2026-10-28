@@ -15,6 +15,7 @@ import { dayLabel, shiftDate, weight, plural } from '../cards/format.js';
 import type { CardDraft, CardRow } from '../cards/types.js';
 import type { ToolCtx } from '../types.js';
 import { sessionMinutes } from '../../services/sessionMinutes.js';
+import { rehabCard as rehabCardSync } from '../../services/rehab/program.js';
 import { respreadSlots } from '../../services/weekRecovery.js';
 
 function invalidateProgram(userId: string) {
@@ -394,6 +395,44 @@ export const PROGRAM_TOOLS = [
       undoLine: 'Undone — your previous program is back',
       pending: { actions: { apply: { op: 'program.activate', args: { program: r._program, summary: `Coach program · ${r.name}` }, line: 'Your coach’s program is live' }, keep: { kind: 'keep', line: 'Not imported' } } },
     } : null),
+  }),
+  tool({
+    name: 'propose_rehab_program', kind: 'propose', fn: 'PRG-21',
+    description: 'Build a research-based rehab / return-to-training program for an injury or surgery their surgeon or physio has CLEARED them to start rehab for (only when this tool is available to them). Research first (query_research, search_web: systematic reviews, consensus statements, published protocols for that injury and stage). Pass: area, surgeryDate (YYYY-MM-DD) if surgical, clearedOn / clearedBy / clearedFor (what was cleared, in their words), program (written out: phases keyed to weeks since surgery, each training day with exercises as sets × reps with load or intensity, frequency, notes; keep safe training for the rest of the body alongside), limits (the protocol’s hard limits), criteria (what must be true to move to the next phase), sources (≥2: title, year, url). Shows a card to make it their program; never auto-progressed.',
+    input_schema: schema({
+      area: { type: 'string' }, side: { type: 'string' }, surgeryDate: { type: 'string' }, clearedOn: { type: 'string' }, clearedBy: { type: 'string' }, clearedFor: { type: 'string' },
+      program: { type: 'string' },
+      limits: { type: 'array', items: { type: 'string' } }, criteria: { type: 'array', items: { type: 'string' } },
+      sources: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, year: { type: 'string' }, url: { type: 'string' } }, required: ['title'] } },
+    }, ['area', 'program', 'limits', 'criteria', 'sources']),
+    receipt: (i) => ({ verb: 'Building', text: `Rehab program · ${str(i.area)}` }),
+    refine: (r) => (r?.preview ? { verb: 'Built', text: `${r.preview.name} · ${r.preview.weeks} weeks` } : null),
+    execute: async (input, userId) => {
+      const { rehabOn } = await import('../../services/rehab/flag.js');
+      if (!(await rehabOn(userId))) return { unavailable: true, note: 'Rehab programs aren’t on for this account yet. Build the rest of their training around the injury and send them to their physio for the rehab itself.' };
+      const { rehabProblem, rehabMeta, postOpWeek } = await import('../../services/rehab/program.js');
+      const problem = rehabProblem(input as any);
+      if (problem) return { error: problem };
+      const { transcribeCoachProgram, toSavedProgram, previewLines } = await import('../../services/coachProgramImport.js');
+      const meta = rehabMeta(input as any);
+      const p = await transcribeCoachProgram({ text: str(input.program), coach: 'Anakin · research-based rehab' });
+      if (!p.phases.length) return { error: 'Couldn’t read a program in that — write it as phases, days and exercises with sets × reps.', unclear: p.unclear };
+      // Saved like a coach's program: faithful, and never auto-progressed (proposalService skips source 'coach').
+      const program = { ...toSavedProgram(p, { goal: `${meta.area} rehab` }), rehab: meta, sourceText: str(input.program).slice(0, 20_000) };
+      const { todayIn } = await import('../cards/format.js');
+      const { userTz } = await import('../cards/store.js');
+      const week = postOpWeek(meta.surgeryDate, todayIn(await userTz(userId)));
+      return {
+        preview: { name: p.name, weeks: program.durationWeeks, days: program.daysPerWeek, rows: previewLines(p) },
+        week, unclear: p.unclear,
+        howToAnswer: 'Say in two sentences what the program does in this phase and when it moves on, that it’s built for them to review with their physio, and name the main sources. Include “This isn’t medical advice.”',
+        _program: program, _meta: meta,
+      };
+    },
+    card: (_i, r): CardDraft | null => {
+      if (!r?.preview) return null;
+      return rehabCardSync(r._meta, r.preview, r._program, r.week ?? null);
+    },
   }),
   tool({
     name: 'read_program', kind: 'read', core: true, fn: 'PRG-01',

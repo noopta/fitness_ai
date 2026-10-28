@@ -248,3 +248,11 @@ export const awayDigestAvailableFor = flagFor('AWAY_DIGEST_ENABLED', 'AWAY_DIGES
  * hand-off. SWAP_V2_ENABLED=1 or the SWAP_V2_USERS allowlist (ids/emails).
  */
 export const swapV2AvailableFor = flagFor('SWAP_V2_ENABLED', 'SWAP_V2_USERS');
+
+/**
+ * Research-based rehab programs (Oct 2026): for an athlete cleared by their
+ * surgeon or physio, Anakin researches current protocols and builds the rehab
+ * program (propose_rehab_program) instead of deferring all of it to the PT.
+ * REHAB_PROGRAMS_ENABLED=1 or the REHAB_PROGRAMS_USERS allowlist (ids/emails).
+ */
+export const rehabProgramsAvailableFor = flagFor('REHAB_PROGRAMS_ENABLED', 'REHAB_PROGRAMS_USERS');

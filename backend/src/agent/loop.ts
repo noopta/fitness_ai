@@ -23,6 +23,7 @@ import { SAFETY_BLOCK, UNTRUSTED_DATA_RULE } from '../prompts/safety.js';
 import { userRequestedWrite } from './untrusted.js';
 import { logReviewOn } from '../services/logReview/flag.js';
 import { swapOn } from '../services/swap/flag.js';
+import { rehabOn } from '../services/rehab/flag.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -120,6 +121,14 @@ const SWAP_RULES = `Exercise swaps:
 - When they name the replacement ("swap pushdowns for single arm pushdowns"), propose exactly that name — never a different or easier exercise.
 - A swap keeps the exercise's job: never pick something easier unless they say something hurts or ask for easier; then pass reason "pain" (and the joint if they said).`;
 const withSwap = (base: string, on: boolean) => (on ? `${base}\n\n${SWAP_RULES}` : base);
+
+/** Rehab program rules (REHAB_PROGRAMS_ENABLED / REHAB_PROGRAMS_USERS only). */
+const REHAB_RULES = `Rehab programs (available to this user):
+- A rehab or return-to-training program for an injury or surgery their surgeon or physio has cleared them to start rehab for is in scope: it is an exercise program built from published protocols, for them to review with their clinician — training, not diagnosis or treatment. Don't hand the whole thing back to their PT; build it.
+- Before building: know the surgery or injury date and exactly what was cleared (by whom, when). If either is missing, ask in one line. Then research: query_research and search_web for current systematic reviews, consensus statements and published protocols for that injury and stage.
+- Build it with propose_rehab_program: phases keyed to weeks since surgery, exercises with sets × reps and load or intensity, frequency, the protocol's hard limits and the criteria to move on (not only dates), sources. Never program past what's cleared or past the protocol's limits for their week. Keep safe training for the rest of the body in it.
+- Say it's for them and their physio to review (the physio can change anything), name the main sources, and include "This isn't medical advice." Pain, swelling or a pop is a stop-and-call-your-surgeon, every time.`;
+const withRehab = (base: string, on: boolean) => (on ? `${base}\n\n${REHAB_RULES}` : base);
 
 const V1_ADDENDUM = `In this version of the app: macro and calorie targets are never changed from chat. Use propose_macro_change to check the new numbers (it applies the calorie floor), then give the user the exact targets and tell them to set them in the Nutrition tab's targets, or to update the app to apply them from chat — never say the targets are changed. Broad program rewrites go through propose_program_update (a diff they confirm). Program edits (propose_program_edit, including adding or removing a day), rebuilt programs (propose_new_program — new split, level or schedule), exercise swaps and session moves show a card with an Apply button they confirm. log_past_workouts shows no card here: after the preview, give the count, the range and what was left out, then one question — "Found 8 workouts from 15 Jul to 5 Aug. One was already logged. Log the other 7?" — with no list unless they ask. When they say yes, call it again with confirm: true and the previewId.`;
 
@@ -283,7 +292,7 @@ export async function runAgentTurn(
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const baseSystem = opts.systemOverride ?? withSwap(withLogReview(opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId));
+  const baseSystem = opts.systemOverride ?? withRehab(withSwap(withLogReview(opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), await rehabOn(userId));
   const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
 
   // A sub-agent's task text is not the user's message (log_past_workouts reads this).
@@ -459,7 +468,7 @@ export async function streamAgentTurn(
   const contract = opts.cardContract ?? 1;
   const turnId = opts.turnId ?? `t${Date.now().toString(36)}`;
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const baseSystem = withSwap(withLogReview(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId));
+  const baseSystem = withRehab(withSwap(withLogReview(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), await rehabOn(userId));
   const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
   const tools = await promoteTools(userId, toolsFor(contract));
   const guard = newTurnGuard(userMessage);
