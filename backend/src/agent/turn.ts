@@ -54,6 +54,10 @@ export async function promoteTools(userId: string, tools: AgentTool[]): Promise<
   try { cp = u?.coachProfile ? JSON.parse(u.coachProfile) : {}; } catch { cp = {}; }
   const names = new Set<string>();
   if (Array.isArray(cp.nutritionDraft?.answered) && cp.nutritionDraft.answered.length) ['answer_nutrition_questions', 'start_nutrition_assessment'].forEach((n) => names.add(n));
+  // Flagged features whose tool the model must not have to search for (Oct 2026).
+  const [{ rehabOn }, { swapOn }] = await Promise.all([import('../services/rehab/flag.js'), import('../services/swap/flag.js')]);
+  if (await rehabOn(userId).catch(() => false)) names.add('propose_rehab_program');
+  if (await swapOn(userId).catch(() => false)) names.add('find_exercise_swaps');
   if (!names.size) return tools;
   return tools.map((t) => (names.has(t.name) && !t.core ? { ...t, core: true } : t));
 }

@@ -24,6 +24,7 @@ import { userRequestedWrite } from './untrusted.js';
 import { logReviewOn } from '../services/logReview/flag.js';
 import { swapOn } from '../services/swap/flag.js';
 import { rehabOn } from '../services/rehab/flag.js';
+import { needsRehabCard, REHAB_CARD_NUDGE } from './rehabNudge.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -127,6 +128,7 @@ const REHAB_RULES = `Rehab programs (available to this user):
 - A rehab or return-to-training program for an injury or surgery their surgeon or physio has cleared them to start rehab for is in scope: it is an exercise program built from published protocols, for them to review with their clinician — training, not diagnosis or treatment. Don't hand the whole thing back to their PT; build it.
 - Before building: know the surgery or injury date and exactly what was cleared (by whom, when). If either is missing, ask in one line. Then research: query_research and search_web for current systematic reviews, consensus statements and published protocols for that injury and stage.
 - Build it with propose_rehab_program, as the prescription an elite sports physiotherapist would write — the rehab itself, not a gym program with the injury worked around. Start at the week they're in. For each phase: the daily or near-daily rehab session exercise by exercise with a dose (sets × reps or holds × seconds, effort or load, tempo), how many times a day or week, and a cue. Consider everything current protocols support for that injury and stage, and include what fits their week and limits — for example early active range of motion within the allowed range, isometrics progressing in effort and duration, foot and intrinsic strength, hip and knee strength on the injured side, cross-education training of the uninjured limb, blood-flow-restriction training once cleared, gait and weight-bearing progression, heel-raise progressions (seated, double, single, eccentric, heavy slow), balance, low-impact conditioning, then return-to-run and hop progressions. Criteria are objective tests (range in degrees, heel-raise reps vs the other side, pain and swelling). Other training (upper body) only if they asked, written exercise by exercise on its own days. Never program past what's cleared or the protocol's limits for their week.
+- A rehab program they ask for is always a card from propose_rehab_program, never a program written in chat. "Build", "redo", "start over" or "a new one" means a new card even if one is already up.
 - Say it's for them and their physio to review (the physio can change anything), name the main sources, and include "This isn't medical advice." Pain, swelling or a pop is a stop-and-call-your-surgeon, every time.`;
 const withRehab = (base: string, on: boolean) => (on ? `${base}\n\n${REHAB_RULES}` : base);
 
@@ -292,7 +294,8 @@ export async function runAgentTurn(
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));
 
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const baseSystem = opts.systemOverride ?? withRehab(withSwap(withLogReview(opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), await rehabOn(userId));
+  const rehabAllowed = await rehabOn(userId);
+  const baseSystem = opts.systemOverride ?? withRehab(withSwap(withLogReview(opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), rehabAllowed);
   const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
 
   // A sub-agent's task text is not the user's message (log_past_workouts reads this).
@@ -310,6 +313,7 @@ export async function runAgentTurn(
   let truncationRetried = false;
   // Nutrient advice without a plan card gets one more step (nutrientAdvice.ts).
   let planNudged = false;
+  let rehabNudged = false;
   let captureNudged = false;
   let shownNudged = false;
   let intakeNudged = false;
@@ -357,6 +361,13 @@ export async function runAgentTurn(
         intakeNudged = true;
         nudgedReply = [nudgedReply, planNudged ? stripNudgeTalk(reply) : reply].filter(Boolean).join('\n\n');
         messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
+        continue;
+      }
+      if (opts.cardContract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed)) {
+        // A rehab program asked for and written in chat: put it on its card (rehabNudge.ts).
+        rehabNudged = true;
+        nudgedReply = [nudgedReply, reply].filter(Boolean).join('\n\n');
+        messages.push({ role: 'user', content: REHAB_CARD_NUDGE });
         continue;
       }
       if (opts.cardContract === 2 && !planNudged && needsPlanCard(reply, toolsUsed)) {
@@ -468,7 +479,8 @@ export async function streamAgentTurn(
   const contract = opts.cardContract ?? 1;
   const turnId = opts.turnId ?? `t${Date.now().toString(36)}`;
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
-  const baseSystem = withRehab(withSwap(withLogReview(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), await rehabOn(userId));
+  const rehabAllowed = await rehabOn(userId);
+  const baseSystem = withRehab(withSwap(withLogReview(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), rehabAllowed);
   const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
   const tools = await promoteTools(userId, toolsFor(contract));
   const guard = newTurnGuard(userMessage);
@@ -498,6 +510,7 @@ export async function streamAgentTurn(
   onEvent({ type: 'receipt', id: 'r0', verb: 'Read', text: ctx.todayNutrition ? 'Your profile and today' : 'Your profile', final: true });
   let truncationRetried = false;
   let planNudged = false;
+  let rehabNudged = false;
   let captureNudged = false;
   let shownNudged = false;
   let intakeNudged = false;
@@ -530,7 +543,7 @@ export async function streamAgentTurn(
         .filter((b): b is Anthropic.TextBlock => b.type === 'text')
         .map((b) => b.text).join('').trim() || finalText.trim();
       // After a plan-card nudge, the model's reply to the check is for us, not the user.
-      const text = stripCardNotes(joinSteps(planNudged || intakeNudged ? [...earlier, stripNudgeTalk(last)] : [...earlier, last]));
+      const text = stripCardNotes(joinSteps(planNudged || intakeNudged || rehabNudged ? [...earlier, stripNudgeTalk(last)] : [...earlier, last]));
       if (!text && res.stop_reason === 'max_tokens' && !truncationRetried) {
         truncationRetried = true;
         messages.pop(); // drop the truncated turn (may hold a partial tool_use)
@@ -560,6 +573,14 @@ export async function streamAgentTurn(
         if (finalText.trim()) { earlier.push(planNudged ? stripNudgeTalk(finalText.trim()) : finalText.trim()); emitText(' '); }
         finalText = '';
         messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
+        continue;
+      }
+      if (contract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed)) {
+        // A rehab program asked for and written in chat: keep what streamed, put it on its card.
+        rehabNudged = true;
+        if (finalText.trim()) { earlier.push(finalText.trim()); emitText(' '); }
+        finalText = '';
+        messages.push({ role: 'user', content: REHAB_CARD_NUDGE });
         continue;
       }
       if (contract === 2 && !planNudged && needsPlanCard(text, toolsUsed)) {
