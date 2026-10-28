@@ -756,6 +756,15 @@ model KnowledgeChunk {
   createdAt  DateTime @default(now())
 }
 
+// Swap catalog fields for an exercise the hand-authored catalog doesn't know
+// (services/swap/classify.ts): classified once by the LLM, validated, cached.
+model ExerciseProfileCache {
+  name      String   @id // normalizeName() of the exercise
+  json      String   // ExerciseProfile
+  source    String   @default("llm")
+  createdAt DateTime @default(now())
+}
+
 model ExerciseNormalization {
   rawName       String   @id
   canonicalName String

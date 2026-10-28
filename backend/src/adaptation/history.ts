@@ -6,18 +6,30 @@
 // caller loaded one, else the seed dictionary, else a lowercase collapse.
 
 import { canonicalizeSync } from '../services/exerciseCanonical.js';
+import { normalizeName, resolveProfile } from '../services/swap/match.js';
 import { e1rmWithRpe, e1rmConfidence, parseRPE } from '../engine/e1rm.js';
 import type { Exposure, LoggedSet, ProgramDayRef } from './types.js';
 
 export type KeyFn = (name: string) => string;
 
+/** One spelling per lift: "Single-arm Tricep Pushdowns" = "single arm triceps pushdown" (Oct 2026). */
 function collapse(name: string): string {
-  return (name ?? '')
-    .toLowerCase()
-    .replace(/[—–]/g, '-')
-    .replace(/[^a-z0-9\- ]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return normalizeName(name);
+}
+
+const FREE_WEIGHT = new Set(['barbell', 'dumbbell', 'ez_bar', 'kettlebell', 'bodyweight', 'trap_bar']);
+/**
+ * A machine or Smith version of a free-weight lift is its own lift: "Machine
+ * Lateral Raise" used to collapse into the dumbbell "Lateral Raise", so a
+ * 135 lb machine set landed in the dumbbell history (Oct 2026). Returns the
+ * machine lift's own name, or null when nothing needs splitting.
+ */
+function machineVariant(raw: string, canonical: string | null): string | null {
+  if (!/\b(machine|smith)\b/i.test(raw) || !canonical || /\b(machine|smith)\b/i.test(canonical)) return null;
+  const base = resolveProfile(canonical);
+  if (!base || !FREE_WEIGHT.has(base.eq)) return null;
+  const own = resolveProfile(raw);
+  return own && (own.eq === 'machine' || own.eq === 'smith') ? own.name : raw;
 }
 
 /**
@@ -36,7 +48,7 @@ export function makeKeyFn(dbCanonical?: Map<string, string>): KeyFn {
     if (hit) return hit;
     const fromDb = dbCanonical?.get(raw) ?? dbCanonical?.get((name ?? '').trim());
     const canonical = fromDb ?? canonicalizeSync(raw)?.canonicalName ?? null;
-    const key = collapse(canonical ?? raw);
+    const key = collapse(machineVariant(raw, canonical) ?? canonical ?? raw);
     cache.set(raw, key);
     return key;
   };

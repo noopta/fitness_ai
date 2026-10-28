@@ -240,3 +240,11 @@ export function wearablesSimulatorFor(userId: string, email?: string | null): bo
  */
 export const logReviewAvailableFor = flagFor('LOG_REVIEW_ENABLED', 'LOG_REVIEW_USERS');
 export const awayDigestAvailableFor = flagFor('AWAY_DIGEST_ENABLED', 'AWAY_DIGEST_USERS');
+
+/**
+ * Exercise swaps that keep the job (Oct 2026): ranked options from the
+ * exercise catalog, type-your-own, "just today" vs "every week", and the
+ * agent's find_exercise_swaps. Off = the old alternatives list and the chat
+ * hand-off. SWAP_V2_ENABLED=1 or the SWAP_V2_USERS allowlist (ids/emails).
+ */
+export const swapV2AvailableFor = flagFor('SWAP_V2_ENABLED', 'SWAP_V2_USERS');

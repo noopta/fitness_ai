@@ -604,6 +604,23 @@ export const PROGRAM_TOOLS = [
     card: () => null,
   }),
   tool({
+    name: 'find_exercise_swaps', kind: 'read', core: true, fn: 'PRG-07',
+    description: 'Ranked swaps for ONE exercise that keep its job in the session: same movement, same target muscles and region, as heavy for a main lift, never easier unless the reason is pain. Uses their equipment, injuries and the lifts they already do. Returns best (top 3 with a one-line why), yours (lifts they have logged that fit), variants. Call before propose_exercise_swap whenever they ask to swap without naming the replacement. reason "pain" (with painJoint when known) only when something hurts.',
+    input_schema: schema({ exercise: { type: 'string' }, reps: { type: 'string' }, notes: { type: 'string' }, reason: { type: 'string', enum: ['default', 'pain', 'equipment'] }, painJoint: { type: 'string', enum: ['shoulder', 'elbow', 'wrist', 'knee', 'lower_back', 'hip', 'ankle', 'neck'] } }, ['exercise']),
+    receipt: (i) => ({ verb: 'Read', text: `Swaps for ${str(i.exercise)}` }),
+    execute: async (input, userId) => {
+      const { swapOptions } = await import('../../services/swap/index.js');
+      const r = await swapOptions(userId, { name: str(input.exercise), reps: str(input.reps) || null, notes: str(input.notes) || null, reason: (['pain', 'equipment'].includes(str(input.reason)) ? str(input.reason) : 'default') as any, painJoint: (str(input.painJoint) || null) as any });
+      if (!r.original.known) return { unknown: true, note: 'I don’t know that exercise well enough to rank swaps. Ask what they want instead, or suggest from their program.' };
+      return {
+        replacing: r.original.name, role: r.job?.role, best: r.best.map((b) => ({ name: b.name, why: b.why })),
+        yours: r.yours.map((y) => ({ name: y.name, why: y.why, lastDone: y.lastDone })), variants: r.variants.map((v) => v.name),
+        ...(r.lowConfidence ? { lowConfidence: true, note: 'No close match in their setup — say so and ask what they have in mind.' } : {}),
+      };
+    },
+    card: () => null,
+  }),
+  tool({
     name: 'propose_exercise_swap', kind: 'propose', core: true, fn: 'PRG-07',
     description: "Propose swapping ONE exercise for another. Read the week first for exact stored names and today's day label. scope 'day' (default, that day only) or 'program' (everywhere). If the name is ambiguous you get { error, candidates } — call again with the exact name. Give a one-line rationale.",
     input_schema: schema({ fromExerciseName: { type: 'string' }, toExerciseName: { type: 'string' }, scope: { type: 'string', enum: ['day', 'program'] }, day: { type: 'string' }, toSets: { type: 'string' }, toReps: { type: 'string' }, rationale: { type: 'string' } }, ['fromExerciseName', 'toExerciseName']),

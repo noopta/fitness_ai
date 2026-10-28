@@ -24,6 +24,8 @@ import { parseExercisesColumn } from '../services/workoutExercises.js';
 import { lastForExercises } from '../adaptation/proposalService.js';
 import { listExerciseNames } from '../adaptation/exerciseNames.js';
 import { alternativesFor } from '../services/exerciseAlternatives.js';
+import { swapOptions, catalogIndex, learnExercise } from '../services/swap/index.js';
+import { swapV2AvailableFor } from '../services/featureFlags.js';
 import { workoutLogSchema, createWorkoutLog, updateWorkoutLog, deleteWorkoutLog, WorkoutDateError, todayForTz } from '../services/workoutLogService.js';
 import { parseWorkoutNotes, MAX_NOTES_CHARS } from '../services/workoutNotesParser.js';
 
@@ -99,6 +101,35 @@ router.get('/workouts/exercise-names', requireAuth, async (req, res) => {
 router.get('/workouts/exercise-alternatives', requireAuth, (req, res) => {
   const name = typeof req.query.name === 'string' ? req.query.name.slice(0, 80) : '';
   res.json({ alternatives: name ? alternativesFor(name, 6) : [] });
+});
+
+// Exercise swaps that keep the job (Oct 2026), behind SWAP_V2_ENABLED / SWAP_V2_USERS.
+// POST /api/workouts/swap-options { name, sets?, reps?, notes?, index?, session?, reason?, painJoint? }
+router.post('/workouts/swap-options', requireAuth, async (req, res) => {
+  if (!swapV2AvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
+  const b = req.body ?? {};
+  const name = typeof b.name === 'string' ? b.name.trim().slice(0, 80) : '';
+  if (!name) return res.status(400).json({ error: 'name is required' });
+  const reason = ['pain', 'equipment'].includes(b.reason) ? b.reason : 'default';
+  const session = Array.isArray(b.session) ? b.session.filter((x: unknown) => typeof x === 'string').slice(0, 30).map((x: string) => x.slice(0, 80)) : undefined;
+  try {
+    res.json(await swapOptions(req.user!.id, { name, sets: b.sets ?? null, reps: b.reps ?? null, notes: typeof b.notes === 'string' ? b.notes.slice(0, 200) : null, index: Number.isFinite(Number(b.index)) ? Number(b.index) : null, session, reason, painJoint: typeof b.painJoint === 'string' ? b.painJoint : null }));
+  } catch (err) {
+    console.error('[swap] options failed:', err);
+    res.status(500).json({ error: 'Couldn’t load swaps' });
+  }
+});
+// GET /api/workouts/exercise-catalog — every name the swap search offers.
+router.get('/workouts/exercise-catalog', requireAuth, (req, res) => {
+  if (!swapV2AvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
+  res.set('Cache-Control', 'private, max-age=3600').json({ exercises: catalogIndex() });
+});
+// POST /api/workouts/swap-learn { name } — a typed exercise: classify it in the background so it ranks next time.
+router.post('/workouts/swap-learn', requireAuth, (req, res) => {
+  if (!swapV2AvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 80) : '';
+  if (name) learnExercise(name);
+  res.json({ ok: true });
 });
 
 // GET /api/workouts/:date — get workout logs for a specific date (YYYY-MM-DD)

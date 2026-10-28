@@ -323,3 +323,40 @@ export function resumableDraft(d: unknown, today: string, now: number): WorkoutD
   if (!hasProgress(x.state)) return null;
   return x;
 }
+
+/**
+ * Swap the lift at `index` mid-session (Oct 2026). Only the name, load and
+ * kind change; sets, reps, rest and cue stay — a swap keeps the job. With no
+ * sets done on it the lift is replaced in place. With sets done, those sets
+ * stay under the old name (they happened) and the new lift is inserted after
+ * it with the remaining sets; the session moves on to it. Pure.
+ */
+export function swapExercise(plan: PlanExercise[], s: WorkoutState, index: number, next: { name: string; load: number | null; kind?: LoadKind }): { plan: PlanExercise[]; state: WorkoutState } {
+  const cur = plan[index];
+  if (!cur) return { plan, state: s };
+  const done = s.log.filter((l) => l.ex === index).length;
+  const swapped: PlanExercise = { ...cur, name: next.name, load: next.kind === 'bodyweight' ? null : next.load, kind: next.kind ?? loadKind(next.name) };
+  if (!done) {
+    const p = plan.map((x, i) => (i === index ? swapped : x));
+    const loads = [...s.loads]; loads[index] = swapped.load;
+    const reps = [...(s.reps ?? plan.map((x) => x.reps))]; reps[index] = cur.reps;
+    return { plan: p, state: { ...s, loads, reps } };
+  }
+  const remaining = Math.max(1, cur.sets - done);
+  const p = [...plan.slice(0, index), { ...cur, sets: done }, { ...swapped, sets: remaining }, ...plan.slice(index + 1)];
+  const shift = (ex: number) => (ex > index ? ex + 1 : ex);
+  const loads = [...s.loads.slice(0, index + 1), swapped.load, ...s.loads.slice(index + 1)];
+  const r0 = s.reps ?? plan.map((x) => x.reps);
+  const reps = [...r0.slice(0, index + 1), cur.reps, ...r0.slice(index + 1)];
+  return {
+    plan: p,
+    state: {
+      ...s, loads, reps,
+      log: s.log.map((l) => ({ ...l, ex: shift(l.ex) })),
+      nextWeek: s.nextWeek.map((n) => ({ ...n, ex: shift(n.ex) })),
+      lastReceipt: s.lastReceipt?.revert ? { ...s.lastReceipt, revert: { ...s.lastReceipt.revert, ex: shift(s.lastReceipt.revert.ex) } } : s.lastReceipt,
+      // On the swapped lift now (from the rest screen or mid-set: the next set is its first).
+      ex: s.ex === index ? index + 1 : shift(s.ex), set: s.ex === index ? 0 : s.set,
+    },
+  };
+}
