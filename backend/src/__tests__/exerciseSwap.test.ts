@@ -49,6 +49,14 @@ describe('names', () => {
     expect(resolveProfile('Tricep Pushdown')?.name).toBe('Triceps Pressdown');
   });
 
+  it('qualifiers are ignored; a word that changes the exercise is not', () => {
+    expect(resolveProfile('Weighted Wide Grip Pull Ups')?.name).toBe('Pull-Up');
+    expect(resolveProfile('Paused barbell back squat')?.name).toBe('Squat');
+    expect(resolveProfile('Pistol squat')).toBeNull();
+    expect(resolveProfile('Sumo squat')).toBeNull();
+    expect(resolveProfile('Kroc row')).toBeNull();
+  });
+
   it('a machine name never resolves to the free-weight lift', () => {
     expect(resolveProfile('Machine Lateral Raise')?.name).toBe('Machine Lateral Raise');
     expect(resolveProfile('machine chest fly')?.eq).toBe('machine');

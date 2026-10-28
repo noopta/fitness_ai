@@ -24,6 +24,7 @@ import { v2Api } from '../../api';
 import { exName, sessionTitle, estimateMinutes, phaseShort } from '../../format';
 import { todayStr } from '../../../lib/localDate';
 import { haptics } from '../../haptics';
+import { useTodaySwaps, swappedName } from '../../todaySwaps';
 
 const C = v2.color;
 const shortName = (s: any) => sessionTitle(s?.name ?? s?.day ?? 'Session').split(/[·—–/]/)[0].trim();
@@ -38,6 +39,8 @@ export function TodayPage() {
   const meals = useMeals();
   const [sheet, setSheet] = useState<null | 'swap' | 'life'>(null);
   const t: any = today.data;
+  // "Just today" swaps (Oct 2026): the rows show the lift they chose.
+  const swaps = useTodaySwaps();
   const session = t?.todaySession ?? t?.session ?? null;
   const ex: any[] = session?.exercises ?? [];
   const date = todayStr();
@@ -63,7 +66,7 @@ export function TodayPage() {
     <PushedPage back="Home" meta={meta} eyebrow="Today" title={session ? `${shortName(session)}${mins(session) ? ` · ${mins(session)} min` : ''}` : 'Rest'}
       lead={lead} loading={today.isLoading && !t} error={today.isError && !t ? 'Couldn’t load today.' : null} onRetry={() => void today.refetch()}
       cta={session ? { label: 'Begin', onPress: () => { haptics.light(); router.push('/(v2)/session' as any); } } : null}>
-      {ex.map((e, i) => <ExerciseRow key={`${exName(e)}${i}`} e={e} day={shortName(session)} last={i === ex.length - 1} />)}
+      {ex.map((e, i) => <ExerciseRow key={`${exName(e)}${i}`} e={e} index={i} session={ex.map((x: any) => exName(x))} swaps={swaps} day={shortName(session)} last={i === ex.length - 1} />)}
       <Eyebrow style={{ marginTop: ex.length ? 30 : 0 }}>Recovery</Eyebrow>
       <View style={{ marginTop: 6 }}>
         {recovery.map((r, i) => <Row key={i} name={r} last={i === recovery.length - 1} />)}
@@ -80,9 +83,10 @@ export function TodayPage() {
 }
 
 /** One exercise with its video thumbnail; tap for the exercise page (T-10). */
-function ExerciseRow({ e, day, last }: { e: any; day: string; last: boolean }) {
+function ExerciseRow({ e, day, last, index, session, swaps }: { e: any; day: string; last: boolean; index: number; session: string[]; swaps: Record<string, string> }) {
   const router = useRouter();
-  const name = exName(e);
+  const planned = exName(e);
+  const name = swappedName(swaps, planned);
   const video = useExerciseVideo(name);
   const thumb = video.data?.videoId ? `https://i.ytimg.com/vi/${video.data.videoId}/default.jpg` : null;
   return (
@@ -93,7 +97,7 @@ function ExerciseRow({ e, day, last }: { e: any; day: string; last: boolean }) {
           <Text style={[styles.play, thumb ? { color: C.white } : null]}>▶</Text>
         </View>
       )}
-      onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `exercise:${name}`, back: day, sets: String(e.sets ?? ''), reps: String(e.reps ?? ''), notes: String(e.notes ?? e.intensity ?? '') } } as any)} />
+      onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: `exercise:${name}`, back: day, sets: String(e.sets ?? ''), reps: String(e.reps ?? ''), notes: String(e.notes ?? e.intensity ?? ''), orig: planned, index: String(index), session: session.join('|') } } as any)} />
   );
 }
 

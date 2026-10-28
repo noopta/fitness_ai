@@ -137,6 +137,12 @@ export const v2Api = {
   nutritionSummary: (range: 'today' | '7d' | '30d', date: string): Promise<{ range: string; days: { date: string; logged: boolean; kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number }[]; loggedDays: number; avg: { kcal: number; proteinG: number; carbsG: number; fatG: number; fiberG: number } | null; byMeal: { mealType: string; avgKcal: number; pct: number }[] }> =>
     apiFetch(`/nutrition/summary?range=${range}&date=${date}`),
   /** What Swap offers on an exercise page (T-10). */
+  /** Swaps that keep the exercise's job (Oct 2026, flag swapV2): ranked, theirs, variants. */
+  swapOptions: (body: { name: string; sets?: number | string | null; reps?: number | string | null; notes?: string | null; index?: number | null; session?: string[]; reason?: 'default' | 'pain' | 'equipment' }): Promise<SwapOptions> =>
+    post('/workouts/swap-options', body),
+  exerciseCatalog: (): Promise<{ exercises: { name: string; aka: string[]; group: string; modality: string }[] }> => apiFetch('/workouts/exercise-catalog'),
+  /** A name they typed: the server classifies it so it ranks next time. */
+  swapLearn: (name: string): Promise<{ ok: boolean }> => post('/workouts/swap-learn', { name }),
   exerciseAlternatives: (name: string): Promise<{ alternatives: { name: string; primaryMuscle: string; isCompound: boolean }[] }> =>
     apiFetch(`/workouts/exercise-alternatives?name=${encodeURIComponent(name)}`),
 
@@ -276,4 +282,14 @@ export function receiptForTool(tool: string): { verb: CoreReceipt['verb']; text:
     delegate_task: { verb: 'Delegated', text: 'A sub-task' },
   };
   return map[tool] ?? { verb: 'Read', text: tool.replace(/_/g, ' ') };
+}
+
+export interface SwapRow { name: string; why: string; score: number; equipment: string; lastDone?: string | null }
+export interface SwapOptions {
+  original: { name: string; known: boolean };
+  job: { role: string; energy: string; keepPattern: boolean } | null;
+  best: SwapRow[];
+  yours: SwapRow[];
+  variants: SwapRow[];
+  lowConfidence: boolean;
 }

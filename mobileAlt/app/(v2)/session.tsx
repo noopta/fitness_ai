@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, loadKind, type LoadKind, type Rating, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
+import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, loadKind, swapExercise, type LoadKind, type Rating, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
 import { todayStr } from '../../src/lib/localDate';
 import { v2, T } from '../../src/v2/theme';
 import { Row, Eyebrow } from '../../src/v2/primitives/Row';
@@ -47,6 +47,9 @@ import { ShareWorkoutSheet, type WorkoutShare } from '../../src/v2/share/ShareWo
 import type { ProgressMoment } from '@axiom/agent-ui-core';
 import { MomentPrompt, useOpenMoment } from '../../src/v2/moments/MomentPrompt';
 import { claimMoments } from '../../src/v2/moments/store';
+import { SwapSheet } from '../../src/v2/swap/SwapSheet';
+import { getTodaySwaps, setTodaySwap, swappedName } from '../../src/v2/todaySwaps';
+import { useAuth } from '../../src/context/AuthContext';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -106,9 +109,11 @@ function SessionScreenInner() {
     if (plan || !session || !draftChecked) return;
     const ex: any[] = session.exercises ?? [];
     (async () => {
+      // "Just today" swaps chosen on the Today page (Oct 2026).
+      const swaps = await getTodaySwaps();
       const out: PlanExercise[] = await Promise.all(ex.map(async (e) => {
         let load: number | null = null;
-        const name = exName(e);
+        const name = swappedName(swaps, exName(e));
         // /workouts/exercise/:name/last → { target: { targetWeightKg }, exposures: [{ top: { weightKg } }] }.
         // The progression target wins; otherwise repeat the last top set.
         try { const last: any = await v2Api.lastExercise(name); const kg = last?.target?.targetWeightKg ?? last?.exposures?.[0]?.top?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
@@ -155,6 +160,22 @@ function SessionScreenInner() {
   const [editing, setEditing] = useState<null | 'load' | 'reps'>(null);
   // A rating tapped before the weight was known: it counts once the weight (or "bodyweight") is in.
   const [pendingRate, setPendingRate] = useState<Rating | null>(null);
+  // Swaps that keep the job (flag swapV2): the sheet ranks, they pick, only the name and load change.
+  const swapV2 = useAuth().getFeatures().swapV2;
+  const [swapping, setSwapping] = useState(false);
+  const sessionDay: string | null = seed ? null : sessionTitle(session?.name ?? session?.day ?? '').split(/[·—–/]/)[0].trim() || null;
+  const swapTo = async (to: string) => {
+    const idx = state.ex;
+    const from = P[idx]?.name;
+    if (!from) return;
+    let load: number | null = null;
+    // Their last top set of the new lift; none = the session asks for the weight before the set counts.
+    try { const last: any = await v2Api.lastExercise(to); const kg = last?.target?.targetWeightKg ?? last?.exposures?.[0]?.top?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
+    const r = swapExercise(P, state, idx, { name: to, load, kind: loadKind(to) });
+    setPlan(r.plan);
+    dispatch({ type: 'apply_swap', state: r.state });
+    void setTodaySwap(from, to);
+  };
   const setKind = (k: LoadKind) => setPlan((p) => (p ? p.map((x, i) => (i === state.ex ? { ...x, kind: k } : x)) : p));
   const progress = exerciseProgress(state, P);
 
@@ -329,7 +350,7 @@ function SessionScreenInner() {
             </View>
             <View style={{ flexDirection: 'row', gap: 24, marginTop: 24 }}>
               <TextAction muted size={14} arrow={false} onPress={() => handOff(`Something hurts on ${cur.name.toLowerCase()} — what should I do?`)}>Something hurts</TextAction>
-              <TextAction muted size={14} arrow={false} onPress={() => handOff(`Swap ${cur.name.toLowerCase()} for something easier on me today`)}>Swap this lift</TextAction>
+              <TextAction muted size={14} arrow={false} onPress={() => (swapV2 ? setSwapping(true) : handOff(`Swap ${cur.name.toLowerCase()} for something easier on me today`))}>Swap this lift</TextAction>
             </View>
           </Animated.View>
         ) : null}
@@ -374,6 +395,12 @@ function SessionScreenInner() {
       <NumberSheet visible={editing === 'reps'} title="Reps" sub="How many you did — or will do — this set."
         current={String(parseInt(String(repsNow), 10) || '')} min={1} max={100}
         onSubmit={(n) => { dispatch({ type: 'set_reps', reps: n }); setEditing(null); }} onClose={() => setEditing(null)} />
+      {swapV2 && cur ? (
+        <SwapSheet visible={swapping} onClose={() => setSwapping(false)} name={cur.name}
+          slot={{ sets: cur.sets, reps: cur.reps, notes: cur.cue, index: state.ex, session: P.map((p) => p.name) }}
+          day={sessionDay} everyAlsoToday onToday={swapTo}
+          onAsk={(m) => { dispatch({ type: 'pause', now: Date.now() }); shell?.prefill(m); router.back(); }} />
+      ) : null}
     </View>
   );
 }

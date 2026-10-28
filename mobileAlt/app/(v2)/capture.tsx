@@ -39,7 +39,9 @@ import { nutritionApi } from '../../src/lib/api';
 import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
-import { lookupReceipt, mealSources, type ReceiptVerb } from '@axiom/agent-ui-core';
+import { lookupReceipt, mealSources, barcodeFactor, barcodeAmountLabel, type ReceiptVerb, type BarcodeAmount } from '@axiom/agent-ui-core';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NumberSheet } from '../../src/v2/primitives/NumberSheet';
 import { SourceLinks } from '../../src/v2/food/SourceLinks';
 import { describeWithLookup, liveStep } from '../../src/v2/food/lookup';
 import { useAuth } from '../../src/context/AuthContext';
@@ -51,6 +53,9 @@ import {
   toMealPhotoItems, totalsOf, type ReviewItem,
 } from '../../src/components/coach/nutrition/mealItems';
 import { KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+
+/** Last amount per barcode (servings or grams), so the next scan starts there. */
+const AMOUNT_KEY = 'v2.barcodeAmount.v1';
 
 let vision: any = null;
 try { vision = require('react-native-vision-camera'); } catch { vision = null; }
@@ -95,6 +100,22 @@ function CaptureScreenInner() {
   // Scan the label (N-02): the barcode whose nutrition panel the shutter is reading.
   const [labelFor, setLabelFor] = useState<string | null>(null);
   const [servings, setServings] = useState(1);
+  // Barcode by grams (Oct 2026): weigh it, type the grams, the macros follow. Remembered per barcode.
+  const [amountMode, setAmountMode] = useState<'servings' | 'grams'>('servings');
+  const [grams, setGrams] = useState<number | null>(null);
+  const [gramsOpen, setGramsOpen] = useState(false);
+  const amount: BarcodeAmount = amountMode === 'grams' ? { mode: 'grams', grams } : { mode: 'servings', servings };
+  const factor = product ? barcodeFactor(amount, product.servingGrams, servings) : servings;
+  useEffect(() => {
+    if (!product?.code) return;
+    // A new product starts on servings unless this barcode was weighed last time.
+    setAmountMode('servings'); setGrams(null);
+    void AsyncStorage.getItem(AMOUNT_KEY).then((raw) => {
+      const a = (raw ? JSON.parse(raw) : {})[product.code];
+      if (a?.mode === 'grams' && a.grams > 0) { setAmountMode('grams'); setGrams(a.grams); }
+      else if (a?.mode === 'servings' && a.servings > 0) { setAmountMode('servings'); setServings(a.servings); }
+    }).catch(() => {});
+  }, [product?.code]);
   const [busy, setBusy] = useState(false);
   // A branded item is still being looked up: Log and edits wait for it.
   const [lookupPending, setLookupPending] = useState(false);
@@ -139,7 +160,7 @@ function CaptureScreenInner() {
     const base = p.per100g ?? p;
     return {
       name: p.name, brand: p.brand ?? null, code, receipts, ...extra,
-      servingSize: p.servingSize ?? `${grams} g`,
+      servingSize: p.servingSize ?? `${grams} g`, servingGrams: grams,
       calories: Math.round((base.calories ?? 0) * f), proteinG: Math.round((base.proteinG ?? 0) * f), carbsG: Math.round((base.carbsG ?? 0) * f), fatG: Math.round((base.fatG ?? 0) * f),
       // Label micros, scaled exactly like the macros above (per 100 g × grams/100).
       micros: Object.keys(scaleMicros(base, f)).length ? scaleMicros(base, f) : scaleMicros(p.nutrients, f),
@@ -327,9 +348,11 @@ function CaptureScreenInner() {
   const logProduct = async () => {
     if (!product || busy) return;
     setBusy(true);
-    const k = (v: any) => Math.round((Number(v) || 0) * servings);
+    const k = (v: any) => Math.round((Number(v) || 0) * factor);
     try {
-      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}`, mealType: slot, calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), ...microFields(product.micros, servings), source: 'barcode', barcode: product.code } as any);
+      const weighed = amountMode === 'grams' && grams ? ` · ${barcodeAmountLabel(amount)}` : '';
+      const m: any = await nutritionApi.logMeal({ date: todayStr(), name: `${product.name}${product.brand ? ` · ${product.brand}` : ''}${weighed}`, mealType: slot, calories: k(product.calories), proteinG: k(product.proteinG), carbsG: k(product.carbsG), fatG: k(product.fatG), ...microFields(product.micros, factor), source: 'barcode', barcode: product.code } as any);
+      void AsyncStorage.getItem(AMOUNT_KEY).then((raw) => AsyncStorage.setItem(AMOUNT_KEY, JSON.stringify({ ...(raw ? JSON.parse(raw) : {}), [product.code]: amount }))).catch(() => {});
       // A web answer the user just logged is confirmed for everyone who scans that code next.
       if (product.web) void nutritionApi.confirmWebBarcode(product.code).catch(() => {});
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
@@ -589,16 +612,29 @@ function CaptureScreenInner() {
           <Text style={[T.headlineSm, { marginTop: 14 }]}>{product.name ?? 'Product'}</Text>
           {product.brand || product.servingSize ? <Text style={[T.caption, { marginTop: 4 }]}>{[product.brand, product.servingSize].filter(Boolean).join(' · ')}</Text> : null}
           <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: v2.color.hairline }}>
-            <Text style={T.row}>Servings</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
-              <Pressable onPress={() => setServings((s) => Math.max(0.5, s - 0.5))} hitSlop={8}><Text style={T.rowStrong}>−</Text></Pressable>
-              <Text style={[T.rowStrong, T.num]}>{servings}</Text>
-              <Pressable onPress={() => setServings((s) => s + 0.5)} hitSlop={8}><Text style={T.rowStrong}>+</Text></Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              <Pressable onPress={() => setAmountMode('servings')} hitSlop={8} accessibilityRole="button" accessibilityState={{ selected: amountMode === 'servings' }}>
+                <Text style={amountMode === 'servings' ? T.rowStrong : [T.row, { color: v2.color.muted }]}>Servings</Text>
+              </Pressable>
+              <Pressable onPress={() => { setAmountMode('grams'); if (!grams) setGramsOpen(true); }} hitSlop={8} accessibilityRole="button" accessibilityState={{ selected: amountMode === 'grams' }}>
+                <Text style={amountMode === 'grams' ? T.rowStrong : [T.row, { color: v2.color.muted }]}>Grams</Text>
+              </Pressable>
             </View>
+            {amountMode === 'servings' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
+                <Pressable onPress={() => setServings((s) => Math.max(0.5, s - 0.5))} hitSlop={8}><Text style={T.rowStrong}>−</Text></Pressable>
+                <Text style={[T.rowStrong, T.num]}>{servings}</Text>
+                <Pressable onPress={() => setServings((s) => s + 0.5)} hitSlop={8}><Text style={T.rowStrong}>+</Text></Pressable>
+              </View>
+            ) : (
+              <Pressable onPress={() => setGramsOpen(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Grams">
+                <Text style={[T.rowStrong, T.num]}>{grams ? `${grams} g` : 'Enter grams'}</Text>
+              </Pressable>
+            )}
           </View>
           <View style={styles.totals}>
             {[[product.calories, 'kcal', v2.color.ink], [product.proteinG, 'protein', v2.color.macro.protein], [product.carbsG, 'carbs', v2.color.macro.carbs], [product.fatG, 'fat', v2.color.macro.fat]].map(([n, l, c]) => (
-              <View key={String(l)}><Text style={[T.hero, { fontSize: 28, lineHeight: 32, letterSpacing: -0.8, color: String(c) }]}>{Math.round((Number(n) || 0) * servings)}</Text><Text style={T.caption}>{String(l)}</Text></View>
+              <View key={String(l)}><Text style={[T.hero, { fontSize: 28, lineHeight: 32, letterSpacing: -0.8, color: String(c) }]}>{Math.round((Number(n) || 0) * factor)}</Text><Text style={T.caption}>{String(l)}</Text></View>
             ))}
           </View>
           <View style={{ flexDirection: 'row', gap: 28, alignItems: 'center', marginTop: 22 }}>
@@ -618,6 +654,10 @@ function CaptureScreenInner() {
         </View>
         <Text style={[T.caption, { marginTop: 14 }]}>Once it's logged, this barcode is saved for next time.</Text>
       </Sheet>
+      {/* Grams on a scale: rides the keyboard (NumberSheet), over the whole screen. */}
+      <NumberSheet visible={gramsOpen} title="How many grams?" sub={product?.servingGrams ? `One serving is ${product.servingGrams} g — the macros follow what you weigh.` : 'The macros follow what you weigh.'}
+        current={grams ? String(grams) : ''} unit="g" min={1} max={5000} saveLabel="Use this"
+        onSubmit={(n) => { setGrams(n); setAmountMode('grams'); setGramsOpen(false); }} onClose={() => { setGramsOpen(false); if (!grams) setAmountMode('servings'); }} />
     </View>
   );
 }

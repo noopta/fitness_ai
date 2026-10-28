@@ -62,8 +62,9 @@ describe('buildExposures', () => {
     expect(bench[1].confidence).toBeCloseTo(0.6, 1);
   });
   it('keeps unloaded lifts as exposures with no top set', () => {
-    const map = buildExposures(workouts, makeKeyFn());
-    const pushups = map.get('push-up')!;
+    const key = makeKeyFn();
+    const map = buildExposures(workouts, key);
+    const pushups = map.get(key('Push-Up'))!;
     expect(pushups).toHaveLength(1);
     expect(pushups[0].top).toBeNull();
     expect(pushups[0].e1rmKg).toBe(0);

@@ -17,8 +17,8 @@ import { CATALOG, GROUP, REGION_LABEL, PATTERN_LABEL, type ExerciseProfile, type
 const SYNONYM: [RegExp, string][] = [
   [/\btriceps\b/g, 'tricep'], [/\bbiceps\b/g, 'bicep'], [/\bpressdowns?\b/g, 'pushdown'],
   [/\bdb\b/g, 'dumbbell'], [/\bbb\b/g, 'barbell'], [/\bkb\b/g, 'kettlebell'],
-  [/\bpullups?\b/g, 'pull up'], [/\bchinups?\b/g, 'chin up'], [/\bpushups?\b/g, 'push up'], [/\bsitups?\b/g, 'sit up'],
-  [/\bskull ?crushers?\b/g, 'skullcrusher'], [/\bone arm\b/g, 'single arm'], [/\bone leg\b/g, 'single leg'], [/\bunilateral\b/g, 'single arm'],
+  [/\b(pull|push|chin|sit|step) ups\b/g, '$1 up'], [/\bpullups?\b/g, 'pull up'], [/\bchinups?\b/g, 'chin up'], [/\bpushups?\b/g, 'push up'], [/\bsitups?\b/g, 'sit up'],
+  [/\bskull ?crushers?\b/g, 'skullcrusher'], [/\b(one|1) arm\b/g, 'single arm'], [/\b(one|1) leg\b/g, 'single leg'], [/\bunilateral\b/g, 'single arm'],
 ];
 
 /** Lowercase, hyphens and punctuation to spaces, tricep/bicep, simple plurals. */
@@ -39,14 +39,22 @@ const index = (): Indexed[] => {
   return INDEX;
 };
 
-const EQUIP_WORDS = ['machine', 'smith', 'cable', 'dumbbell', 'barbell', 'kettlebell', 'band', 'landmine'];
+/** Words that qualify an exercise without making it a different one. */
+const QUALIFIERS = new Set([
+  'cable', 'dumbbell', 'barbell', 'kettlebell', 'seated', 'standing', 'weighted', 'bodyweight', 'wide', 'close', 'narrow', 'neutral', 'grip',
+  'overhand', 'underhand', 'pronated', 'supinated', 'alternating', 'alt', 'single', 'arm', 'both', 'paused', 'pause', 'tempo', 'slow', 'heavy', 'light',
+  'flat', 'bar', 'straight', 'strict', 'set', 'rep', 'warm', 'up', 'working', 'top', 'back', 'off', 'drop',
+]);
 
 /**
  * The catalog profile for a name: an exact name/alias, else the entry whose
  * words all appear in it (most words wins: "single arm cable tricep pushdown"
  * → Single Arm Tricep Pushdown, "machine lateral raise" → Machine Lateral
- * Raise), never one that drops an equipment word the name has. `extra` holds
- * profiles classified for names the catalog doesn't know.
+ * Raise), never one that drops an equipment word the name has. The words left
+ * over must be qualifiers that don't change the exercise ("weighted", "wide
+ * grip", "paused"): "Pistol squat" is not a back squat, so it stays unknown
+ * and gets classified. `extra` holds profiles classified for names the
+ * catalog doesn't know.
  */
 export function resolveProfile(name: string, extra?: Map<string, ExerciseProfile>): ExerciseProfile | null {
   const n = normalizeName(name);
@@ -59,8 +67,9 @@ export function resolveProfile(name: string, extra?: Map<string, ExerciseProfile
   for (const e of index()) {
     for (const t of e.tokens) {
       if (!t.every((w) => words.has(w))) continue;
+      if (![...words].every((w) => t.includes(w) || QUALIFIERS.has(w))) continue;
       // "machine lateral raise" must not resolve to the dumbbell entry.
-      if (EQUIP_WORDS.some((w) => words.has(w) && !t.includes(w) && /\b(machine|smith|cable)\b/.test(w))) continue;
+      if (['machine', 'smith'].some((w) => words.has(w) && !t.includes(w))) continue;
       if (!best || t.length > best.len) best = { p: e.profile, len: t.length };
     }
   }

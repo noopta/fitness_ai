@@ -19,6 +19,11 @@ import { useExerciseVideo, useInvalidate } from '../../data';
 import { useUnits } from '../../../context/UnitsContext';
 import { v2Api } from '../../api';
 import { haptics } from '../../haptics';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../../../context/AuthContext';
+import { useShellOptional } from '../../shell/ShellContext';
+import { SwapSheet as ExerciseSwapSheet } from '../../swap/SwapSheet';
+import { setTodaySwap } from '../../todaySwaps';
 
 const C = v2.color;
 const fmtDay = (d?: string) => { if (!d) return ''; const x = new Date(`${String(d).slice(0, 10)}T12:00:00`); return Number.isNaN(x.getTime()) ? String(d) : x.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); };
@@ -37,7 +42,13 @@ export function ExercisePage({ name, params }: { name: string; params: Record<st
   const cues = cuesFrom(params.notes);
   const sets = params.sets && params.sets !== 'undefined' ? params.sets : null;
   const reps = params.reps && params.reps !== 'undefined' ? params.reps : null;
+  // Swaps that keep the job (flag swapV2); off = the alternatives sheet below.
+  const swapV2 = useAuth().getFeatures().swapV2;
+  const router = useRouter();
+  const shell = useShellOptional();
+  const planned = params.orig || name;
   return (
+    <View style={{ flex: 1 }}>
     <PushedPage back={params.back || 'Back'} title={name}
       right={<TextAction muted arrow={false} size={15} onPress={() => { haptics.select(); setSwap(true); }}>Swap</TextAction>}
       visual={video.data?.videoId && !failed ? (
@@ -68,8 +79,16 @@ export function ExercisePage({ name, params }: { name: string; params: Record<st
         </>
       ) : null}
       {!video.isLoading && !video.data?.videoId ? <Text style={[T.caption, { marginTop: 24 }]}>No video for this one yet.</Text> : null}
-      <SwapExerciseSheet visible={swap} onClose={() => setSwap(false)} name={name} day={params.day || params.back} />
+      {!swapV2 ? <SwapExerciseSheet visible={swap} onClose={() => setSwap(false)} name={name} day={params.day || params.back} /> : null}
     </PushedPage>
+    {swapV2 ? (
+      <ExerciseSwapSheet visible={swap} onClose={() => setSwap(false)} name={planned}
+        slot={{ sets, reps, notes: params.notes ?? null, index: params.index ? Number(params.index) : null, session: params.session ? params.session.split('|') : undefined }}
+        day={params.day || params.back || null}
+        onToday={async (to) => { await setTodaySwap(planned, to); router.back(); }}
+        onAsk={(m) => { shell?.prefill(m); router.replace('/(v2)' as any); }} />
+    ) : null}
+    </View>
   );
 }
 

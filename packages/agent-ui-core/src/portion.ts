@@ -106,3 +106,19 @@ export function mealSlotFor(d = new Date()): 'breakfast' | 'lunch' | 'dinner' | 
   const h = d.getHours();
   return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snack';
 }
+
+/**
+ * A scanned product's amount (Oct 2026): servings, or grams weighed on a
+ * scale ("200 g of Greek yogurt" against a 115 g serving). Returns the factor
+ * to multiply the per-serving numbers by. Grams need the serving's grams;
+ * without them (or with no grams typed) it falls back to the servings.
+ */
+export type BarcodeAmount = { mode: 'servings'; servings: number } | { mode: 'grams'; grams: number | null };
+export function barcodeFactor(a: BarcodeAmount, servingGrams: number | null | undefined, fallbackServings = 1): number {
+  if (a.mode === 'servings') return a.servings > 0 ? a.servings : fallbackServings;
+  if (!a.grams || a.grams <= 0 || !servingGrams || servingGrams <= 0) return fallbackServings;
+  return a.grams / servingGrams;
+}
+/** "1.5 servings" / "200 g" — for the log's name and the sheet. */
+export const barcodeAmountLabel = (a: BarcodeAmount): string =>
+  a.mode === 'grams' ? (a.grams ? `${Math.round(a.grams)} g` : 'grams') : `${a.servings} serving${a.servings === 1 ? '' : 's'}`;

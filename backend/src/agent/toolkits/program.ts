@@ -604,7 +604,7 @@ export const PROGRAM_TOOLS = [
     card: () => null,
   }),
   tool({
-    name: 'find_exercise_swaps', kind: 'read', core: true, fn: 'PRG-07',
+    name: 'find_exercise_swaps', kind: 'read', fn: 'PRG-07',
     description: 'Ranked swaps for ONE exercise that keep its job in the session: same movement, same target muscles and region, as heavy for a main lift, never easier unless the reason is pain. Uses their equipment, injuries and the lifts they already do. Returns best (top 3 with a one-line why), yours (lifts they have logged that fit), variants. Call before propose_exercise_swap whenever they ask to swap without naming the replacement. reason "pain" (with painJoint when known) only when something hurts.',
     input_schema: schema({ exercise: { type: 'string' }, reps: { type: 'string' }, notes: { type: 'string' }, reason: { type: 'string', enum: ['default', 'pain', 'equipment'] }, painJoint: { type: 'string', enum: ['shoulder', 'elbow', 'wrist', 'knee', 'lower_back', 'hip', 'ankle', 'neck'] } }, ['exercise']),
     receipt: (i) => ({ verb: 'Read', text: `Swaps for ${str(i.exercise)}` }),

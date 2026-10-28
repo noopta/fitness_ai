@@ -27,6 +27,9 @@ import { useUnits } from '../../../context/UnitsContext';
 import { adaptationApi, coachApi } from '../../../lib/api';
 import { v2Api } from '../../api';
 import { setSessionSeed } from '../../sessionSeed';
+import { useAuth } from '../../../context/AuthContext';
+import { SwapSheet } from '../../swap/SwapSheet';
+import { useShellOptional } from '../../shell/ShellContext';
 import { todayStr } from '../../../lib/localDate';
 import { haptics } from '../../haptics';
 
@@ -101,6 +104,10 @@ export function GuidedFreestylePage() {
   const q = useSuggestedSession(minutes);
   const [list, setList] = useState<Suggested['exercises'] | null>(null);
   const [swapping, setSwapping] = useState(false);
+  // Swaps that keep the job (flag swapV2): pick the lift here, the swap sheet ranks its replacements.
+  const swapV2 = useAuth().getFeatures().swapV2;
+  const shell = useShellOptional();
+  const [swapIdx, setSwapIdx] = useState<number | null>(null);
   useEffect(() => { if (q.data?.exercises) setList(q.data.exercises); }, [q.data]);
   const s = q.data;
   const ex = list ?? s?.exercises ?? [];
@@ -112,6 +119,7 @@ export function GuidedFreestylePage() {
   };
   if (s?.unavailable) return <PushedPage back="Training" title="Freestyle" lead="Session suggestions aren’t on for your account yet. Log as you go instead." cta={{ label: 'Log a workout', onPress: () => router.replace('/(v2)/log' as any) }} />;
   return (
+    <View style={{ flex: 1 }}>
     <PushedPage back="Training" meta="Freestyle" eyebrow="Suggested for today" title={s ? `${s.label} · ${m} min` : 'Today'} lead={s?.why?.slice(0, 2).join(' ') || (s ? 'Built from your last 3 weeks.' : null)}
       loading={q.isLoading} error={q.isError ? 'Couldn’t build a session — try again.' : null} onRetry={() => void q.refetch()}
       cta={ex.length ? { label: 'Begin', onPress: begin } : null} foot={[{ label: 'Not today', onPress: () => router.back() }]}>
@@ -124,12 +132,20 @@ export function GuidedFreestylePage() {
         </View>
       ) : null}
       <SwapLiftSheet visible={swapping} onClose={() => setSwapping(false)} exercises={ex}
+        onWhich={swapV2 ? (i) => { setSwapping(false); setSwapIdx(i); } : undefined}
         onSwap={(i, name) => { setList(ex.map((e, k) => (k === i ? { ...e, name, load: 'pick a load', note: 'New to this session — pick a load you could lift for 2–3 more reps.' } : e))); setSwapping(false); }} />
     </PushedPage>
+    {swapV2 && swapIdx != null && ex[swapIdx] ? (
+      <SwapSheet visible name={ex[swapIdx].name} onClose={() => setSwapIdx(null)}
+        slot={{ reps: ex[swapIdx].scheme.split('×')[1]?.trim() ?? null, index: swapIdx, session: ex.map((e) => e.name) }}
+        onToday={(to) => { const i = swapIdx; setList(ex.map((e, k) => (k === i ? { ...e, name: to, load: 'pick a load', note: null } : e))); setSwapIdx(null); }}
+        onAsk={(msg) => { shell?.prefill(msg); router.replace('/(v2)' as any); }} />
+    ) : null}
+    </View>
   );
 }
 
-function SwapLiftSheet({ visible, onClose, exercises, onSwap }: { visible: boolean; onClose: () => void; exercises: Suggested['exercises']; onSwap: (i: number, name: string) => void }) {
+function SwapLiftSheet({ visible, onClose, exercises, onSwap, onWhich }: { visible: boolean; onClose: () => void; exercises: Suggested['exercises']; onSwap: (i: number, name: string) => void; onWhich?: (i: number) => void }) {
   const [which, setWhich] = useState<number | null>(null);
   const name = which != null ? exercises[which]?.name : '';
   const alts = useQuery({ queryKey: ['v2', 'alts', (name ?? '').toLowerCase()], queryFn: () => v2Api.exerciseAlternatives(name!), enabled: visible && !!name, staleTime: Infinity });
@@ -137,7 +153,7 @@ function SwapLiftSheet({ visible, onClose, exercises, onSwap }: { visible: boole
   return (
     <Sheet visible={visible} onClose={close} title={which == null ? 'Swap which lift?' : `Instead of ${name}`}>
       {which == null
-        ? exercises.map((e, i) => <Row key={`${e.name}${i}`} name={e.name} value="→" last={i === exercises.length - 1} onPress={() => setWhich(i)} />)
+        ? exercises.map((e, i) => <Row key={`${e.name}${i}`} name={e.name} value="→" last={i === exercises.length - 1} onPress={() => (onWhich ? onWhich(i) : setWhich(i))} />)
         : (
           <View>
             {alts.isLoading ? <ActivityIndicator color={C.muted} style={{ marginVertical: 12 }} /> : null}
