@@ -14,9 +14,27 @@ export function asksForRehabProgram(message: string): boolean {
   return VERB.test(m) && REHAB.test(m) && PLAN.test(m);
 }
 
-/** Pure: the user asked for one, the feature is on for them, and no rehab card (PRG-21) went up this turn. */
-export function needsRehabCard(message: string, cardFns: string[], on: boolean): boolean {
-  return on && asksForRehabProgram(message) && !cardFns.includes('PRG-21');
+const ADOPT = /\b(make (this|that|it) (our|my|the) (program|plan)|(use|run with|go with|set up|save|apply|lock in) (this|that|it)( as (my|our|the) (program|plan))?|(let'?s|lets) (do|go with|use|run) (this|that|it)|make it (official|my program|our program))\b/i;
+
+/** Pure: "ok let's make this our program" right after a rehab answer. */
+export function adoptsRehabProgram(message: string, previousReply: string): boolean {
+  return ADOPT.test(String(message ?? '')) && REHAB.test(String(previousReply ?? ''));
+}
+
+/** Pure: they asked for one (or to adopt the one just written), the feature is on, and no rehab card (PRG-21) went up this turn. */
+export function needsRehabCard(message: string, cardFns: string[], on: boolean, previousReply = ''): boolean {
+  return on && (asksForRehabProgram(message) || adoptsRehabProgram(message, previousReply)) && !cardFns.includes('PRG-21');
+}
+
+/** The last assistant text in the history, for the follow-up check. */
+export function lastAssistantText(history: { role: string; content: unknown }[]): string {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const m = history[i];
+    if (m.role !== 'assistant') continue;
+    if (typeof m.content === 'string') return m.content;
+    if (Array.isArray(m.content)) return m.content.map((b: any) => (b?.type === 'text' ? b.text : '')).filter(Boolean).join(' ');
+  }
+  return '';
 }
 
 export const REHAB_CARD_NUDGE =

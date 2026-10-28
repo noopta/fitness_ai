@@ -24,7 +24,7 @@ import { userRequestedWrite } from './untrusted.js';
 import { logReviewOn } from '../services/logReview/flag.js';
 import { swapOn } from '../services/swap/flag.js';
 import { rehabOn } from '../services/rehab/flag.js';
-import { needsRehabCard, REHAB_CARD_NUDGE } from './rehabNudge.js';
+import { needsRehabCard, REHAB_CARD_NUDGE, lastAssistantText } from './rehabNudge.js';
 
 // Sonnet is the right cost/quality point for a coaching agent — Opus is
 // overkill for "read my macros and advise", and the latency is better. Pin
@@ -363,7 +363,7 @@ export async function runAgentTurn(
         messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
         continue;
       }
-      if (opts.cardContract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed)) {
+      if (opts.cardContract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed, lastAssistantText(history as any))) {
         // A rehab program asked for and written in chat: put it on its card (rehabNudge.ts).
         rehabNudged = true;
         nudgedReply = [nudgedReply, reply].filter(Boolean).join('\n\n');
@@ -575,7 +575,7 @@ export async function streamAgentTurn(
         messages.push({ role: 'user', content: INTAKE_LOG_NUDGE });
         continue;
       }
-      if (contract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed)) {
+      if (contract === 2 && !rehabNudged && needsRehabCard(userMessage, cards.map((c) => c.fn), rehabAllowed, lastAssistantText((opts.history ?? []) as any))) {
         // A rehab program asked for and written in chat: keep what streamed, put it on its card.
         rehabNudged = true;
         if (finalText.trim()) { earlier.push(finalText.trim()); emitText(' '); }

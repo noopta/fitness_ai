@@ -1,7 +1,7 @@
 // A rehab program asked for is a card (Oct 2026): the founder's two messages
 // that got a chat reply and no card must trigger the check.
 import { describe, it, expect } from 'vitest';
-import { asksForRehabProgram, needsRehabCard } from '../agent/rehabNudge.js';
+import { asksForRehabProgram, needsRehabCard, adoptsRehabProgram, lastAssistantText } from '../agent/rehabNudge.js';
 
 const asked = [
   "Build my Achilles rehab program like an elite physio would prescribe it — the rehab itself from current protocols, not a gym program. I'm 2.5 weeks post-op (surgery Oct 10), cleared for physio Oct 26.",
@@ -27,5 +27,20 @@ describe('rehab card check', () => {
     expect(needsRehabCard(asked[0], ['PRG-21'], true)).toBe(false);
     expect(needsRehabCard(asked[0], [], false)).toBe(false);
     expect(needsRehabCard(notAsked[0], [], true)).toBe(false);
+  });
+});
+
+describe('adopting the program just written', () => {
+  const rehabReply = 'Here\'s the full rehab-only program: weeks 3-6 daily seated active ROM, plantarflexion 3x15…';
+  it('"Ok let\'s make this our program then" after a rehab answer needs the card', () => {
+    expect(adoptsRehabProgram("Ok let's make this our program then", rehabReply)).toBe(true);
+    expect(needsRehabCard("Ok let's make this our program then", [], true, rehabReply)).toBe(true);
+    expect(needsRehabCard('use this as my program', [], true, rehabReply)).toBe(true);
+  });
+  it('not after an unrelated answer', () => {
+    expect(adoptsRehabProgram("Ok let's make this our program then", 'Here is your push pull legs split.')).toBe(false);
+  });
+  it('reads the last assistant text from the history', () => {
+    expect(lastAssistantText([{ role: 'user', content: 'hi' }, { role: 'assistant', content: [{ type: 'text', text: 'rehab plan' }, { type: 'tool_use' }] }, { role: 'user', content: 'ok' }])).toBe('rehab plan');
   });
 });
