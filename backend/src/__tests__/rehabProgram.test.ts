@@ -51,3 +51,74 @@ describe('rehabCard', () => {
     expect(card.pending.actions.apply.op).toBe('program.activate');
   });
 });
+
+import { phaseWeeks, fromCurrentWeek, expandDaily, vagueEntries, prescriptionProblem } from '../services/rehab/program.js';
+
+const ex = (exercise: string, sets: number, reps: string, intensity = '') => ({ exercise, sets, reps, intensity });
+const day = (d: string, focus: string, exercises: any[]) => ({ day: d, focus, exercises, warmup: [], cooldown: [] });
+const phase = (phaseName: string, weeksLabel: string, durationWeeks: number, trainingDays: any[]) => ({ phaseName, weeksLabel, durationWeeks, trainingDays, progressionNotes: [] });
+
+// What the first real rehab program looked like (founder, Oct 28, week 3): an outline, not a prescription.
+const outline = [
+  phase('PHASE 1 — Weeks 0-2 post-op', 'Weeks 0-2 post-op', 2, [day('Training Day', 'Upper-body training', [ex('Upper-body training (bench/back/arms)', 1, 'as tolerated')])]),
+  phase('PHASE 2 — Weeks 2-6 post-op', 'Weeks 2-6 post-op', 4, [day('Daily Rehab & Training', 'Active range of motion, isometrics, upper body', [
+    ex('Seated active plantarflexion', 2, '10-15'), ex('Active inversion/eversion', 2, '10-15'), ex('Submaximal pain-free isometric holds in plantarflexion', 1, 'isometric holds'),
+    ex('Upper-body program (bench press focus toward the 315 goal, back, arms)', 1, 'as tolerated'), ex('Core work', 1, 'as tolerated'), ex('Opposite-leg strength work', 1, 'as tolerated'),
+  ])]),
+  phase('PHASE 5 — Week 12+', 'Week 12+', 1, [day('Training Day', 'Return to run', [ex('Single-leg heel raise progression', 1, 'as tolerated'), ex('Return-to-run criteria testing', 1, 'testing')])]),
+];
+
+// A prescription: current week first, dosed, near-daily.
+const prescription = [
+  phase('Phase 2 — Weeks 2-6 post-op', 'Weeks 2-6', 4, [day('Daily', 'Ankle rehab (2x a day)', [
+    ex('Seated active plantarflexion in boot range', 2, '15', 'pain-free, slow'), ex('Active inversion/eversion', 2, '15', 'pain-free'),
+    ex('Seated isometric plantarflexion against the boot', 5, '30s holds', '30-50% effort'), ex('Towel scrunches', 3, '20', 'bodyweight'),
+    ex('Side-lying hip abduction', 3, '12', 'bodyweight'), ex('Single-leg heel raise, uninjured leg (cross-education)', 3, '12', 'RPE 8'),
+  ])]),
+  phase('Phase 3 — Weeks 6-8', 'Weeks 6-8', 2, [day('Daily', 'Ankle rehab', [ex('Double-leg heel raise, partial range', 2, '10', 'bodyweight')])]),
+];
+
+describe('holding the program to a prescription', () => {
+  it('reads week ranges', () => {
+    expect(phaseWeeks('Weeks 2-6 post-op')).toEqual({ from: 2, to: 6 });
+    expect(phaseWeeks('weeks 8 to 12')).toEqual({ from: 8, to: 12 });
+    expect(phaseWeeks('Week 12+')).toEqual({ from: 12, to: null });
+    expect(phaseWeeks('Foundation')).toBeNull();
+  });
+
+  it('opens on the current phase: weeks 0-2 are gone at week 3', () => {
+    expect(fromCurrentWeek(outline, 3).map((p) => p.weeksLabel)).toEqual(['Weeks 2-6 post-op', 'Week 12+']);
+    expect(fromCurrentWeek(outline, null)).toHaveLength(3);
+  });
+
+  it('a "Daily" session is every weekday, merged with named days', () => {
+    const days = expandDaily([day('Daily rehab', 'Ankle', [ex('Calf isometric', 5, '30s')]), day('Monday', 'Upper body', [ex('Bench press', 4, '6', 'RPE 8')])]);
+    expect(days.map((d) => d.day)).toEqual(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+    expect(days[0].exercises.map((e) => e.exercise)).toEqual(['Calf isometric', 'Bench press']);
+    expect(days[1].exercises.map((e) => e.exercise)).toEqual(['Calf isometric']);
+  });
+
+  it('the first real program is rejected, naming the placeholders', () => {
+    const phases = fromCurrentWeek(outline, 3).map((p) => ({ ...p, trainingDays: expandDaily(p.trainingDays) }));
+    expect(vagueEntries(phases)).toEqual(expect.arrayContaining([
+      'Upper-body program (bench press focus toward the 315 goal, back, arms) (1×as tolerated)', 'Core work (1×as tolerated)', 'Return-to-run criteria testing (1×testing)',
+    ]));
+    expect(prescriptionProblem(phases, 3)).toMatch(/Not a prescription yet/);
+  });
+
+  it('a dosed, near-daily prescription passes', () => {
+    const phases = fromCurrentWeek(prescription, 3).map((p) => ({ ...p, trainingDays: expandDaily(p.trainingDays) }));
+    expect(phases[0].trainingDays).toHaveLength(7);
+    expect(prescriptionProblem(phases, 3)).toBeNull();
+  });
+
+  it('a thin current phase is sent back', () => {
+    const thin = [phase('Weeks 2-6', 'Weeks 2-6', 4, [day('Daily', 'Ankle', [ex('Seated plantarflexion', 2, '15'), ex('Towel scrunches', 3, '20')])])];
+    expect(prescriptionProblem(thin.map((p) => ({ ...p, trainingDays: expandDaily(p.trainingDays) })), 3)).toMatch(/has 2 exercises/);
+  });
+
+  it('a once-a-week current phase is sent back', () => {
+    const weekly = [phase('Weeks 2-6', 'Weeks 2-6', 4, [day('Training Day', 'Ankle', prescription[0].trainingDays[0].exercises)])];
+    expect(prescriptionProblem(weekly, 3)).toMatch(/1 day a week/);
+  });
+});

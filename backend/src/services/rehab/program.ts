@@ -88,3 +88,70 @@ export function rehabCard(meta: RehabMeta, preview: RehabPreview, program: unkno
     pending: { actions: { apply: { op: 'program.activate', args: { program, summary: `Rehab program · ${meta.area}` }, line: 'Your rehab program is live' }, keep: { kind: 'keep', line: 'Not saved' } } },
   } as CardDraft;
 }
+
+// ─── Holding the program to a physio's prescription (Oct 2026) ───────────────
+// The first real one (founder, Achilles, week 3) came back as an outline:
+// phase 1 (weeks 0–2, already over) first so Today showed an upper-body day,
+// "Daily rehab" saved as one day a week, and half the entries were
+// placeholders ("Upper-body program 1 × as tolerated"). These run on the
+// transcribed program before it's saved; a problem goes back to the model.
+
+interface Ex { exercise: string; sets: number; reps: string; intensity?: string; notes?: string }
+interface Day { day: string; focus: string; exercises: Ex[]; [k: string]: unknown }
+interface Phase { phaseName: string; weeksLabel?: string; durationWeeks: number; trainingDays: Day[]; [k: string]: unknown }
+
+/** "Weeks 2-6 post-op" → {2, 6}; "Week 12+" → {12, null}; unknown → null. */
+export function phaseWeeks(label: string): { from: number; to: number | null } | null {
+  const t = String(label ?? '').toLowerCase();
+  const range = t.match(/weeks?\s*(\d+)\s*(?:-|–|—|to)\s*(\d+)/);
+  if (range) return { from: Number(range[1]), to: Number(range[2]) };
+  const open = t.match(/weeks?\s*(\d+)\s*\+/);
+  if (open) return { from: Number(open[1]), to: null };
+  return null;
+}
+
+/** Drop phases that ended before this week, so the program opens on the current one. */
+export function fromCurrentWeek<P extends Phase>(phases: P[], week: number | null): P[] {
+  if (week == null) return phases;
+  return phases.filter((ph) => { const w = phaseWeeks(`${ph.weeksLabel ?? ''} ${ph.phaseName}`); return !w || w.to == null || w.to >= week; });
+}
+
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAILY = /\b(daily|every ?day|each day|7 days|all days)\b/i;
+
+/** A "Daily rehab" day becomes the same session on each weekday (merged into any weekday the phase already has). */
+export function expandDaily<D extends Day>(days: D[]): D[] {
+  const daily = days.filter((d) => DAILY.test(`${d.day} ${d.focus}`));
+  if (!daily.length) return days;
+  const named = days.filter((d) => !daily.includes(d));
+  return WEEKDAYS.map((wd) => {
+    const own = named.filter((d) => d.day.toLowerCase().startsWith(wd.slice(0, 3).toLowerCase()));
+    const rest = daily.flatMap((d) => d.exercises);
+    const focus = [...daily.map((d) => d.focus), ...own.map((d) => d.focus)].filter(Boolean).join(' + ');
+    return { ...(own[0] ?? daily[0]), day: wd, focus, exercises: [...rest, ...own.flatMap((d) => d.exercises)] } as D;
+  }).concat(named.filter((d) => !WEEKDAYS.some((wd) => d.day.toLowerCase().startsWith(wd.slice(0, 3).toLowerCase()))));
+}
+
+const VAGUE_DOSE = /^\s*$|as tolerated|tbd|to be (confirmed|determined)|testing|varies|n\/a|per pt|as prescribed/i;
+const VAGUE_NAME = /\b(program|work|training|exercises|routine|testing|progression|session|protocol)\s*$/i;
+
+/** Entries that aren't a prescription: placeholders and doses like "as tolerated". */
+export function vagueEntries(phases: Phase[]): string[] {
+  const out: string[] = [];
+  for (const ph of phases) for (const d of ph.trainingDays) for (const e of d.exercises) {
+    if (VAGUE_NAME.test(e.exercise) || VAGUE_DOSE.test(String(e.reps ?? ''))) out.push(`${e.exercise} (${e.sets}×${e.reps})`);
+  }
+  return [...new Set(out)];
+}
+
+/** Why the transcribed program isn't a prescription yet, or null. */
+export function prescriptionProblem(phases: Phase[], week: number | null): string | null {
+  if (!phases.length) return week ? `Every phase ended before week ${week}. Start the program at week ${week} post-op.` : 'No phases found.';
+  const vague = vagueEntries(phases);
+  if (vague.length) return `Not a prescription yet — these entries are placeholders or have no dose: ${vague.slice(0, 8).join('; ')}. Give every exercise a dose (sets × reps or holds × seconds, load or effort, tempo where it matters). Write the upper-body session exercise by exercise (or leave it out), and turn tests into the criteria list.`;
+  const current = phases[0];
+  const distinct = new Set(current.trainingDays.flatMap((d) => d.exercises.map((e) => e.exercise.toLowerCase())));
+  if (distinct.size < 5) return `The current phase (${current.phaseName}) has ${distinct.size} exercise${distinct.size === 1 ? '' : 's'}. Prescribe the full session for this stage — everything the evidence supports at week ${week ?? 'this'}, within the limits.`;
+  if (current.trainingDays.length < 3) return `The current phase has ${current.trainingDays.length} day${current.trainingDays.length === 1 ? '' : 's'} a week. Rehab at this stage is near-daily: name the days (Monday…Sunday) or call the session "Daily".`;
+  return null;
+}
