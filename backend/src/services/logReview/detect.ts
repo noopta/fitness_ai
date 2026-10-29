@@ -149,15 +149,20 @@ function e1rmByLift(logs: ReviewLog[], key: DetectInput['key']): Map<string, { e
 
 // Free-weight isolation lifts and the most a dumbbell version plausibly reaches
 // (per hand, kg). Above it, the number is a machine or cable stack.
+// Only lifts that are normally dumbbell work: a leg curl, a pushdown, a face
+// pull or a pec deck is a machine or cable by nature, so a heavy one is not
+// "a machine logged as free weight" (Tarek's seated leg curl, Oct 29 2026).
 const DUMBBELL_CEILING_KG: [RegExp, number][] = [
   [/lateral raise|side raise|lat raise/, 25],
-  [/rear delt|reverse fly|face pull/, 25],
-  [/\bfly|flye|pec deck/, 35],
+  [/rear delt (fly|raise)|reverse fly/, 25],
+  [/\bfly|flye/, 35],
   [/front raise/, 25],
-  [/(bicep|hammer|preacher|concentration|spider|incline) curl|\bcurls?\b/, 45],
-  [/tricep|skull ?crusher|kickback|pushdown|push down|overhead extension/, 40],
+  [/(bicep|hammer|preacher|concentration|spider|incline|dumbbell|db) curl|^(curls?|bicep curls?)$/, 45],
+  [/skull ?crusher|kickback|overhead (tricep|triceps )?extension/, 40],
   [/shrug/, 70],
 ];
+/** Machine or cable by nature: never an equipment flag, whatever the load. */
+const MACHINE_BY_NATURE = /\b(leg (curl|extension|press)|hamstring curl|pushdown|push down|pressdown|face pull|pec deck|pulldown|lat pull|cable|machine|hack squat|smith)\b/i;
 const EQUIPMENT_WORD = /\b(machine|cable|smith|stack|plate[- ]loaded|hammer strength|selectorized|pec deck|barbell|bb|ez[- ]?bar|trap bar)\b/i;
 
 // ── rules ────────────────────────────────────────────────────────────────────
@@ -312,7 +317,7 @@ export function detect(input: DetectInput): Finding[] {
       }
 
       // equipment: a free-weight-named isolation lift above what dumbbells reach.
-      if (top && !EQUIPMENT_WORD.test(e.name) && !e.equipment) {
+      if (top && !EQUIPMENT_WORD.test(e.name) && !MACHINE_BY_NATURE.test(e.name) && !e.equipment) {
         const ceiling = DUMBBELL_CEILING_KG.find(([re]) => re.test(norm(e.name)))?.[1];
         const tooHeavy = ceiling != null && (top > ceiling * 1.4 || (bwKg ? top > bwKg * 0.6 && top > ceiling : false));
         if (tooHeavy) {

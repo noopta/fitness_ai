@@ -127,3 +127,17 @@ describe('fixes and exclusion', () => {
     expect(countableExercises('w1', exs, new Set(['w1']))).toEqual([]);
   });
 });
+
+describe('equipment rule: machine-by-nature lifts are never flagged (Oct 29 2026)', () => {
+  const lb = (x: number) => x / 2.20462;
+  const mk = (name: string, w: number) => ({ id: `l-${name}`, date: '2026-10-28', createdAt: new Date('2026-10-28T10:00:00Z'), title: 'Session', duration: 60, notes: null, exercises: [{ name, sets: 3, reps: '10', weightKg: lb(w) }] });
+  const run = (name: string, w: number) => detect({ recent: [mk(name, w)], history: [], key: (n: string) => n.toLowerCase(), unit: 'imperial', bodyweightKg: 80, suppressed: new Set() } as any).filter((f) => f.type === 'equipment');
+  it('heavy seated leg curl, pushdown, face pull, pec deck: no flag', () => {
+    for (const [n, w] of [['Seated leg curl', 180], ['Tricep Pushdown', 150], ['Face Pull', 90], ['Pec Deck', 200], ['Lat Pulldown', 200]] as const) expect(run(n, w), n).toHaveLength(0);
+  });
+  it('a 135 lb lateral raise and a 156 lb chest fly are still flagged', () => {
+    expect(run('Lateral Raise', 135)).toHaveLength(1);
+    expect(run('Chest Fly', 156)).toHaveLength(1);
+    expect(run('Dumbbell Curl', 150)).toHaveLength(1);
+  });
+});
