@@ -14,6 +14,7 @@
 import { workingSets, type RawLoggedExercise } from '../../adaptation/history.js';
 import { e1rmWithRpe } from '../../engine/e1rm.js';
 import { SEED } from '../exerciseCanonical.js';
+import { resolveProfile } from '../swap/match.js';
 
 export type FlagType = 'duplicate' | 'fuzzy_duplicate' | 'outlier' | 'conflict' | 'missing' | 'equipment';
 export type Confidence = 'high' | 'medium' | 'low';
@@ -161,6 +162,12 @@ const DUMBBELL_CEILING_KG: [RegExp, number][] = [
   [/skull ?crusher|kickback|overhead (tricep|triceps )?extension/, 40],
   [/shrug/, 70],
 ];
+const FREE_WEIGHT_EQ = new Set(['dumbbell', 'barbell', 'ez_bar', 'kettlebell', 'bodyweight']);
+/** Free weight, per the swap catalog; a name the catalog doesn't know counts as free weight (the word lists decide). */
+export function isFreeWeight(name: string): boolean {
+  const p = resolveProfile(name);
+  return !p || FREE_WEIGHT_EQ.has(p.eq);
+}
 /** Machine or cable by nature: never an equipment flag, whatever the load. */
 const MACHINE_BY_NATURE = /\b(leg (curl|extension|press)|hamstring curl|pushdown|push down|pressdown|face pull|pec deck|pulldown|lat pull|cable|machine|hack squat|smith)\b/i;
 const EQUIPMENT_WORD = /\b(machine|cable|smith|stack|plate[- ]loaded|hammer strength|selectorized|pec deck|barbell|bb|ez[- ]?bar|trap bar)\b/i;
@@ -317,7 +324,10 @@ export function detect(input: DetectInput): Finding[] {
       }
 
       // equipment: a free-weight-named isolation lift above what dumbbells reach.
-      if (top && !EQUIPMENT_WORD.test(e.name) && !MACHINE_BY_NATURE.test(e.name) && !e.equipment) {
+      // Only for a lift that is free weight: the exercise catalog decides when it
+      // knows the name (a leg curl, a pushdown, a pec deck are machine/cable by
+      // nature — Tarek's seated leg curl, Oct 29 2026); the word lists catch the rest.
+      if (top && !EQUIPMENT_WORD.test(e.name) && !MACHINE_BY_NATURE.test(e.name) && !e.equipment && isFreeWeight(e.name)) {
         const ceiling = DUMBBELL_CEILING_KG.find(([re]) => re.test(norm(e.name)))?.[1];
         const tooHeavy = ceiling != null && (top > ceiling * 1.4 || (bwKg ? top > bwKg * 0.6 && top > ceiling : false));
         if (tooHeavy) {

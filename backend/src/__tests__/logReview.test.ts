@@ -141,3 +141,16 @@ describe('equipment rule: machine-by-nature lifts are never flagged (Oct 29 2026
     expect(run('Dumbbell Curl', 150)).toHaveLength(1);
   });
 });
+
+describe('equipment rule never flags a machine or cable lift, across the whole exercise catalog', () => {
+  it('every catalog exercise that is machine, cable or Smith: no equipment flag at any load', async () => {
+    const { CATALOG } = await import('../services/swap/catalog.js');
+    const mk = (name: string, kg: number) => ({ id: `l-${name}`, date: '2026-10-28', createdAt: new Date('2026-10-28T10:00:00Z'), title: 'S', duration: 60, notes: null, exercises: [{ name, sets: 3, reps: '10', weightKg: kg }] });
+    for (const c of CATALOG.filter((x) => ['machine', 'cable', 'smith'].includes(x.eq))) {
+      for (const n of [c.name, ...(c.aka ?? [])]) {
+        const f = detect({ recent: [mk(n, 250)], history: [], key: (x: string) => x.toLowerCase(), unit: 'metric', bodyweightKg: 80, suppressed: new Set() } as any).filter((x) => x.type === 'equipment');
+        expect(f, n).toHaveLength(0);
+      }
+    }
+  });
+});
