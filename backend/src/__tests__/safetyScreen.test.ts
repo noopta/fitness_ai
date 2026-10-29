@@ -26,6 +26,10 @@ describe('follow-up and clearance check', () => {
     expect(t).toMatch(/Leg or arm — and which side/);
     expect(t).toMatch(/bladder or bowel/);
     expect(t).toMatch(/urgent care or the ER today/);
+    // Opens warm and says why, offers a gentle start (Isah never answered the cold version).
+    expect(t).toMatch(/^Welcome — glad you’re here\./);
+    expect(t).toMatch(/train around it safely/);
+    expect(t).toMatch(/walking, mobility and light work/);
     expect(followUpText({ ...gentle, screen: { limb: 'leg', at: NOW.toISOString() } })).toBeNull();
   });
   it('checks clearance every two weeks on the gentle plan only', () => {

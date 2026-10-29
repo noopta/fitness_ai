@@ -92,7 +92,14 @@ export function followUpText(s: Safety | null | undefined): string | null {
   const limbQs = limb
     ? `\n1. ${limb === 'leg or arm' ? 'Leg or arm — and which side' : 'Which side'}? Does it start in your ${limb === 'arm' ? 'neck' : limb === 'leg' ? 'lower back' : 'lower back or neck'}?\n2. Any numbness, tingling or weakness with it?`
     : '';
-  return `Before I load anything, a few quick questions about ${what}:${limbQs}\n${limbQs ? '3' : '1'}. Any of these: changes in bladder or bowel control, numbness in the groin or inner thighs, weakness that's getting worse, chest pain or fainting, or pain that started after a fall or accident? If yes — please get seen at urgent care or the ER today, not a workout.\n\n${s.status === 'cleared' ? 'You said a clinician has cleared you — tell me anything they said to avoid and I’ll build around it.' : 'Until a doctor or physio clears it, your plan stays gentle. I’m a coach, not a clinician.'}`;
+  // Warmer opening (Oct 29 2026): a new user's first message was the list of
+  // red-flag questions, cold, and they never answered. Same questions and the
+  // same urgent-care line — framed with why we ask, and that they can start
+  // gently today instead of waiting.
+  const start = s.status === 'cleared'
+    ? 'You said a clinician has cleared you — tell me anything they said to avoid and I’ll build around it.'
+    : 'You don’t have to wait to get moving: walking, mobility and light work that doesn’t bring it on are all fine while we sort this out. Until a doctor or physio clears it, your plan stays gentle — I’m a coach, not a clinician.';
+  return `Welcome — glad you’re here. You mentioned ${what} when you signed up, so before I build your plan I want to make sure we train around it safely. A few quick questions (short answers are fine):${limbQs}\n${limbQs ? '3' : '1'}. Any of these: changes in bladder or bowel control, numbness in the groin or inner thighs, weakness that's getting worse, chest pain or fainting, or pain that started after a fall or accident? If yes — please get seen at urgent care or the ER today, not a workout.\n\n${start}`;
 }
 
 /** Pure: the every-two-weeks clearance check. */
