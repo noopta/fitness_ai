@@ -9,11 +9,27 @@ import { listPending, type ProposalRow } from '../adaptation/proposalService.js'
 import { adaptationCard } from './toolkits/adaptation.js';
 import { hasLiveCard, settleLiveCards } from './cards/store.js';
 import { postInitiatedTurn } from './initiated.js';
+import { PrismaClient } from '@prisma/client';
+import { pickToSurface, SHOWN_WINDOW_MS, type ShownCard } from './adaptationSurfacePick.js';
+
+export { pickToSurface, suggestionSig } from './adaptationSurfacePick.js';
+
+const prisma = new PrismaClient();
 import { toolCtx } from './turn.js';
 
 export const ADAPT_FNS = ['ADP-01', 'ADP-05'];
 const BURIED_AFTER_MS = 48 * 3600_000;
 const forProposal = (id: string) => (pending: any) => pending?.actions?.apply?.args?.id === id;
+
+async function shownSuggestions(userId: string, now: number): Promise<ShownCard[]> {
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: ADAPT_FNS }, createdAt: { gte: new Date(now - SHOWN_WINDOW_MS) } }, select: { payloadJson: true, pendingJson: true, createdAt: true } }).catch(() => []);
+  return rows.map((r) => {
+    let title = ''; let proposalId: string | null = null;
+    try { title = JSON.parse(r.payloadJson)?.meta?.label ?? ''; } catch { /* skip */ }
+    try { proposalId = (r.pendingJson ? JSON.parse(r.pendingJson) : null)?.actions?.apply?.args?.id ?? null; } catch { /* skip */ }
+    return { proposalId, title, at: new Date(r.createdAt).getTime() };
+  });
+}
 
 /** The chat opener for the suggestions being raised. Pure. */
 export function surfaceText(ps: Pick<ProposalRow, 'kind' | 'title' | 'proposal'>[]): string {
@@ -26,7 +42,8 @@ export function surfaceText(ps: Pick<ProposalRow, 'kind' | 'title' | 'proposal'>
 
 /** Post a card for each pending suggestion chat hasn't shown yet (at most 2). Returns how many. */
 export async function surfacePendingAdaptations(userId: string, opts: { force?: boolean } = {}): Promise<number> {
-  const pending = await listPending(userId).catch(() => [] as ProposalRow[]);
+  const all = await listPending(userId).catch(() => [] as ProposalRow[]);
+  const pending = pickToSurface(all, await shownSuggestions(userId, Date.now()), Date.now(), opts);
   const fresh: ProposalRow[] = [];
   // A card more than two days back has scrolled out of sight (Tarek's sat
   // untouched for 9 days): raise it again at the bottom and retire the old one.

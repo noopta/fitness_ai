@@ -188,3 +188,14 @@ describe('computeProteinStreak', () => {
     expect(computeProteinStreak('2026-05-07', m, 160)).toBe(0);
   });
 });
+
+describe('PR baseline counts higher-rep sets (Tarek, Oct 2026)', () => {
+  it('a 12-rep set counts toward the baseline, so 160 × 9 after 160 × 12 is not a PR', () => {
+    const lb = (x: number) => x / 2.20462;
+    const prior = bestE1RMByLift([{ name: 'Chest Press', sets: 3, reps: '12', weightKg: lb(160) }], undefined, 20).get('chest press')!.e1RMLbs;
+    const now = bestE1RMByLift([{ name: 'Chest Press', sets: 3, reps: '9', weightKg: lb(160) }]).get('chest press')!.e1RMLbs;
+    expect(now).toBeLessThan(prior);
+    // New PRs still only from sets of 10 or fewer.
+    expect(bestE1RMByLift([{ name: 'Chest Press', sets: 3, reps: '12', weightKg: lb(160) }]).size).toBe(0);
+  });
+});

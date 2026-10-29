@@ -66,7 +66,11 @@ const BASES: BaseDef[] = [
   { key: 'vitaminEMg',   label: 'Vitamin E',   unit: 'mg',  male: 15,   female: 15,   direction: 'meet'  },
   { key: 'vitaminAIU',   label: 'Vitamin A',   unit: 'IU',  male: 3000, female: 2333, direction: 'meet'  },
   { key: 'sodiumMg',     label: 'Sodium',      unit: 'mg',  male: 2300, female: 2300, direction: 'limit' },
-  { key: 'sugarG',       label: 'Added sugar', unit: 'g',   male: 36,   female: 25,   direction: 'limit' },
+  // sugarG is TOTAL sugar (fruit and milk included), so it gets the EU reference
+  // intake for total sugars (90 g), not the AHA added-sugar limit it carried
+  // before — grapes were reported as "127 g added sugar vs 36 g" (Oct 2026).
+  // Real added sugar is addedSugarG (nutrientRegistry).
+  { key: 'sugarG',       label: 'Total sugar', unit: 'g',   male: 90,   female: 90,   direction: 'limit' },
   { key: 'saturatedFatG',label: 'Saturated fat', unit: 'g', male: 22,   female: 20,   direction: 'limit' },
 ];
 

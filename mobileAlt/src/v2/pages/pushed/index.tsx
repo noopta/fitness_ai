@@ -1,6 +1,7 @@
 // Pushed-page resolvers. Every page: back label → meta → title → Anakin's
 // read → one visual → hairline rows → optional Proposed + CTA.
 
+import { moveSessionAsk } from '@axiom/agent-ui-core';
 import React from 'react';
 import { View, Text, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -157,7 +158,7 @@ function DayPage({ date }: { date: string }) {
   return (
     <PushedPage back="Training" meta={date} title={s?.name ?? 'Rest'} lead={s?.focus ?? (s ? null : 'A rest day. Anakin reads these as recovery, not absence.')}
       cta={s && day?.isToday && !day?.isLogged ? { label: 'Begin', onPress: () => router.push('/(v2)/session' as any) } : null}
-      foot={s ? [{ label: 'Move this day', onPress: () => { shell?.ask(`Can we move ${s.name} from ${date}?`); router.replace('/(v2)' as any); } }] : undefined}>
+      foot={s ? [{ label: 'Move this day', onPress: () => { shell?.ask(moveSessionAsk({ name: s.name, date })); router.replace('/(v2)' as any); } }] : undefined}>
       {ex.map((e, k) => <Row key={k} name={exName(e)} sub={e.notes || e.intensity || undefined} value={`${e.sets ?? '—'} × ${e.reps ?? '—'}`} last={k === ex.length - 1} />)}
     </PushedPage>
   );

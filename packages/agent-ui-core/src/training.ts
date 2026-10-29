@@ -156,3 +156,42 @@ export function progressFraction(label: string): number {
   const m = /(\d+)\s*\/\s*(\d+)/.exec(label);
   return m ? Math.min(1, Number(m[1]) / Math.max(1, Number(m[2]))) : 0;
 }
+
+// ─── What the Move / swap buttons ask Anakin (Oct 29 2026) ───────────────────
+// They used to build the message from a session name that starts with a
+// weekday ("Monday — Push") and a second day field: "Can we move Tuesday on
+// Tue?", "Swap Monday on 2026-10-22 with 2026-10-20" — for a Thursday. The day
+// now always comes from the date; the session name only gives the focus.
+
+const LONG_DOW: Record<string, string> = { Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' };
+const WEEKDAY = /^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?\s*([—–\-:·|]\s*)?/i;
+
+/** "Monday — Push" → "Push"; "Tuesday" → null. */
+export function sessionFocus(name?: string | null): string | null {
+  const f = String(name ?? '').trim().replace(WEEKDAY, '').trim();
+  return f && !/^(session|workout|training|day)$/i.test(f) ? f : null;
+}
+
+/** Full weekday for a YYYY-MM-DD date (or a short day name). */
+export function weekdayName(dateOrDow?: string | null): string | null {
+  const v = String(dateOrDow ?? '').trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(v)) return LONG_DOW[dowOf(v)] ?? null;
+  const k = v.slice(0, 3);
+  const key = k.charAt(0).toUpperCase() + k.slice(1).toLowerCase();
+  return LONG_DOW[key] ?? null;
+}
+
+/** "Can we move my Thursday session (Push) to another day this week?" */
+export function moveSessionAsk(s: { name?: string | null; date?: string | null; dow?: string | null }): string {
+  const day = weekdayName(s.date) ?? weekdayName(s.dow);
+  const focus = sessionFocus(s.name);
+  return `Can we move my ${day ? `${day} ` : ''}session${focus ? ` (${focus})` : ''} to another day this week?`;
+}
+
+/** "Swap my Thursday session (Push) with Saturday (Legs) this week." */
+export function swapSessionsAsk(a: { n?: string | null; d?: string | null; date?: string | null }, b: { n?: string | null; d?: string | null; date?: string | null }): string {
+  const da = weekdayName(a.date) ?? weekdayName(a.d) ?? 'that day';
+  const db = weekdayName(b.date) ?? weekdayName(b.d) ?? 'the other day';
+  const fa = sessionFocus(a.n), fb = sessionFocus(b.n);
+  return `Swap my ${da} session${fa ? ` (${fa})` : ''} with ${db}${fb ? ` (${fb})` : ''} this week.`;
+}

@@ -21,8 +21,8 @@ describe('chatComplete routing', () => {
     await chatComplete({ messages: [], max_completion_tokens: 100 });
     const body = h.router.mock.calls[0][0];
     // US hosts only, no prompt retention (audit HIGH-4).
-    expect(OPENROUTER_PROVIDERS).toEqual(['fireworks', 'together', 'deepinfra', 'baseten']);
-    expect(body.provider).toEqual({ order: ['fireworks', 'together', 'deepinfra', 'baseten'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny' });
+    expect(OPENROUTER_PROVIDERS).toEqual(['azure', 'gmicloud', 'parasail', 'fireworks', 'deepinfra']);
+    expect(body.provider).toEqual({ order: ['azure', 'gmicloud', 'parasail', 'fireworks', 'deepinfra'], allow_fallbacks: false, require_parameters: true, data_collection: 'deny' });
     expect(body.max_tokens).toBe(100);
     expect(body.max_completion_tokens).toBeUndefined();
   });

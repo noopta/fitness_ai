@@ -7,6 +7,7 @@
 // that change in lockstep on the UI thread, so the heights always sum to the
 // container. All four bands stay mounted; closed content is just clipped.
 
+import { moveSessionAsk } from '@axiom/agent-ui-core';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, AccessibilityInfo, PixelRatio, Alert, type LayoutChangeEvent } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
@@ -145,7 +146,7 @@ export function TrainingPage() {
     haptics.light();
     if (d.status === 'today') router.push('/(v2)/session' as any);
     else if (d.status === 'done') router.push({ pathname: '/(v2)/p/[key]', params: { key: `day:${d.date}` } } as any);
-    else if (d.status === 'planned') shell.ask(`Can we move ${d.name} on ${d.dow}?`);
+    else if (d.status === 'planned') shell.ask(moveSessionAsk({ name: d.name, dow: d.dow, date: d.date }));
   }, [router, shell]);
   // T-08: the whole program, every week, outside chat.
   const onOpenProgram = useCallback(() => { haptics.select(); router.push({ pathname: '/(v2)/p/[key]', params: { key: 'program' } } as any); }, [router]);

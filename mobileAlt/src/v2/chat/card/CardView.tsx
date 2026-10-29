@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { Easing, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { isLive, type Card, type CardAction } from '@axiom/agent-ui-core';
+import { isLive, type Card, type CardAction, swapSessionsAsk } from '@axiom/agent-ui-core';
 import { K, S } from './tokens';
 import { useCardHandlers } from './context';
 import {
@@ -95,7 +95,7 @@ function CardBody({ card }: { card: Card }) {
         {card.bars?.v.length ? <Bars cardId={card.id} bars={card.bars} /> : null}
         {card.tiles?.length ? (
           <WeekTiles tiles={card.tiles} disabled={!live}
-            onSwap={(a, b) => h.say(`Swap ${card.tiles![a].n ?? 'the session'} on ${card.tiles![a].date ?? card.tiles![a].d} with ${card.tiles![b].date ?? card.tiles![b].d}`)} />
+            onSwap={(a, b) => h.say(swapSessionsAsk(card.tiles![a], card.tiles![b]))} />
         ) : null}
         {card.media ? <Media media={card.media} onPress={videoAction ? () => void run(videoAction) : undefined} /> : null}
         {card.pattern === 'capture' && live ? <CapturePlaceholder /> : null}

@@ -30,7 +30,14 @@ const FALLBACK_CHAT_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-5.4-mini';
  * hosts only (Oct 2026 audit HIGH-4: prompts carrying health data used to be
  * pinned to Alibaba/Baidu). Override with OPENROUTER_PROVIDERS="a,b".
  */
-export const DEFAULT_OPENROUTER_PROVIDERS = 'fireworks,together,deepinfra,baseten';
+// Oct 29 2026: of fireworks/together/deepinfra/baseten only DeepInfra and
+// Fireworks still served V4 Flash, and both were rate-limiting (2/3 and 1/3
+// 429/503 in a live check) — 171/175 primary calls fell back in 15 min. A
+// live bake-off of the US hosts that serve it with data_collection 'deny':
+// Azure 3/3 clean JSON, 154 tok/s on a 4k-token program; GMICloud 3/3, 171
+// tok/s; Parasail 3/3, 101 tok/s; Crusoe 71 tok/s. OpenRouter walks the list
+// in order, so one host's 429 moves to the next instead of to OpenAI.
+export const DEFAULT_OPENROUTER_PROVIDERS = 'azure,gmicloud,parasail,fireworks,deepinfra';
 export const OPENROUTER_PROVIDERS = (process.env.OPENROUTER_PROVIDERS || DEFAULT_OPENROUTER_PROVIDERS)
   .split(',').map((x) => x.trim()).filter(Boolean);
 

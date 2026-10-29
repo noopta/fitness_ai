@@ -69,6 +69,8 @@ function normalizeLiftName(name: string): string {
 export function bestE1RMByLift(
   exercises: LoggedExercise[],
   keyFn: (name: string) => string = normalizeLiftName,
+  /** Highest rep count a set may have to count. New PRs: 10 (confidence); the baseline they beat: 20. */
+  maxReps = 10,
 ): Map<string, { displayName: string; e1RMLbs: number }> {
   const out = new Map<string, { displayName: string; e1RMLbs: number }>();
 
@@ -90,7 +92,7 @@ export function bestE1RMByLift(
       // heavy one drives the e1RM, not an average.
       for (const set of ex.setEntries) {
         if (!set.weightKg || set.weightKg <= 0) continue;
-        if (set.reps < 1 || set.reps > 10) continue;
+        if (set.reps < 1 || set.reps > maxReps) continue;
         const lbs = set.weightKg * 2.20462;
         consider(key, displayName, epley1RM(lbs, set.reps));
       }
@@ -100,7 +102,7 @@ export function bestE1RMByLift(
     // Legacy path: a single weight + rep range for all sets.
     if (!ex.weightKg || ex.weightKg <= 0) continue;
     const reps = lowerRep(ex.reps);
-    if (reps == null || reps < 1 || reps > 10) continue;
+    if (reps == null || reps < 1 || reps > maxReps) continue;
     const lbs = ex.weightKg * 2.20462;
     consider(key, displayName, epley1RM(lbs, reps));
   }
@@ -167,7 +169,9 @@ export async function detectStrengthPRs(
 
   const lifetimeBest = new Map<string, number>();
   for (const exs of priorLists) {
-    const bests = bestE1RMByLift(exs, liftKey);
+    // The baseline counts sets up to 20 reps: Tarek's 160 lb × 12 chest press
+    // was ignored, so 160 × 9 read as a jump from 165 to 208 (Oct 2026).
+    const bests = bestE1RMByLift(exs, liftKey, 20);
     for (const [k, v] of bests) {
       const cur = lifetimeBest.get(k) ?? 0;
       if (v.e1RMLbs > cur) lifetimeBest.set(k, v.e1RMLbs);
