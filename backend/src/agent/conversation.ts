@@ -39,6 +39,10 @@ interface StoredMessage {
   at?: string;
   /** Cards shown under this reply. Kept out of `text` — see cardNotes.ts. */
   cards?: CardRef[];
+  /** Receipts under a turn Anakin started ("Checked — 6 hard sessions in 6 days"): the evidence the fixed rules verified (proactive A1). */
+  receipts?: { verb: string; text: string }[];
+  /** Chat photo ids attached to a user message (proactive flow E). The client fetches thumbnails by id. */
+  photos?: string[];
 }
 
 /**
@@ -85,9 +89,9 @@ async function save(userId: string, history: StoredMessage[]) {
 }
 
 /** Append a turn Anakin started. It has no user message before it. */
-export async function appendInitiated(userId: string, text: string, cards: CardRef[] = []): Promise<void> {
+export async function appendInitiated(userId: string, text: string, cards: CardRef[] = [], receipts: { verb: string; text: string }[] = []): Promise<void> {
   const history = await loadStoredMessages(userId);
-  history.push({ role: 'assistant', text, origin: 'anakin', at: new Date().toISOString(), ...(cards.length ? { cards } : {}) });
+  history.push({ role: 'assistant', text, origin: 'anakin', at: new Date().toISOString(), ...(cards.length ? { cards } : {}), ...(receipts.length ? { receipts } : {}) });
   await save(userId, history);
 }
 
@@ -184,6 +188,7 @@ export async function appendTurn(
   userText: string,
   assistantText: string,
   cards: CardRef[] = [],
+  photos: string[] = [],
 ): Promise<void> {
   const row = await prisma.agentConversation.findUnique({ where: { userId } });
   let history: StoredMessage[] = [];
@@ -194,7 +199,7 @@ export async function appendTurn(
     } catch { /* start fresh on corruption */ }
   }
   const at = new Date().toISOString();
-  history.push({ role: 'user', text: userText, at });
+  history.push({ role: 'user', text: userText, at, ...(photos.length ? { photos } : {}) });
   history.push({ role: 'assistant', text: assistantText, at, ...(cards.length ? { cards } : {}) });
   await save(userId, history);
 }

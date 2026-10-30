@@ -256,3 +256,18 @@ export const swapV2AvailableFor = flagFor('SWAP_V2_ENABLED', 'SWAP_V2_USERS');
  * REHAB_PROGRAMS_ENABLED=1 or the REHAB_PROGRAMS_USERS allowlist (ids/emails).
  */
 export const rehabProgramsAvailableFor = flagFor('REHAB_PROGRAMS_ENABLED', 'REHAB_PROGRAMS_USERS');
+
+// ── Proactive coach (design "Proactive Coach Flows v3", Oct 2026) ───────────
+// Off unless '1'. PROACTIVE_V2_USERS allowlists ids/emails for the silent
+// test. PROACTIVE_V2_DRY_RUN=1 runs the reasoner and records what it would
+// have sent (ProactiveEvent channel 'dryrun') without posting or pushing.
+const PROACTIVE_V2_ENABLED = process.env.PROACTIVE_V2_ENABLED === '1';
+const PROACTIVE_V2_ALLOWLIST = new Set((process.env.PROACTIVE_V2_USERS ?? '').split(',').map((v) => v.trim().toLowerCase()).filter(Boolean));
+export function proactiveAvailableFor(userId: string, email?: string | null): boolean {
+  if (PROACTIVE_V2_ENABLED) return true;
+  if (PROACTIVE_V2_ALLOWLIST.has(userId.toLowerCase())) return true;
+  return !!email && PROACTIVE_V2_ALLOWLIST.has(email.toLowerCase());
+}
+export function proactiveDryRun(): boolean { return process.env.PROACTIVE_V2_DRY_RUN === '1'; }
+/** Photos in chat (flow E). On with the agent unless explicitly '0'. */
+export function chatPhotosEnabled(): boolean { return process.env.CHAT_PHOTOS_ENABLED !== '0'; }

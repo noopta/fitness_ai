@@ -8,6 +8,7 @@
 // loop is also a better fit for embedding in Express than the filesystem/
 // bash-oriented agent SDK.
 
+import { proactiveContextText } from '../proactive/context.js';
 import Anthropic from '@anthropic-ai/sdk';
 import { assembleContext, renderContext } from './context.js';
 import { AGENT_TOOLS, toolsFor } from './registry.js';
@@ -309,7 +310,7 @@ export async function runAgentTurn(
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
   const rehabAllowed = await rehabOn(userId);
   const baseSystem = opts.systemOverride ?? withRehab(withSwap(withLogReview(opts.cardContract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), rehabAllowed);
-  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
+  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx) + await proactiveContextText(userId));
 
   // A sub-agent's task text is not the user's message (log_past_workouts reads this).
   if (depth === 0) setTurnMessage(userId, userMessage);
@@ -521,7 +522,7 @@ export async function streamAgentTurn(
   const [ctx, tctx] = await Promise.all([assembleContext(userId), toolCtx(userId)]);
   const rehabAllowed = await rehabOn(userId);
   const baseSystem = withRehab(withSwap(withLogReview(contract === 2 ? SYSTEM_PROMPT : `${SYSTEM_PROMPT}\n\n${V1_ADDENDUM}`, await logReviewOn(userId)), await swapOn(userId)), rehabAllowed);
-  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx));
+  const system = systemBlocks(opts.systemAddendum ? `${baseSystem}\n\n${opts.systemAddendum}` : baseSystem, renderContext(ctx) + await proactiveContextText(userId));
   const tools = await promoteTools(userId, toolsFor(contract));
   const guard = newTurnGuard(userMessage);
   const byName: Record<string, AgentTool> = Object.fromEntries(tools.map((t) => [t.name, t]));

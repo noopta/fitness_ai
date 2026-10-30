@@ -154,6 +154,11 @@ model User {
   logFlags                 LogFlag[]
   agentChanges             AgentChange[]
   agentConversation        AgentConversation?
+  // Proactive coach (Oct 2026): open threads, reach-outs, chat photos, in-session flags.
+  agentThreads             AgentThread[]
+  proactiveEvents          ProactiveEvent[]
+  chatPhotos               ChatPhoto[]
+  sessionFlags             SessionFlag[]
   // Group chats (#4)
   groupsCreated            GroupChat[]    @relation("GroupCreator")
   groupMemberships         GroupMember[]  @relation("GroupMemberships")
@@ -2422,4 +2427,97 @@ model LogFlag {
 
   @@index([userId, status])
   @@index([userId, ruleKey])
+}
+
+// ─── Proactive coach (design "Proactive Coach Flows v3", 30 Oct 2026) ───────
+// "Working on": one row per thing Anakin is keeping track of for a user — an
+// event, a symptom, an experiment, a question, a goal. The user's own words
+// are the source (mandatory on the page: it's why people trust the
+// extractor). Threads outlive the chat transcript, which is pruned at 90 days.
+model AgentThread {
+  id           String    @id @default(uuid())
+  userId       String
+  kind         String    // event | experiment | symptom | question | goal
+  title        String
+  status       String    @default("open") // open | watching | running | resolved | closed | wrong
+  sourceQuote  String?
+  sourceAt     DateTime?
+  sourceRole   String?   // user | assistant
+  read         String?   // Anakin's one-line read of where it stands
+  checkBackAt  String?   // YYYY-MM-DD
+  eventDate    String?   // YYYY-MM-DD, kind=event (D1 countdown)
+  affectsJson  String    @default("[]") // exercise names a symptom or experiment touches (D2)
+  metricJson   String?   // experiment: { lift, startDate, changeId, confounders }
+  historyJson  String    @default("[]") // [{ at, text }]
+  raisedCount  Int       @default(0)
+  ignoredCount Int       @default(0)
+  lastRaisedAt DateTime?
+  mutedUntil   DateTime?
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, checkBackAt])
+}
+
+// Every proactive reach-out, or dry-run candidate: the audit trail the
+// fixed-rule gate reads for the daily cap, topic cooldowns and back-off.
+model ProactiveEvent {
+  id           String    @id @default(uuid())
+  userId       String
+  kind         String    // checkin | prepared | outcome | insight | safety | followup
+  topic        String    // "fight date", "recovery", "bench"…
+  threadId     String?
+  cardId       String?
+  channel      String    // chat | push | dryrun | screen
+  evidenceJson String    @default("[]")
+  text         String
+  outcome      String?   // answered | ignored | muted | applied | expired | kept | reverted | not_now
+  outcomeAt    DateTime?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, topic])
+}
+
+// A photo sent in chat. The bytes live in the blob store; this row is the
+// structured description Anakin keeps as context. Private kinds (injury,
+// bloodwork, body) are masked until tapped and their description goes with
+// the photo; meal and label descriptions outlast it as food history.
+model ChatPhoto {
+  id          String    @id @default(uuid())
+  userId      String
+  blobKey     String
+  mimeType    String
+  kind        String    // meal | label | program | machine | injury | bloodwork | body | other
+  private     Boolean   @default(false)
+  description String?
+  detailJson  String?
+  expiresAt   DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// An in-session flag ("if the joint talks on set 2, stop and flag it").
+model SessionFlag {
+  id           String   @id @default(uuid())
+  userId       String
+  date         String
+  exercise     String
+  setIndex     Int?
+  note         String?
+  threadId     String?
+  workoutLogId String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId, exercise])
 }

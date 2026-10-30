@@ -19,9 +19,9 @@ export class CardError extends Error {
   constructor(message: string, public status = 400) { super(message); }
 }
 
-function strip(draft: CardDraft): { card: Omit<Card, 'id'>; pending: PendingActions & { entity?: string; undoLine?: string } } {
-  const { pending, entity, undoLine, ...card } = draft;
-  return { card, pending: { ...(pending ?? {}), ...(entity ? { entity } : {}), ...(undoLine ? { undoLine } : {}) } };
+function strip(draft: CardDraft): { card: Omit<Card, 'id'>; pending: PendingActions & { entity?: string; undoLine?: string }; expiresAt: string | null } {
+  const { pending, entity, undoLine, expiresAt, ...card } = draft;
+  return { card, pending: { ...(pending ?? {}), ...(entity ? { entity } : {}), ...(undoLine ? { undoLine } : {}) }, expiresAt: expiresAt ?? null };
 }
 
 /**
@@ -30,7 +30,7 @@ function strip(draft: CardDraft): { card: Omit<Card, 'id'>; pending: PendingActi
  * `entity` replaces any earlier live card for the same thing.
  */
 export async function saveCard(userId: string, draft: CardDraft, opts: { change?: { changeId: string; undoUntil: string | null; reversible: boolean } } = {}): Promise<Card> {
-  const { card, pending } = strip(draft);
+  const { card, pending, expiresAt } = strip(draft);
   if (opts.change) {
     pending.changeId = opts.change.changeId;
     card.state = { status: 'live', changeId: opts.change.changeId, ...(opts.change.undoUntil ? { undoUntil: opts.change.undoUntil } : {}) };
@@ -63,6 +63,7 @@ export async function saveCard(userId: string, draft: CardDraft, opts: { change?
       pendingJson: JSON.stringify(pending),
       status: card.state.status,
       changeId: pending.changeId ?? null,
+      ...(expiresAt ? { expiresAt: new Date(expiresAt) } : {}),
     },
   });
   const full: Card = { id: row.id, ...card };
@@ -324,10 +325,14 @@ export async function answerCard(userId: string, cardId: string, answer: { optio
   let changeId: string | undefined;
   let next: Card | null = null;
   let line = value;
+  // An op may decide per answer whether the words go on as the user's message
+  // (a proactive Ask: the yes option does, "Not now" doesn't).
+  let fromOp: string | null | undefined;
   if (pending.answer?.op) {
     const change = await withWriteGuard('allow', `answer:${card.fn}`, () =>
       executeOp(userId, pending.answer!.op!, { ...(pending.answer!.args ?? {}), [pending.answer!.valueKey ?? 'value']: value, optionIndex: answer.option ?? null }, { cardId }));
-    const result = (change.result ?? {}) as { nextCard?: CardDraft; nextOwnsChange?: boolean; line?: string };
+    const result = (change.result ?? {}) as { nextCard?: CardDraft; nextOwnsChange?: boolean; line?: string; sendAsMessage?: string | null };
+    fromOp = result.sendAsMessage;
     // A capture's answer is ids, not words: the op names the line, and the
     // card it hands back (the Logged card) carries the Undo instead.
     if (result.line) line = result.line;
@@ -337,7 +342,8 @@ export async function answerCard(userId: string, cardId: string, answer: { optio
   card.state = { status: 'answered', line, at: new Date().toISOString(), ...(changeId ? { changeId } : {}) };
   await persist(cardId, card);
   const q = card.ask?.q ?? card.meta?.label ?? 'your question';
-  const sendAsMessage = pending.answer?.op && !pending.answer.asMessage ? undefined : (pending.answer?.asMessage ?? `${value}`).replace('{answer}', value).replace('{q}', q);
+  const sendAsMessage = fromOp !== undefined ? (fromOp ?? undefined)
+    : pending.answer?.op && !pending.answer.asMessage ? undefined : (pending.answer?.asMessage ?? `${value}`).replace('{answer}', value).replace('{q}', q);
   return { card, sendAsMessage, next };
 }
 

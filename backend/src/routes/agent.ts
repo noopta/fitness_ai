@@ -82,14 +82,27 @@ const turnSchema = z.object({
   // History is server-managed by default (Phase 2). Pass resetConversation
   // to start a fresh thread (e.g. a "new chat" button).
   resetConversation: z.boolean().optional(),
+  // Photos uploaded first (POST /coach/agent/photos); the model reads their descriptions, never the bytes.
+  photoIds: z.array(z.string().min(1).max(64)).max(4).optional(),
 });
+
+/** The photo note for the model, and the ids to store on the message. */
+async function photosForTurn(userId: string, ids: string[] | undefined): Promise<{ note: string; ids: string[] }> {
+  if (!ids?.length) return { note: '', ids: [] };
+  const { photosByIds, photoNote } = await import('../proactive/photos.js');
+  const rows = await photosByIds(userId, ids);
+  return { note: photoNote(rows), ids: rows.map((r) => r.id) };
+}
+function afterTurn(userId: string) {
+  import('../proactive/threads.js').then((m) => m.extractThreadsLater(userId)).catch(() => {});
+}
 
 // POST /api/coach/agent — one agent turn. Conversation history is loaded +
 // persisted server-side so multi-turn continuity works without the client
 // tracking it.
 router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, aiLimiter, checkAgentRateLimit, async (req, res) => {
   try {
-    const { message, resetConversation } = turnSchema.parse(req.body);
+    const { message, resetConversation, photoIds } = turnSchema.parse(req.body);
     const userId = req.user!.id;
     const mod = await moderateTurn(message, userId);
     if (mod.blocked) return res.status(400).json({ error: mod.blocked, code: 'moderation_blocked' });
@@ -101,6 +114,8 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, ai
     if (resetConversation) await clearConversation(userId);
     // `turn.message` leads with the note about the cards under the last reply.
     const turn = await loadTurn(userId, message);
+    const photos = await photosForTurn(userId, photoIds);
+    if (photos.note) turn.message = `${photos.note}\n\n${turn.message}`;
 
     // Same card contract as the stream: v2 clients get server cards here too
     // (this route is their fallback when SSE can't open).
@@ -114,7 +129,8 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, ai
     console.log(`[agent] user=${userId.slice(0,8)} turn=${result.iterations} tools=${JSON.stringify(result.toolsUsed)} hasProposal=${!!result.proposal}`);
 
     // Persist the text transcript for next turn's continuity.
-    await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef));
+    await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef), photos.ids);
+    afterTurn(userId);
 
     res.json(result);
     } finally { finishRun(run); }
@@ -149,7 +165,7 @@ router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, 
     const messages = stored.map((m) => {
       const { text: content, cards } = m.role === 'assistant' ? splitStored(m) : { text: m.text, cards: [] };
       const cardIds = cards.map((c) => c.id);
-      return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}) };
+      return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}), ...(m.receipts?.length ? { receipts: m.receipts } : {}), ...(m.photos?.length ? { photos: m.photos } : {}) };
     });
     res.json({ messages, hasThread: messages.length > 0, source: 'agent' });
   } catch (err: any) {
@@ -209,12 +225,15 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, requireAgent
   try {
     if (parsed.resetConversation) await clearConversation(userId);
     const turn = await loadTurn(userId, parsed.message);
+    const photos = await photosForTurn(userId, parsed.photoIds);
+    if (photos.note) turn.message = `${photos.note}\n\n${turn.message}`;
     // Contract 2 = agent-first cards (server ids, several per reply). Old
     // builds don't send the header and keep the single legacy card.
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
     const t0 = Date.now();
     const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract, systemAddendum: mod.addendum }));
-    await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef));
+    await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef), photos.ids);
+    afterTurn(userId);
     console.log(`[agent] stream user=${userId.slice(0, 8)} ms=${Date.now() - t0} tools=${JSON.stringify((result as any).toolsUsed ?? [])}`);
     track(userId, 'agent_turn', { ms: Date.now() - t0, tools: (result as any).toolsUsed ?? [], tool_count: ((result as any).toolsUsed ?? []).length, card_count: (result.cards ?? []).length, stream: true });
   } catch (err: any) {

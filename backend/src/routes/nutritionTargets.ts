@@ -66,6 +66,10 @@ router.get('/nutrition/day-targets', requireAuth, async (req, res) => {
     // Carb cycling: training-day vs rest-day carbs (services/carbCycling.ts).
     const base = resolveTargets(u);
     const targets = base ? applyCarbCycling(base, readCarbCycling(u.coachProfile), isTrainingDay(date, recent.map((r) => r.date))) : base;
+    // A one-day carb target from the Fuel insight (proactive D3) overrides carbs for that date only.
+    const { carbDayOverride } = await import('../proactive/insight.js');
+    const carbDay = targets ? carbDayOverride(u.coachProfile, date) : null;
+    if (targets && carbDay != null) { targets.carbsG = carbDay; (targets as any).source = 'carb_day'; }
     res.json({
       targets,
       // The workout's burn is its own line on today's target (N-07); the Account toggle turns it off.

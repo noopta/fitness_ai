@@ -46,7 +46,9 @@ export function kindOf(card: Card): AwayKind | null {
 export function buildAwayItems(turns: AwayTurn[], cards: Map<string, Card>, since: string, alreadyFolded: Set<string>, now = new Date()): { items: AwayItem[]; foldedAts: string[] } {
   const lastUser = [...turns].reverse().find((t) => t.role === 'user')?.at ?? '';
   const from = since > lastUser ? since : lastUser;
-  const fresh = turns.filter((t) => t.role === 'assistant' && t.origin === 'anakin' && t.at && t.at > from && !alreadyFolded.has(t.at) && t.text !== AWAY_TEXT);
+  // A turn with an unanswered proactive Ask (PRO-01/05/06/07) is never folded: it stays live under the card until answered or expired.
+  const awaiting = (t: AwayTurn) => t.cardIds.some((id) => { const c = cards.get(id); return !!c && /^PRO-0[1567]$/.test(c.fn) && (!c.state || c.state.status === 'live'); });
+  const fresh = turns.filter((t) => t.role === 'assistant' && t.origin === 'anakin' && t.at && t.at > from && !alreadyFolded.has(t.at) && t.text !== AWAY_TEXT && !awaiting(t));
   const items: AwayItem[] = [];
   for (const t of fresh) {
     const news = t.cardIds.map((id) => cards.get(id)).filter((c): c is Card => !!c && !!kindOf(c));

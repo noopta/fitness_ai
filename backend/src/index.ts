@@ -46,6 +46,7 @@ import agentRoutes from './routes/agent.js';
 import agentCardRoutes from './routes/agentCards.js';
 import settingsRoutes from './routes/settings.js';
 import briefRoutes from './routes/brief.js';
+import proactiveRoutes from './routes/proactive.js';
 import onboardingV2Routes from './routes/onboardingV2.js';
 import groupsRoutes from './routes/groups.js';
 import institutionsRoutes from './routes/institutions.js';
@@ -256,6 +257,7 @@ app.use('/api', agentRoutes);
 app.use('/api', agentCardRoutes);
 app.use('/api', settingsRoutes);
 app.use('/api', briefRoutes);
+app.use('/api', proactiveRoutes);
 app.use('/api', onboardingV2Routes);
 // Groups + formAnalysis must be mounted BEFORE institutionsRoutes —
 // institutions has a GET /:slug handler that otherwise swallows
@@ -462,6 +464,8 @@ scheduleAt(14, null, () => {
 });
 // Weekly wins: Sunday 6 pm in each user's time zone (chat recap, push, email).
 // Replaced runWeeklySummary (Sunday 20:00 server time, legacy protein table).
+// Proactive coach: the morning sweep (per-user local 7 am), card expiry, safety checks, photo retention.
+scheduleHourly(() => { import('./proactive/index.js').then((m) => m.runProactiveHour()).catch((err) => console.error('[scheduler] proactive sweep error:', err)); });
 scheduleHourly(() => { import('./services/weeklyWinsJob.js').then((m) => m.runWeeklyWinsHour()).catch((err) => console.error('[scheduler] weekly wins error:', err)); });
 // Freestyle log-trend sweep — Mondays 10:00 server time (UTC). Plateaus,
 // systemic fatigue, volume balance, phase confirm. Per-user flag-gated inside

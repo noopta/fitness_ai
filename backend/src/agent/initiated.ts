@@ -13,14 +13,14 @@ import type { CardDraft } from './cards/types.js';
 
 const prisma = new PrismaClient();
 
-export async function postInitiatedTurn(userId: string, turn: { text: string; cards?: CardDraft[] }): Promise<boolean> {
+export async function postInitiatedTurn(userId: string, turn: { text: string; cards?: CardDraft[]; receipts?: { verb: string; text: string }[] }): Promise<boolean> {
   try {
     if (process.env.AGENT_ENABLED !== 'true') return false;
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
     if (!u || !uiV2AvailableFor(userId, u.email)) return false;
     const saved = [];
     for (const d of (turn.cards ?? []).slice(0, 3)) saved.push(await saveCard(userId, d));
-    await appendInitiated(userId, turn.text, saved.map(cardRef));
+    await appendInitiated(userId, turn.text, saved.map(cardRef), turn.receipts ?? []);
     return true;
   } catch (err: any) {
     console.error('[initiated] failed:', err?.message ?? err);

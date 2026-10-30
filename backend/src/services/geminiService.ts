@@ -634,3 +634,28 @@ export async function analyzeWorkoutVideo(
     cleanup();
   }
 }
+
+// ── Chat photos (proactive flow E) ──────────────────────────────────────────
+const CHAT_PHOTO_SCHEMA = {
+  type: Type.OBJECT,
+  required: ['kind', 'description'],
+  properties: {
+    kind: { type: Type.STRING, enum: ['meal', 'label', 'program', 'machine', 'injury', 'bloodwork', 'body', 'other'] },
+    description: { type: Type.STRING, description: 'One or two plain sentences on what is in the frame, as a coach would say it.' },
+    text: { type: Type.STRING, nullable: true, description: 'Text visible in the image (nutrition label, program screenshot), verbatim, ≤ 600 chars.' },
+    meal: { type: Type.OBJECT, nullable: true, properties: { name: { type: Type.STRING }, calories: { type: Type.NUMBER }, proteinG: { type: Type.NUMBER }, carbsG: { type: Type.NUMBER }, fatG: { type: Type.NUMBER } } },
+  },
+};
+const CHAT_PHOTO_SYSTEM = `You describe a photo a client sent their strength-and-nutrition coach. Classify it: meal (food on a plate or in packaging about to be eaten), label (a nutrition facts panel), program (a training plan: screenshot, spreadsheet, whiteboard, notebook), machine (gym equipment), injury (a body part shown for a complaint: swelling, bruise, wrap), bloodwork (lab results), body (a physique/progress photo), other. Describe only what is visible — never diagnose. For a meal, estimate macros like a dietitian (portion sizes stated). For a label or program, copy the text. Reply in the JSON schema.`;
+
+/** One Gemini call: kind + description (+ label/program text, meal macros). */
+export async function describeChatPhoto(base64: string, mimeType: string): Promise<{ kind: any; description: string; text?: string | null; meal?: { name: string; calories: number; proteinG: number; carbsG: number; fatG: number } | null }> {
+  const res = await client().models.generateContent({
+    model: MODEL,
+    config: { systemInstruction: CHAT_PHOTO_SYSTEM, responseMimeType: 'application/json', responseSchema: CHAT_PHOTO_SCHEMA, safetySettings: SAFETY_SETTINGS },
+    contents: [{ role: 'user', parts: [{ text: 'Describe this photo for the coach.' }, { inlineData: { mimeType, data: base64 } }] }],
+  });
+  assertNotBlocked(res);
+  const p = JSON.parse(res.text ?? '{}');
+  return { kind: p.kind ?? 'other', description: String(p.description ?? '').slice(0, 600), text: p.text ?? null, meal: p.meal && Number.isFinite(Number(p.meal.calories)) ? p.meal : null };
+}

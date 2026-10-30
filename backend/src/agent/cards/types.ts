@@ -130,6 +130,8 @@ export interface Card {
 /** What a tool's card builder returns: a card without its server id. */
 export type CardDraft = Omit<Card, 'id'> & {
   pending?: PendingActions;
+  /** ISO: the row's expiry, for cards that must never apply late (a prepared week). */
+  expiresAt?: string;
   /** A newer card for the same entity marks older live ones "Replaced". */
   entity?: string;
   /** StateLine after Undo, e.g. "Undone — back to lb". */

@@ -16,3 +16,4 @@ import './wearables.js';
 import './social.js';
 import './suggest.js';
 import './coaching.js';
+import './proactive.js';
