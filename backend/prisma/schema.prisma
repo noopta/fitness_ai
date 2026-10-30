@@ -287,6 +287,11 @@ model MealEntry {
   // deleting a recipe never erases log history (entries are snapshots).
   recipeId  String?
   servings  Float?
+  // How this log was made and why it's on this day (Oct 2026), as JSON:
+  // {"via":"chat"|"app"|"import","sentAt","local","basis","said","modelDate","tool"}.
+  // basis: today | said (their words named the day) | context | picked | overruled
+  // (the model's date set aside) | client (the app sent it). Null on older rows.
+  logTrace String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
@@ -681,6 +686,11 @@ model WorkoutLog {
   // log was opened from a program session; null for ad-hoc workouts. This is
   // the planned-vs-actual link the adaptation engine scores against.
   programDayRef String?
+  // How this log was made and why it's on this day (Oct 2026), as JSON:
+  // {"via":"chat"|"app"|"import","sentAt","local","basis","said","modelDate","tool"}.
+  // basis: today | said (their words named the day) | context | picked | overruled
+  // (the model's date set aside) | client (the app sent it). Null on older rows.
+  logTrace String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id])

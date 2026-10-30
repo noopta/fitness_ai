@@ -12,6 +12,8 @@ import { buildPreview, takePreview, peekPreview, withoutLogged, previewBatch, pr
 import { applyCardAction, findLiveCard, userTz } from '../cards/store.js';
 import { todayIn } from '../cards/format.js';
 import { turnMessage } from '../turnMessage.js';
+import { logDateFor } from '../logDate.js';
+import { dayNote, shortDayLabel, type DayChoice } from '../dayWords.js';
 import { computeStrengthProfile } from '../../routes/strength.js';
 import { cacheGet } from '../../services/cacheService.js';
 import { lastForExercises } from '../../adaptation/proposalService.js';
@@ -60,11 +62,49 @@ function exLine(e: any, unit: Unit): string {
 }
 const e1rm = (kg: number, reps: number) => (reps <= 1 ? kg : kg * (1 + Math.min(reps, 10) / 30));
 
+// ── The day a chat log goes on (Oct 2026, logDate.ts) ───────────────────────
+const DATE_FIELD = 'YYYY-MM-DD of the day they named ("yesterday", "Monday", "the 26th"). Leave it out when they named no day: it goes on today, the day they sent it. The server reads the day from their words and sets aside a date they didn\u2019t name.';
+
+/** The card's first row: the day, and why — so a wrong one is seen at a glance. */
+export function dayRow(c: DayChoice, today: string): { key: string; value: string } {
+  const label = shortDayLabel(c.date);
+  if (c.date === today) return { key: 'Day', value: `Today · ${label}` };
+  return { key: 'Day', value: c.said ? `${label} · you said “${c.said}”` : label };
+}
+
+/** The same activity already logged that day in the last 3 hours (a correction sent as a new log). */
+async function sameActivityRecently(userId: string, date: string, activity: string): Promise<{ id: string; title: string; loggedAt: string } | null> {
+  const key = activity.toLowerCase().replace(/[^a-z]+/g, ' ').trim().split(' ').slice(0, 2).join(' ');
+  if (!key) return null;
+  const rows = await prisma.workoutLog.findMany({ where: { userId, date, createdAt: { gte: new Date(Date.now() - 3 * 3600_000) } }, orderBy: { createdAt: 'desc' }, select: { id: true, title: true, createdAt: true } });
+  const hit = rows.find((r) => (r.title ?? '').toLowerCase().replace(/[^a-z]+/g, ' ').trim().startsWith(key));
+  return hit ? { id: hit.id, title: hit.title ?? activity, loggedAt: hit.createdAt.toISOString().slice(11, 16) + ' UTC' } : null;
+}
+
+/** Pure: share of `names` already in `existing` (normalised as history keys are). */
+export function exerciseOverlap(names: string[], existing: string[], norm: (s: string) => string): number {
+  const have = new Set(existing.map(norm));
+  const mine = [...new Set(names.map(norm))].filter(Boolean);
+  return mine.length ? mine.filter((n) => have.has(n)).length / mine.length : 0;
+}
+
+/** A session that day with most of the same exercises (the app saved it, then chat logged it again — Rashad, 26 Oct). */
+async function sameSessionThatDay(userId: string, date: string, names: string[]): Promise<{ id: string; title: string; loggedAt: string } | null> {
+  if (names.length < 2) return null;
+  const { normalizeName } = await import('../../services/swap/match.js');
+  const rows = await prisma.workoutLog.findMany({ where: { userId, date }, select: { id: true, title: true, exercises: true, createdAt: true } });
+  for (const r of rows) {
+    const theirs = (parseJson<any[]>(r.exercises, []) ?? []).map((e) => String(e?.name ?? ''));
+    if (exerciseOverlap(names, theirs, normalizeName) >= 0.6) return { id: r.id, title: r.title ?? 'Workout', loggedAt: r.createdAt.toISOString().slice(11, 16) + ' UTC' };
+  }
+  return null;
+}
+
 // ── Ops ──────────────────────────────────────────────────────────────────────
 defineOp({
   name: 'workout.create',
   run: async (userId, args) => {
-    const r = await createWorkoutLog(userId, args.input as WorkoutLogInput, 'agent');
+    const r = await createWorkoutLog(userId, args.input as WorkoutLogInput, 'agent', { trace: (args.trace as Record<string, unknown>) ?? null });
     return { result: { id: r.log.id, prs: r.prs, adaptationIds: (r.adaptationProposals as any[]).map((p) => p.id), exercises: r.exercises, date: r.log.date, moment: r.moment }, inverse: { op: 'workout.remove', args: { id: r.log.id } }, summary: `Logged · ${r.log.title ?? 'Workout'} · ${plural(r.exercises.length, 'exercise')}` };
   },
 });
@@ -243,26 +283,37 @@ export const WORKOUT_TOOLS = [
   tool({
     name: 'log_conditioning', kind: 'log', core: true, fn: 'WRK-15',
     description: 'Log a sport or conditioning session: MMA, sparring, bag/pad work, BJJ/wrestling, running, cycling, swimming, classes — anything that isn’t sets and reps. activity (as they said it), minutes, intensity easy|moderate|hard (or rpe 1-10), date (default today). It counts toward their calorie burn, weekly training load and energy needs. One call per session; for a lifting session plus conditioning, log_workout the lifting and this the rest. Then congratulate them from `moment`.',
-    input_schema: schema({ activity: { type: 'string' }, minutes: { type: 'number' }, intensity: { type: 'string', enum: ['easy', 'moderate', 'hard'] }, rpe: { type: 'number' }, distance: { type: 'string', description: 'e.g. "5 km" — runs, rides, swims' }, date: { type: 'string' }, notes: { type: 'string' } }, ['activity', 'minutes']),
+    input_schema: schema({ activity: { type: 'string' }, minutes: { type: 'number' }, intensity: { type: 'string', enum: ['easy', 'moderate', 'hard'] }, rpe: { type: 'number' }, distance: { type: 'string', description: 'e.g. "5 km" — runs, rides, swims' }, date: { type: 'string', description: DATE_FIELD }, notes: { type: 'string' }, secondSession: { type: 'boolean', description: 'Only for a second, separate session of the same activity on the same day.' } }, ['activity', 'minutes']),
     receipt: (i) => ({ verb: 'Logged', text: `${str(i.activity) || 'Session'} · ${numOr(i.minutes) ?? '?'} min` }),
     execute: async (input, userId) => {
       const { todayIn } = await import('../cards/format.js');
       const { userTz } = await import('../cards/store.js');
-      const today = todayIn(await userTz(userId));
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : today;
+      const tz = await userTz(userId);
+      const today = todayIn(tz);
+      // The day comes from their words, not the model's pick (logDate.ts).
+      const day = await logDateFor(userId, tz, input.date, 'log_conditioning');
+      if ('ask' in day) return { logged: null, ask: day.ask };
+      const date = day.date;
       const minutes = Math.round(numOr(input.minutes) ?? 0);
       if (!(minutes > 0 && minutes <= 600)) throw new Error('How many minutes was it?');
       const activity = str(input.activity).slice(0, 80) || 'Conditioning';
+      // A correction sent as a fresh log (Rashad, 25 Oct: "Change it to moderate", "2hrs of actual
+      // climbing" → four Rock climbing rows): the same activity that day, logged in the last 3 hours.
+      if (input.secondSession !== true) {
+        const dup = await sameActivityRecently(userId, date, activity);
+        if (dup) return { logged: null, duplicateOf: { id: dup.id, title: dup.title, loggedAt: dup.loggedAt }, say: `“${dup.title}” is already logged for that day (at ${dup.loggedAt}). If they're correcting it, call update_workout on id ${dup.id} (minutes, effort, notes). Only if it's a second, separate session, call log_conditioning again with secondSession: true.` };
+      }
       const intensity = ['easy', 'moderate', 'hard'].includes(str(input.intensity)) ? str(input.intensity) : numOr(input.rpe) ? (numOr(input.rpe)! >= 8 ? 'hard' : numOr(input.rpe)! >= 5 ? 'moderate' : 'easy') : 'moderate';
       const rpe = numOr(input.rpe) ?? (intensity === 'hard' ? 8 : intensity === 'moderate' ? 6 : 4);
       const exercises = [{ name: activity, sets: 1, reps: `${minutes} min`, weightKg: null, rpe, bodyweight: true, notes: `conditioning · ${intensity}${str(input.distance) ? ` · ${str(input.distance)}` : ''}${str(input.notes) ? ` · ${str(input.notes)}` : ''}`.slice(0, 500) }];
-      const change = await executeOp(userId, 'workout.create', { input: { date, title: `${activity} · ${minutes} min`, exercises, notes: str(input.notes) || null, duration: minutes, programDayRef: null } });
+      const change = await executeOp(userId, 'workout.create', { input: { date, title: `${activity} · ${minutes} min`, exercises, notes: str(input.notes) || null, duration: minutes, programDayRef: null }, trace: day.trace });
       const r = change.result as any;
       // sRPE load (Foster): minutes × RPE — what the weekly load reads.
-      return { logged: change.summary, id: r.id, date, minutes, intensity, load: minutes * rpe, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change };
+      return { logged: change.summary, id: r.id, date, day: dayNote(day.choice, today), minutes, intensity, load: minutes * rpe, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change, _day: dayRow(day.choice, today) };
     },
     card: (_i, r, ctx) => {
-      const cards: CardDraft[] = [{ fn: 'WRK-15', pattern: 'logged', rule: 'log_undo', meta: { label: `Logged · ${r._exercises?.[0]?.name ?? 'Session'} · ${r.date === ctx.today ? 'today' : dayLabel(r.date)}`, open: { page: 'history' } }, rows: [{ key: 'Time', value: `${r.minutes} min` }, { key: 'Effort', value: r.intensity }], undoLine: 'Undone — nothing logged' }];
+      if (!r?.id) return null;
+      const cards: CardDraft[] = [{ fn: 'WRK-15', pattern: 'logged', rule: 'log_undo', meta: { label: `Logged · ${r._exercises?.[0]?.name ?? 'Session'} · ${r.date === ctx.today ? 'today' : dayLabel(r.date)}`, open: { page: 'history' } }, rows: [...(r._day ? [r._day] : []), { key: 'Time', value: `${r.minutes} min` }, { key: 'Effort', value: r.intensity }], undoLine: 'Undone — nothing logged' }];
       if (r._moment) cards.push(momentCard(r._moment));
       return cards;
     },
@@ -285,7 +336,7 @@ export const WORKOUT_TOOLS = [
     description: 'Log a workout the user did (today or another date). exercises = [{ name, sets, reps, weight (their unit), rpe?, bodyweight?, setEntries?: [{ weight, reps, rpe? }] }] — use setEntries when sets differ. reps is always a number (or a range like "8-10"), never words like "varies": if they didn’t say the reps for a lift, ask for them in one short line before logging. Otherwise log it on the same turn they tell you; don’t ask to confirm. Streaks, PRs and progression suggestions update automatically.' + CONGRATULATE,
     input_schema: schema({
       exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, sets: { type: 'number' }, reps: { type: 'string' }, weight: { type: 'number' }, rpe: { type: 'number' }, bodyweight: { type: 'boolean' }, estimated: { type: 'boolean', description: 'true when YOU filled numbers they didn’t state (“average 8–10 reps”, “same weights as last time”). Keep reps as the range they gave (“8-10”). Kept out of PRs and progression.' }, equipment: { type: 'string', description: 'machine | cable | free — only when they said so.' }, notes: { type: 'string' }, setEntries: { type: 'array', items: { type: 'object', properties: { weight: { type: 'number' }, reps: { type: 'number' }, rpe: { type: 'number' } }, required: ['reps'] } } }, required: ['name'] } },
-      date: { type: 'string', description: 'YYYY-MM-DD, default today' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' }, unit: UNIT_FIELD,
+      date: { type: 'string', description: DATE_FIELD }, secondSession: { type: 'boolean', description: 'Only for a separate second session with the same exercises on the same day.' }, title: { type: 'string' }, durationMin: { type: 'number' }, notes: { type: 'string' }, unit: UNIT_FIELD,
     }, ['exercises']),
     receipt: (i) => ({ verb: 'Logged', text: str(i.title) || 'Workout' }),
     execute: async (input, userId) => {
@@ -293,18 +344,27 @@ export const WORKOUT_TOOLS = [
       const unit: Unit = unitArg(input.unit, u?.unitPreference === 'metric' ? 'metric' : 'imperial');
       const exercises = toServiceExercises((input.exercises ?? []) as ChatExercise[], unit, await logReviewOn(userId));
       if (!exercises.length) throw new Error('Tell me at least one exercise.');
-      const tz = (await import('../cards/store.js')).userTz;
-      const today = (await import('../cards/format.js')).todayIn(await tz(userId));
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : today;
+      const tzName = await (await import('../cards/store.js')).userTz(userId);
+      const today = (await import('../cards/format.js')).todayIn(tzName);
+      const day = await logDateFor(userId, tzName, input.date, 'log_workout');
+      if ('ask' in day) return { logged: null, ask: day.ask };
+      const date = day.date;
+      if (input.secondSession !== true) {
+        const dup = await sameSessionThatDay(userId, date, exercises.map((e) => e.name));
+        if (dup) return { logged: null, duplicateOf: dup, say: `“${dup.title}” with most of these exercises is already logged for that day (at ${dup.loggedAt}). If they're adding to it or fixing it, use log_set / update_workout on id ${dup.id}. Only if it's a separate second session, call log_workout again with secondSession: true.` };
+      }
       // Link today's log to the planned day so the adaptation engine can score it.
       let programDayRef: any = null;
       if (date === today) { try { programDayRef = ((await callApi<any>(userId, 'GET', '/coach/today')) ?? {}).programDayRef ?? null; } catch { /* ad-hoc */ } }
-      const change = await executeOp(userId, 'workout.create', { input: { date, title: str(input.title) || null, exercises, notes: str(input.notes) || null, duration: numOr(input.durationMin) ? Math.round(numOr(input.durationMin)!) : null, programDayRef } });
+      const change = await executeOp(userId, 'workout.create', { input: { date, title: str(input.title) || null, exercises, notes: str(input.notes) || null, duration: numOr(input.durationMin) ? Math.round(numOr(input.durationMin)!) : null, programDayRef }, trace: day.trace });
       const r = change.result as any;
-      return { logged: change.summary, id: r.id, date, prs: r.prs.map((p: any) => p.displayName), adaptationIds: r.adaptationIds, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change };
+      return { logged: change.summary, id: r.id, date, day: dayNote(day.choice, today), _day: dayRow(day.choice, today), prs: r.prs.map((p: any) => p.displayName), adaptationIds: r.adaptationIds, moment: momentForModel(r.moment), _moment: r.moment ?? null, _exercises: r.exercises, _change: change };
     },
     card: async (input, r, ctx) => {
-      const cards: CardDraft[] = [loggedCard(str(input.date) && str(input.date) !== ctx.today ? 'WRK-04' : 'WRK-02', r.id, r.date, str(input.title) || null, r._exercises, ctx, r.prs.length ? { why: `New best: ${r.prs.join(', ')}.` } : {})];
+      if (!r?.id) return null;
+      const logged = loggedCard(r.date !== ctx.today ? 'WRK-04' : 'WRK-02', r.id, r.date, str(input.title) || null, r._exercises, ctx, r.prs.length ? { why: `New best: ${r.prs.join(', ')}.` } : {});
+      if (r._day) logged.rows = [r._day, ...(logged.rows ?? [])];
+      const cards: CardDraft[] = [logged];
       if (r._moment) cards.push(momentCard(r._moment));
       if (r.adaptationIds.length) {
         const { listPending } = await import('../../adaptation/proposalService.js');

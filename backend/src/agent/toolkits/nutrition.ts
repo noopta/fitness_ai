@@ -7,6 +7,8 @@ import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
 import { callApi } from '../loopback.js';
 import { tool, schema, str, numOr, prisma, parseJson } from './kit.js';
+import { logDateFor } from '../logDate.js';
+import { dayNote } from '../dayWords.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry, restoreMealEntry } from '../../services/mealLogService.js';
 import { withBrandedLookups } from '../../services/llmService.js';
 import { estimateTypedMeal, parseTypedMeal } from '../../services/food/typedMeal.js';
@@ -93,7 +95,7 @@ async function loggedMealCard(fn: string, userId: string, mealId: string, ctx: T
 defineOp({
   name: 'meal.create',
   run: async (userId, args) => {
-    const r = await createMealEntry(userId, args.input as any);
+    const r = await createMealEntry(userId, args.input as any, (args.trace as Record<string, unknown>) ?? { via: 'chat', sentAt: new Date().toISOString() });
     return { result: { id: r.entry.id, entry: r.entry, moment: r.moment }, inverse: { op: 'meal.remove', args: { id: r.entry.id } }, summary: `Logged · ${r.entry.name} · ${num(r.entry.calories)} kcal` };
   },
 });
@@ -259,7 +261,10 @@ export const NUTRITION_TOOLS = [
     refine: (r) => (r?.needsDetail ? { verb: 'Checked', text: 'One detail needed before logging' } : r?.logged ? { verb: 'Logged', text: String(r.logged).replace(/^Logged · /, '') } : null),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today;
+      // The day comes from their words, not the model's pick (logDate.ts).
+      const day = await logDateFor(userId, ctx.tz, input.date, 'log_meal');
+      if ('ask' in day) return { logged: null, ask: day.ask };
+      const date = day.date;
       let lookups: ItemLookupResult[] | null = null;
       const explicit = ['calories', 'proteinG', 'carbsG', 'fatG'].some((k) => typeof input[k] === 'number');
       let meal: any;
@@ -296,8 +301,8 @@ export const NUTRITION_TOOLS = [
           }
         }
       }
-      const change = await executeOp(userId, 'meal.create', { input: meal });
-      return { logged: change.summary, mealId: (change.result as any).id, ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
+      const change = await executeOp(userId, 'meal.create', { input: meal, trace: day.trace });
+      return { logged: change.summary, mealId: (change.result as any).id, day: dayNote(day.choice, ctx.today), ...(lookups?.length ? { lookedUp: lookupSummary(lookups), _lookups: lookups } : {}), _change: change };
     },
     card: async (_i, r, ctx) => {
       if (!r?.mealId) return null;

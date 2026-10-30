@@ -351,8 +351,9 @@ describe('conversation persistence', () => {
     expect(JSON.parse(stored)[1].text).toBe('Put up new targets.');
 
     const turn = await loadTurn(USER, 'make it 2400');
+    // The turn's history carries when each user message was sent (Oct 2026, in their timezone).
     expect(turn.history).toEqual([
-      { role: 'user', content: 'cut my calories' },
+      { role: 'user', content: expect.stringMatching(/^\(sent \w{3} \d{1,2} \w{3}, \d{1,2}:\d{2} [ap]m\)\ncut my calories$/) },
       { role: 'assistant', content: 'Put up new targets.' },
     ]);
     expect(turn.message).toMatch(/^<app_note>[\s\S]*proposal: Calories: 2,992 kcal → 2,500 kcal[\s\S]*<\/app_note>\n\nmake it 2400$/);
@@ -534,6 +535,70 @@ describe('runAgentTurn (mocked client)', () => {
 });
 
 // ─── Proactive layer (Stage 5) ────────────────────────────────────────────────
+// Log truth (Oct 2026): Saeed's 29 Oct Muay Thai — "Logged — …" with no tool.
+describe('log truth in the loop (mocked client, card contract 2)', () => {
+  function scripted(replies: any[]) {
+    let i = 0;
+    const snapshots: any[] = [];
+    return { messages: { create: vi.fn(async (args: any) => { snapshots.push(structuredClone(args)); return replies[i++]; }) }, snapshots } as any;
+  }
+  const say = (text: string) => ({ stop_reason: 'end_turn', content: [{ type: 'text', text }] });
+  const lastUserText = (snap: any) => { const m = snap.messages[snap.messages.length - 1]; return typeof m.content === 'string' ? m.content : JSON.stringify(m.content); };
+  const MUAY_THAI = 'I finished tonight off with Maui thai. Did 3 min 5 rounds bag work with 10 pushups every round then did 30 kicks left and right x3 so 90 kicks total.';
+
+  it('a session reported and a "Logged" reply with no tool: the model is sent back, the false claim never shows', async () => {
+    mocks.workoutLog.findMany.mockResolvedValue([{ title: 'Heavy lift', date: '2026-10-28', createdAt: new Date('2026-10-28T21:17:15Z') }]);
+    const client = scripted([
+      say('Logged — Muay Thai conditioning tonight, about 45 minutes. Watch your recovery.'),
+      say('Logged — Muay Thai conditioning tonight. Watch your recovery.'),
+      say('Logged — 45 minutes of Muay Thai. Watch your recovery.'),
+    ]);
+    const res = await runAgentTurn(USER, MUAY_THAI, { history: [], injectClient: client, cardContract: 2 });
+    // 1st check: the claim; 2nd: the unlogged session (with the day's real sessions from the database).
+    expect(lastUserText(client.snapshots[1])).toContain('Server check: your reply says something was logged or saved');
+    expect(lastUserText(client.snapshots[2])).toContain('the user reported a session they did');
+    expect(lastUserText(client.snapshots[2])).toContain('- Heavy lift (logged');
+    expect(client.snapshots).toHaveLength(3);
+    // Still no tool: the claim is replaced, never shown.
+    expect(res.reply).not.toMatch(/\blogged\b/i);
+    expect(res.reply).toContain('I haven’t saved that yet');
+    expect(res.reply).toContain('Watch your recovery.');
+  });
+
+  it('an honest question back (a missing number) passes after one check', async () => {
+    const client = scripted([
+      say('Nice session — how long was the drilling block in total?'),
+      say('Good work. How many minutes was the whole session, roughly?'),
+    ]);
+    const res = await runAgentTurn(USER, MUAY_THAI, { history: [], injectClient: client, cardContract: 2 });
+    expect(client.snapshots).toHaveLength(2);
+    expect(res.reply).toBe('Good work. How many minutes was the whole session, roughly?');
+  });
+
+  it('a message that reports nothing gets no check', async () => {
+    const client = scripted([say('Aim for 3–5 sets of 3–6 reps on squats for strength.')]);
+    const res = await runAgentTurn(USER, 'How many sets should I do for squats?', { history: [], injectClient: client, cardContract: 2 });
+    expect(client.snapshots).toHaveLength(1);
+    expect(res.reply).toContain('3–5 sets');
+  });
+
+  it('"already on your log" with no look at the log gets one check', async () => {
+    const client = scripted([
+      say('That session is already on your log for tonight.'),
+      say('Checked — tonight’s Muay Thai isn’t in your log yet.'),
+    ]);
+    await runAgentTurn(USER, 'did you get my muay thai?', { history: [], injectClient: client, cardContract: 2 });
+    expect(lastUserText(client.snapshots[1])).toContain('Server check: your reply says something was logged or saved');
+  });
+
+  it('contract 1 (old clients) is untouched', async () => {
+    const client = scripted([say('Logged — Muay Thai conditioning.')]);
+    const res = await runAgentTurn(USER, MUAY_THAI, [], client);
+    expect(client.snapshots).toHaveLength(1);
+    expect(res.reply).toBe('Logged — Muay Thai conditioning.');
+  });
+});
+
 describe('evaluateProactiveTrigger (mocked, decision-only — never sends)', () => {
   function mockClient(scripted: any[]) {
     let i = 0;

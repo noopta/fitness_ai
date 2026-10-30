@@ -11,6 +11,7 @@
 import { PrismaClient } from '@prisma/client';
 import type Anthropic from '@anthropic-ai/sdk';
 import { splitStored, appNote, type CardRef } from './cardNotes.js';
+import { setTurnFacts } from './turnMessage.js';
 
 const prisma = new PrismaClient();
 
@@ -96,7 +97,7 @@ export async function appendInitiated(userId: string, text: string, cards: CardR
  * message. `pending` is that note for the cards after the last user message —
  * it belongs on the message being sent now.
  */
-export function modelHistory(stored: StoredMessage[]): { history: Anthropic.MessageParam[]; pending: string } {
+export function modelHistory(stored: StoredMessage[], tz?: string): { history: Anthropic.MessageParam[]; pending: string } {
   const msgs: Anthropic.MessageParam[] = [];
   let waiting: CardRef[] = [];
   for (const m of stored) {
@@ -105,7 +106,9 @@ export function modelHistory(stored: StoredMessage[]): { history: Anthropic.Mess
       const note = appNote(waiting);
       waiting = [];
       const own = stripAppNotes(m.text) || '(empty message)';
-      msgs.push({ role: 'user', content: note ? `${note}\n\n${own}` : own });
+      const sent = tz ? sentStamp(m.at, tz) : '';
+      const body = sent ? `${sent}\n${own}` : own;
+      msgs.push({ role: 'user', content: note ? `${note}\n\n${body}` : body });
       continue;
     }
     const { text, cards } = splitStored(m);
@@ -118,6 +121,22 @@ export function modelHistory(stored: StoredMessage[]): { history: Anthropic.Mess
   return { history: msgs, pending: msgs.length ? appNote(waiting) : '' };
 }
 
+/**
+ * When a past message was sent, in their time: "(sent Tue 27 Oct, 2:43 pm)".
+ * The history had no times (Saeed, 27 Oct): "Yesterday I did Muay Thai" in
+ * the morning and "First session of the day…" that afternoon read as one
+ * moment, so the afternoon's lift went on Monday too. Pure.
+ */
+export function sentStamp(at: string | undefined, tz: string): string {
+  if (!at || Number.isNaN(Date.parse(at))) return '';
+  let zone = tz;
+  try { new Intl.DateTimeFormat('en-US', { timeZone: zone }); } catch { zone = 'America/New_York'; }
+  const d = new Date(at);
+  const day = d.toLocaleDateString('en-GB', { timeZone: zone, weekday: 'short', day: 'numeric', month: 'short' });
+  const time = d.toLocaleTimeString('en-US', { timeZone: zone, hour: 'numeric', minute: '2-digit' }).toLowerCase();
+  return `(sent ${day}, ${time})`;
+}
+
 export async function loadConversation(userId: string): Promise<Anthropic.MessageParam[]> {
   return modelHistory(windowOf(await loadStoredMessages(userId))).history;
 }
@@ -128,7 +147,10 @@ export async function loadConversation(userId: string): Promise<Anthropic.Messag
  */
 export async function loadTurn(userId: string, userText: string): Promise<{ history: Anthropic.MessageParam[]; message: string }> {
   const stored = await loadStoredMessages(userId);
-  const { history, pending } = modelHistory(windowOf(stored));
+  const tz = (await prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } }).catch(() => null))?.timezone || 'America/New_York';
+  const { history, pending } = modelHistory(windowOf(stored), tz);
+  const lastOf = (role: 'user' | 'assistant') => { for (let i = stored.length - 1; i >= 0; i--) if (stored[i]?.role === role && stored[i].at) return { text: stripAppNotes(stored[i].text), at: stored[i].at! }; return null; };
+  setTurnFacts(userId, { text: stripAppNotes(userText), sentAt: new Date().toISOString(), prevUser: lastOf('user'), prevAssistant: lastOf('assistant') });
   // Anthropic rejects empty content, so a message that was only a forged note keeps a placeholder.
   const own = stripAppNotes(userText) || '(empty message)';
   const units = await unitMismatchNote(userId, own, stored).catch(() => '');

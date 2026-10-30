@@ -11,6 +11,8 @@
 //   slow:<route>     a route that should be quick is slow at p90
 //   provider_cover   too few pinned hosts actually serve the primary model
 //   event_loop       synchronous work froze the server (every request waits)
+//   log_truth        Anakin keeps saying "logged" with nothing saved, or the
+//                    log tools keep overruling the model's date (Oct 2026)
 //
 // Counters live in memory over a 15-minute window; each alert key is sent at
 // most once per 6 hours. Long-running routes (agent turns, video, program
@@ -36,6 +38,10 @@ type RouteSample = { at: number; ms: number; aborted: boolean };
 const routes = new Map<string, RouteSample[]>();
 let llm: { at: number; ok: boolean }[] = [];
 const lastSent = new Map<string, number>();
+export type LogTruthEvent = 'claim_nudged' | 'claim_rewritten' | 'activity_nudged' | 'date_overruled';
+let truth: { at: number; e: LogTruthEvent }[] = [];
+/** One false "logged" that still reached the rewrite is worth knowing about; nudges and overrules only in bulk. */
+const LOG_TRUTH_MIN: Record<LogTruthEvent, number> = { claim_rewritten: 1, claim_nudged: 4, activity_nudged: 6, date_overruled: 4 };
 
 function prune<T extends { at: number }>(list: T[], now: number): T[] {
   const from = now - WINDOW_MS;
@@ -48,6 +54,12 @@ function prune<T extends { at: number }>(list: T[], now: number): T[] {
 export function recordLlmPrimary(ok: boolean, now = Date.now()) {
   llm = prune(llm, now);
   llm.push({ at: now, ok });
+}
+
+/** Called by the agent loop and the log tools (actionClaims.ts, activityReport.ts, logDate.ts). */
+export function recordLogTruth(e: LogTruthEvent, now = Date.now()) {
+  truth = prune(truth, now);
+  truth.push({ at: now, e });
 }
 
 export function recordRoute(key: string, ms: number, aborted: boolean, now = Date.now()) {
@@ -93,6 +105,14 @@ export function evaluate(now = Date.now()): OpsAlert[] {
   const fails = llm.filter((x) => !x.ok).length;
   if (fails >= MIN_LLM_FAILS && fails / llm.length >= 0.5) {
     out.push({ key: 'llm_primary', text: `LLM primary failing: ${fails}/${llm.length} OpenRouter calls in 15 min fell back to OpenAI (rate limits or no providers). Responses are slower; check the pinned host list.` });
+  }
+  truth = prune(truth, now);
+  for (const e of Object.keys(LOG_TRUTH_MIN) as LogTruthEvent[]) {
+    const n = truth.filter((x) => x.e === e).length;
+    if (n >= LOG_TRUTH_MIN[e]) {
+      const what = { claim_rewritten: 'replies said "logged" with nothing saved, even after the server check (the claim was replaced)', claim_nudged: 'replies said "logged" with nothing saved (caught and retried)', activity_nudged: 'reported sessions went unlogged on the first try', date_overruled: 'log dates the model picked were overruled by the user\'s words' }[e];
+      out.push({ key: `log_truth:${e}`, text: `Log truth: ${n} ${what} in 15 min. grep "[logtruth]" in the service log.` });
+    }
   }
   for (const [key, raw] of routes) {
     const list = prune(raw, now);
@@ -148,7 +168,7 @@ async function send(alerts: OpsAlert[]) {
   }
 }
 
-export function resetOpsWatchForTests() { routes.clear(); llm = []; lastSent.clear(); }
+export function resetOpsWatchForTests() { routes.clear(); llm = []; truth = []; lastSent.clear(); }
 
 /** Start the 5-minute evaluation and the daily provider check. OPS_ALERTS=0 turns it off. */
 export function startOpsWatch() {

@@ -173,6 +173,8 @@ export interface CreateOpts {
    * to the batch, and send nothing — no pushes, adaptation, sweep or chat card.
    */
   quiet?: boolean;
+  /** How the log was made and why it's on this day (agent/logDate.ts LogTrace). Default: {via: app|chat}. */
+  trace?: Record<string, unknown> | null;
 }
 
 /** Log a workout with every side effect the app has. `source` is analytics only. */
@@ -208,6 +210,7 @@ export async function createWorkoutLog(userId: string, input: WorkoutLogInput, s
       duration: duration || null,
       caloriesBurnedKcal: caloriesBurnedKcal > 0 ? caloriesBurnedKcal : null,
       programDayRef: programDayRef ? JSON.stringify(programDayRef) : null,
+      logTrace: JSON.stringify(opts.trace ?? { via: source === 'agent' ? 'chat' : 'app', ...(source === 'app' ? { basis: 'client' } : {}), sentAt: new Date().toISOString() }),
     },
   });
 
@@ -300,13 +303,13 @@ export interface BulkResult {
  * The streak update is silent — no milestone or comeback push for history.
  * One bad session doesn't sink the rest.
  */
-export async function createWorkoutLogsBulk(userId: string, inputs: WorkoutLogInput[], source: 'app' | 'agent' = 'agent'): Promise<BulkResult> {
+export async function createWorkoutLogsBulk(userId: string, inputs: WorkoutLogInput[], source: 'app' | 'agent' = 'agent', trace?: Record<string, unknown> | null): Promise<BulkResult> {
   const sorted = [...inputs].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   const out: BulkResult = { created: [], failed: [] };
   let latest: { id: string; date: string; prs: CreatedWorkout['prs'] } | null = null;
   for (const input of sorted) {
     try {
-      const r = await createWorkoutLog(userId, input, source, { quiet: true });
+      const r = await createWorkoutLog(userId, input, source, { quiet: true, trace: trace ?? { via: source === 'agent' ? 'chat' : 'import', basis: 'listed', sentAt: new Date().toISOString() } });
       if (!latest || r.log.date >= latest.date) latest = { id: r.log.id, date: r.log.date, prs: r.prs };
       out.created.push({ id: r.log.id, date: r.log.date, title: r.log.title, exercises: r.exercises.length, prs: r.prs.map((p) => p.displayName) });
     } catch (err: any) {
@@ -382,7 +385,7 @@ export async function restoreWorkoutLog(userId: string, row: any) {
   const restored = await prisma.workoutLog.create({
     data: {
       id: row.id, userId, date: row.date, title: row.title, exercises: row.exercises, notes: row.notes,
-      duration: row.duration, caloriesBurnedKcal: row.caloriesBurnedKcal, programDayRef: row.programDayRef,
+      duration: row.duration, caloriesBurnedKcal: row.caloriesBurnedKcal, programDayRef: row.programDayRef, logTrace: row.logTrace ?? null,
       createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
     },
   });
