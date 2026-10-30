@@ -90,8 +90,10 @@ export const useStrength = () => useQuery({ queryKey: qk.strength, queryFn: () =
 // which hid the whole day's log every evening in the Americas (8 Oct 2026, Calgary).
 export const useMeals = (date: string = todayStr()) => useQuery({ queryKey: qk.meals(date), queryFn: () => nutritionApi.getMeals(date) as Promise<any>, staleTime: 30_000 });
 export const useMicrosDay = (date = todayStr()) => useQuery({ queryKey: ['v2', 'np', 'micros', date], queryFn: () => nutritionProfileApi.getMicros(date), staleTime: STALE });
-export const useNpDay = () => { const date = todayStr(); return useQuery({ queryKey: [...qk.npDay, date], queryFn: () => nutritionProfileApi.getDay(date), staleTime: STALE }); };
-export const useNpWeek = () => { const date = todayStr(); return useQuery({ queryKey: ['v2', 'np', 'week', date], queryFn: () => nutritionProfileApi.getDay(date, '7d'), staleTime: 5 * 60_000 }); };
+// The numbers answer at once; Anakin's sentence lands a moment later (the server stops saying pending within 20 s).
+const narrationPoll = (q: any) => (q.state.data?.narrationPending ? 3_000 : false);
+export const useNpDay = () => { const date = todayStr(); return useQuery({ queryKey: [...qk.npDay, date], queryFn: () => nutritionProfileApi.getDay(date), staleTime: STALE, refetchInterval: narrationPoll }); };
+export const useNpWeek = () => { const date = todayStr(); return useQuery({ queryKey: ['v2', 'np', 'week', date], queryFn: () => nutritionProfileApi.getDay(date, '7d'), staleTime: 5 * 60_000, refetchInterval: narrationPoll }); };
 export const useNpEffect = (id: string) => useQuery({ queryKey: qk.npEffect(id), queryFn: () => nutritionProfileApi.getEffect(id, todayStr(), '7d' as any), staleTime: STALE, enabled: !!id });
 export const useNutritionPlan = () => useQuery({ queryKey: qk.nutritionPlan, queryFn: () => v2Api.nutritionPlan(), staleTime: STALE });
 export const useNpNutrient = (key: string) => useQuery({ queryKey: qk.npNutrient(key), queryFn: () => nutritionProfileApi.getNutrient(key, todayStr(), '7d' as any), staleTime: STALE, enabled: !!key });

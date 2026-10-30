@@ -5,6 +5,7 @@
 // A program is NEVER modified except inside `decide('apply')` and `undo`,
 // and both record what they did on the proposal row.
 
+import { track } from '../services/productEvents.js';
 import { parseUserPrefs } from '../services/userPrefs.js';
 import { clampDailyCalories, floorProfileFromRow } from '../services/nutritionSafety.js';
 import { PrismaClient } from '@prisma/client';
@@ -401,6 +402,7 @@ export async function decide(
   if (!row || row.userId !== userId) throw new Error('Proposal not found');
   if (row.status !== 'pending' && row.status !== 'snoozed') throw new Error(`Proposal is already ${row.status}`);
   invalidateSummary(userId);
+  track(userId, 'adaptation_decided', { action });
 
   if (action === 'decline') {
     const updated = await prisma.adaptationProposal.update({ where: { id: proposalId }, data: { status: 'declined', decidedAt: now } });

@@ -3,6 +3,7 @@
 // library, marks the nutrition profile stale, logs activity and advances the
 // nutrition streak, exactly like one logged in the app.
 
+import { track } from './productEvents.js';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { applySupplementDoses } from './supplementDoses.js';
@@ -122,6 +123,7 @@ export async function todayForUser(userId: string, now: Date = new Date()): Prom
 /** `trace`: how the log was made and why it's on this day (agent/logDate.ts LogTrace); the app's own logs get {via:'app'}. */
 export async function createMealEntry(userId: string, input: MealEntryInput, trace?: Record<string, unknown> | null) {
   const r = await saveMealEntry(userId, input, trace);
+  track(userId, 'meal_logged', { source: r.entry.source, meal_type: r.entry.mealType, via: String(trace?.via ?? 'app'), calories: Math.round(r.entry.calories), protein_g: Math.round(r.entry.proteinG) });
   // The first meal that takes the day's protein past target earns a moment (once a day).
   // Lazy: the moments module reaches progressService → notifications → LLM clients.
   const m = await (await import('./moments/index.js')).momentForNutrition(userId, r.entry.date);

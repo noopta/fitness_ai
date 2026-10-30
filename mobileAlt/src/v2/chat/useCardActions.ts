@@ -21,6 +21,7 @@ import { manageSubscription, managedViaLabel } from '../billing';
 import { destinationFor } from './cardRoutes';
 import { captureBus, threadBus } from './captureBus';
 import type { Thread } from './useThread';
+import { track } from '../track';
 
 const errText = (e: any) => (e?.message && !/^HTTP \d/.test(e.message) ? e.message : 'Couldn’t do that — try again.');
 
@@ -157,6 +158,7 @@ export function useCardActions(thread: Thread) {
   }, [send, open, router, thread, auth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const act = useCallback(async (card: Card, action: CardAction, extra: CardActionExtra = {}) => {
+    track('card_tapped', { fn: card.fn, action: action.id });
     if (action.kind === 'undo' || action.id === 'undo') return undo(card);
     if (action.client) return runClient(card, action.client.action, action.client.args as Record<string, any>);
     try {

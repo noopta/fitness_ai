@@ -1,3 +1,4 @@
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { practiceContraindicationsForUser } from '../services/personalTraining/contraindications.js';
 import { describeCheckin } from '../services/checkinText.js';
@@ -803,6 +804,7 @@ async function generateProgramForUserOnce(userId: string, opts: ProgramOpts): Pr
 }
 
 router.post('/coach/program', requireAuth, aiLimiter, async (req, res) => {
+  track(req.user!.id, 'program_generate_requested');
   try {
     const { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender } = programSchema.parse(req.body);
     const fullProgram = await generateProgramForUser(req.user!.id, { goal: requestedGoal, bodyCompositionGoal: requestedBodyComp, daysPerWeek, durationWeeks, gender, tier: req.user!.tier, save: false });

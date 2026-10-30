@@ -23,6 +23,7 @@
 // The drill-downs take `range` too, and must: a 30-day card reading "Sleep low ·
 // 41" that opens a detail screen showing today's 78 is worse than no range at all.
 
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -139,36 +140,59 @@ function fallbackDriver(sys: BodySystemScore, period: string): string {
   return `${d.label} at ${d.pct}% of target is holding ${sys.name.toLowerCase()} to ${sys.score}.`;
 }
 
-// Narration is the one slow step here: an uncached LLM call made on every
-// load (p50 ~4.7 s, p90 ~9 s in Oct 2026, with users leaving before it
-// returned). Its input is a few rounded figures that repeat across loads, so
-// cache it by those figures, and never hold the page past the budget: the
-// deterministic sentences show instead, and a late answer still fills the cache.
-let narrationBudgetMs = 3_000;
+// Narration is the one slow step here: an LLM call (p50 1.8 s, p90 3 s, worst
+// 5 s, Oct 2026), and every logged meal changes its input. Until 30 Oct the
+// numbers waited for it, up to 3 s, right after each log. Now they never wait:
+// a miss sends the deterministic sentences with narrationPending, the call
+// finishes in the background and fills the cache, and the app refetches once
+// to pick up the sentence. Its input is a few rounded figures that repeat
+// across loads, so it's cached by those figures.
+let narrationBudgetMs = 0;
 const NARRATION_TTL_MS = 6 * 60 * 60_000;
 const NARRATION_CACHE_MAX = 1_000;
+/** A failed call isn't retried for this long, so a model outage can't make the app poll. */
+const NARRATION_FAILED_MS = 60_000;
+/** Stop telling the app to wait after this long, whatever the call is doing. */
+const NARRATION_PENDING_MS = 20_000;
 const narrationCache = new Map<string, { at: number; value: ProfileNarration }>();
-export function resetNarrationCacheForTests(budgetMs = 3_000) { narrationCache.clear(); narrationBudgetMs = budgetMs; }
+const narrationFailed = new Map<string, number>();
+const narrationInFlight = new Map<string, { at: number; job: Promise<ProfileNarration> }>();
+export function resetNarrationCacheForTests(budgetMs = 3_000) { narrationCache.clear(); narrationFailed.clear(); narrationInFlight.clear(); narrationBudgetMs = budgetMs; }
 
-async function narrate(userId: string, input: ProfileNarrationInput): Promise<ProfileNarration | null> {
+async function narrate(userId: string, input: ProfileNarrationInput): Promise<{ value: ProfileNarration | null; pending: boolean }> {
   const key = `${userId}:${JSON.stringify(input)}`;
   const hit = narrationCache.get(key);
-  if (hit && Date.now() - hit.at < NARRATION_TTL_MS) return hit.value;
-  const pending = generateProfileNarration(input).then((value) => {
-    narrationCache.delete(key);
-    narrationCache.set(key, { at: Date.now(), value });
-    if (narrationCache.size > NARRATION_CACHE_MAX) narrationCache.delete(narrationCache.keys().next().value!);
-    return value;
-  });
-  pending.catch(() => { /* the fallback sentences cover it */ });
+  if (hit && Date.now() - hit.at < NARRATION_TTL_MS) return { value: hit.value, pending: false };
+  const failedAt = narrationFailed.get(key);
+  if (failedAt && Date.now() - failedAt < NARRATION_FAILED_MS) return { value: null, pending: false };
+  let flight = narrationInFlight.get(key);
+  if (!flight) {
+    const job = generateProfileNarration(input).then((value) => {
+      narrationCache.delete(key);
+      narrationCache.set(key, { at: Date.now(), value });
+      if (narrationCache.size > NARRATION_CACHE_MAX) narrationCache.delete(narrationCache.keys().next().value!);
+      return value;
+    });
+    flight = { at: Date.now(), job };
+    narrationInFlight.set(key, flight);
+    const k = key;
+    job.catch(() => {
+      narrationFailed.set(k, Date.now());
+      if (narrationFailed.size > NARRATION_CACHE_MAX) narrationFailed.delete(narrationFailed.keys().next().value!);
+    }).finally(() => narrationInFlight.delete(k));
+  }
   let timer: NodeJS.Timeout | undefined;
   const budget = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), narrationBudgetMs); });
-  try { return await Promise.race([pending, budget]); } finally { clearTimeout(timer); }
+  try {
+    const value = await Promise.race([flight.job, budget]);
+    return { value, pending: value == null && Date.now() - flight.at < NARRATION_PENDING_MS };
+  } finally { clearTimeout(timer); }
 }
 
 // GET /nutrition-profile?date=&range=
 router.get('/nutrition-profile', requireAuth, async (req, res) => {
   try {
+    const t0 = Date.now();
     const userId = req.user!.id;
     const date = await queryDateOrToday(req, isValidIsoDate(req.query.date) ? req.query.date : undefined);
     const range = parseRange(req.query.range);
@@ -195,10 +219,11 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
     let headline = fallbackHeadline(engine, period);
     const driverByName: Record<string, string> = {};
     for (const s of engine.systems) driverByName[s.name] = fallbackDriver(s, period);
+    let narrationPending = false;
     try {
       const coverageNote = isToday ? '' : `, across ${win.loggedDays} of ${win.windowDays} days logged`;
       const kcalNote = isToday ? `kcal ${engine.kcalLogged}` : `avg ${engine.kcalLogged} kcal/day`;
-      const narration = await narrate(userId, {
+      const told = await narrate(userId, {
         headlineFacts: `${kcalNote}, micronutrient coverage ${engine.microCoveragePct}%, profile score ${engine.profileScore}${coverageNote}`,
         systems: engine.systems.map(s => ({
           name: s.name, status: s.status, score: s.score,
@@ -210,6 +235,8 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
           windowDays: win.windowDays,
         }),
       });
+      narrationPending = told.pending;
+      const narration = told.value;
       if (narration?.headline) headline = narration.headline;
       for (const [name, sentence] of Object.entries(narration?.drivers ?? {})) {
         if (sentence) driverByName[name] = sentence;
@@ -221,6 +248,7 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
     // the first item in the list it opens.
     const recs = recommendFoods(engine.coverage, win.bodyweightKg, 1);
     const topRec = recs[0] ?? null;
+    track(userId, 'nutrition_profile_loaded', { range, ms: Date.now() - t0, narration_pending: narrationPending });
 
     res.json({
       date,
@@ -231,6 +259,7 @@ router.get('/nutrition-profile', requireAuth, async (req, res) => {
       profileScore: engine.profileScore,
       profileScoreProvisional: true, // spec §11 — formula pending science sign-off
       headline,
+      ...(narrationPending ? { narrationPending: true } : {}),
       systems: engine.systems.map(s => ({
         id: s.id, name: s.name, status: s.status, score: s.score,
         driver: driverByName[s.name] ?? fallbackDriver(s, period),

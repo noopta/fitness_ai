@@ -6,7 +6,7 @@
 // Search (bug fixes 5 Oct, 4a) is where the other ways to log now live:
 // your foods and recipes, Enter macros manually, Voice and Order · receipt.
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
@@ -35,6 +35,7 @@ import { todayStr } from '../../lib/localDate';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
 import { haptics } from '../haptics';
 import type { ReceiptVerb } from '@axiom/agent-ui-core';
+import { track } from '../track';
 
 
 export function FuelPage() {
@@ -43,6 +44,14 @@ export function FuelPage() {
   const meals = useMeals();
   const np = useNpDay();
   const week = useNpWeek();
+  // How long Fuel's numbers take to appear: first paint to first data.
+  const fuelStart = useRef(Date.now());
+  const fuelTimed = useRef(false);
+  useEffect(() => {
+    if (fuelTimed.current || !(np.isSuccess || np.isError)) return;
+    fuelTimed.current = true;
+    track('fuel_loaded', { ms: Date.now() - fuelStart.current, ok: np.isSuccess });
+  }, [np.isSuccess, np.isError]);
   const plan = useNutritionPlan();
   const shell = useShell();
   const invalidate = useInvalidate();
@@ -60,6 +69,7 @@ export function FuelPage() {
   // Plan row: open the plan, or — with none yet — start the gut check-in (NTP-04) in chat.
   const openPlan = () => {
     haptics.select();
+    track('fuel_plan_opened', { has_plan: !!plan.data });
     if (plan.data) router.push({ pathname: '/(v2)/p/[key]', params: { key: 'fuelplan' } } as any);
     // Straight into the thread (no model turn), at the next unanswered question; Pro gating and errors fall back to asking.
     else void v2Api.nutritionQuestions().then(() => { threadBus.rehydrate(); shell.setMode('chat'); shell.goTo(0); }).catch(() => shell.ask('Start my gut and nutrition questions.'));
@@ -97,6 +107,7 @@ export function FuelPage() {
     if (requirePro() === false) return;
     setDock('busy'); setLog([{ verb: 'Read', text: `Last ${new Date().toLocaleDateString('en-US', { weekday: 'long' })} — ${u.name ?? 'meal'}` }]);
     try {
+      track('food_logged', { path: 'usual' });
       await nutritionApi.logMeal({ date: todayStr(), name: u.name ?? u.description ?? 'The usual', description: u.description, mealType: guessMealType(), calories: Math.round(u.calories ?? 0), proteinG: Math.round(u.proteinG ?? 0), carbsG: Math.round(u.carbsG ?? 0), fatG: Math.round(u.fatG ?? 0), ...microFields(u.nutrients), source: 'usual' } as any);
       setLog((l) => [...l, { verb: 'Logged', text: `${u.name ?? 'The usual'} — ${Math.round(u.calories ?? 0)} kcal` }]);
       haptics.success(); await invalidate.afterMeal();
@@ -122,6 +133,7 @@ export function FuelPage() {
       setLog((l) => (parsed?.lookups?.length ? l.filter((x) => x.verb !== 'Reading') : [read, { verb: rc.verb, text: rc.text }]));
       const body = { ...richLogFields(parsed, 'text'), date: todayStr(), name: item?.name ?? t, description: t, mealType: guessMealType(), calories: Math.round(item?.calories ?? parsed?.calories ?? 0), proteinG: Math.round(item?.proteinG ?? parsed?.proteinG ?? 0), carbsG: Math.round(item?.carbsG ?? parsed?.carbsG ?? 0), fatG: Math.round(item?.fatG ?? parsed?.fatG ?? 0), source: 'describe', ...(rc.found && parsed?.notes ? { notes: String(parsed.notes).slice(0, 480) } : {}) };
       await nutritionApi.logMeal(body as any);
+      track('food_logged', { path: 'describe', looked_up: !!parsed?.lookups?.length });
       setLog((l) => [...l, { verb: 'Logged', text: `${body.name} — ${body.calories} kcal · ${body.proteinG} P · ${body.carbsG} C · ${body.fatG} F` }]);
       haptics.success();
       await invalidate.afterMeal();

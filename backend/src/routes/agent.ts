@@ -11,6 +11,7 @@ import { startRun, finishRun, inRun, noteStep, turnStatus } from '../agent/turnR
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { checkAgentRateLimit } from '../middleware/checkAgentRateLimit.js';
+import { track } from '../services/productEvents.js';
 import { runAgentTurn, streamAgentTurn, type AgentStreamEvent } from '../agent/loop.js';
 import { applyProposedWeek, getCurrentWeekSchedule } from './coach.js';
 import { readMemory } from '../agent/memory.js';
@@ -215,8 +216,10 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, requireAgent
     const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract, systemAddendum: mod.addendum }));
     await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef));
     console.log(`[agent] stream user=${userId.slice(0, 8)} ms=${Date.now() - t0} tools=${JSON.stringify((result as any).toolsUsed ?? [])}`);
+    track(userId, 'agent_turn', { ms: Date.now() - t0, tools: (result as any).toolsUsed ?? [], tool_count: ((result as any).toolsUsed ?? []).length, card_count: (result.cards ?? []).length, stream: true });
   } catch (err: any) {
     console.error('[agent] stream failed:', err?.message ?? err);
+    track(userId, 'agent_turn_failed', { stream: true });
     send({ type: 'error', error: err?.message ?? 'Agent error' });
   } finally {
     clearInterval(beat);

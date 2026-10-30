@@ -50,6 +50,7 @@ import { claimMoments } from '../../src/v2/moments/store';
 import { SwapSheet } from '../../src/v2/swap/SwapSheet';
 import { getTodaySwaps, setTodaySwap, swappedName } from '../../src/v2/todaySwaps';
 import { useAuth } from '../../src/context/AuthContext';
+import { track } from '../../src/v2/track';
 
 const DRAFT_KEY = 'v2.sessionDraft.v1';
 const loadDraft = async (): Promise<unknown> => { try { const raw = await AsyncStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } };
@@ -82,7 +83,7 @@ function SessionScreenInner() {
   const [draftChecked, setDraftChecked] = useState(false);
   const [resumed, setResumed] = useState(false);
 
-  useEffect(() => { trackScreen('v2.session'); }, []);
+  useEffect(() => { trackScreen('v2.session'); track('session_started', { freestyle: !!seed }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void loadDraft().then((raw) => {
@@ -171,6 +172,7 @@ function SessionScreenInner() {
     let load: number | null = null;
     // Their last top set of the new lift; none = the session asks for the weight before the set counts.
     try { const last: any = await v2Api.lastExercise(to); const kg = last?.target?.targetWeightKg ?? last?.exposures?.[0]?.top?.weightKg ?? null; if (kg) load = Math.round(fromKg(kg) / rules.step) * rules.step; } catch { /* no history */ }
+    track('session_swap_applied', { had_weight: load != null });
     const r = swapExercise(P, state, idx, { name: to, load, kind: loadKind(to) });
     setPlan(r.plan);
     dispatch({ type: 'apply_swap', state: r.state });
@@ -229,6 +231,7 @@ function SessionScreenInner() {
           setEntries: e.setEntries.map((x) => ({ weightKg: kg(x.weight), reps: x.reps, rpe: x.rpe })),
         })),
       } as any);
+      track('session_finished', { sets_done: sum.sets, sets_total: sum.totalSets, minutes: sum.minutes, freestyle: !!seed });
       clearDraft();
       if (res?.moment) setMoment(res.moment);
       await invalidate.afterWorkout();

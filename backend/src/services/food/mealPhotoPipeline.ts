@@ -14,6 +14,7 @@ import type { ParsedMealDetail, Micronutrients } from '../llmService.js';
 import type { HybridEnrichmentMeta } from '../nutritionEnrichmentService.js';
 import type { FoodRegion } from '../prompts/regionPrompts.js';
 import type { ExistingItemRef, MealPhotoV2Raw } from './mealPhotoSchema.js';
+import { track } from '../productEvents.js';
 import { CALIBRATED_MODEL, CALIBRATION_ON, calibrateItem } from './portionCalibration.js';
 import { applyLabelMicros, type LabelMicros } from './brandedLookup.js';
 import { anchorToPastMeal, type MemoryMatch, type PastMeal } from './mealMemory.js';
@@ -214,6 +215,7 @@ export async function runMealPhotoAnalysis(req: MealPhotoRequest, deps: MealPhot
     }
   }
 
+  track(req.userId, 'food_photo_analyzed', { model: deps.model, ms: now() - started, items: response.items.length, usda_hits: usdaHits, cache_hit: cacheHit, images: req.images.length, nothing_found: !!response.noFoodDetected, memory: !!response.memory });
   (deps.log ?? ((l: string) => console.log('[meal-photo]', l)))(JSON.stringify({
     analysisId,
     userId: req.userId,

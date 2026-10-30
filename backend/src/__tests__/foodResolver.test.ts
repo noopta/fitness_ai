@@ -191,3 +191,38 @@ describe('calories without macros is never a find (21 Oct 2026: Double Whopper 1
   });
 });
 
+describe('a slow web search never holds the log', () => {
+  const late = () => { let land!: (v: any) => void; const p = new Promise<any>((r) => { land = r; }); return { p, land }; };
+  const chainItem = (product: string) => item({ brand: 'Starbucks', product, size: 'Grande' });
+
+  it('past the wait the log goes ahead with the estimate, and the late answer is still kept', async () => {
+    const { p, land } = late();
+    const d = deps({ web: vi.fn().mockReturnValue(p), webFresh: vi.fn().mockResolvedValue({ kind: 'found', facts: FACTS('x.com') }) });
+    const t = Date.now();
+    const r = await resolveItem(chainItem('Slow Latte A'), 0, { surface: 'chat', tz: 'America/Toronto', waitMs: 20, deps: d });
+    expect(Date.now() - t).toBeLessThan(1000);
+    expect(r.step).toBe('estimate');
+    expect(r.result).toEqual({ kind: 'unavailable', reason: 'timeout' });
+    expect(d.remember).not.toHaveBeenCalled();
+    land({ kind: 'found', facts: FACTS('x.com') });
+    await new Promise((res) => setTimeout(res, 5));
+    expect(d.webFresh).toHaveBeenCalledTimes(1); // same rule as an on-time answer: a second lookup confirms it
+    expect(d.remember).toHaveBeenCalledTimes(1);
+  });
+
+  it('a second person asking during the search joins it instead of starting another', async () => {
+    const { p, land } = late();
+    const d = deps({ web: vi.fn().mockReturnValue(p), webFresh: vi.fn().mockResolvedValue({ kind: 'not_found', reason: 'x' }) });
+    await resolveItem(chainItem('Slow Latte B'), 0, { surface: 'chat', tz: 'America/Toronto', waitMs: 5, deps: d });
+    await resolveItem(chainItem('Slow Latte B'), 0, { surface: 'describe', tz: 'America/Toronto', waitMs: 5, deps: d });
+    expect(d.web).toHaveBeenCalledTimes(1);
+    land({ kind: 'not_found', reason: 'x' });
+  });
+
+  it('an answer inside the wait is used as before', async () => {
+    const d = deps();
+    const r = await resolveItem(chainItem('Quick Latte'), 0, { surface: 'chat', tz: 'America/Toronto', waitMs: 500, deps: d });
+    expect(r.step).toBe('web');
+    expect(r.result.kind).toBe('found');
+  });
+});

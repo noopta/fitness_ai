@@ -4,6 +4,7 @@
 // invalidation, strength recompute, streak + pushes, PR detection, adaptive-
 // progression proposals and the post-workout proactive sweep.
 
+import { track } from './productEvents.js';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { bounded } from '../validation/physiologicalBounds.js';
@@ -346,6 +347,7 @@ async function settleStreakAfterBackfill(userId: string, datesAsc: string[]): Pr
 
 /** Replace a log's contents. Returns null when it isn't the user's. */
 export async function updateWorkoutLog(userId: string, id: string, input: WorkoutLogInput) {
+  track(userId, 'workout_edited');
   const existing = await prisma.workoutLog.findUnique({ where: { id } });
   if (!existing || existing.userId !== userId) return null;
   const { date, title, exercises, notes, duration, programDayRef } = workoutLogSchema.parse(input);
@@ -369,6 +371,7 @@ export async function updateWorkoutLog(userId: string, id: string, input: Workou
 
 /** Delete a log; returns the deleted row (for undo) or null. */
 export async function deleteWorkoutLog(userId: string, id: string) {
+  track(userId, 'workout_deleted');
   const existing = await prisma.workoutLog.findUnique({ where: { id } });
   if (!existing || existing.userId !== userId) return null;
   await prisma.workoutLog.delete({ where: { id } });

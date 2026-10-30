@@ -32,6 +32,7 @@ import { haptics } from '../../src/v2/haptics';
 import { trackScreen } from '../../src/lib/analytics';
 import { KeyboardAvoider } from '../../src/components/ui/KeyboardAvoider';
 import { KeyboardDoneBar, KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+import { track } from '../../src/v2/track';
 
 const DRAFT_KEY = 'v2.loggerDraft.v1';
 const C = v2.color;
@@ -88,6 +89,7 @@ export default function LogScreen() {
     try {
       const body = loggerToLogBody(s, (w) => toKg(w));
       await workoutsApi.logWorkout({ ...body, title: body.title ?? undefined, exercises: body.exercises } as any);
+      track('workout_manual_logged', { exercises: body.exercises.length });
       clearDraft();
       await invalidate.afterWorkout();
       haptics.success();

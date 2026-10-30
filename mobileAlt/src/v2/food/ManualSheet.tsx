@@ -18,6 +18,7 @@ import { TextAction } from '../primitives/TextAction';
 import { nutritionApi } from '../../lib/api';
 import { todayStr } from '../../lib/localDate';
 import { KEYBOARD_DONE_ID } from '../../components/ui/KeyboardDoneBar';
+import { track } from '../track';
 
 const C = v2.color;
 type Field = 'calories' | 'proteinG' | 'carbsG' | 'fatG';
@@ -45,6 +46,7 @@ export function ManualSheet({ initialName = '', onClose, onLogged }: { initialNa
     if (!ready || busy) return;
     setBusy(true);
     try {
+      track('food_logged', { path: 'manual' });
       const m: any = await nutritionApi.logMeal({
         date: todayStr(), mealType: mealSlotFor(), name: name.trim() || 'Meal',
         calories: Math.round(n('calories')), proteinG: Math.round(n('proteinG')), carbsG: Math.round(n('carbsG')), fatG: Math.round(n('fatG')),

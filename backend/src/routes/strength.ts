@@ -18,7 +18,8 @@ const router = Router();
 const prisma = new PrismaClient();
 
 const CACHE_KEY = (userId: string) => `strength:profile:${userId}`;
-const INSIGHTS_BUDGET_MS = 3_000;
+// 0: the profile never waits on the model (Oct 2026: cold Training and Fuel loads sat at 3.4 s for this). Insights join the cached profile when they land.
+const INSIGHTS_BUDGET_MS = 0;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

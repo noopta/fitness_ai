@@ -108,6 +108,41 @@ describe('GET /nutrition-profile', () => {
     expect(recovery.driver).toContain('144%');
   });
 
+  it('never holds the numbers for the headline: a miss answers at once, the next load has the sentence', async () => {
+    const mod = await import('../routes/nutritionProfile.js');
+    mod.resetNarrationCacheForTests(0); // the production budget
+    const app = await buildApp();
+    mocks.mealEntry.findMany.mockResolvedValue([meal()]);
+    let land!: (v: any) => void;
+    mockNarration.mockReturnValue(new Promise((r) => { land = r; }));
+    const first = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(first.status).toBe(200);
+    expect(first.body.narrationPending).toBe(true);
+    expect(first.body.systems.length).toBeGreaterThan(0);
+    expect(first.body.headline).toBeTruthy(); // the deterministic sentence
+    // A refetch while it's running doesn't start a second call.
+    await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(mockNarration).toHaveBeenCalledTimes(1);
+    land({ headline: 'Fueling recovery at 78.', drivers: {} });
+    await new Promise((r) => setTimeout(r, 5));
+    const second = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(second.body.headline).toBe('Fueling recovery at 78.');
+    expect(second.body.narrationPending).toBeUndefined();
+    expect(mockNarration).toHaveBeenCalledTimes(1);
+  });
+
+  it('a model outage stops the waiting: no pending flag, no new call for a minute', async () => {
+    const mod = await import('../routes/nutritionProfile.js');
+    mod.resetNarrationCacheForTests(0);
+    const app = await buildApp();
+    mocks.mealEntry.findMany.mockResolvedValue([meal()]);
+    await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    await new Promise((r) => setTimeout(r, 5));
+    const again = await request(app).get('/api/nutrition-profile').set('Authorization', `Bearer ${token}`);
+    expect(again.body.narrationPending).toBeUndefined();
+    expect(mockNarration).toHaveBeenCalledTimes(1);
+  });
+
   it('falls back to macros+micros for pre-migration entries with no nutrientMap', async () => {
     const app = await buildApp();
     mocks.mealEntry.findMany.mockResolvedValue([meal({

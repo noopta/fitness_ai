@@ -11,6 +11,7 @@ import { useShell } from '../../src/v2/shell/ShellContext';
 import { TABS } from '@axiom/agent-ui-core';
 import { YouPage } from '../../src/v2/pages/You';
 import { trackScreen } from '../../src/lib/analytics';
+import { track } from '../../src/v2/track';
 
 const FEED_HEADER = [null, null, null, <FeedHeaderRight key="feed" />, null];
 
@@ -19,6 +20,7 @@ export default function V2Index() {
   // Deep links (social notifications) open a page: /(v2)?tab=feed.
   const { tab } = useLocalSearchParams<{ tab?: string }>();
   const shell = useShell();
+  useEffect(() => { track('tab_viewed', { tab: TABS[shell.index] }); }, [shell.index]);
   useEffect(() => {
     const i = tab ? TABS.findIndex((t) => t.toLowerCase() === String(tab).toLowerCase()) : -1;
     if (i > 0) requestAnimationFrame(() => shell.goTo(i));

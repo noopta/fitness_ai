@@ -17,6 +17,7 @@ import { ProgressHairline } from '../../src/v2/charts';
 import { formAnalysisApi } from '../../src/lib/api';
 import { haptics } from '../../src/v2/haptics';
 import { qk } from '../../src/v2/data';
+import { track } from '../../src/v2/track';
 
 let vision: any = null;
 try { vision = require('react-native-vision-camera'); } catch { vision = null; }
@@ -62,6 +63,7 @@ export default function FormCheckScreen() {
   const stop = () => { try { void camRef.current?.stopRecording(); } catch { /* already stopped */ } };
   const analyze = async () => {
     if (!clip) return;
+    track('form_check_submitted');
     setStage('uploading');
     try {
       const started = await formAnalysisApi.start(clip, 'video/mp4', lift === 'Other' ? undefined : lift, keepStills);

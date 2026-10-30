@@ -1,3 +1,4 @@
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -106,6 +107,7 @@ router.get('/workouts/exercise-alternatives', requireAuth, (req, res) => {
 // Exercise swaps that keep the job (Oct 2026), behind SWAP_V2_ENABLED / SWAP_V2_USERS.
 // POST /api/workouts/swap-options { name, sets?, reps?, notes?, index?, session?, reason?, painJoint? }
 router.post('/workouts/swap-options', requireAuth, async (req, res) => {
+  track(req.user!.id, 'swap_options_requested');
   if (!swapV2AvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
   const b = req.body ?? {};
   const name = typeof b.name === 'string' ? b.name.trim().slice(0, 80) : '';

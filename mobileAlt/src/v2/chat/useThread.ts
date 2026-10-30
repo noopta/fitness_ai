@@ -19,6 +19,7 @@ import { v2Api, receiptForTool } from '../api';
 import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
 import { haptics } from '../haptics';
+import { track } from '../track';
 
 const MUTATING = new Set(['log_meal', 'log_workout', 'log_body_weight', 'log_wellness', 'adjust_macros', 'apply_program_update', 'swap_exercise_in_program']);
 
@@ -150,6 +151,7 @@ export function useThread() {
     const id = nextId('u'), agentId = nextId('a');
     dispatch({ type: 'send', id, agentId, text: m });
     setFailure(null);
+    track('chat_message_sent', { length: m.length });
     haptics.light();
     const ac = new AbortController();
     abortRef.current = ac;

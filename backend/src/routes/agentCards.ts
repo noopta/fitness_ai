@@ -3,6 +3,7 @@
 // here — Apply, Send, Delete, Undo, inline edits and toggles are
 // deterministic and bounded by the user's tap.
 
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -130,19 +131,27 @@ router.post('/coach/agent/adaptation/surface', requireAuth, access, async (req, 
 router.post('/coach/agent/cards/:id/action', requireAuth, access, async (req, res) => {
   try {
     const b = actionSchema.parse(req.body);
-    res.json({ card: await applyCardAction(req.user!.id, req.params.id, b.actionId, b) });
+    const card = await applyCardAction(req.user!.id, req.params.id, b.actionId, b);
+    track(req.user!.id, 'agent_card_action', { fn: card?.fn, action: b.actionId });
+    res.json({ card });
   } catch (e) { fail(res, e, 'do that'); }
 });
 // Design's name for the primary action on a proposal.
 router.post('/coach/agent/cards/:id/apply', requireAuth, access, async (req, res) => {
   try {
     const b = z.object({ choice: z.number().int().min(0).max(10).optional(), selection: selectionSchema }).parse(req.body ?? {});
-    res.json({ card: await applyCardAction(req.user!.id, req.params.id, 'apply', b) });
+    const card = await applyCardAction(req.user!.id, req.params.id, 'apply', b);
+    track(req.user!.id, 'agent_card_action', { fn: card?.fn, action: 'apply' });
+    res.json({ card });
   } catch (e) { fail(res, e, 'apply that'); }
 });
 
 router.post('/coach/agent/cards/:id/undo', requireAuth, access, async (req, res) => {
-  try { res.json({ card: await undoCard(req.user!.id, req.params.id) }); } catch (e) { fail(res, e, 'undo that'); }
+  try {
+    const card = await undoCard(req.user!.id, req.params.id);
+    track(req.user!.id, 'agent_card_action', { fn: card?.fn, action: 'undo' });
+    res.json({ card });
+  } catch (e) { fail(res, e, 'undo that'); }
 });
 
 router.post('/coach/agent/cards/:id/edit', requireAuth, access, async (req, res) => {

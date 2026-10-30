@@ -1,3 +1,4 @@
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
@@ -25,6 +26,7 @@ export function takeInsightSlot(userId: string, now = Date.now()): boolean {
 
 // POST /api/wellness/checkin - Save or update daily check-in
 router.post('/wellness/checkin', requireAuth, async (req, res) => {
+  track(req.user!.id, 'wellness_checkin');
   try {
     const data = checkinSchema.parse(req.body);
     const userId = req.user!.id;

@@ -53,6 +53,7 @@ import {
   toMealPhotoItems, totalsOf, type ReviewItem,
 } from '../../src/components/coach/nutrition/mealItems';
 import { KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
+import { track } from '../../src/v2/track';
 
 /** Last amount per barcode (servings or grams), so the next scan starts there. */
 const AMOUNT_KEY = 'v2.barcodeAmount.v1';
@@ -282,6 +283,8 @@ function CaptureScreenInner() {
 
   /** Read a plate (or a label) from a local photo. Expects busy already set; clears it. */
   const analyze = async (uri: string) => {
+    const started = Date.now();
+    track('food_photo_started', { label: !!labelFor });
     setReadingUri(uri);
     try {
       if (labelFor) {
@@ -311,6 +314,7 @@ function CaptureScreenInner() {
         return;
       }
       const its: Item[] = itemsFromPhoto(r);
+      track('food_photo_read', { ms: Date.now() - started, items: its.length });
       setRaw(r?.meal ?? r);
       setFraming(photoV2 && typeof (r?.meal ?? r)?.framingWarning === 'string' ? (r?.meal ?? r).framingWarning || null : null);
       setLog((l) => [...l, { verb: 'Read', text: `Photo — ${its.length} item${its.length === 1 ? '' : 's'}` }, { verb: 'Searched', text: `${its.map((i) => i.name).slice(0, 3).join(', ')}${its.length > 3 ? '…' : ''}` }, { verb: 'Checked', text: `Portions from plate size — ${its.reduce((s, i) => s + i.calories, 0)} kcal` }]);
@@ -318,6 +322,7 @@ function CaptureScreenInner() {
       setGap(r?.gap ?? r?.note ?? null);
       haptics.success();
     } catch (e: any) {
+      track('food_photo_failed', { ms: Date.now() - started });
       Alert.alert(labelFor ? 'Couldn\'t read the label' : 'Couldn\'t read the plate', e?.message ?? (labelFor ? 'Try again, flat and in focus.' : 'Try again with the whole plate in frame.'));
       setPhotoUri(null); setLog([]);
     }
@@ -341,6 +346,7 @@ function CaptureScreenInner() {
         // …then the itemised breakdown (what the user actually confirmed).
         ...itemLogFields(items) as any,
       });
+      track('food_logged', { path: 'photo', items: items.length });
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
@@ -355,12 +361,14 @@ function CaptureScreenInner() {
       void AsyncStorage.getItem(AMOUNT_KEY).then((raw) => AsyncStorage.setItem(AMOUNT_KEY, JSON.stringify({ ...(raw ? JSON.parse(raw) : {}), [product.code]: amount }))).catch(() => {});
       // A web answer the user just logged is confirmed for everyone who scans that code next.
       if (product.web) void nutritionApi.confirmWebBarcode(product.code).catch(() => {});
+      track('food_logged', { path: 'barcode', amount: amountMode, web: !!product.web });
       await invalidate.afterMeal(); haptics.success(); captureBus.done(params.cardId, m?.id ? [m.id] : []); router.back();
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
   };
   const describe = async () => {
     const t = text.trim(); if (!t || busy) return;
+    track('food_describe_started', { length: t.length });
     const read = { verb: 'Read' as const, text: `“${t}”` };
     setBusy(true); setLog([read]);
     try {
@@ -577,7 +585,7 @@ function CaptureScreenInner() {
       <Text style={[T.caption, { color: v2.color.darkMuted, textAlign: 'center', marginTop: 14 }]}>{labelFor ? 'Fit the nutrition panel, flat and in focus. I\'ll read it.' : mode === 'photo' ? (addPhotoMode ? 'Another angle — sides, drinks, anything cut off.' : photoV2 ? 'Shoot from above · include sides & drinks.' : 'Fit the whole plate. I\'ll find what\'s on it.') : mode === 'barcode' ? 'Line the barcode up inside the frame.' : 'A sentence is enough.'}</Text>
       {addPhotoMode ? <View style={{ height: 22 }} /> : <View style={styles.modes}>
         {(['photo', 'barcode', 'describe'] as Mode[]).map((m) => (
-          <Pressable key={m} onPress={() => { setMode(m); setLabelFor(null); scanned.current = false; setLog([]); }} hitSlop={8}>
+          <Pressable key={m} onPress={() => { track('food_capture_mode', { mode: m }); setMode(m); setLabelFor(null); scanned.current = false; setLog([]); }} hitSlop={8}>
             <Text style={[T.captionStrong, { color: mode === m ? v2.color.darkInk : v2.color.darkMuted, textTransform: 'capitalize' }]}>{m}</Text>
           </Pressable>
         ))}

@@ -20,6 +20,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { nutritionProblem } from './chainNutritionGate.js';
+import { track } from '../productEvents.js';
 import { brandedCacheKey, coreProduct, lookupBranded, menuSize, mentionsBrand, type BrandedFacts, type BrandedItem, type BrandedLookup } from './brandedLookup.js';
 import { norm, productRecall, searchDatabases, type DbOutcome } from './nameSearch.js';
 import { findChain, isOfficial, lookupChainMenu, type AppliedModifier, type ChainMatch } from './chainMenus.js';
@@ -243,7 +244,20 @@ const defaultDeps: ResolverDeps = {
   },
 };
 
+/**
+ * How long a person waits on a web search. The search is Gemini + Google Search:
+ * 3–12 s a call, 32–40 s at worst, and a retry doubles it (Oct 2026: Osmow's in
+ * chat sat for 40 s and then timed out). Past this the log goes ahead with the
+ * estimate; the search finishes in the background and is kept by the same rules,
+ * so the next log of that item is instant.
+ */
+export const WEB_WAIT_MS = Number(process.env.WEB_FOOD_WAIT_MS) || 12_000;
+/** One search per item at a time, across people. */
+const searching = new Map<string, Promise<BrandedLookup>>();
+
 export interface ResolveCtx {
+  /** Tests: override WEB_WAIT_MS. */
+  waitMs?: number;
   userId?: string | null;
   tz?: string | null;
   surface: 'chat' | 'describe' | 'lookup' | 'api' | 'photo';
@@ -260,6 +274,7 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
   const emit = (phase: ResolveStep, state: ResolveEvent['state'], text: string) => ctx.onEvent?.({ item: index, brand: item.brand, phase, state, text });
   const what = [item.brand, item.product].join(' ');
   const done = (r: ResolvedItem) => {
+    track(ctx.userId, 'food_lookup', { surface: ctx.surface, step: r.step, kind: r.result.kind, reason: r.result.kind === 'found' ? null : String((r.result as any).reason ?? '').replace(/:.*/, ''), web: r.web, ms: r.ms });
     d.log({ at: new Date().toISOString(), userId: ctx.userId ?? null, surface: ctx.surface, brand: item.brand, product: item.product, size: item.size, step: r.step, kind: r.result.kind, reason: r.result.kind === 'found' ? null : r.result.reason, source: r.result.kind === 'found' ? (r.result.facts.sources?.[0]?.uri || r.result.facts.sources?.[0]?.title || null) : null, web: r.web, gate: r.gateReason ?? null, ms: r.ms, webCalls: r.web === 'used' ? 1 : 0 });
     return r;
   };
@@ -302,21 +317,44 @@ export async function resolveItem(item: BrandedItem, index: number, ctx: Resolve
     return done({ result: { kind: 'not_found', reason: `gated:${gate.reason}` }, step: 'estimate', web: 'gated', gateReason: gate.reason, ms: Date.now() - t0 });
   }
   emit('web', 'checking', `${what} — checking nutrition`);
-  const w0 = await d.web(item, ctx.tz).catch((): BrandedLookup => ({ kind: 'unavailable', reason: 'error' }));
+  const key = brandedCacheKey(item, ctx.tz);
+  let search = searching.get(key);
+  const startedHere = !search;
+  if (!search) {
+    search = d.web(item, ctx.tz).catch((): BrandedLookup => ({ kind: 'unavailable', reason: 'error' })).finally(() => searching.delete(key));
+    searching.set(key, search);
+  }
+  let timer: NodeJS.Timeout | undefined;
+  const wait = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), ctx.waitMs ?? WEB_WAIT_MS); });
+  const w0 = await Promise.race([search, wait]);
+  clearTimeout(timer);
+  if (!w0) {
+    // Keep it for next time; this log goes ahead with the estimate.
+    if (startedHere) void search.then((late) => { if (late.kind === 'found' && plausible(item, late.facts)) keepAnswer(item, ctx.tz, late.facts, d); });
+    emit('estimate', 'missed', `${what} — estimated for now`);
+    return done({ result: { kind: 'unavailable', reason: 'timeout' }, step: 'estimate', web: 'used', gateReason: gate.reason, ms: Date.now() - t0 });
+  }
   const w: BrandedLookup = w0.kind === 'found' && !plausible(item, w0.facts) ? { kind: 'not_found', reason: 'implausible' } : w0;
   if (w.kind === 'found') {
     emit('web', 'found', `${what} — verified`);
-    // Keep it for everyone only when it's the chain's own site, or when a
-    // second independent lookup agrees (within 5%) — so one odd answer never
-    // becomes everyone's answer. The check runs after this reply.
-    const chain = findChain(item.brand, countryKey(ctx.tz) || 'US');
-    const official = !!chain && w.facts.sources.some((src) => isOfficial(chain, countryKey(ctx.tz) || 'US', src.uri || src.title));
-    if (official) void d.remember(item, ctx.tz, w.facts, 'web');
-    else void confirmLater(item, ctx.tz, w.facts, d);
+    const official = startedHere ? keepAnswer(item, ctx.tz, w.facts, d) : false;
     return done({ result: w, step: 'web', web: 'used', gateReason: gate.reason, ms: Date.now() - t0, official });
   }
   emit('estimate', 'missed', `${what} — not published, estimated`);
   return done({ result: w, step: 'estimate', web: 'used', gateReason: gate.reason, ms: Date.now() - t0 });
+}
+
+/**
+ * Keep a web answer for everyone only when it's the chain's own site, or when a
+ * second independent lookup agrees (within 5%) — so one odd answer never becomes
+ * everyone's answer. The check runs after this reply. True when it was official.
+ */
+function keepAnswer(item: BrandedItem, tz: string | null | undefined, facts: BrandedFacts, d: ResolverDeps): boolean {
+  const chain = findChain(item.brand, countryKey(tz) || 'US');
+  const official = !!chain && facts.sources.some((src) => isOfficial(chain, countryKey(tz) || 'US', src.uri || src.title));
+  if (official) void d.remember(item, tz, facts, 'web');
+  else void confirmLater(item, tz, facts, d);
+  return official;
 }
 
 /** Second lookup for an unofficial answer; remembered only if the two agree within 5%. */

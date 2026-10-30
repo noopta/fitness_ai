@@ -1,3 +1,4 @@
+import { track } from '../services/productEvents.js';
 import { Router } from 'express';
 import { meanAnswered } from '../services/checkinText.js';
 import { PrismaClient } from '@prisma/client';
@@ -722,6 +723,7 @@ router.post('/nutrition/suggest-meals', requireAuth, aiLimiter, async (req, res)
 // POST /api/nutrition/parse-meal - Parse free-text meal description into macros
 router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) => {
   try {
+    const parseStarted = Date.now();
     const { description } = req.body;
     if (!description || typeof description !== 'string' || description.trim().length < 3) {
       return res.status(400).json({ error: 'Please provide a meal description' });
@@ -744,6 +746,7 @@ router.post('/nutrition/parse-meal', requireAuth, aiLimiter, async (req, res) =>
     // Estimate → enrich → look up (typedMeal.ts); with defer the lookup runs as a job.
     const { detail, meta } = await parseTypedMeal(description.trim(), normalizeFoodRegion(user.foodRegion), { tz, userId: req.user!.id, surface: 'describe', explicit, lookup: !defer });
     const { brandedItems: _items, ...shown } = detail;
+    track(req.user!.id, 'meal_parsed', { ms: Date.now() - parseStarted, branded_items: detail.brandedItems?.length ?? 0, deferred: defer });
     if (defer && detail.brandedItems?.length && TEXT_LOOKUP_ENABLED()) {
       const job = startLookupJob(req.user!.id, detail, (items, c) => resolveAll(items, { userId: req.user!.id, tz, surface: 'describe', explicit, onEvent: c.onEvent }), finishLookups);
       return res.json({ ...safeMealMacros(shown), source: 'text', enrichment: meta, lookup: { id: job.id, done: false, steps: job.steps } });

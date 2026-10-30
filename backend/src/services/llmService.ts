@@ -50,7 +50,9 @@ const GEMINI_VISION_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-3.1-pro-p
 // −0.2 pts; better in every run), within 20% on 48% vs 44% of dishes, and it
 // needs no calibration (bias −2%). MEAL_PHOTO_MODEL=gemini-3.8-flash reverts
 // (calibration then applies again). Label scans and order screenshots stay on
-// GEMINI_VISION_MODEL.
+// GEMINI_VISION_MODEL. Re-run 30 Oct 2026 (40 weighed dishes × 2, full pipeline):
+// Argon 24% error, 12–13 s median, 20 s p90; calibrated Flash 31–38%, 16–33 s,
+// 65–103 s p90. MEDIUM vs LOW thinking made no speed difference on Argon.
 const MEAL_PHOTO_MODEL = process.env.MEAL_PHOTO_MODEL || 'gemini-4-argon';
 // Typed-meal parsing: an OpenRouter chat model by default; a "gemini-…" id
 // runs it on Vertex instead (MEAL_PARSE_MODEL).

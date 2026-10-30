@@ -44,9 +44,12 @@ import { AnalyzePage } from './analyze';
 import { CoachPage } from './coach';
 import { userSafetyMenu } from '../../../lib/moderation';
 import { WatchPage } from './watch';
+import { track } from '../../track';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
   const [kind, arg] = pageKey.includes(':') ? [pageKey.slice(0, pageKey.indexOf(':')), pageKey.slice(pageKey.indexOf(':') + 1)] : [pageKey, ''];
+  // The kind only: the part after ":" can name a lift or a person.
+  React.useEffect(() => { track('page_viewed', { page: kind }); }, [kind]);
   switch (kind) {
     case 'phase': return <PhasePage index={Number(arg)} />;
     case 'day': return <DayPage date={arg} />;
