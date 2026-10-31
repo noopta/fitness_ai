@@ -212,7 +212,7 @@ interface AuthContextType {
    */
   getLatestUser: () => AuthUser | null;
   /** Server-owned feature flags, readable synchronously. Defaults to all-off. */
-  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean; swapV2: boolean };
+  getFeatures: () => { onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean; swapV2: boolean; proactive: boolean };
   /**
    * Finish an auth flow that arrived via deep link (e.g., the Android Google
    * sign-in path where Chrome Custom Tabs hands off the axiom:// redirect to
@@ -256,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // that are on for everyone (the new UI since 11 Oct, direct entry since
   // 4 Oct): off-by-default there showed the classic app whenever /auth/me was
   // slow. The server's kill switch still wins as soon as /auth/me lands.
-  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean; swapV2: boolean }>({
+  const featuresRef = useRef<{ onboardingFormHook: boolean; diagnosticFirstOnboarding: boolean; liftDiagnosticConversation: boolean; onboardingTestAccount: boolean; uiV2: boolean; directEntryPaywall: boolean; personalTraining: boolean; freestyle: boolean; logAdaptation: boolean; phaseInference: boolean; mealPhotoV2: boolean; webFoodSearch: boolean; wearables: boolean; logReview: boolean; awayDigest: boolean; swapV2: boolean; proactive: boolean }>({
     onboardingFormHook: false,
     diagnosticFirstOnboarding: false,
     directEntryPaywall: true,
@@ -276,6 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     awayDigest: false,
     // Exercise swaps that keep the job (Oct 2026): off = the old alternatives list / chat hand-off.
     swapV2: false,
+    proactive: false,
   });
   const commitFeatures = useCallback((f: any) => {
     featuresRef.current = {
@@ -296,6 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logReview: f?.logReview === true,
       awayDigest: f?.awayDigest === true,
       swapV2: f?.swapV2 === true,
+      proactive: f?.proactive === true,
     };
   }, []);
   const getFeatures = useCallback(() => featuresRef.current, []);

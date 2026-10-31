@@ -173,7 +173,7 @@ router.post('/coach/agent/checkins/unmute', requireAuth, access, async (req, res
 const photoSchema = z.object({ image: z.string().min(16).max(Math.ceil(MAX_PHOTO_BYTES * 1.4)), mimeType: z.string().max(40).optional() });
 router.post('/coach/agent/photos', requireAuth, aiLimiter, async (req, res) => {
   try {
-    if (!chatPhotosEnabled()) return res.status(404).json({ error: 'Not found' });
+    if (!chatPhotosEnabled() || !proactiveAvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
     const b = photoSchema.parse(req.body);
     const photo = await storeChatPhoto(req.user!.id, b.image, b.mimeType);
     track(req.user!.id, 'chat_photo_sent', { kind: photo.kind, private: photo.private });

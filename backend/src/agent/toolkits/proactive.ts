@@ -8,6 +8,7 @@ import { tool, schema, str, prisma } from './kit.js';
 import { addDays } from '../../proactive/threads.js';
 import { applyWeekChanges, firstAffectedAt, preparedCard, preparedExpiry, type PreparedWork, type WeekChange } from '../../proactive/prepared.js';
 import { getProactivePrefs } from '../../proactive/prefs.js';
+import { proactiveAvailableFor } from '../../services/featureFlags.js';
 
 const propose_week_change = tool({
   name: 'propose_week_change', kind: 'propose', fn: 'PRO-02',
@@ -25,7 +26,8 @@ const propose_week_change = tool({
   execute: async (input, userId) => {
     const changes = (Array.isArray(input.changes) ? input.changes : []).map((c: any): WeekChange => ({ day: str(c.day), exercise: str(c.exercise), from: str(c.from), to: str(c.to) })).filter((c) => c.day && c.exercise && c.to).slice(0, 8);
     if (!changes.length) throw new Error('No changes to propose.');
-    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true } });
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { savedProgram: true, email: true } });
+    if (!u || !proactiveAvailableFor(userId, u.email)) throw new Error('Prepared weeks aren’t on for this user yet — describe the change in words and offer propose_program_edit instead.');
     if (!u?.savedProgram) throw new Error('There’s no program to change yet.');
     const program = JSON.parse(u.savedProgram);
     const { program: programNext, applied, missed } = applyWeekChanges(program, changes, 0, str(input.title, 'Change'));

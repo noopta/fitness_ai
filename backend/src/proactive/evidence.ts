@@ -96,7 +96,7 @@ export function sleepEvidence(checkins: CheckinRow[], nights = 4): EvidenceItem 
   return { id: 'sleep_short', verb: 'Checked', text: `Under 6 h sleep on ${short} of the last ${recent.length} nights`, topics: ['recovery', 'sleep', 'fatigue'] };
 }
 
-const QUOTE_WORDS = /\b(cooked|wrecked|dead|exhausted|tired|sore|sorest|beat up|rough|brutal|cranky|tight|tweak|twinge|pinch|hurts?|pain|ache|aching|niggle|clicking|stuck|stalled|plateau|fight|meet|competition|race|comp|cut(?:ting)?|weigh-?in|wedding|trip|travel(?:ling)?|holiday|vacation|deadline|stress(?:ed)?)\b/i;
+const QUOTE_WORDS = /\b(cooked|wrecked|dead|exhausted|tired|sore|sorest|beat up|rough|brutal|cranky|tight|tweak|twinge|tingl(?:e|ing)|pinch|hurts?|pain|ache|aching|niggle|clicking|stuck|stalled|plateau|fight|meet|competition|race|comp|cut(?:ting)?|weigh-?in|wedding|trip|travel(?:ling)?|holiday|vacation|deadline|stress(?:ed)?)\b/i;
 
 /** The user's own words, recent, that speak to how they're doing. Up to `max` of them, newest first. */
 export function quoteEvidence(messages: MessageRow[], today: string, max = 2, days = 14): EvidenceItem[] {
@@ -109,7 +109,7 @@ export function quoteEvidence(messages: MessageRow[], today: string, max = 2, da
     if (!QUOTE_WORDS.test(text) || text.length > 240) continue;
     // The most quotable sentence: one naming the body or the event first ("Legs are cooked"), a general one ("rough") only when that's all there is.
     const sentences = text.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
-    const strong = /\b(cooked|wrecked|dead|exhausted|sore|sorest|beat up|cranky|tweak|twinge|pinch|hurts?|pain|ache|aching|niggle|clicking|stuck|stalled|plateau|fight|meet|competition|race|comp|cut(?:ting)?|weigh-?in|wedding|trip|travel(?:ling)?|holiday|vacation|deadline)\b/i;
+    const strong = /\b(cooked|wrecked|dead|exhausted|sore|sorest|beat up|cranky|tweak|twinge|tingl(?:e|ing)|pinch|hurts?|pain|ache|aching|niggle|clicking|stuck|stalled|plateau|fight|meet|competition|race|comp|cut(?:ting)?|weigh-?in|wedding|trip|travel(?:ling)?|holiday|vacation|deadline)\b/i;
     const sentence = (sentences.find((s) => strong.test(s)) ?? sentences.find((s) => QUOTE_WORDS.test(s)) ?? text).trim();
     const key = sentence.toLowerCase();
     if (seen.has(key) || sentence.length < 6) continue;

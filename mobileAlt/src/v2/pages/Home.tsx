@@ -42,7 +42,7 @@ import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type
 import { threadBus } from '../chat/captureBus';
 import { AttachSheet, AttachTray } from '../chat/Attach';
 import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, daysOutLabel } from '@axiom/agent-ui-core';
-import { useScreens } from '../data';
+import { useScreens, useProactiveOn } from '../data';
 import { Dots } from '../primitives/Ask';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CardHandlersProvider, type CardHandlers, type EditSession } from '../chat/card/context';
@@ -158,6 +158,7 @@ export function HomePage() {
   const [attach, attachDispatch] = React.useReducer(attachReducer, EMPTY_ATTACH);
   const [attachOpen, setAttachOpen] = useState(false);
   const screens = useScreens();
+  const proactiveOn = useProactiveOn();
   const [focus, setFocus] = useState(false);
   const [askDone, setAskDone] = useState(false);
   const askAppended = useRef(false);
@@ -577,7 +578,7 @@ export function HomePage() {
           </Animated.View>
         ) : (
         <Animated.View style={[styles.inputWrap, inputWrap]}>
-          {chat ? <Pressable onPress={() => { haptics.select(); setAttachOpen(true); }} hitSlop={10} accessibilityLabel="Add a photo" disabled={attach.items.length >= 4}>
+          {chat && proactiveOn ? <Pressable onPress={() => { haptics.select(); setAttachOpen(true); }} hitSlop={10} accessibilityLabel="Add a photo" disabled={attach.items.length >= 4}>
             <Text style={[styles.send, { color: attach.items.length ? C.crimson : C.placeholder }]}>+</Text>
           </Pressable> : null}
           <AnimatedTextInput

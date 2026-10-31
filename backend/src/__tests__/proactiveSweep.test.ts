@@ -113,7 +113,9 @@ describe('the three exits', () => {
     const r = await store.answerCard('u1', id, { option: 1 });
     expect(r.sendAsMessage).toBeUndefined();
     expect(r.card.state).toMatchObject({ status: 'answered', line: 'Not now — I’ll leave it' });
-    expect(db.agentThread[0]).toMatchObject({ ignoredCount: 1, checkBackAt: day(-3), status: 'open' });
+    // The op dates from the real clock (the tap happens now), not the fixture's morning.
+    const inThree = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+    expect(db.agentThread[0]).toMatchObject({ ignoredCount: 1, checkBackAt: inThree, status: 'open' });
     // The next morning it comes round again; a second Not now closes it.
     db.agentThread[0].checkBackAt = day(0);
     sweep.resetSweepForTests();
