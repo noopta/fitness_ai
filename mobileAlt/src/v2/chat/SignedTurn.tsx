@@ -25,7 +25,7 @@ import { Mark } from '../primitives/Mark';
 import { Enter } from '../primitives/Enter';
 import { ReceiptList, Caret } from '../primitives/Receipt';
 import { Ask } from '../primitives/Ask';
-import { TurnPhoto } from './Attach';
+import { TurnPhoto, TurnVideo } from './Attach';
 import { MarkdownText } from '../../components/ui/MarkdownText';
 import { CardView, CardSkeleton } from './card/CardView';
 import { TurnCard } from './Cards';
@@ -71,6 +71,7 @@ function UserTurn({ turn, showLabel }: { turn: Turn; showLabel: boolean }) {
       <View style={styles.user} accessible accessibilityLabel={turnA11yLabel(turn)}>
         {showLabel ? <Text style={styles.youLabel}>You</Text> : null}
         {turn.photos?.length ? <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>{turn.photos.map((id) => <TurnPhoto key={id} id={id} />)}</View> : null}
+        {turn.video ? <TurnVideo video={turn.video} /> : null}
         <Text style={styles.userText}>{turn.text}</Text>
       </View>
     </Enter>

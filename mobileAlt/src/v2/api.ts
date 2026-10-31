@@ -18,7 +18,7 @@ export type ReviewOp = 'apply' | 'keep' | 'undo' | 'apply_all' | 'expand';
 /** This client renders server cards (card2 events, /coach/agent/cards/*). */
 const CARD_CONTRACT = { 'X-Card-Contract': '2' };
 
-export interface HistoryMessage { role: 'user' | 'assistant'; content: string; cardIds?: string[]; origin?: 'anakin'; at?: string; receipts?: { verb: string; text: string }[]; photos?: string[] }
+export interface HistoryMessage { role: 'user' | 'assistant'; content: string; cardIds?: string[]; origin?: 'anakin'; at?: string; receipts?: { verb: string; text: string }[]; photos?: string[]; video?: { analysisId: string; lift: string; seconds: number | null } }
 
 const post = (path: string, body: Record<string, unknown> = {}) =>
   apiFetch(path, { method: 'POST', body: JSON.stringify(body), timeoutMs: LONG_TIMEOUT_MS });
@@ -320,8 +320,10 @@ export const proactiveApi = {
   checkins: (): Promise<{ prefs: ProactivePrefs; frequencyLabel: string; muted: { topic: string; until: string | null; label: string }[]; sessionTimeInferred: string | null }> => apiFetch('/coach/agent/checkins'),
   checkinsPatch: (patch: Partial<ProactivePrefs>): Promise<{ prefs: ProactivePrefs }> => apiFetch('/coach/agent/checkins', { method: 'PATCH', body: JSON.stringify(patch) }),
   unmute: (topic: string): Promise<{ prefs: ProactivePrefs }> => post('/coach/agent/checkins/unmute', { topic }),
-  photoUpload: (image: string, mimeType = 'image/jpeg'): Promise<{ photo: { id: string; kind: string; private: boolean; description: string | null; url: string | null } }> =>
-    apiFetch('/coach/agent/photos', { method: 'POST', body: JSON.stringify({ image, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
+  photoUpload: (image: string, mimeType = 'image/jpeg', intent: 'meal' | 'label' | 'program' | null = null): Promise<{ photo: { id: string; kind: string; private: boolean; description: string | null; url: string | null } }> =>
+    apiFetch('/coach/agent/photos', { method: 'POST', body: JSON.stringify({ image, mimeType, intent }), timeoutMs: LONG_TIMEOUT_MS }),
+  /** H1: the clip went to the form-analysis pipeline; this puts it in the thread as the user's turn. */
+  formCheckSent: (body: { analysisId: string; lift: string; seconds: number | null; text?: string }): Promise<{ ok: boolean }> => post('/coach/agent/form-check/sent', body),
   photos: (): Promise<{ photos: ChatPhotoMeta[]; retentionDays: number }> => apiFetch('/coach/agent/photos'),
   photoUrl: (id: string): Promise<{ url: string }> => apiFetch(`/coach/agent/photos/${id}/url`),
   photoDelete: (id: string) => apiFetch(`/coach/agent/photos/${id}`, { method: 'DELETE' }),

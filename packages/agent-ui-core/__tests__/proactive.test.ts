@@ -1,13 +1,15 @@
-// Proactive coach client helpers: the attach tray (E1/E2), labels (D1/F1/F2),
-// receipts on history turns (A1), and photos riding on a sent turn.
+// Proactive coach client helpers (v4): the attach tray with intent and a set
+// clip (E1/E1b/H1), labels (D1/F1/F2), receipts on history turns (A1), and
+// photos/video riding on a sent turn.
 import { describe, it, expect } from 'vitest';
-import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, MAX_ATTACH, daysOutLabel, FREQUENCY_ROWS, quietHoursLabel, groupPhotos, isPrivatePhoto, historyReceipts, threadReducer, emptyThread } from '../src';
+import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, attachRoom, sendReady, stagedCaption, stagedClip, clipLabel, clipTurnText, liftFromSession, watchingReceipts, MAX_ATTACH, daysOutLabel, FREQUENCY_ROWS, quietHoursLabel, groupPhotos, isPrivatePhoto, historyReceipts, threadReducer, emptyThread } from '../src';
 
-describe('E1/E2 · attach tray', () => {
+describe('E1/E2 · attach tray — photos', () => {
   it('adds up to four, uploads, fails keeping the file, retries, removes, clears', () => {
     let s = attachReducer(EMPTY_ATTACH, { type: 'add', uris: ['a', 'b', 'c', 'd', 'e'] });
     expect(s.items).toHaveLength(MAX_ATTACH);
     expect(attachBusy(s)).toBe(true);
+    expect(attachRoom(s)).toBe(0);
     s = attachReducer(s, { type: 'uploaded', localUri: 'a', id: 'p1', kind: 'meal', private: false });
     s = attachReducer(s, { type: 'failed', localUri: 'b' });
     expect(s.items[1]).toMatchObject({ status: 'failed', error: 'Didn’t send', localUri: 'b' });
@@ -17,21 +19,75 @@ describe('E1/E2 · attach tray', () => {
     s = attachReducer(s, { type: 'remove', localUri: 'c' });
     s = attachReducer(s, { type: 'remove', localUri: 'd' });
     expect(s.items.map((i) => i.localUri)).toEqual(['a', 'b']);
+    expect(attachRoom(s)).toBe(2);
     expect(attachReducer(s, { type: 'add', uris: ['a'] }).items).toHaveLength(2); // no duplicates
     expect(attachReducer(s, { type: 'clear' })).toEqual(EMPTY_ATTACH);
   });
-  it('the placeholder follows what was attached', () => {
+  it('E1: Meal / Label / Program set the intent; it shows in the caption and clears with the last photo', () => {
+    let s = attachReducer(EMPTY_ATTACH, { type: 'intent', intent: 'meal' });
+    s = attachReducer(s, { type: 'add', uris: ['a', 'b'] });
+    expect(stagedCaption(s)).toBe('2 photos · Meal · sent with your message');
+    s = attachReducer(s, { type: 'remove', localUri: 'a' });
+    expect(stagedCaption(s)).toBe('1 photo · Meal · sent with your message');
+    s = attachReducer(s, { type: 'remove', localUri: 'b' });
+    expect(s.intent).toBeNull();
+    expect(stagedCaption(s)).toBeNull();
+    expect(stagedCaption(attachReducer(EMPTY_ATTACH, { type: 'add', uris: ['a'] }))).toBe('1 photo · sent with your message');
+  });
+  it('the placeholder follows the intent, or what the server read', () => {
     expect(attachPlaceholder(EMPTY_ATTACH)).toBeNull();
     let s = attachReducer(EMPTY_ATTACH, { type: 'add', uris: ['a'] });
     expect(attachPlaceholder(s)).toBe('Say what you want to know about it');
+    expect(attachPlaceholder(attachReducer(s, { type: 'intent', intent: 'label' }))).toBe('A label → I’ll check it against your targets');
     s = attachReducer(s, { type: 'uploaded', localUri: 'a', id: 'p1', kind: 'meal', private: false });
     expect(attachPlaceholder(s)).toBe('Send me lunch and I’ll log it.');
     s = attachReducer(s, { type: 'uploaded', localUri: 'a', id: 'p1', kind: 'program', private: false });
     expect(attachPlaceholder(s)).toBe('Screenshot a program → I’ll import it');
   });
+  it('E1b: send is ready with text, or with anything staged and nothing still uploading', () => {
+    expect(sendReady('', EMPTY_ATTACH)).toBe(false);
+    expect(sendReady('hi', EMPTY_ATTACH)).toBe(true);
+    let s = attachReducer(EMPTY_ATTACH, { type: 'add', uris: ['a'] });
+    expect(sendReady('', s)).toBe(false); // still uploading
+    s = attachReducer(s, { type: 'uploaded', localUri: 'a', id: 'p1', kind: 'meal', private: false });
+    expect(sendReady('', s)).toBe(true);
+    expect(sendReady('', s, true)).toBe(false); // Anakin busy
+  });
   it('a sent turn carries its photo ids', () => {
     const s = threadReducer(emptyThread(), { type: 'send', id: 'u1', agentId: 'a1', text: 'Lunch', photos: ['p1'] });
     expect(s.turns[0]).toMatchObject({ kind: 'user', text: 'Lunch', photos: ['p1'] });
+  });
+});
+
+describe('H1 · a set clip in the tray', () => {
+  it('a clip stands alone, is ready at once, takes the lift pill, and leaves no room for photos', () => {
+    let s = attachReducer(attachReducer(EMPTY_ATTACH, { type: 'add', uris: ['p'] }), { type: 'add', uris: ['v.mp4'], media: 'video', durationSec: 24 });
+    expect(s.items).toEqual([{ localUri: 'v.mp4', media: 'video', status: 'ready', durationSec: 24 }]);
+    expect(stagedClip(s)?.localUri).toBe('v.mp4');
+    expect(attachRoom(s)).toBe(0);
+    expect(readyPhotoIds(s)).toEqual([]);
+    expect(sendReady('', s)).toBe(true);
+    expect(stagedCaption(s)).toBe('Form check · 0:24 · Squat');
+    s = attachReducer(s, { type: 'lift', lift: 'Deadlift' });
+    expect(stagedCaption(s)).toBe('Form check · 0:24 · Deadlift');
+    expect(attachPlaceholder(s)).toBe('Deadlift · top set? Say the weight and reps');
+    expect(attachReducer(s, { type: 'clear' }).lift).toBe('Deadlift'); // the pick survives a send
+  });
+  it('labels: clip length, the user turn\'s caption, the lift from today\'s session', () => {
+    expect(clipLabel(24)).toBe('0:24');
+    expect(clipLabel(95.4)).toBe('1:35');
+    expect(clipLabel(null)).toBe('0:00');
+    expect(clipTurnText('Squat', '225 × 5, top set')).toBe('Squat · 225 × 5, top set');
+    expect(clipTurnText('Bench', '  ')).toBe('Bench set');
+    expect(liftFromSession(['Face pull', 'Chest-supported row', 'Back Squat'])).toBe('Squat');
+    expect(liftFromSession(['Incline Bench Press'])).toBe('Bench');
+    expect(liftFromSession(['Curl'])).toBe('Squat');
+  });
+  it('H2: the watching turn\'s receipts, with the last check of that lift when there is one', () => {
+    expect(watchingReceipts('Squat', 'Oct 12').map((r) => `${r.verb} — ${r.text}`)).toEqual(['Reading — Video · the set, side view', 'Computed — Depth, bar path and tempo per rep', 'Checked — Your squat check from Oct 12']);
+    expect(watchingReceipts('Bench', null)).toHaveLength(2);
+    const s = threadReducer(emptyThread(), { type: 'send', id: 'u1', agentId: 'a1', text: 'Squat · 225 × 5', video: { analysisId: 'fa1', lift: 'Squat', seconds: 24 } });
+    expect(s.turns[0].video).toEqual({ analysisId: 'fa1', lift: 'Squat', seconds: 24 });
   });
 });
 

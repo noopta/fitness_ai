@@ -170,12 +170,12 @@ router.post('/coach/agent/checkins/unmute', requireAuth, access, async (req, res
 
 // ── Photos in chat (E) and the Photos tab (F2) ──────────────────────────────
 
-const photoSchema = z.object({ image: z.string().min(16).max(Math.ceil(MAX_PHOTO_BYTES * 1.4)), mimeType: z.string().max(40).optional() });
+const photoSchema = z.object({ image: z.string().min(16).max(Math.ceil(MAX_PHOTO_BYTES * 1.4)), mimeType: z.string().max(40).optional(), intent: z.enum(['meal', 'label', 'program']).nullable().optional() });
 router.post('/coach/agent/photos', requireAuth, aiLimiter, async (req, res) => {
   try {
     if (!chatPhotosEnabled() || !proactiveAvailableFor(req.user!.id, req.user!.email)) return res.status(404).json({ error: 'Not found' });
     const b = photoSchema.parse(req.body);
-    const photo = await storeChatPhoto(req.user!.id, b.image, b.mimeType);
+    const photo = await storeChatPhoto(req.user!.id, b.image, b.mimeType, { intent: b.intent ?? null });
     track(req.user!.id, 'chat_photo_sent', { kind: photo.kind, private: photo.private });
     res.json({ photo });
   } catch (e: any) {
@@ -202,6 +202,20 @@ router.delete('/coach/agent/photos/:id', requireAuth, async (req, res) => {
 });
 router.delete('/coach/agent/photos', requireAuth, async (req, res) => {
   try { res.json({ deleted: await deleteAllPhotos(req.user!.id) }); } catch (e) { fail(res, e, 'delete your photos'); }
+});
+
+// ── Form check sent from chat (H1): the clip becomes a user turn; the result turn follows from the pipeline ──
+const formSentSchema = z.object({ analysisId: z.string().min(1).max(64), lift: z.string().min(1).max(30), seconds: z.number().min(0).max(600).nullable().optional(), text: z.string().max(200).optional() });
+router.post('/coach/agent/form-check/sent', requireAuth, access, async (req, res) => {
+  try {
+    const b = formSentSchema.parse(req.body);
+    const row = await prisma.formAnalysis.findFirst({ where: { id: b.analysisId, userId: req.user!.id }, select: { id: true } });
+    if (!row) return res.status(404).json({ error: 'That analysis isn’t yours.' });
+    const { appendUserNote } = await import('../agent/conversation.js');
+    await appendUserNote(req.user!.id, b.text?.trim() || `${b.lift} set`, { video: { analysisId: b.analysisId, lift: b.lift, seconds: b.seconds ?? null } });
+    track(req.user!.id, 'form_check_sent_from_chat', { lift: b.lift });
+    res.json({ ok: true });
+  } catch (e) { fail(res, e, 'note that'); }
 });
 
 // ── Screens (D1/D2/D3/G2/G3) ────────────────────────────────────────────────

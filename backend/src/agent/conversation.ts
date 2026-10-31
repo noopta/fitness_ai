@@ -43,6 +43,8 @@ interface StoredMessage {
   receipts?: { verb: string; text: string }[];
   /** Chat photo ids attached to a user message (proactive flow E). The client fetches thumbnails by id. */
   photos?: string[];
+  /** A set video sent for a form check (flow H): the analysis it started. The clip itself never leaves the phone. */
+  video?: { analysisId: string; lift: string; seconds: number | null };
 }
 
 /**
@@ -86,6 +88,13 @@ async function save(userId: string, history: StoredMessage[]) {
   const kept = retain(history);
   await prisma.agentConversation.upsert({ where: { userId }, create: { userId, messagesJson: JSON.stringify(kept) }, update: { messagesJson: JSON.stringify(kept) } });
   void summarizeOlder(userId).catch((e) => console.warn('[agent] summary refresh failed:', e?.message ?? e));
+}
+
+/** Append something the user sent that got no reply of its own (a set video for a form check — the result turn comes later). */
+export async function appendUserNote(userId: string, text: string, extra: { photos?: string[]; video?: StoredMessage['video'] } = {}): Promise<void> {
+  const history = await loadStoredMessages(userId);
+  history.push({ role: 'user', text, at: new Date().toISOString(), ...(extra.photos?.length ? { photos: extra.photos } : {}), ...(extra.video ? { video: extra.video } : {}) });
+  await save(userId, history);
 }
 
 /** Append a turn Anakin started. It has no user message before it. */

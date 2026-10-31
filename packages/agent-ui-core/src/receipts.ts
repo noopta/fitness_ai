@@ -59,6 +59,8 @@ export interface Turn {
   cards?: Card[];
   /** Chat photos on a user turn (proactive flow E): server ids; the client fetches a signed URL by id. */
   photos?: string[];
+  /** A set video on a user turn (flow H): the analysis it started, its lift and length. The clip itself stays on the phone. */
+  video?: { analysisId: string | null; lift: string; seconds: number | null; localUri?: string };
   /** Ids from history, before the cards are fetched. */
   cardIds?: string[];
   /** Anakin started this turn (PR, weekly review, invite…), not the user. */
@@ -92,7 +94,7 @@ export function canSend(s: ThreadState, now = Date.now()): boolean {
 }
 
 export type ThreadAction =
-  | { type: 'send'; id: string; agentId: string; text: string; now?: number; photos?: string[] }
+  | { type: 'send'; id: string; agentId: string; text: string; now?: number; photos?: string[]; video?: { analysisId: string | null; lift: string; seconds: number | null; localUri?: string } }
   | { type: 'event'; agentId: string; event: StreamEvent }
   | { type: 'append_agent'; turn: Turn }
   | { type: 'resolve'; agentId: string; resolution: string }
@@ -125,7 +127,7 @@ export function threadReducer(s: ThreadState, a: ThreadAction): ThreadState {
         ...s, busy: true, busySince: now, error: null,
         turns: [
           ...closeAll(s.turns),
-          { id: a.id, kind: 'user', text: a.text, receipts: [], done: true, at: now, ...(a.photos?.length ? { photos: a.photos } : {}) },
+          { id: a.id, kind: 'user', text: a.text, receipts: [], done: true, at: now, ...(a.photos?.length ? { photos: a.photos } : {}), ...(a.video ? { video: a.video } : {}) },
           { id: a.agentId, kind: 'agent', text: '', receipts: [], done: false, at: now },
         ],
       };

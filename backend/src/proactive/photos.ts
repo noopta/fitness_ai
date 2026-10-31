@@ -47,7 +47,8 @@ export function photoNote(photos: Pick<ChatPhotoRow, 'id' | 'kind' | 'descriptio
     try { d = p.detailJson ? JSON.parse(p.detailJson) : {}; } catch { d = {}; }
     const meal = d.meal ? ` Macro estimate: ${d.meal.name} — ${Math.round(d.meal.calories)} kcal, P ${Math.round(d.meal.proteinG)} g, C ${Math.round(d.meal.carbsG)} g, F ${Math.round(d.meal.fatG)} g.` : '';
     const text = d.text ? ` Text in the image: "${String(d.text).slice(0, 600)}"` : '';
-    return `Photo ${i + 1} (${p.kind}${isPrivateKind(p.kind) ? ', private' : ''}): ${p.description ?? 'no description'}.${meal}${text}`;
+    const said = d.intent ? ` The user tagged it “${String(d.intent).charAt(0).toUpperCase()}${String(d.intent).slice(1)}”.` : '';
+    return `Photo ${i + 1} (${p.kind}${isPrivateKind(p.kind) ? ', private' : ''}): ${p.description ?? 'no description'}.${said}${meal}${text}`;
   });
   return `The user attached ${photos.length} photo${photos.length === 1 ? '' : 's'}. ${photos.some((p) => p.kind === 'meal') ? 'For a meal, offer to log it with log_meal using the estimate (they can edit). ' : ''}${photos.some((p) => p.kind === 'program') ? 'For a program screenshot, offer to import it. ' : ''}${photos.some((p) => isPrivateKind(p.kind)) ? 'Private photos: answer in text only; never log or save anything from them. ' : ''}${UNTRUSTED_NOTICE}\n${fenceUntrusted(lines.join('\n'), 'photo description')}`;
 }
@@ -60,7 +61,16 @@ async function defaultDescribe(base64: string, mimeType: string): Promise<PhotoD
 }
 
 /** Store, describe, record. Returns the client-facing row (no blob key). */
-export async function storeChatPhoto(userId: string, input: string, mimeHint: string | undefined, opts: { describe?: DescribeFn; now?: Date } = {}): Promise<{ id: string; kind: PhotoKind; private: boolean; description: string | null; url: string | null }> {
+export type PhotoIntent = 'meal' | 'label' | 'program';
+/** Pure: the kind the row gets. A stated intent wins over a vague read ('other'), and over a read that contradicts a meal/label/program tile. */
+export function resolveKind(read: string, intent: PhotoIntent | null | undefined): PhotoKind {
+  const k: PhotoKind = PHOTO_KINDS.includes(read as PhotoKind) ? (read as PhotoKind) : 'other';
+  if (!intent) return k;
+  if (isPrivateKind(k)) return k; // never un-private a body/injury/bloodwork photo because of a tile
+  return intent;
+}
+
+export async function storeChatPhoto(userId: string, input: string, mimeHint: string | undefined, opts: { describe?: DescribeFn; now?: Date; intent?: PhotoIntent | null } = {}): Promise<{ id: string; kind: PhotoKind; private: boolean; description: string | null; url: string | null }> {
   const now = opts.now ?? new Date();
   const { base64, mimeType } = stripDataUri(input);
   const bytes = Buffer.from(base64, 'base64');
@@ -72,12 +82,12 @@ export async function storeChatPhoto(userId: string, input: string, mimeHint: st
   let desc: PhotoDescription;
   try { desc = await (opts.describe ?? defaultDescribe)(base64, mimeType ?? mimeHint ?? 'image/jpeg'); }
   catch { desc = { kind: 'other', description: 'A photo I couldn’t read clearly.' }; }
-  const kind: PhotoKind = PHOTO_KINDS.includes(desc.kind) ? desc.kind : 'other';
+  const kind = resolveKind(desc.kind, opts.intent);
   const prefs = await getProactivePrefs(userId);
   const row = await prisma.chatPhoto.create({ data: {
     userId, blobKey: stored.key, mimeType: mimeType ?? mimeHint ?? 'image/jpeg', kind, private: isPrivateKind(kind),
     description: desc.description?.slice(0, 600) ?? null,
-    detailJson: JSON.stringify({ text: desc.text ?? null, meal: desc.meal ?? null }),
+    detailJson: JSON.stringify({ text: desc.text ?? null, meal: desc.meal ?? null, intent: opts.intent ?? null }),
     expiresAt: new Date(now.getTime() + prefs.photoRetentionDays * 86_400_000),
   } });
   return { id: row.id, kind, private: row.private, description: row.description, url: stored.url };

@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { threadReducer, emptyThread, canSend, turnFromResult, allCards, isLive, isWriteVerb, type Turn, type ThreadState, type StreamEvent, type ReceiptVerb, awayRange, historyReceipts } from '@axiom/agent-ui-core';
+import { threadReducer, emptyThread, canSend, turnFromResult, allCards, isLive, isWriteVerb, type Turn, type ThreadState, type StreamEvent, type ReceiptVerb, awayRange, historyReceipts  } from '@axiom/agent-ui-core';
 import { v2Api, receiptForTool } from '../api';
 import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
@@ -60,6 +60,7 @@ export function useThread() {
       const turns: Turn[] = msgs.map((m, i) => ({
         id: `h${i}`, kind: m.role === 'user' ? 'user' : 'agent', text: m.content, receipts: historyReceipts(m.receipts, `h${i}`), done: true,
         ...(m.photos?.length ? { photos: m.photos } : {}),
+        ...(m.video ? { video: m.video } : {}),
         ...(m.cardIds?.length ? { cardIds: m.cardIds } : {}),
         ...(m.origin === 'anakin' ? { origin: 'anakin' as const, unprompted: true } : {}),
         ...(m.at ? { at: Date.parse(m.at) } : {}),
@@ -249,5 +250,22 @@ export function useThread() {
 
   const retry = useCallback(() => { if (failure) void send(failure.text); }, [failure, send]);
 
-  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard, failure, retry, resume };
+  /**
+   * Flow H: a set clip. Puts the user's turn and a "watching" turn in the
+   * thread at once (receipts, no text); the caller uploads and polls, then
+   * finishClip ends the turn and re-reads history, where the server's result
+   * turn — summary, receipts, card — has landed.
+   */
+  const startClip = useCallback((text: string, video: NonNullable<Turn['video']>, receipts: { verb: ReceiptVerb; text: string }[]) => {
+    const id = nextId('u'), agentId = nextId('a');
+    dispatch({ type: 'send', id, agentId, text, video });
+    receipts.forEach((r, i) => dispatch({ type: 'event', agentId, event: { type: 'receipt', id: `${agentId}r${i}`, verb: r.verb, text: r.text, final: r.verb !== 'Reading' } }));
+    return agentId;
+  }, []);
+  const finishClip = useCallback(async (agentId: string, outcome: { ok: true; text: string } | { ok: false; error: string }) => {
+    if (outcome.ok) dispatch({ type: 'event', agentId, event: { type: 'done', reply: outcome.text, toolsUsed: [], iterations: 0 } });
+    else dispatch({ type: 'fail', agentId, error: outcome.error });
+    await hydrate();
+  }, [hydrate]);
+  return { state, stateRef, dispatch, send, hydrate, cancel, refreshLive, newConversation, receiptOnCard, failure, retry, resume, startClip, finishClip };
 }

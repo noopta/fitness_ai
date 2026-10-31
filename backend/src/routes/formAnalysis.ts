@@ -47,7 +47,7 @@ import { extractReferenceFrames } from '../services/formFrameService.js';
 import { onboardingHookAvailableFor } from '../services/featureFlags.js';
 import { sendPushToUser } from '../services/notificationService.js';
 import { postInitiatedLater } from '../agent/initiated.js';
-import { formResultCard } from '../agent/toolkits/cards.js';
+import { formResultCardV4, formReceipts, formTurnText, previousCheck } from '../proactive/formCheck.js';
 import {
   consumeDailyQuota,
   peekDailyQuota,
@@ -296,10 +296,16 @@ router.post('/form-analysis/video', requireAuth, aiLimiter, formVideoPrecheck, u
           },
         });
         // Agent-first app: the result also lands in the chat as Anakin's turn.
-        postInitiatedLater(userId, async () => ({
-          text: `Your ${analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise.toLowerCase() : ''} form check is in.`.replace('  ', ' '),
-          cards: [formResultCard({ id: pending.id, status: 'complete', exercise: analysis.exercise, formScore: analysis.formScore, repCount: analysis.repCount, analysis })],
-        }));
+        // v4 (flow H): the result is the turn — the summary as the text, the
+        // evidence as receipts, and the card leads with the fault and its cue.
+        postInitiatedLater(userId, async () => {
+          const prev = await previousCheck(userId, analysis.exercise, pending.id).catch(() => null);
+          return {
+            text: formTurnText(stored),
+            receipts: formReceipts(stored, prev),
+            cards: [formResultCardV4(stored, { analysisId: pending.id, previous: prev, lift: exerciseHint })],
+          };
+        });
         if (notify) {
           const exerciseLabel = analysis.exercise && analysis.exercise !== 'unknown' ? analysis.exercise : 'Your';
           const scoreSuffix = Number.isFinite(analysis.formScore) ? ` — form score ${analysis.formScore}/10` : '';

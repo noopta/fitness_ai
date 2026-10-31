@@ -14,6 +14,7 @@ import { v2, T } from '../../src/v2/theme';
 import { Pressable } from '../../src/v2/primitives/Pressable';
 import { TextAction } from '../../src/v2/primitives/TextAction';
 import { ProgressHairline } from '../../src/v2/charts';
+import { formBus } from '../../src/v2/chat/captureBus';
 import { formAnalysisApi } from '../../src/lib/api';
 import { haptics } from '../../src/v2/haptics';
 import { qk } from '../../src/v2/data';
@@ -35,7 +36,9 @@ export default function FormCheckScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const params = useLocalSearchParams<{ lift?: string }>();
+  const params = useLocalSearchParams<{ lift?: string; from?: string }>();
+  // Flow H1 'Record': the clip goes back to the chat composer instead of straight to analysis.
+  const forChat = params.from === 'chat';
   const camRef = useRef<any>(null);
   const hasCam = !!vision?.Camera;
   const device = hasCam ? vision.useCameraDevice('back') : null;
@@ -126,7 +129,9 @@ export default function FormCheckScreen() {
             <Switch value={keepStills} onValueChange={setKeepStills} />
           </View>
           <View style={styles.actions}>
-            <TextAction primary onPress={() => void analyze()}>Check my form</TextAction>
+            {forChat
+              ? <TextAction primary onPress={() => { if (!clip) return; haptics.light(); formBus.done(clip, secs || null); router.back(); }}>Use this set</TextAction>
+              : <TextAction primary onPress={() => void analyze()}>Check my form</TextAction>}
             <TextAction muted tone="dark" arrow={false} size={15} onPress={() => { setClip(null); setStage('aim'); }}>Retake</TextAction>
           </View>
         </View>

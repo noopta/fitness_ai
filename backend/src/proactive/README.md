@@ -24,7 +24,8 @@ Requires `AGENT_ENABLED=true` and the v2 UI. New tables: `AgentThread`, `Proacti
 | B5 expiry | `prepared.ts::expirePreparedCards` | First affected session, else 48 h. One re-offer. |
 | C Working on | `threads.ts`, `routes/proactive.ts` | Quote must be in the transcript. "That's wrong" logs a negative example. |
 | D1–D3 screens | `screens.ts`, `insight.ts` | One endpoint `GET /coach/agent/screens`. D3 tests an approved pair list only. |
-| E photos | `photos.ts`, `geminiService.describeChatPhoto` | Blob store first; the model reads a fenced description. |
+| E photos (v4) | `photos.ts`, `geminiService.describeChatPhoto` | Blob store first; the model reads a fenced description. The E1 tile (Meal/Label/Program) is an `intent` the kind resolver honours. |
+| H form check in chat (v4) | `formCheck.ts`, `routes/formAnalysis.ts` completion, `POST /coach/agent/form-check/sent` | The clip uses the existing upload → poll pipeline; the result turn carries receipts and the FRM-03 card (still, faults, Proposed cue). `form.add_cue` writes the cue onto the lift in the program, undoable. |
 | F1–F2 controls | `prefs.ts`, photo routes | Private photos go with their descriptions. |
 | G2 sparse data | `gate.ts` | 6 sessions / 3 meal days; follow-ups exempt. |
 | G3 weight cut | `safety.ts` | **Thresholds need clinician review** (`CUT_RATE_PCT` etc.). |

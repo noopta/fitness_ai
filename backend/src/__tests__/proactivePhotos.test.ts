@@ -29,6 +29,21 @@ describe('kinds and the note', () => {
   });
 });
 
+describe('E1 · the intent tile', () => {
+  it('a stated intent wins over a vague or contradicting read; a private read is never un-privated by a tile', () => {
+    expect(Ph.resolveKind('other', 'meal')).toBe('meal');
+    expect(Ph.resolveKind('machine', 'label')).toBe('label');
+    expect(Ph.resolveKind('meal', null)).toBe('meal');
+    expect(Ph.resolveKind('nonsense', undefined)).toBe('other');
+    expect(Ph.resolveKind('injury', 'meal')).toBe('injury');
+  });
+  it('the model is told what the user tagged the photo as', () => {
+    const note = Ph.photoNote([{ id: 'a', kind: 'label', description: 'A nutrition facts panel.', detailJson: JSON.stringify({ intent: 'label', text: 'Protein 20 g' }) }]);
+    expect(note).toMatch(/The user tagged it “Label”/);
+    expect(note).toMatch(/Text in the image: "Protein 20 g"/);
+  });
+});
+
 describe('F2 · retention', () => {
   const now = new Date('2026-10-30T12:00:00Z');
   const past = new Date('2026-10-29T12:00:00Z'), future = new Date('2026-12-01T00:00:00Z');

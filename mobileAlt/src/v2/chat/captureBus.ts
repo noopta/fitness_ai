@@ -14,6 +14,14 @@ export const captureBus = {
   },
 };
 
+// A set recorded on the form-check screen for chat (flow H1 "Record"): the
+// clip's local path and length come back here and the composer stages it.
+type ClipListener = (uri: string, seconds: number | null) => void;
+const clipListeners = new Set<ClipListener>();
+export const formBus = {
+  on(fn: ClipListener) { clipListeners.add(fn); return () => { clipListeners.delete(fn); }; },
+  done(uri: string, seconds: number | null) { for (const fn of clipListeners) fn(uri, seconds); },
+};
 // A turn added to the thread outside a reply (a Logged card from food search):
 // the home chat re-reads its history so the card shows up in place.
 const rehydrators = new Set<() => void>();

@@ -161,3 +161,14 @@ describe('B5 · prepared work expires', () => {
     expect(db.agentCard.filter((c) => c.fn === 'PRO-05')).toHaveLength(1);
   });
 });
+
+describe('H1 · a clip sent from chat', () => {
+  it('becomes a user turn in the history with the analysis it started; the history route shape carries it', async () => {
+    const conv = await import('../agent/conversation.js');
+    await conv.appendUserNote('u1', 'Squat · 225 × 5, top set', { video: { analysisId: 'fa1', lift: 'Squat', seconds: 24 } });
+    const msgs = await conv.loadStoredMessages('u1');
+    const last = msgs[msgs.length - 1] as any;
+    expect(last).toMatchObject({ role: 'user', text: 'Squat · 225 × 5, top set', video: { analysisId: 'fa1', lift: 'Squat', seconds: 24 } });
+    expect(typeof last.at).toBe('string');
+  });
+});

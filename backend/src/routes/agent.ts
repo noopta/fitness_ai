@@ -165,7 +165,7 @@ router.get('/coach/agent/history', requireAuth, requireAgentAccess, async (req, 
     const messages = stored.map((m) => {
       const { text: content, cards } = m.role === 'assistant' ? splitStored(m) : { text: m.text, cards: [] };
       const cardIds = cards.map((c) => c.id);
-      return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}), ...(m.receipts?.length ? { receipts: m.receipts } : {}), ...(m.photos?.length ? { photos: m.photos } : {}) };
+      return { role: m.role, content, ...(cardIds.length ? { cardIds } : {}), ...(m.origin ? { origin: m.origin } : {}), ...(m.at ? { at: m.at } : {}), ...(m.receipts?.length ? { receipts: m.receipts } : {}), ...(m.photos?.length ? { photos: m.photos } : {}), ...(m.video ? { video: m.video } : {}) };
     });
     res.json({ messages, hasThread: messages.length > 0, source: 'agent' });
   } catch (err: any) {

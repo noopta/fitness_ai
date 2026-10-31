@@ -40,8 +40,11 @@ import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-nat
 import * as ScreenCapture from 'expo-screen-capture';
 import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type Card } from '@axiom/agent-ui-core';
 import { threadBus } from '../chat/captureBus';
-import { AttachSheet, AttachTray } from '../chat/Attach';
-import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, daysOutLabel } from '@axiom/agent-ui-core';
+import { AttachSheet, StagedTray, AttachButton, SendButton } from '../chat/Attach';
+import { formBus } from '../chat/captureBus';
+import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachPlaceholder, daysOutLabel, sendReady, stagedClip, attachRoom, clipTurnText, watchingReceipts, liftFromSession } from '@axiom/agent-ui-core';
+import { proactiveApi } from '../api';
+import { formAnalysisApi } from '../../lib/api';
 import { useScreens, useProactiveOn } from '../data';
 import { Dots } from '../primitives/Ask';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -159,6 +162,7 @@ export function HomePage() {
   const [attachOpen, setAttachOpen] = useState(false);
   const screens = useScreens();
   const proactiveOn = useProactiveOn();
+  useEffect(() => formBus.on((uri, secs) => { attachDispatch({ type: 'add', uris: [uri], media: 'video', durationSec: secs }); enterChat(); }), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [focus, setFocus] = useState(false);
   const [askDone, setAskDone] = useState(false);
   const askAppended = useRef(false);
@@ -383,6 +387,7 @@ export function HomePage() {
   useEffect(() => { prevRead.current = sentence; }, [sentence]);
   const suggestions = brief.data?.suggestions ?? ["I can't train Thursday. Move it?", 'How\'s my bench?', 'Log lunch'];
   const session = brief.data?.session;
+  useEffect(() => { if (session?.name || session?.focus) attachDispatch({ type: 'lift', lift: liftFromSession([session.name ?? '', session.focus ?? '']) }); }, [session?.name, session?.focus]);
   const ask = !askDone ? brief.data?.ask ?? null : null;
 
   // T-15: a diagnostic left part-way shows Continue → on Home.
@@ -415,7 +420,12 @@ export function HomePage() {
   };
   useEffect(() => { if (!chat) wantKeyboard.value = 0; }, [chat]); // eslint-disable-line react-hooks/exhaustive-deps
   const send = async (m?: string) => {
-    const msg = (m ?? text).trim(); if (!msg) return;
+    const clip = stagedClip(attach);
+    const photoIds = readyPhotoIds(attach);
+    let msg = (m ?? text).trim();
+    // Something staged may go without words: the intent says what to do with it.
+    if (!msg && (photoIds.length || clip)) msg = clip ? '' : attach.intent === 'meal' ? 'Log this.' : attach.intent === 'label' ? 'Check this label against my targets.' : attach.intent === 'program' ? 'Import this program.' : 'What do you see?';
+    if (!msg && !clip) return;
     // Chat is Pro under the direct-entry paywall; the draft stays in the composer.
     if (requirePro() === false) { Keyboard.dismiss(); return; }
     enterChat(); setText('');
@@ -433,7 +443,23 @@ export function HomePage() {
       if (card) { await actions.answer(card, { text: msg }).catch(() => {}); return; }
     }
     pin();
-    const photoIds = readyPhotoIds(attach);
+    if (clip) {
+      // Flow H: the clip goes through the form-analysis pipeline; the thread shows the set and a watching turn
+      // now, and the server's result turn (summary, receipts, card) replaces it when the read lands.
+      const lift = attach.lift;
+      const turnText = clipTurnText(lift, msg);
+      attachDispatch({ type: 'clear' });
+      const agentId = thread.startClip(turnText, { analysisId: null, lift, seconds: clip.durationSec ?? null, localUri: clip.localUri }, watchingReceipts(lift, null));
+      try {
+        const started = await formAnalysisApi.start(clip.localUri, 'video/mp4', lift === 'Other' ? undefined : lift, false);
+        await proactiveApi.formCheckSent({ analysisId: started.id, lift, seconds: clip.durationSec ?? null, text: turnText }).catch(() => {});
+        void formAnalysisApi.pollUntilDone(started.id, { intervalMs: 4000 }).then(() => thread.hydrate()).catch(() => {});
+        await thread.finishClip(agentId, { ok: true, text: 'Reading your set — about a minute. You can leave; it’ll be here, and in Archive.' });
+      } catch (e: any) {
+        await thread.finishClip(agentId, { ok: false, error: e?.status === 429 ? 'That’s today’s form check on the free plan. Pro has no limit.' : (e?.message ?? 'Couldn’t upload the set — try again.') });
+      }
+      return;
+    }
     if (photoIds.length) attachDispatch({ type: 'clear' });
     await thread.send(msg, photoIds);
   };
@@ -571,6 +597,7 @@ export function HomePage() {
             <Pressable onPress={() => { setDraftEdit(null); setText(''); }} hitSlop={10}><Text style={[T.caption, { color: C.ink }]}>Cancel</Text></Pressable>
           </View>
         ) : null}
+        {chat && attach.items.length ? <View style={styles.trayWrap}><StagedTray state={attach} dispatch={attachDispatch} onMore={() => setAttachOpen(true)} /></View> : null}
         {editing ? (
           <Animated.View style={[styles.inputWrap, styles.saveBar, inputWrap]}>
             <Pressable onPress={() => { setEditing(null); Keyboard.dismiss(); }} hitSlop={12} accessibilityRole="button"><Text style={[T.body, { color: C.muted }]}>Cancel</Text></Pressable>
@@ -578,9 +605,7 @@ export function HomePage() {
           </Animated.View>
         ) : (
         <Animated.View style={[styles.inputWrap, inputWrap]}>
-          {chat && proactiveOn ? <Pressable onPress={() => { haptics.select(); setAttachOpen(true); }} hitSlop={10} accessibilityLabel="Add a photo" disabled={attach.items.length >= 4}>
-            <Text style={[styles.send, { color: attach.items.length ? C.crimson : C.placeholder }]}>+</Text>
-          </Pressable> : null}
+          {proactiveOn ? <AttachButton open={attachOpen} staged={attach.items.length > 0} dark={!chat} onPress={() => { haptics.select(); if (!chat) enterChat(); setAttachOpen(true); }} /> : null}
           <AnimatedTextInput
             ref={inputRef}
             value={text}
@@ -599,16 +624,13 @@ export function HomePage() {
             selectionColor={C.crimson}
             accessibilityLabel="Ask Anakin"
           />
-          <Pressable onPress={() => void send()} hitSlop={10} accessibilityLabel="Send" disabled={!text.trim() || busy || attachBusy(attach)}>
-            <Text style={[styles.send, { color: text.trim() && !busy ? C.crimson : C.placeholder }]}>↑</Text>
-          </Pressable>
+          <SendButton ready={sendReady(text, attach, busy)} onPress={() => void send()} />
           {chat ? null : <Pressable style={StyleSheet.absoluteFill} onPress={openChat} accessibilityRole="button" accessibilityLabel="Ask Anakin" />}
         </Animated.View>
         )}
       </Animated.View>
       </Animated.View>
-      {chat && attach.items.length ? <View style={{ position: 'absolute', left: v2.space.gutter, right: v2.space.gutter, bottom: COMPOSER_H + 8 }}><AttachTray state={attach} dispatch={attachDispatch} /></View> : null}
-      <AttachSheet visible={attachOpen} onClose={() => setAttachOpen(false)} room={Math.max(1, 4 - attach.items.length)} dispatch={attachDispatch} />
+      <AttachSheet visible={attachOpen} onClose={() => setAttachOpen(false)} room={Math.max(1, attachRoom(attach))} dispatch={attachDispatch} intent={attach.intent} />
     </View>
   );
 }
@@ -756,6 +778,8 @@ const styles = StyleSheet.create({
   begin: { fontFamily: v2.font.semibold, fontSize: 15, lineHeight: 20 },
   suggestion: { fontFamily: v2.font.medium, fontSize: 20, lineHeight: 26, color: C.muted, letterSpacing: -0.3 },
   inputWrap: { height: COMPOSER_H, flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: 1 },
+  // E1b: staged photos or a clip sit inside the composer, above the input, on white so the thread doesn't show through.
+  trayWrap: { backgroundColor: v2.color.white, borderTopWidth: 1, borderTopColor: v2.color.hairline, paddingTop: 2 },
   input: { flex: 1, fontFamily: v2.font.regular, fontSize: 17, padding: 0 },
   send: { fontFamily: v2.font.semibold, fontSize: 17, lineHeight: 22 },
   topFade: { position: 'absolute', left: 0, right: 0, top: 0, height: 56 },
