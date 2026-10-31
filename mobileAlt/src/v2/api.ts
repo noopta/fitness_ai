@@ -18,7 +18,7 @@ export type ReviewOp = 'apply' | 'keep' | 'undo' | 'apply_all' | 'expand';
 /** This client renders server cards (card2 events, /coach/agent/cards/*). */
 const CARD_CONTRACT = { 'X-Card-Contract': '2' };
 
-export interface HistoryMessage { role: 'user' | 'assistant'; content: string; cardIds?: string[]; origin?: 'anakin'; at?: string }
+export interface HistoryMessage { role: 'user' | 'assistant'; content: string; cardIds?: string[]; origin?: 'anakin'; at?: string; receipts?: { verb: string; text: string }[]; photos?: string[] }
 
 const post = (path: string, body: Record<string, unknown> = {}) =>
   apiFetch(path, { method: 'POST', body: JSON.stringify(body), timeoutMs: LONG_TIMEOUT_MS });
@@ -204,7 +204,7 @@ export const v2Api = {
   async streamTurn(
     message: string,
     onEvent: (e: StreamEvent) => void,
-    opts: { signal?: AbortSignal; resetConversation?: boolean } = {},
+    opts: { signal?: AbortSignal; resetConversation?: boolean; photoIds?: string[] } = {},
   ): Promise<void> {
     const token = await getToken();
     const res = await expoFetch(`${API_BASE}/coach/agent/stream`, {
@@ -215,7 +215,7 @@ export const v2Api = {
         ...CARD_CONTRACT,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ message, resetConversation: opts.resetConversation }),
+      body: JSON.stringify({ message, resetConversation: opts.resetConversation, ...(opts.photoIds?.length ? { photoIds: opts.photoIds } : {}) }),
       signal: opts.signal,
     });
     if (!res.ok) {
@@ -293,3 +293,40 @@ export interface SwapOptions {
   variants: SwapRow[];
   lowConfidence: boolean;
 }
+
+// ── Proactive coach (design v3): Working on · check-ins · photos · screens ──
+export interface WorkingOnRow { id: string; title: string; sub: string; value: string | null; big: boolean; kind: string; status: string }
+export interface ThreadDetail {
+  id: string; kind: string; kindLabel: string; title: string; status: string; statusWord: string; read: string | null;
+  sourceQuote: string | null; sourceLabel: string | null; checkBackAt: string | null; checkBackLabel: string | null; eventDate: string | null; affects: string[];
+  history: { at: string; label: string; text: string }[]; resolution: string | null; openedLabel: string;
+}
+export interface ProactivePrefs { frequency: 'rarely' | 'normal' | 'often'; pushTimeSensitive: boolean; quietStart: number; quietEnd: number; outcomeReports: boolean; mutedTopics: { topic: string; until: string | null; mutedAt: string }[]; allCheckins: boolean; programOwner: 'me' | 'coach_offline' | 'coach_axiom'; photoRetentionDays: number; sessionTime: string | null }
+export interface ChatPhotoMeta { id: string; kind: string; private: boolean; description: string | null; createdAt: string; hasImage: boolean }
+export interface Screens {
+  event: { threadId: string; title: string; date: string; dateLabel: string; daysOut: number; note: string | null; phases: string[]; phaseIndex: number; sub: string | null } | null;
+  todayNote: { threadId: string; exercise: string; text: string; sub: string | null; options: [string, string] } | null;
+  fuelInsight: { lift: string; lowDays: number; otherDays: number; gap: number; bars: { date: string; carbs: number; low: boolean }[]; headline: string; caption: string; proposal: { carbsG: number; text: string }; appliedCarbsG: number | null } | null;
+  safety: { headline: string; help: string } | null;
+  sparse: { text: string; progress: { done: number; of: number } } | null;
+}
+export const proactiveApi = {
+  threads: (): Promise<{ open: WorkingOnRow[]; closed: WorkingOnRow[]; today: string }> => apiFetch('/coach/agent/threads'),
+  thread: (id: string): Promise<ThreadDetail> => apiFetch(`/coach/agent/threads/${id}`),
+  threadResolve: (id: string, resolution?: string) => post(`/coach/agent/threads/${id}/resolve`, { resolution }),
+  threadWrong: (id: string) => post(`/coach/agent/threads/${id}/wrong`),
+  threadAck: (id: string, answer: 'got_it' | 'fine') => post(`/coach/agent/threads/${id}/ack`, { answer }),
+  threadEdit: (id: string, patch: Partial<Pick<ThreadDetail, 'title' | 'checkBackAt' | 'eventDate' | 'affects' | 'read'>>) => apiFetch(`/coach/agent/threads/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+  checkins: (): Promise<{ prefs: ProactivePrefs; frequencyLabel: string; muted: { topic: string; until: string | null; label: string }[]; sessionTimeInferred: string | null }> => apiFetch('/coach/agent/checkins'),
+  checkinsPatch: (patch: Partial<ProactivePrefs>): Promise<{ prefs: ProactivePrefs }> => apiFetch('/coach/agent/checkins', { method: 'PATCH', body: JSON.stringify(patch) }),
+  unmute: (topic: string): Promise<{ prefs: ProactivePrefs }> => post('/coach/agent/checkins/unmute', { topic }),
+  photoUpload: (image: string, mimeType = 'image/jpeg'): Promise<{ photo: { id: string; kind: string; private: boolean; description: string | null; url: string | null } }> =>
+    apiFetch('/coach/agent/photos', { method: 'POST', body: JSON.stringify({ image, mimeType }), timeoutMs: LONG_TIMEOUT_MS }),
+  photos: (): Promise<{ photos: ChatPhotoMeta[]; retentionDays: number }> => apiFetch('/coach/agent/photos'),
+  photoUrl: (id: string): Promise<{ url: string }> => apiFetch(`/coach/agent/photos/${id}/url`),
+  photoDelete: (id: string) => apiFetch(`/coach/agent/photos/${id}`, { method: 'DELETE' }),
+  photosDeleteAll: () => apiFetch('/coach/agent/photos', { method: 'DELETE' }),
+  screens: (exercises: string[] = []): Promise<Screens> => apiFetch(`/coach/agent/screens${exercises.length ? `?exercises=${encodeURIComponent(exercises.join('|'))}` : ''}`),
+  carbDay: (carbsG: number): Promise<{ changeId: string; summary: string }> => post('/coach/agent/screens/carb-day', { carbsG }),
+  flag: (body: { exercise: string; setIndex?: number; note?: string }): Promise<{ id: string; threadId: string | null }> => post('/workouts/flag', body),
+};

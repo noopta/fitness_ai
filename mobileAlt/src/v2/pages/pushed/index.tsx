@@ -44,6 +44,7 @@ import { AnalyzePage } from './analyze';
 import { CoachPage } from './coach';
 import { userSafetyMenu } from '../../../lib/moderation';
 import { WatchPage } from './watch';
+import { WorkingOnPage, ThreadPage as ProactiveThreadPage, CheckinsPage, ProgramOwnerPage, KnowsPage } from './proactive';
 import { track } from '../../track';
 
 export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Record<string, string> }) {
@@ -82,7 +83,11 @@ export function PushedPageFor({ pageKey, params }: { pageKey: string; params: Re
     case 'patterns': return <PatternsPage />;
     case 'body': return <BodyPage />;
     case 'streak': return <StreakPage />;
-    case 'memory': return <MemoryPage />;
+    case 'memory': return <KnowsPage />;
+    case 'workingon': return <WorkingOnPage />;
+    case 'thread': return <ProactiveThreadPage id={arg} />;
+    case 'checkins': return <CheckinsPage />;
+    case 'programowner': return <ProgramOwnerPage />;
     case 'watch': return <WatchPage />;
     // You → Coach: join a personal trainer, or see and stop what they can see.
     case 'coach': return <CoachPage params={params} />;
@@ -483,6 +488,8 @@ function PrefsPage() {
       <Row name="Units" value={unit} onPress={() => toggleUnit()} />
       <Row name="Profile" sub="What Anakin plans around" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'profile' } } as any)} />
       <Row name="Notifications" sub="Only when Anakin needs you" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'notifications' } } as any)} />
+      <Row name="Check-ins" sub="How often Anakin writes first, quiet hours, muted topics" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'checkins' } } as any)} />
+      <Row name="Who runs your program?" sub="A coach means Anakin suggests, never edits" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'programowner' } } as any)} />
       <Row name="Plan and usage" onPress={() => router.push({ pathname: '/(v2)/p/[key]', params: { key: 'plan' } } as any)} />
       <Row name="Export my data" sub="A link that works for 10 minutes" onPress={() => void exportData()} />
       <Row name="Sign out" onPress={() => Alert.alert('Sign out?', '', [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign out', style: 'destructive', onPress: () => void logout() }])} last />

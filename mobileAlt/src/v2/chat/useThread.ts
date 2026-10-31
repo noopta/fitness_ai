@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { threadReducer, emptyThread, canSend, turnFromResult, allCards, isLive, isWriteVerb, type Turn, type ThreadState, type StreamEvent, type ReceiptVerb, awayRange } from '@axiom/agent-ui-core';
+import { threadReducer, emptyThread, canSend, turnFromResult, allCards, isLive, isWriteVerb, type Turn, type ThreadState, type StreamEvent, type ReceiptVerb, awayRange, historyReceipts } from '@axiom/agent-ui-core';
 import { v2Api, receiptForTool } from '../api';
 import { useShellOptional } from '../shell/ShellContext';
 import { useInvalidate } from '../data';
@@ -58,7 +58,8 @@ export function useThread() {
       const h = await v2Api.history();
       const msgs = (h?.messages ?? []).slice(-40);
       const turns: Turn[] = msgs.map((m, i) => ({
-        id: `h${i}`, kind: m.role === 'user' ? 'user' : 'agent', text: m.content, receipts: [], done: true,
+        id: `h${i}`, kind: m.role === 'user' ? 'user' : 'agent', text: m.content, receipts: historyReceipts(m.receipts, `h${i}`), done: true,
+        ...(m.photos?.length ? { photos: m.photos } : {}),
         ...(m.cardIds?.length ? { cardIds: m.cardIds } : {}),
         ...(m.origin === 'anakin' ? { origin: 'anakin' as const, unprompted: true } : {}),
         ...(m.at ? { at: Date.parse(m.at) } : {}),
@@ -145,11 +146,11 @@ export function useThread() {
   // `pro`: the server's Pro gate refused the turn (403 pro_required) — Home opens the paywall.
   const [failure, setFailure] = useState<{ text: string; limit: boolean; pro?: boolean } | null>(null);
 
-  const send = useCallback(async (text: string) => {
+  const send = useCallback(async (text: string, photoIds?: string[]) => {
     const m = text.trim();
     if (!m || !canSend(stateRef.current)) return false;
     const id = nextId('u'), agentId = nextId('a');
-    dispatch({ type: 'send', id, agentId, text: m });
+    dispatch({ type: 'send', id, agentId, text: m, ...(photoIds?.length ? { photos: photoIds } : {}) });
     setFailure(null);
     track('chat_message_sent', { length: m.length });
     haptics.light();
@@ -169,7 +170,7 @@ export function useThread() {
         if (e.type === 'card_update' && e.patch.state?.changeId) wrote = true;
         if (e.type === 'done') { gotDone = true; toolsSeen = e.toolsUsed ?? toolsSeen; }
         dispatch({ type: 'event', agentId, event: e });
-      }, { signal: ac.signal, resetConversation: reset });
+      }, { signal: ac.signal, resetConversation: reset, photoIds });
     } catch (err: any) {
       if (ac.signal.aborted) return true;
       // The server refused the turn (daily limit, auth…): it never ran — say so, don't retry it.

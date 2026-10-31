@@ -182,3 +182,13 @@ export function useInvalidate() {
 }
 
 export { authApi };
+
+// ── Proactive coach (design v3) ─────────────────────────────────────────────
+import { proactiveApi } from './api';
+export const useThreads = () => useQuery({ queryKey: ['v2', 'proactive', 'threads'], queryFn: proactiveApi.threads, staleTime: STALE });
+export const useThreadDetail = (id: string) => useQuery({ queryKey: ['v2', 'proactive', 'thread', id], queryFn: () => proactiveApi.thread(id), staleTime: STALE, enabled: !!id });
+export const useCheckinPrefs = () => useQuery({ queryKey: ['v2', 'proactive', 'checkins'], queryFn: proactiveApi.checkins, staleTime: STALE });
+export const useChatPhotos = () => useQuery({ queryKey: ['v2', 'proactive', 'photos'], queryFn: proactiveApi.photos, staleTime: STALE });
+/** D1/D2/D3/G3 in one call; pass today's exercise names for the session note. */
+export const useScreens = (exercises: string[] = []) => useQuery({ queryKey: ['v2', 'proactive', 'screens', exercises.join('|')], queryFn: () => proactiveApi.screens(exercises), staleTime: 5 * 60_000 });
+export const usePhotoUrl = (id: string | null, enabled = true) => useQuery({ queryKey: ['v2', 'proactive', 'photoUrl', id ?? ''], queryFn: () => proactiveApi.photoUrl(id!), enabled: !!id && enabled, staleTime: 50 * 60_000 });

@@ -10,7 +10,7 @@ import { T } from '../theme';
 import { TabPage, PageTitle, AnakinRead } from '../shell/Page';
 import { Row } from '../primitives/Row';
 import { Enter } from '../primitives/Enter';
-import { useStrength, useStreak, useMemory, useWorkouts } from '../data';
+import { useStrength, useStreak, useMemory, useWorkouts, useThreads } from '../data';
 import { ShareWorkoutSheet, type WorkoutShare } from '../share/ShareWorkoutSheet';
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@axiom/personal-training-core';
@@ -48,6 +48,7 @@ export function YouPage() {
   const strength = useStrength();
   const streak = useStreak();
   const memory = useMemory();
+  const threads = useThreads();
   const memoryCount = (memory.data?.notes?.length ?? 0) + (memory.data?.profile?.length ?? 0);
   // A personal trainer: who coaches them, or invites waiting for their email.
   const coaching = useQuery({ queryKey: queryKeys.coaching, queryFn: ptApi.coaching, retry: 1, staleTime: 60_000 });
@@ -80,6 +81,7 @@ export function YouPage() {
         <Enter index={4} exit={false}><Row name="Check in" sub="Sleep, energy, mood, stress — only what you tap" onPress={() => go('checkin')} /></Enter>
         {getFeatures().wearables ? <Enter index={4} exit={false}><Row name="Watch & health data" sub="Apple Health and Fitbit, recovery from your own baselines" onPress={() => go('watch')} /></Enter> : null}
         <Enter index={4} exit={false}><Row name="Streak" value={streakDays != null ? `${streakDays} days` : undefined} arrow onPress={() => go('streak')} /></Enter>
+        <Enter index={5} exit={false}><Row name="Working on" sub={threads.data ? (threads.data.open.length ? `${threads.data.open.length} open · ${threads.data.open[0].title}` : 'Nothing open — mention a goal or a niggle in chat') : 'What Anakin is keeping track of'} onPress={() => go('workingon')} /></Enter>
         <Enter index={5} exit={false}><Row name="What Anakin knows" sub={memoryCount ? `${memoryCount} thing${memoryCount === 1 ? '' : 's'} known` : memory.isError ? 'Tap to retry' : 'Nothing noted yet'} onPress={() => go('memory')} /></Enter>
         <Enter index={6} exit={false}><Row name="Coach" sub={coachSub} onPress={() => go('coach')} /></Enter>
         <Enter index={6} exit={false}><Row name="Billing" value={user?.tier === 'pro' || user?.tier === 'enterprise' ? 'Pro' : 'Free'} onPress={() => go('billing')} /></Enter>

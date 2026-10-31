@@ -40,6 +40,10 @@ import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-nat
 import * as ScreenCapture from 'expo-screen-capture';
 import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type Card } from '@axiom/agent-ui-core';
 import { threadBus } from '../chat/captureBus';
+import { AttachSheet, AttachTray } from '../chat/Attach';
+import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, daysOutLabel } from '@axiom/agent-ui-core';
+import { useScreens } from '../data';
+import { Dots } from '../primitives/Ask';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CardHandlersProvider, type CardHandlers, type EditSession } from '../chat/card/context';
 import { useCardActions } from '../chat/useCardActions';
@@ -150,6 +154,10 @@ export function HomePage() {
   }, [proFailure]); // eslint-disable-line react-hooks/exhaustive-deps
   const chat = shell.mode === 'chat';
   const [text, setText] = useState('');
+  // Photos in chat (flow E): the tray's state machine lives in agent-ui-core; uploads run from Attach.tsx.
+  const [attach, attachDispatch] = React.useReducer(attachReducer, EMPTY_ATTACH);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const screens = useScreens();
   const [focus, setFocus] = useState(false);
   const [askDone, setAskDone] = useState(false);
   const askAppended = useRef(false);
@@ -424,7 +432,9 @@ export function HomePage() {
       if (card) { await actions.answer(card, { text: msg }).catch(() => {}); return; }
     }
     pin();
-    await thread.send(msg);
+    const photoIds = readyPhotoIds(attach);
+    if (photoIds.length) attachDispatch({ type: 'clear' });
+    await thread.send(msg, photoIds);
   };
   const answerAsk = (turn: Turn, o: string) => {
     if (requirePro() === false) return;
@@ -473,6 +483,7 @@ export function HomePage() {
       {/* Brief: bottom-anchored over the video, just above the composer. Fades and lifts away; never resized. */}
       <Animated.View style={[styles.briefLayer, { bottom: BRIEF_BOTTOM + COMPOSER_H }, briefLayer]} pointerEvents={chat ? 'none' : 'box-none'}>
         <BriefBlock
+          event={screens.data?.event ?? null} sparse={screens.data?.sparse ?? null}
           sentence={sentence} swapRead={swapRead} readLines={readLines} readSlot={READ_SLOT} session={session} onBegin={openSession}
           paused={paused.data ? String(paused.data.lift ?? '').split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null} onContinue={openPaused} />
       </Animated.View>
@@ -566,6 +577,9 @@ export function HomePage() {
           </Animated.View>
         ) : (
         <Animated.View style={[styles.inputWrap, inputWrap]}>
+          {chat ? <Pressable onPress={() => { haptics.select(); setAttachOpen(true); }} hitSlop={10} accessibilityLabel="Add a photo" disabled={attach.items.length >= 4}>
+            <Text style={[styles.send, { color: attach.items.length ? C.crimson : C.placeholder }]}>+</Text>
+          </Pressable> : null}
           <AnimatedTextInput
             ref={inputRef}
             value={text}
@@ -575,7 +589,7 @@ export function HomePage() {
             onFocus={() => { setFocus(true); enterChat(); }}
             onBlur={() => { setAnswering(false); onBlur(); }}
             onSubmitEditing={() => void send()}
-            placeholder={cmode.kind === 'ask' && answering ? 'Type your answer' : cmode.placeholder}
+            placeholder={cmode.kind === 'ask' && answering ? 'Type your answer' : (attachPlaceholder(attach) ?? cmode.placeholder)}
             placeholderTextColor={C.placeholder}
             style={[styles.input, inputText]}
             returnKeyType="send"
@@ -584,7 +598,7 @@ export function HomePage() {
             selectionColor={C.crimson}
             accessibilityLabel="Ask Anakin"
           />
-          <Pressable onPress={() => void send()} hitSlop={10} accessibilityLabel="Send" disabled={!text.trim() || busy}>
+          <Pressable onPress={() => void send()} hitSlop={10} accessibilityLabel="Send" disabled={!text.trim() || busy || attachBusy(attach)}>
             <Text style={[styles.send, { color: text.trim() && !busy ? C.crimson : C.placeholder }]}>↑</Text>
           </Pressable>
           {chat ? null : <Pressable style={StyleSheet.absoluteFill} onPress={openChat} accessibilityRole="button" accessibilityLabel="Ask Anakin" />}
@@ -592,6 +606,8 @@ export function HomePage() {
         )}
       </Animated.View>
       </Animated.View>
+      {chat && attach.items.length ? <View style={{ position: 'absolute', left: v2.space.gutter, right: v2.space.gutter, bottom: COMPOSER_H + 8 }}><AttachTray state={attach} dispatch={attachDispatch} /></View> : null}
+      <AttachSheet visible={attachOpen} onClose={() => setAttachOpen(false)} room={Math.max(1, 4 - attach.items.length)} dispatch={attachDispatch} />
     </View>
   );
 }
@@ -599,8 +615,12 @@ export function HomePage() {
 type BriefSession = NonNullable<ReturnType<typeof useBrief>['data']>['session'];
 
 /** The brief's own content. Memoised: opening chat doesn't re-render it — it only fades. */
-const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLines, readSlot, session, onBegin, paused, onContinue }: {
+const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLines, readSlot, session, onBegin, paused, onContinue, event, sparse }: {
   sentence: string; swapRead: boolean;
+  /** D1: an open event thread takes an extra block above the read — eyebrow, phase band, 64pt countdown. */
+  event?: { title: string; dateLabel: string; daysOut: number; phases: string[]; phaseIndex: number; sub: string | null } | null;
+  /** G2: the sparse-data note, said once, with the dots. */
+  sparse?: { text: string; progress: { done: number; of: number } } | null;
   readLines: number; readSlot: number; session: BriefSession | null | undefined; onBegin: () => void;
   /** A paused diagnostic's lift name, or null. */
   paused?: string | null; onContinue?: () => void;
@@ -609,6 +629,28 @@ const BriefBlock = React.memo(function BriefBlock({ sentence, swapRead, readLine
     <>
       {/* The receipts summary line ("Checked N things") was dropped 6 Oct: low-contrast and read as tool calls. */}
 
+      {event ? (
+        <Animated.View entering={settle(200)} style={{ marginBottom: 22 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <Text style={[T.eyebrow, { color: C.darkMuted }]}>{event.title} · {event.dateLabel}</Text>
+            <Text style={[T.caption, { color: C.darkMuted }]} numberOfLines={1}>{event.phases.map((p, i) => (i === event.phaseIndex ? p : p)).join(' · ')}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginTop: 6 }}>
+            <Text style={{ fontFamily: v2.font.bold, ...v2.type.hero, color: C.darkInk }}>{event.daysOut}</Text>
+            <Text style={[T.row, { color: C.darkMuted }]}>{daysOutLabel(event.daysOut).replace(/^\d+ /, '')}</Text>
+          </View>
+          {event.sub ? <Text style={[T.caption, { color: C.darkMuted, marginTop: 4 }]} numberOfLines={1}>{event.sub}</Text> : null}
+        </Animated.View>
+      ) : null}
+      {sparse && !sentence ? (
+        <View style={{ marginBottom: 22 }}>
+          <Text style={[styles.read, { color: C.darkInk }]} numberOfLines={4}>{sparse.text}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 }}>
+            <Dots states={Array.from({ length: sparse.progress.of }, (_, i) => i < sparse.progress.done)} tone="dark" />
+            <Text style={[T.caption, { color: C.darkMuted }]}>{sparse.progress.done} of {sparse.progress.of} sessions</Text>
+          </View>
+        </View>
+      ) : null}
       {/* The read: 27 / 600 / −0.02em / 1.22. Its slot is reserved so a new read never moves the layout. */}
       <Animated.View entering={settle(240)} style={{ marginBottom: 22, minHeight: readSlot }}>
         {sentence ? (

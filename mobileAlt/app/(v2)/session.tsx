@@ -48,6 +48,7 @@ import type { ProgressMoment } from '@axiom/agent-ui-core';
 import { MomentPrompt, useOpenMoment } from '../../src/v2/moments/MomentPrompt';
 import { claimMoments } from '../../src/v2/moments/store';
 import { SwapSheet } from '../../src/v2/swap/SwapSheet';
+import { proactiveApi } from '../../src/v2/api';
 import { getTodaySwaps, setTodaySwap, swappedName } from '../../src/v2/todaySwaps';
 import { useAuth } from '../../src/context/AuthContext';
 import { track } from '../../src/v2/track';
@@ -164,6 +165,7 @@ function SessionScreenInner() {
   // Swaps that keep the job (flag swapV2): the sheet ranks, they pick, only the name and load change.
   const swapV2 = useAuth().getFeatures().swapV2;
   const [swapping, setSwapping] = useState(false);
+  const [flagged, setFlagged] = useState<string | null>(null);
   const sessionDay: string | null = seed ? null : sessionTitle(session?.name ?? session?.day ?? '').split(/[·—–/]/)[0].trim() || null;
   const swapTo = async (to: string) => {
     const idx = state.ex;
@@ -351,8 +353,10 @@ function SessionScreenInner() {
               <Row name="Done — hard" onPress={() => rate('hard')} arrow />
               <Row name="Missed a rep" onPress={() => rate('miss')} arrow last />
             </View>
+            {flagged ? <Text style={[T.caption, { marginTop: 16, color: v2.color.crimson }]}>{flagged}</Text> : null}
             <View style={{ flexDirection: 'row', gap: 24, marginTop: 24 }}>
               <TextAction muted size={14} arrow={false} onPress={() => handOff(`Something hurts on ${cur.name.toLowerCase()} — what should I do?`)}>Something hurts</TextAction>
+              <TextAction muted size={14} arrow={false} onPress={() => { haptics.select(); void proactiveApi.flag({ exercise: cur.name, setIndex: state.set }).then((r) => { setFlagged(`Flagged · ${cur.name} · set ${state.set + 1}${r.threadId ? ' · noted on the thread' : ''}`); }).catch(() => setFlagged('Couldn’t flag that')); }}>Flag it</TextAction>
               <TextAction muted size={14} arrow={false} onPress={() => (swapV2 ? setSwapping(true) : handOff(`Swap ${cur.name.toLowerCase()} for something easier on me today`))}>Swap this lift</TextAction>
             </View>
           </Animated.View>

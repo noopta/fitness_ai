@@ -7,7 +7,7 @@
 // your foods and recipes, Enter macros manually, Voice and Order · receipt.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { Pressable } from '../primitives/Pressable';
 import { useRouter } from 'expo-router';
 import { v2, T } from '../theme';
@@ -20,7 +20,7 @@ import { describeWithLookup, liveStep } from '../food/lookup';
 import { microFields } from '../food/micros';
 import { richLogFields } from '../../components/coach/nutrition/sheets/sheetHelpers';
 import { Ring } from '../charts';
-import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods } from '../data';
+import { useMeals, useNpDay, useNpWeek, useNutritionPlan, useInvalidate, useDayTargets, useRecipes, useSavedFoods, useScreens } from '../data';
 import { targetLines, dayTotals, momentFor, lookupReceipt, mealSources, type MealSource } from '@axiom/agent-ui-core';
 import { SourceLinks } from '../food/SourceLinks';
 import { ShareCardSheet, CardBody } from '../share/ShareCardSheet';
@@ -30,6 +30,8 @@ import { focusList } from './pushed/nutritionPlan';
 import { useQuery } from '@tanstack/react-query';
 import { nutritionApi } from '../../lib/api';
 import { threadBus } from '../chat/captureBus';
+import { proactiveApi } from '../api';
+import { useQueryClient } from '@tanstack/react-query';
 import { v2Api } from '../api';
 import { todayStr } from '../../lib/localDate';
 import { KeyboardAvoider } from '../../components/ui/KeyboardAvoider';
@@ -87,6 +89,16 @@ export function FuelPage() {
   const kcal = totals.kcal, p = totals.proteinG, c = totals.carbsG, f = totals.fatG, fi = totals.fiberG;
   const moment = momentFor(totals, tg, todayStr());
   const [sharing, setSharing] = useState(false);
+  // D3 (proactive): the training × nutrition insight and G3's safety line, one call.
+  const screens = useScreens();
+  const qcProactive = useQueryClient();
+  const [insightHidden, setInsightHidden] = useState(false);
+  const insight = !insightHidden ? screens.data?.fuelInsight ?? null : null;
+  const applyCarbs = async (carbsG: number) => {
+    haptics.light();
+    try { await proactiveApi.carbDay(carbsG); await Promise.all([qcProactive.invalidateQueries({ queryKey: ['v2', 'proactive'] }), qcProactive.invalidateQueries({ queryKey: ['v2', 'meals'] })]); }
+    catch (e: any) { Alert.alert('Couldn’t set that', e?.message ?? 'Try again.'); }
+  };
   const systems: any[] = (np.data?.systems?.length ? np.data.systems : week.data?.systems) ?? [];
   const npWin: any = np.data?.systems?.length ? np.data : week.data;
   const worst = [...systems].sort((a, b) => a.score - b.score)[0];
@@ -213,6 +225,35 @@ export function FuelPage() {
         </Enter>
         )}
         <View style={{ marginTop: 22 }}><AnakinRead text={read} working={dock === 'busy'} /></View>
+        {screens.data?.safety ? (
+          <View style={{ marginTop: 18 }}>
+            <Row name={screens.data.safety.headline} sub={screens.data.safety.help} last />
+          </View>
+        ) : null}
+        {insight ? (
+          <View style={{ marginTop: 22 }}>
+            <Text style={T.eyebrow}>Tomorrow · {insight.lift}</Text>
+            <Text style={[T.readSm, { marginTop: 6 }]}>{insight.headline}</Text>
+            <Text style={[T.caption, { marginTop: 6 }]}>{insight.caption}</Text>
+            <Text style={[T.eyebrow, { marginTop: 14 }]}>Carbs the day before · last {insight.bars.length} {insight.lift.toLowerCase()} days</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 44, marginTop: 8 }}>
+              {insight.bars.map((b, i) => <View key={i} style={{ flex: 1, height: Math.max(4, Math.round(44 * Math.min(1, b.carbs / 400))), borderRadius: 2, backgroundColor: b.low ? v2.color.macro.carbs : v2.color.hairline }} />)}
+            </View>
+            <View style={{ marginTop: 10 }}>
+              <Row name="After low-carb days" sub={`${insight.lowDays} ${insight.lift.toLowerCase()} days`} value={`${insight.gap} reps`} />
+              <Row name="Other days" sub={`${insight.otherDays} ${insight.lift.toLowerCase()} days`} value="±0" last />
+            </View>
+            {insight.appliedCarbsG ? <Text style={[T.caption, { marginTop: 12, color: v2.color.crimson }]}>Adjusted — {insight.appliedCarbsG} g carbs today, one day only</Text> : (
+              <View style={{ marginTop: 12 }}>
+                <Text style={T.caption}><Text style={{ color: v2.color.crimson, fontFamily: v2.font.bold }}>PROPOSED</Text> — {insight.proposal.text}</Text>
+                <View style={{ flexDirection: 'row', gap: 24, marginTop: 8 }}>
+                  <TextAction primary size={15} onPress={() => void applyCarbs(insight.proposal.carbsG)}>Apply</TextAction>
+                  <TextAction muted size={15} arrow={false} onPress={() => setInsightHidden(true)}>Not this week</TextAction>
+                </View>
+              </View>
+            )}
+          </View>
+        ) : null}
 
         <View style={{ marginTop: 30 }}>
           {plan.isLoading ? null : <PlanRow plan={plan.data ?? null} onPress={openPlan} />}

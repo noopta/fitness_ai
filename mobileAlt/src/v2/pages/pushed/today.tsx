@@ -18,7 +18,9 @@ import { Pressable } from '../../primitives/Pressable';
 import { TextAction } from '../../primitives/TextAction';
 import { Sheet } from '../../primitives/Sheet';
 import { StandaloneCard } from '../../chat/StandaloneCard';
-import { useToday, useSchedule, useCheckins, useMeals, useExerciseVideo, useInvalidate } from '../../data';
+import { useToday, useSchedule, useCheckins, useMeals, useExerciseVideo, useInvalidate, useScreens } from '../../data';
+import { proactiveApi } from '../../api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useShellOptional } from '../../shell/ShellContext';
 import { v2Api } from '../../api';
 import { exName, sessionTitle, estimateMinutes, phaseShort } from '../../format';
@@ -44,6 +46,12 @@ export function TodayPage() {
   const session = t?.todaySession ?? t?.session ?? null;
   const ex: any[] = session?.exercises ?? [];
   const date = todayStr();
+  // D2: a thread that touches an exercise in this session puts a note before you start.
+  const screens = useScreens(ex.map((x: any) => exName(x)));
+  const qc = useQueryClient();
+  const [noteDone, setNoteDone] = useState<string | null>(null);
+  const note = screens.data?.todayNote && noteDone !== screens.data.todayNote.threadId ? screens.data.todayNote : null;
+  const ack = async (answer: 'got_it' | 'fine') => { if (!note) return; setNoteDone(note.threadId); haptics.select(); try { await proactiveApi.threadAck(note.threadId, answer); await qc.invalidateQueries({ queryKey: ['v2', 'proactive'] }); } catch { /* the note comes back next time */ } };
 
   // Recovery reads only what's real: last night's sleep if they checked in, today's protein if they logged.
   const last = (checkins.data?.checkins ?? [])[0];
@@ -64,8 +72,15 @@ export function TodayPage() {
   const meta = t ? `${dowOf(date)}${t.phaseName ? ` · ${phaseShort(t.phaseName)} ${t.weekNumber ?? ''}` : ''}`.trim() : null;
   return (
     <PushedPage back="Home" meta={meta} eyebrow="Today" title={session ? `${shortName(session)}${mins(session) ? ` · ${mins(session)} min` : ''}` : 'Rest'}
-      lead={lead} loading={today.isLoading && !t} error={today.isError && !t ? 'Couldn’t load today.' : null} onRetry={() => void today.refetch()}
+      lead={note ? `${note.text}${note.sub ? ` ${note.sub}` : ''}` : lead} loading={today.isLoading && !t} error={today.isError && !t ? 'Couldn’t load today.' : null} onRetry={() => void today.refetch()}
       cta={session ? { label: 'Begin', onPress: () => { haptics.light(); router.push('/(v2)/session' as any); } } : null}>
+      {note ? (
+        <View style={{ flexDirection: 'row', gap: 24, marginBottom: 18 }}>
+          <TextAction size={15} arrow={false} onPress={() => void ack('got_it')}>{note.options[0]}</TextAction>
+          <TextAction muted size={15} arrow={false} onPress={() => void ack('fine')}>{note.options[1]}</TextAction>
+        </View>
+      ) : null}
+      {screens.data?.safety ? <Row name={screens.data.safety.headline} sub={screens.data.safety.help} last /> : null}
       {ex.map((e, i) => <ExerciseRow key={`${exName(e)}${i}`} e={e} index={i} session={ex.map((x: any) => exName(x))} swaps={swaps} day={shortName(session)} last={i === ex.length - 1} />)}
       <Eyebrow style={{ marginTop: ex.length ? 30 : 0 }}>Recovery</Eyebrow>
       <View style={{ marginTop: 6 }}>
