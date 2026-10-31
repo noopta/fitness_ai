@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, loadKind, swapExercise, type LoadKind, type Rating, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
+import { initialWorkout, workoutReducer, defaultRules, elapsedSec, mmss, exerciseProgress, summarize, toWorkoutLogBody, hasProgress, resumableDraft, loadKind, swapExercise, skipExercise, type LoadKind, type Rating, type PlanExercise, type WorkoutState, type WorkoutDraft } from '@axiom/agent-ui-core';
 import { todayStr } from '../../src/lib/localDate';
 import { v2, T } from '../../src/v2/theme';
 import { Row, Eyebrow } from '../../src/v2/primitives/Row';
@@ -181,6 +181,26 @@ function SessionScreenInner() {
     dispatch({ type: 'apply_swap', state: r.state });
     void setTodaySwap(from, to);
   };
+  // Can't do this lift right now: come back to it at the end, or drop it for today. Nothing is logged for it either way.
+  const skipTo = (mode: 'later' | 'today') => {
+    const r = skipExercise(P, state, state.ex, mode, Date.now());
+    if (r.state === state) return;
+    haptics.select();
+    track('session_exercise_skipped', { mode, sets_done: state.set });
+    setPlan(r.plan);
+    dispatch({ type: 'apply_swap', state: r.state });
+  };
+  const askSkip = () => {
+    const isLast = state.ex === P.length - 1;
+    // The only lift left in a session with nothing logged: there's no workout to save, so this is leaving.
+    if (isLast && !hasProgress(state)) { back(); return; }
+    const kept = state.set ? `Your ${state.set} set${state.set === 1 ? '' : 's'} stay logged.` : 'Nothing is logged for it.';
+    Alert.alert(`Skip ${cur?.name ?? 'this exercise'}?`, kept, [
+      ...(isLast ? [] : [{ text: 'Come back to it later', onPress: () => skipTo('later') }]),
+      { text: isLast ? 'Skip and finish' : 'Skip for today', onPress: () => skipTo('today') },
+      { text: 'Keep going', style: 'cancel' as const },
+    ]);
+  };
   const setKind = (k: LoadKind) => setPlan((p) => (p ? p.map((x, i) => (i === state.ex ? { ...x, kind: k } : x)) : p));
   const progress = exerciseProgress(state, P);
 
@@ -214,7 +234,8 @@ function SessionScreenInner() {
   const handOff = (m: string) => { dispatch({ type: 'pause', now: Date.now() }); shell?.ask(m); router.back(); };
   const summaryMsg = () => {
     const sum = summarize(state, P, Date.now());
-    return `I just finished ${title}: ${sum.sets} of ${sum.totalSets} sets, ${sum.minutes} min, top set ${sum.topSet}${state.nextWeek.length ? `, and ${state.nextWeek.map((n) => `${P[n.ex]?.name} felt easy on the last set`).join('; ')}` : ''}. What changes for next time?`;
+    const skippedNote = state.skipped?.length ? `, skipped ${state.skipped.map((x) => x.name).join(' and ')}` : '';
+    return `I just finished ${title}: ${sum.sets} of ${sum.totalSets} sets, ${sum.minutes} min, top set ${sum.topSet}${skippedNote}${state.nextWeek.length ? `, and ${state.nextWeek.map((n) => `${P[n.ex]?.name} felt easy on the last set`).join('; ')}` : ''}. What changes for next time?`;
   };
   // Saves what's been done (all of it at Done, or part of it from Leave). Linked to today's planned day.
   const save = async (opts: { thenAsk: boolean }): Promise<boolean> => {
@@ -355,7 +376,10 @@ function SessionScreenInner() {
               <Row name="Missed a rep" onPress={() => rate('miss')} arrow last />
             </View>
             {flagged ? <Text style={[T.caption, { marginTop: 16, color: v2.color.crimson }]}>{flagged}</Text> : null}
-            <View style={{ flexDirection: 'row', gap: 24, marginTop: 24 }}>
+            <View style={{ marginTop: 24 }}>
+              <TextAction muted size={15} arrow={false} onPress={askSkip}>Skip this exercise</TextAction>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, rowGap: 6, marginTop: 14 }}>
               <TextAction muted size={14} arrow={false} onPress={() => handOff(`Something hurts on ${cur.name.toLowerCase()} — what should I do?`)}>Something hurts</TextAction>
               {proactiveOn ? <TextAction muted size={14} arrow={false} onPress={() => { haptics.select(); void proactiveApi.flag({ exercise: cur.name, setIndex: state.set }).then((r) => { setFlagged(`Flagged · ${cur.name} · set ${state.set + 1}${r.threadId ? ' · noted on the thread' : ''}`); }).catch(() => setFlagged('Couldn’t flag that')); }}>Flag it</TextAction> : null}
               <TextAction muted size={14} arrow={false} onPress={() => (swapV2 ? setSwapping(true) : handOff(`Swap ${cur.name.toLowerCase()} for something easier on me today`))}>Swap this lift</TextAction>

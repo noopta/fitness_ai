@@ -79,6 +79,8 @@ export interface WorkoutState {
   pausedAt: number | null;
   /** Next-week notes (easy on last set). */
   nextWeek: { ex: number; delta: number }[];
+  /** Lifts skipped for today and the sets they had left. Missing on older drafts. */
+  skipped?: { name: string; sets: number }[];
 }
 
 export interface WorkoutRules {
@@ -194,7 +196,8 @@ export function workoutReducer(s: WorkoutState, a: WorkoutAction): WorkoutState 
       if (last && lastEx) {
         return { ...s, step: 'done', log, loads, lastReceipt: rec, receipts, end: now, nextWeek };
       }
-      const nx = last ? { ex: s.ex + 1, set: 0 } : { ex: s.ex, set: s.set + 1 };
+      // A lift put off for later comes back at the set it stopped on.
+      const nx = last ? { ex: s.ex + 1, set: s.log.filter((l) => l.ex === s.ex + 1).length } : { ex: s.ex, set: s.set + 1 };
       return { ...s, step: 'rest', log, loads, lastReceipt: rec, receipts, restDur: rest, restEnd: now + rest * 1000, nextWeek, ...nx };
     }
     case 'rest_add':
@@ -259,7 +262,8 @@ export interface SessionSummary {
 
 export function summarize(s: WorkoutState, plan: PlanExercise[], now: number): SessionSummary {
   const minutes = Math.max(1, Math.round(elapsedSec(s, now) / 60));
-  const totalSets = plan.reduce((a, p) => a + p.sets, 0);
+  // Skipped sets still count as planned: "12 of 15", never a tidy "12 of 12".
+  const totalSets = plan.reduce((a, p) => a + p.sets, 0) + (s.skipped ?? []).reduce((a, x) => a + x.sets, 0);
   const first = plan[0];
   const top = first ? Math.max(0, ...s.log.filter((l) => l.ex === 0 && l.load).map((l) => l.load as number)) : 0;
   const topLog = first ? s.log.filter((l) => l.ex === 0 && l.load === top && top)[0] : undefined;
@@ -326,6 +330,61 @@ export function resumableDraft(d: unknown, today: string, now: number): WorkoutD
   if (now - x.savedAt > 12 * 3600_000) return null;
   if (!hasProgress(x.state)) return null;
   return x;
+}
+
+/**
+ * Move past the lift at `index` without rating a set (Oct 2026: a user whose
+ * station was taken could only answer easy / hard / missed). 'later' moves it to
+ * the end of the session, where it resumes at the set it stopped on. 'today'
+ * drops what's left of it: sets already done stay logged, and the session ends if
+ * nothing else remains. Skipping the only lift of an empty session does nothing,
+ * since there would be no workout to save; the screen offers Leave instead. Pure.
+ */
+export function skipExercise(plan: PlanExercise[], s: WorkoutState, index: number, mode: 'later' | 'today', now: number): { plan: PlanExercise[]; state: WorkoutState } {
+  const cur = plan[index];
+  if (!cur) return { plan, state: s };
+  const isLastLift = index === plan.length - 1;
+  const done = s.log.filter((l) => l.ex === index).length;
+  const r0 = s.reps ?? plan.map((x) => x.reps);
+  const withEx = (mapEx: (ex: number) => number, drop: boolean) => {
+    const without = <T,>(xs: T[]) => xs.filter((_, i) => i !== index);
+    return {
+      log: s.log.map((l) => ({ ...l, ex: mapEx(l.ex) })),
+      nextWeek: s.nextWeek.map((n) => ({ ...n, ex: mapEx(n.ex) })),
+      loads: drop ? without(s.loads) : s.loads,
+      reps: drop ? without(r0) : r0,
+    };
+  };
+
+  if (mode === 'later') {
+    if (isLastLift) return { plan, state: s };
+    const p = [...plan.slice(0, index), ...plan.slice(index + 1), cur];
+    const end = plan.length - 1;
+    const mapEx = (ex: number) => (ex === index ? end : ex > index ? ex - 1 : ex);
+    const moved = withEx(mapEx, false);
+    return {
+      plan: p,
+      state: {
+        ...s, ...moved,
+        loads: [...s.loads.slice(0, index), ...s.loads.slice(index + 1), s.loads[index]],
+        reps: [...r0.slice(0, index), ...r0.slice(index + 1), r0[index]],
+        step: 'set', ex: index, set: moved.log.filter((l) => l.ex === index).length,
+        lastReceipt: { verb: 'Noted', text: `${cur.name} moved to the end.` },
+      },
+    };
+  }
+
+  if (isLastLift && !s.log.length) return { plan, state: s };
+  const receipt: SessionReceipt = { verb: 'Noted', text: `Skipped ${cur.name} today.` };
+  const skipped = [...(s.skipped ?? []), { name: cur.name, sets: cur.sets - done }];
+  const receipts = [...s.receipts, receipt];
+  const keep = done > 0;
+  const p = keep ? plan.map((x, i) => (i === index ? { ...x, sets: done } : x)) : plan.filter((_, i) => i !== index);
+  const changed = withEx((ex) => (!keep && ex > index ? ex - 1 : ex), !keep);
+  const next = keep ? index + 1 : index;
+  const state: WorkoutState = { ...s, ...changed, skipped, receipts, lastReceipt: receipt };
+  if (next >= p.length) return { plan: p, state: { ...state, step: 'done', end: now } };
+  return { plan: p, state: { ...state, step: 'set', ex: next, set: changed.log.filter((l) => l.ex === next).length } };
 }
 
 /**
