@@ -70,14 +70,15 @@ describe('dayWords — the day a log goes on, from their words', () => {
   it('"that day" is the day of their last log; vague days keep a recent model date or ask', () => {
     expect(pick('that day I also benched 3x5', { lastLogDate: '2026-10-25', modelDate: '2026-10-25' })).toMatchObject({ date: '2026-10-25', basis: 'said' });
     expect(pick('the other day I swam 2 km', { modelDate: '2026-10-24' })).toMatchObject({ date: '2026-10-24', basis: 'picked' });
-    expect(pick('the other day I swam 2 km', { modelDate: '2026-09-01' })).toHaveProperty('ask');
-    expect(pick('the other day I swam 2 km')).toHaveProperty('ask');
-    expect(pick('that day I also benched')).toHaveProperty('ask');
+    // No usable date → today, said so (nobody is made to specify; the card can move it).
+    expect(pick('the other day I swam 2 km', { modelDate: '2026-09-01' })).toMatchObject({ basis: 'assumed', said: 'the other day' });
+    expect(pick('the other day I swam 2 km')).toMatchObject({ basis: 'assumed', said: 'the other day' });
+    expect(pick('that day I also benched')).toMatchObject({ basis: 'assumed' });
   });
 
   it('two days named: the model must pick one of them', () => {
     expect(pick('Monday I lifted and Sunday I ran 5k', { modelDate: '2026-10-25' })).toMatchObject({ date: '2026-10-25', basis: 'said' });
-    expect(pick('Monday I lifted and Sunday I ran 5k', { modelDate: TUE })).toHaveProperty('ask');
+    expect(pick('Monday I lifted and Sunday I ran 5k', { modelDate: TUE })).toMatchObject({ basis: 'assumed', date: '2026-10-26', said: 'monday' }); // two days, no matching model date → the latest, said so
   });
 
   it('never a future day', () => {

@@ -62,6 +62,21 @@ export function titleSimilarity(a: string, b: string): number {
 }
 export const SAME_THREAD = 0.5;
 
+const APP_SUPPORT = /\b(share|sharing|screenshot|snap|photo|camera|username|password|log ?in|sign ?in|sign ?up|account|billing|subscription|app|screen|button|tab|bug|crash|export|intake|onboarding|notification|update the app)\b/i;
+const SESSION_WORDS = /\b(workout|session|day|push|pull|legs?|arms?|shoulders?|chest|back|upper|lower|full[- ]body)\b/i;
+/**
+ * Pure: should an extracted candidate become a thread? Drops app-support
+ * questions, a planned session filed as an event, dates in the past, and
+ * old unanswered questions (the silent test, 31 Oct 2026).
+ */
+export function acceptExtracted(e: ExtractedThread, today: string, sourceAt?: string | null): boolean {
+  if (e.kind === 'question' && APP_SUPPORT.test(e.title)) return false;
+  if (e.kind === 'event' && (!e.eventDate || e.eventDate < today || SESSION_WORDS.test(e.title) && !/\b(fight|meet|race|comp|competition|wedding|trip|match|tournament|marathon|game)\b/i.test(e.title))) return false;
+  if (e.checkBackAt && e.checkBackAt < today) return false;
+  if ((e.kind === 'question' || e.kind === 'goal') && !e.checkBackAt && sourceAt && sourceAt.slice(0, 10) < addDays(today, -14)) return false;
+  return true;
+}
+
 const stem = (w: string) => w.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/(ses|s)$/, '');
 const tokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).map(stem).filter((w) => w.length >= 3 && !['the', 'and', 'with', 'bar', 'heavy', 'light', 'left', 'right'].includes(w));
 /** Does a thread's "affects" list touch this exercise? Word-based and plural-insensitive: "rows" touches "Chest-supported row". */
@@ -79,13 +94,14 @@ export function quoteInTranscript(quote: string, transcript: string[]): boolean 
 }
 
 /** Pure: which extracted candidates are new, and which update an existing open thread. */
-export function mergeExtracted(existing: Pick<ThreadRow, 'id' | 'kind' | 'title' | 'status'>[], extracted: ExtractedThread[], transcript: string[]): { create: ExtractedThread[]; update: { id: string; patch: Partial<ExtractedThread> }[] } {
+export function mergeExtracted(existing: Pick<ThreadRow, 'id' | 'kind' | 'title' | 'status'>[], extracted: ExtractedThread[], transcript: string[], today?: string, sourceAtOf?: (quote: string) => string | null): { create: ExtractedThread[]; update: { id: string; patch: Partial<ExtractedThread> }[] } {
   const create: ExtractedThread[] = [];
   const update: { id: string; patch: Partial<ExtractedThread> }[] = [];
   const open = existing.filter(isOpen);
   for (const e of extracted) {
     if (!THREAD_KINDS.includes(e.kind) || !e.title?.trim() || !e.sourceQuote?.trim()) continue;
     if (!quoteInTranscript(e.sourceQuote, transcript)) continue;
+    if (today && !acceptExtracted(e, today, sourceAtOf?.(e.sourceQuote) ?? null)) continue;
     const match = open.find((t) => t.kind === e.kind && titleSimilarity(t.title, e.title) >= SAME_THREAD)
       ?? open.find((t) => titleSimilarity(t.title, e.title) >= 0.75);
     if (match) {
@@ -213,6 +229,7 @@ const EXTRACT_PROMPT = `You keep a coach's list of open threads from a chat with
 - experiment: a change being tried on purpose (new pull day, creatine, a deload) — affects: lifts involved
 - question: something they asked that wasn't answered yet, or that the coach promised to come back to
 - goal: a concrete target ("225 bench by March")
+Not threads: questions about the app itself (sharing, screenshots, the snap button, usernames, login, billing, "restart the intake"), a planned or scheduled training session ("Saturday arms" is not an event), one-off logs, and anything already answered in the messages.
 Rules: sourceQuote must be the client's or coach's EXACT words copied from the messages (short). title ≤ 8 words, plain. read: one short sentence on where it stands (optional). checkBackAt: a YYYY-MM-DD when a follow-up makes sense (optional; events get the week before). Skip chit-chat, one-off logs, and anything already in EXISTING THREADS unless the messages change it. Reply with JSON: {"threads":[{"kind","title","sourceQuote","read","checkBackAt","eventDate","affects":[]}]}. Nothing to add → {"threads":[]}.`;
 
 export type ExtractFn = (prompt: string, input: string) => Promise<string>;
@@ -266,7 +283,9 @@ export async function extractThreads(userId: string, opts: { extract?: ExtractFn
     `NEW MESSAGES:\n${fresh.map((m) => `[${(m.at ?? '').slice(0, 16).replace('T', ' ')}] ${m.role === 'user' ? 'Client' : 'Coach'}: ${stripAppNotes(m.text).slice(0, 1500)}`).join('\n')}`,
   ].filter(Boolean).join('\n\n');
   const raw = await (opts.extract ?? defaultExtract)(EXTRACT_PROMPT, input);
-  const { create, update } = mergeExtracted(existing, parseExtraction(raw), transcript);
+  const today = now.toISOString().slice(0, 10);
+  const sourceAtOf = (quote: string) => fresh.find((m) => quoteInTranscript(quote, [stripAppNotes(m.text)]))?.at ?? null;
+  const { create, update } = mergeExtracted(existing, parseExtraction(raw), transcript, today, sourceAtOf);
   for (const e of create) {
     const src = fresh.find((m) => quoteInTranscript(e.sourceQuote, [stripAppNotes(m.text)]));
     await createThread(userId, { ...e, sourceAt: src?.at ? new Date(src.at) : now, sourceRole: src?.role ?? 'user' }, now);

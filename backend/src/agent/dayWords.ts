@@ -15,10 +15,14 @@
 //   a date ("the 26th", "Oct 26", "10/26", ISO)    → that date
 //   "3 days ago", "day before yesterday"           → counted back
 //   "that day", "same day"                         → the day of their last log (≤ 6 h)
-//   "the other day", "last week", "the weekend"    → vague: the model's date if it's ≤ 14 days back, else ask
+//   "the other day", "last week", "the weekend"    → vague: the model's date if it's ≤ 14 days back, else TODAY, said so
+//   two days named, no usable model date           → the latest one, said so
+// Nobody is made to specify a date (31 Oct 2026): a log with no clear day goes
+// on today at the time it was sent, the reply says so, and the card can move
+// it. The only question left is a day that hasn't happened yet.
 // The model's date stands only when the user's words point to it. Pure.
 
-export type DayBasis = 'today' | 'said' | 'context' | 'picked' | 'overruled';
+export type DayBasis = 'today' | 'said' | 'context' | 'picked' | 'overruled' | 'assumed';
 
 export interface DayPhrase {
   words: string;
@@ -191,7 +195,13 @@ export function chooseLogDate(i: DayInput): DayChoice | DayAsk {
   if (vague && model && model <= today && model >= shift(today, -14)) return { date: model, basis: 'picked', said: resolved.find((p) => p.kind === 'vague')?.words };
   if (!model && distinct.length === 1) return { date: distinct[0], basis: basisIfSaid, said: wordsFor(distinct[0]) };
   const named = resolved.map((p) => p.words).filter(Boolean).slice(0, 3).join('", "');
-  return { ask: `Their message names more than one day or no exact day ("${named}"). Ask which day this one was, in one short line, then log it with that day.` };
+  // A day that hasn't happened ("next Monday", a date ahead) isn't a log yet — the one case still worth a question.
+  const monthDayAhead = (w: string) => { const t = Date.parse(`${w} ${today.slice(0, 4)} 12:00:00Z`); return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) > today; };
+  const futureOnly = !days.length && resolved.some((p) => (p.kind === 'day' && p.date && !pastOk(p.date, today)) || (p.kind === 'vague' && (/^(next|this coming)\b|\btomorrow\b/.test(p.words) || monthDayAhead(p.words))));
+  if (futureOnly) return { ask: `Their words point to a day that hasn't happened yet ("${named}"). Don't log it — ask in one short line whether it already happened, or treat it as a plan.` };
+  // Nobody is made to specify: two days named → the latest; a vague day with no usable date → today. The reply says so and the card can move it.
+  if (distinct.length >= 2) { const latest = [...distinct].sort().pop()!; return { date: latest, basis: 'assumed', said: wordsFor(latest) }; }
+  return { date: today, basis: 'assumed', said: resolved.find((p) => p.kind === 'vague')?.words ?? (named || undefined) };
 }
 
 /** "Tue 27 Oct" for a YYYY-MM-DD. */
@@ -202,6 +212,7 @@ export function shortDayLabel(date: string): string {
 /** Line for the tool result, so the reply names the day the log really went on. */
 export function dayNote(c: DayChoice, today: string): string {
   const day = c.date === today ? `today (${shortDayLabel(c.date)})` : shortDayLabel(c.date);
+  if (c.basis === 'assumed') return `Logged on ${day} — their words ("${c.said ?? ''}") don't name one exact day. Say which day it went on and that they can tell you if it was another day; never ask before logging.`;
   if (c.basis === 'overruled') return `Logged on ${day}, not ${shortDayLabel(c.modelDate!)}: their message doesn't name ${shortDayLabel(c.modelDate!)}${c.said ? ` — it says "${c.said}"` : ' — with no day named, a log goes on the day they sent it'}. Say ${day} in your reply.`;
   return `Logged on ${day}.`;
 }

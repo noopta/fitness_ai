@@ -50,6 +50,27 @@ describe('extraction', () => {
   });
 });
 
+describe('what becomes a thread (silent test, 31 Oct)', () => {
+  const today = '2026-10-31';
+  it('app-support questions are not threads', () => {
+    expect(T.acceptExtracted({ kind: 'question', title: 'How to get share photo', sourceQuote: 'x' }, today)).toBe(false);
+    expect(T.acceptExtracted({ kind: 'question', title: 'Fix snap function', sourceQuote: 'x' }, today)).toBe(false);
+    expect(T.acceptExtracted({ kind: 'question', title: 'Creatine during the cut?', sourceQuote: 'x', checkBackAt: '2026-11-15' }, today)).toBe(true);
+  });
+  it('a planned session is not an event; an event needs a future date', () => {
+    expect(T.acceptExtracted({ kind: 'event', title: 'Saturday Arm and Shoulders', sourceQuote: 'x', eventDate: '2026-11-01' }, today)).toBe(false);
+    expect(T.acceptExtracted({ kind: 'event', title: 'Amateur fight', sourceQuote: 'x', eventDate: '2026-11-22' }, today)).toBe(true);
+    expect(T.acceptExtracted({ kind: 'event', title: 'Amateur fight', sourceQuote: 'x', eventDate: '2026-10-01' }, today)).toBe(false);
+    expect(T.acceptExtracted({ kind: 'event', title: 'Leg day match', sourceQuote: 'x', eventDate: '2026-11-22' }, today)).toBe(true);
+  });
+  it('check-backs in the past are dropped; an old unanswered question without one is stale', () => {
+    expect(T.acceptExtracted({ kind: 'goal', title: 'Bench 225 by March', sourceQuote: 'x', checkBackAt: '2026-03-01' }, today)).toBe(false);
+    expect(T.acceptExtracted({ kind: 'question', title: 'Next-time bench changes', sourceQuote: 'x' }, today, '2026-10-01T10:00:00Z')).toBe(false);
+    expect(T.acceptExtracted({ kind: 'question', title: 'Next-time bench changes', sourceQuote: 'x' }, today, '2026-10-29T10:00:00Z')).toBe(true);
+    expect(T.acceptExtracted({ kind: 'symptom', title: 'Right shin discomfort', sourceQuote: 'x' }, today, '2026-09-01T10:00:00Z')).toBe(true);
+  });
+});
+
 describe('due and rows', () => {
   const today = '2026-10-30';
   const threads = [
