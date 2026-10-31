@@ -6,7 +6,7 @@
 // agent route with the message.
 
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert, Platform } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -28,12 +28,19 @@ export async function pickAndUpload(source: 'camera' | 'library', room: number, 
   try {
     const perm = source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert(source === 'camera' ? 'Camera access is off' : 'Photo access is off', 'Turn it on in Settings to send photos.'); return; }
-    const r = source === 'camera'
-      ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.9 })
-      // iOS: with multiple selection the system picker hands back the original HEIC, which the
-      // manipulator can't open ("cannot load representation of type public.heic"). Compatible mode
-      // asks the system for a JPEG-compatible representation, as single-select already does.
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsMultipleSelection: room > 1, selectionLimit: room, preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible });
+    let r: ImagePicker.ImagePickerResult;
+    try {
+      r = source === 'camera'
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.9, exif: false })
+        // iOS: the multi-select system picker fails outright on iCloud-only or transcoded assets
+        // ("cannot load representation of type public.jpeg/heic"). The single-select picker — the one
+        // the food screen uses — downloads and converts them itself, so iOS picks one at a time (the
+        // tray takes up to four). Android's picker handles multiple selection fine.
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, exif: false, allowsMultipleSelection: Platform.OS !== 'ios' && room > 1, selectionLimit: Platform.OS === 'ios' ? 1 : room });
+    } catch (e: any) {
+      Alert.alert('Couldn’t read that photo', /representation|icloud|load/i.test(String(e?.message)) ? 'It may still be in iCloud. Open it in Photos once so it downloads, then try again.' : (e?.message ?? 'Try another photo.'));
+      return;
+    }
     if (r.canceled) return;
     const uris = r.assets.map((a) => a.uri).slice(0, room);
     dispatch({ type: 'add', uris });
@@ -50,7 +57,7 @@ export async function uploadOne(uri: string, dispatch: (a: AttachAction) => void
     } catch {
       // A format the manipulator can't open (HEIC/HEIF, some PNGs with odd colour spaces): send the file as it is — the server and the model both read HEIC.
       b64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any });
-      mime = /\.hei[cf]$/i.test(uri) ? 'image/heic' : /\.png$/i.test(uri) ? 'image/png' : /\.webp$/i.test(uri) ? 'image/webp' : 'image/jpeg';
+      mime = /\.hei[cf]$/i.test(uri) ? 'image/heic' : /\.png$/i.test(uri) ? 'image/png' : /\.webp$/i.test(uri) ? 'image/webp' : /\.gif$/i.test(uri) ? 'image/gif' : /\.avif$/i.test(uri) ? 'image/avif' : /\.(tiff?)$/i.test(uri) ? 'image/tiff' : /\.bmp$/i.test(uri) ? 'image/bmp' : 'image/jpeg';
     }
     const { photo } = await proactiveApi.photoUpload(b64, mime);
     dispatch({ type: 'uploaded', localUri: uri, id: photo.id, kind: photo.kind, private: photo.private });
@@ -64,7 +71,7 @@ export async function uploadOne(uri: string, dispatch: (a: AttachAction) => void
 export function AttachSheet({ visible, onClose, room, dispatch }: { visible: boolean; onClose: () => void; room: number; dispatch: (a: AttachAction) => void }) {
   const go = (source: 'camera' | 'library') => { onClose(); setTimeout(() => void pickAndUpload(source, room, dispatch), 250); };
   return (
-    <Sheet visible={visible} onClose={onClose} title="Show Anakin" sub={`A meal, a label, a program, a machine — up to ${room} photo${room === 1 ? '' : 's'}.`}>
+    <Sheet visible={visible} onClose={onClose} title="Show Anakin" sub={`A meal, a label, a program, a machine — up to ${room} photo${room === 1 ? '' : 's'}${Platform.OS === 'ios' && room > 1 ? ', one at a time' : ''}.`}>
       <Row name="Camera" onPress={() => go('camera')} />
       <Row name="All photos" onPress={() => go('library')} />
       <Row name="Screenshot a program" sub="I’ll import it" onPress={() => go('library')} last />

@@ -67,7 +67,7 @@ const SIGNED_URL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SIGNED_URL_CACHE_MS = 6 * 24 * 60 * 60 * 1000;
 
 // HEIC/HEIF: iPhone originals (chat photos, Oct 2026). Gemini reads them; the phone renders them from a URL.
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']);
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif', 'image/avif', 'image/bmp', 'image/tiff']);
 const EXT_BY_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -75,6 +75,9 @@ const EXT_BY_MIME: Record<string, string> = {
   'image/gif': 'gif',
   'image/heic': 'heic',
   'image/heif': 'heif',
+  'image/avif': 'avif',
+  'image/bmp': 'bmp',
+  'image/tiff': 'tif',
 };
 
 let _storage: Storage | null = null;
@@ -113,9 +116,14 @@ export function sniffImageMime(bytes: Buffer): string | null {
     return 'image/webp';
   }
   // ISO BMFF "ftyp" box with a HEIF brand — an iPhone original.
-  if (bytes.subarray(4, 8).toString('ascii') === 'ftyp' && /^(heic|heix|hevc|hevx|heim|heis|mif1|msf1|heif)$/.test(bytes.subarray(8, 12).toString('ascii'))) {
-    return 'image/heic';
+  if (bytes.subarray(4, 8).toString('ascii') === 'ftyp') {
+    const brand = bytes.subarray(8, 12).toString('ascii');
+    if (/^(heic|heix|hevc|hevx|heim|heis|mif1|msf1|heif)$/.test(brand)) return 'image/heic';
+    if (/^(avif|avis)$/.test(brand)) return 'image/avif';
   }
+  if (bytes.subarray(0, 2).toString('ascii') === 'BM') return 'image/bmp';
+  const tiff = bytes.subarray(0, 4).toString('hex');
+  if (tiff === '49492a00' || tiff === '4d4d002a') return 'image/tiff';
   return null;
 }
 
@@ -123,7 +131,7 @@ export function sniffImageMime(bytes: Buffer): string | null {
  * Exact shape of a key produced by contentKey(). Anything else (path
  * traversal, another prefix, a client-invented name) is never signed.
  */
-export const IMAGE_KEY_RE = /^img\/([0-9a-f]{2})\/([0-9a-f]{64})\.(jpg|jpeg|png|webp|gif|heic|heif)$/;
+export const IMAGE_KEY_RE = /^img\/([0-9a-f]{2})\/([0-9a-f]{64})\.(jpg|jpeg|png|webp|gif|heic|heif|avif|bmp|tif)$/;
 
 export function isValidImageKey(key: unknown): key is string {
   if (typeof key !== 'string') return false;
