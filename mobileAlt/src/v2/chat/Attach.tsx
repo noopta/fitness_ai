@@ -23,7 +23,8 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import { Camera, Image as ImageIcon, Video, Utensils, ScanLine, FileText, X, Plus, ArrowUp, Play } from 'lucide-react-native';
-import { LIFT_PILLS, INTENT_LABEL, clipLabel, stagedCaption, stagedClip, type AttachItem, type AttachState, type AttachAction, type AttachIntent, type Lift } from '@axiom/agent-ui-core';
+import { LIFT_PILLS, INTENT_LABEL, clipLabel, clipRows, stagedCaption, stagedClip, type AttachItem, type AttachState, type AttachAction, type AttachIntent, type Lift, type ClipRow } from '@axiom/agent-ui-core';
+import { Row } from '../primitives/Row';
 import { v2, T } from '../theme';
 import { Sheet } from '../primitives/Sheet';
 import { Pressable } from '../primitives/Pressable';
@@ -67,7 +68,8 @@ export async function uploadOne(uri: string, dispatch: Dispatch, intent: AttachI
   try {
     let b64: string, mime = 'image/jpeg';
     try {
-      const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1600 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+      // 1400 px at 0.75 keeps a plate or a label readable and the JSON body under ~1 MB (base64 adds a third); the route takes 10 MB regardless.
+      const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1400 } }], { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG, base64: true });
       b64 = small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any }));
     } catch {
       // A format the manipulator can't open (HEIC/HEIF, some PNGs with odd colour spaces): send the file as it is — the server and the model both read HEIC.
@@ -78,21 +80,28 @@ export async function uploadOne(uri: string, dispatch: Dispatch, intent: AttachI
     dispatch({ type: 'uploaded', localUri: uri, id: photo.id, kind: photo.kind, private: photo.private });
     haptics.light();
   } catch (e: any) {
-    dispatch({ type: 'failed', localUri: uri, error: e?.message?.length < 60 ? e.message : undefined });
+    dispatch({ type: 'failed', localUri: uri, error: e?.status === 413 ? 'Too large' : e?.status === 404 ? 'Photos aren’t on for you yet' : (typeof e?.message === 'string' && e.message.length < 40 ? e.message : undefined) });
   }
 }
 
-/** H1 "choose a video": one clip from the library, with its length. */
-export async function pickClip(dispatch: Dispatch): Promise<void> {
-  try {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Photo access is off', 'Turn it on in Settings to send a set.'); return; }
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], allowsMultipleSelection: false, videoMaxDuration: 120 });
-    if (r.canceled || !r.assets[0]) return;
-    const a = r.assets[0];
-    dispatch({ type: 'add', uris: [a.uri], media: 'video', durationSec: a.duration != null ? a.duration / 1000 : null });
-    haptics.light();
-  } catch (e: any) { Alert.alert('Couldn’t open that video', e?.message ?? 'Try another clip.'); }
+/**
+ * H1 "choose a video". Not the system picker: PHPicker fails outright on clips that aren't on the phone
+ * (PHPhotosErrorDomain — iCloud-optimised storage), and that can't be caught before the pick. Our own
+ * list reads the library through MediaLibrary and asks it to download the one chosen.
+ */
+export async function recentClips(): Promise<ClipRow[]> {
+  const perm = await MediaLibrary.requestPermissionsAsync();
+  if (!perm.granted) throw new Error('Photo access is off. Turn it on in Settings to send a set.');
+  const page = await MediaLibrary.getAssetsAsync({ first: 40, mediaType: 'video', sortBy: [[MediaLibrary.SortBy.creationTime, false]] });
+  return clipRows(page.assets.map((a) => ({ id: a.id, duration: a.duration, creationTime: a.creationTime, width: a.width, height: a.height })));
+}
+/** Resolve a chosen clip to a local file (downloading from iCloud when needed) and stage it. */
+export async function stageClip(row: ClipRow, dispatch: Dispatch): Promise<void> {
+  const info = await MediaLibrary.getAssetInfoAsync(row.id, { shouldDownloadFromNetwork: true });
+  const uri = info.localUri ?? info.uri;
+  if (!uri || uri.startsWith('ph://')) throw new Error('That clip is still in iCloud. Open it in Photos once so it downloads, then try again.');
+  dispatch({ type: 'add', uris: [uri], media: 'video', durationSec: row.seconds });
+  haptics.light();
 }
 
 // ── The attach and send controls ────────────────────────────────────────────
@@ -147,7 +156,18 @@ export function AttachSheet({ visible, onClose, room, dispatch, intent }: { visi
   const router = useRouter();
   const [recent, setRecent] = useState<Recent[]>([]);
   const [picked, setPicked] = useState<string[]>([]);
-  useEffect(() => { if (!visible) { setPicked([]); return; } let live = true; void recentPhotos().then((r) => { if (live) setRecent(r); }); return () => { live = false; }; }, [visible]);
+  // Form check → the clip list replaces the tiles until a clip is chosen or the sheet closes.
+  const [clips, setClips] = useState<ClipRow[] | null>(null);
+  const [clipBusy, setClipBusy] = useState<string | null>(null);
+  const [clipError, setClipError] = useState<string | null>(null);
+  useEffect(() => { if (!visible) { setPicked([]); setClips(null); setClipBusy(null); setClipError(null); return; } let live = true; void recentPhotos().then((r) => { if (live) setRecent(r); }); return () => { live = false; }; }, [visible]);
+  const openClips = async () => { setClipError(null); try { setClips(await recentClips()); } catch (e: any) { setClips([]); setClipError(e?.message ?? 'Couldn’t read your videos.'); } };
+  const chooseClip = async (row: ClipRow) => {
+    setClipBusy(row.id); setClipError(null);
+    try { await stageClip(row, dispatch); onClose(); }
+    catch (e: any) { setClipError(e?.message ?? 'Couldn’t open that clip.'); }
+    finally { setClipBusy(null); }
+  };
   const after = (fn: () => void) => { onClose(); setTimeout(fn, 250); };
   const tag = (i: AttachIntent) => { haptics.select(); dispatch({ type: 'intent', intent }); dispatch({ type: 'intent', intent: i }); after(() => void pickAndUpload('library', room, dispatch, i)); };
   const togglePick = (id: string) => { haptics.select(); setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < room ? [...p, id] : p)); };
@@ -157,16 +177,26 @@ export function AttachSheet({ visible, onClose, room, dispatch, intent }: { visi
     after(() => { void Promise.all(uris.map((u) => uploadOne(u, dispatch, intent))); });
   };
   const ico = { size: 22, strokeWidth: v2.tabBar.stroke, color: v2.color.ink };
+  if (clips !== null) {
+    return (
+      <Sheet visible={visible} onClose={onClose} title="Form check" sub="Film your top set from the side, or pick a clip you already have.">
+        <Row name="Record a set" sub="Opens the camera · side view" onPress={() => after(() => router.push({ pathname: '/(v2)/formcheck', params: { from: 'chat' } } as any))} />
+        {clips.map((r, i) => <Row key={r.id} name={r.name} sub={clipBusy === r.id ? 'Fetching the clip…' : r.sub} value={clipBusy === r.id ? '…' : undefined} onPress={clipBusy ? undefined : () => void chooseClip(r)} last={i === clips.length - 1} />)}
+        {!clips.length && !clipError ? <Text style={[T.bodyMuted, { marginTop: 12 }]}>No sets between 3 s and 3 min in your library yet.</Text> : null}
+        {clipError ? <Text style={[T.caption, { color: v2.color.crimson, marginTop: 12 }]}>{clipError}</Text> : null}
+        <View style={{ flexDirection: 'row', gap: 24, marginTop: 20 }}>
+          <TextAction muted size={15} arrow={false} onPress={() => setClips(null)}>Back</TextAction>
+          <TextAction muted size={15} arrow={false} onPress={onClose}>Cancel</TextAction>
+        </View>
+      </Sheet>
+    );
+  }
   return (
     <Sheet visible={visible} onClose={onClose} title="Show Anakin">
       <View style={styles.grid}>
         <Tile icon={<Camera {...ico} />} label="Camera" onPress={() => after(() => void pickAndUpload('camera', room, dispatch, intent))} />
         <Tile icon={<ImageIcon {...ico} />} label="Photos" onPress={() => after(() => void pickAndUpload('library', room, dispatch, intent))} />
-        <Tile icon={<Video {...ico} />} label="Form check" onPress={() => Alert.alert('Form check', 'Film your top set from the side.', [
-          { text: 'Record a set', onPress: () => after(() => router.push({ pathname: '/(v2)/formcheck', params: { from: 'chat' } } as any)) },
-          { text: 'Choose a video', onPress: () => after(() => void pickClip(dispatch)) },
-          { text: 'Cancel', style: 'cancel' },
-        ])} />
+        <Tile icon={<Video {...ico} />} label="Form check" onPress={() => { haptics.select(); void openClips(); }} />
         <Tile icon={<Utensils {...ico} />} label="Meal" onPress={() => tag('meal')} />
         <Tile icon={<ScanLine {...ico} />} label="Label" onPress={() => tag('label')} />
         <Tile icon={<FileText {...ico} />} label="Program" onPress={() => tag('program')} />
@@ -223,7 +253,8 @@ function Thumb({ item, dispatch, intent }: { item: AttachItem; dispatch: Dispatc
         <X size={11} color={v2.color.white} strokeWidth={2.5} />
       </Pressable>
       {item.status === 'failed' ? (
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+        <View style={{ marginTop: 4 }}>
+          <Text style={[T.caption, { color: v2.color.crimson, fontSize: 11, lineHeight: 14 }]} numberOfLines={2}>{item.error ?? 'Didn’t send'}</Text>
           <TextAction size={12} arrow={false} onPress={() => { dispatch({ type: 'retry', localUri: item.localUri }); void uploadOne(item.localUri, dispatch, intent); }}>Try again</TextAction>
         </View>
       ) : null}

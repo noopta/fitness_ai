@@ -174,6 +174,8 @@ const jsonVerify = (req: any, _res: any, buf: Buffer) => {
 
 const LARGE_BODY_PATHS = [
   '/api/nutrition/analyze-photo',
+  // Chat photos (proactive flow E): a 1400 px JPEG as base64 is ~0.5–1.3 MB — the 1 MB default 413'd real uploads (31 Oct 2026).
+  '/api/coach/agent/photos',
   '/api/nutrition/transcribe',
   '/api/social/share',
   '/api/auth/avatar',

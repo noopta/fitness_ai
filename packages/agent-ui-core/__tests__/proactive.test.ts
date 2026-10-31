@@ -2,7 +2,7 @@
 // clip (E1/E1b/H1), labels (D1/F1/F2), receipts on history turns (A1), and
 // photos/video riding on a sent turn.
 import { describe, it, expect } from 'vitest';
-import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, attachRoom, sendReady, stagedCaption, stagedClip, clipLabel, clipTurnText, liftFromSession, watchingReceipts, MAX_ATTACH, daysOutLabel, FREQUENCY_ROWS, quietHoursLabel, groupPhotos, isPrivatePhoto, historyReceipts, threadReducer, emptyThread } from '../src';
+import { attachReducer, EMPTY_ATTACH, readyPhotoIds, attachBusy, attachPlaceholder, attachRoom, sendReady, stagedCaption, stagedClip, clipLabel, clipTurnText, liftFromSession, watchingReceipts, MAX_ATTACH, daysOutLabel, FREQUENCY_ROWS, quietHoursLabel, groupPhotos, isPrivatePhoto, historyReceipts, threadReducer, emptyThread, clipRows, CLIP_MIN_S, CLIP_MAX_S } from '../src';
 
 describe('E1/E2 · attach tray — photos', () => {
   it('adds up to four, uploads, fails keeping the file, retries, removes, clears', () => {
@@ -117,5 +117,26 @@ describe('A1 · receipts on a history turn', () => {
       { id: 'h3r0', verb: 'Checked', text: '6 hard sessions in 6 days', final: true }, { id: 'h3r1', verb: 'Checked', text: 'x', final: true },
     ]);
     expect(historyReceipts(undefined, 'h1')).toEqual([]);
+  });
+});
+
+describe('H1 · choosing a clip from the library', () => {
+  const now = new Date('2026-10-31T07:00:00').getTime();
+  it('newest first, within set length, labelled with day and length; landscape gets the side-view nudge', () => {
+    const rows = clipRows([
+      { id: 'a', duration: 24, creationTime: now - 3600_000, width: 1080, height: 1920 },
+      { id: 'b', duration: 95, creationTime: now - 86_400_000 * 2, width: 1920, height: 1080 },
+      { id: 'c', duration: 1.5, creationTime: now },
+      { id: 'd', duration: 600, creationTime: now },
+    ], now);
+    expect(rows.map((r) => r.id)).toEqual(['a', 'b']);
+    expect(rows[0].name).toMatch(/^Today \d{1,2}:\d{2} (AM|PM) · 0:24$/);
+    expect(rows[0].sub).toBe('portrait');
+    expect(rows[1].name).toBe('Oct 29 · 1:35');
+    expect(rows[1].sub).toBe('landscape · turn the phone for a side view next time');
+    expect(CLIP_MIN_S).toBe(3); expect(CLIP_MAX_S).toBe(180);
+  });
+  it('caps at eight', () => {
+    expect(clipRows(Array.from({ length: 12 }, (_, i) => ({ id: String(i), duration: 20, creationTime: now - i * 1000 })), now)).toHaveLength(8);
   });
 });

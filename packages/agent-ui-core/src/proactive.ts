@@ -181,3 +181,25 @@ export function watchingReceipts(lift: Lift, previousDate: string | null): { ver
     ...(previousDate ? [{ verb: 'Checked' as ReceiptVerb, text: `Your ${lift.toLowerCase()} check from ${previousDate}` }] : []),
   ];
 }
+
+// ── H1 · choosing a clip from the library (our own list, not the system picker) ──
+
+export interface LibraryClip { id: string; duration: number; creationTime: number; width?: number; height?: number }
+export interface ClipRow { id: string; name: string; sub: string; seconds: number }
+/** A set is 3 s to 3 min; longer is a whole session, shorter is nothing. */
+export const CLIP_MIN_S = 3;
+export const CLIP_MAX_S = 180;
+/** Pure: the recent-clips rows — newest first, within the set length, labelled "Oct 31 · 0:24 · portrait". */
+export function clipRows(assets: LibraryClip[], now = Date.now(), max = 8): ClipRow[] {
+  return [...assets]
+    .filter((a) => a.duration >= CLIP_MIN_S && a.duration <= CLIP_MAX_S)
+    .sort((a, b) => b.creationTime - a.creationTime)
+    .slice(0, max)
+    .map((a) => {
+      const d = new Date(a.creationTime);
+      const sameDay = new Date(now).toDateString() === d.toDateString();
+      const when = sameDay ? `Today ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const shape = a.width && a.height ? (a.height > a.width ? 'portrait' : 'landscape') : null;
+      return { id: a.id, name: `${when} · ${clipLabel(a.duration)}`, sub: [shape, shape === 'landscape' ? 'turn the phone for a side view next time' : null].filter(Boolean).join(' · ') || 'Side view works best', seconds: a.duration };
+    });
+}
