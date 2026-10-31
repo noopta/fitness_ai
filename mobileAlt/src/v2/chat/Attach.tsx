@@ -30,7 +30,10 @@ export async function pickAndUpload(source: 'camera' | 'library', room: number, 
     if (!perm.granted) { Alert.alert(source === 'camera' ? 'Camera access is off' : 'Photo access is off', 'Turn it on in Settings to send photos.'); return; }
     const r = source === 'camera'
       ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.9 })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsMultipleSelection: room > 1, selectionLimit: room });
+      // iOS: with multiple selection the system picker hands back the original HEIC, which the
+      // manipulator can't open ("cannot load representation of type public.heic"). Compatible mode
+      // asks the system for a JPEG-compatible representation, as single-select already does.
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsMultipleSelection: room > 1, selectionLimit: room, preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible });
     if (r.canceled) return;
     const uris = r.assets.map((a) => a.uri).slice(0, room);
     dispatch({ type: 'add', uris });
@@ -40,9 +43,16 @@ export async function pickAndUpload(source: 'camera' | 'library', room: number, 
 
 export async function uploadOne(uri: string, dispatch: (a: AttachAction) => void): Promise<void> {
   try {
-    const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1600 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
-    const b64 = small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any }));
-    const { photo } = await proactiveApi.photoUpload(b64, 'image/jpeg');
+    let b64: string, mime = 'image/jpeg';
+    try {
+      const small = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1600 } }], { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+      b64 = small.base64 ?? (await FileSystem.readAsStringAsync(small.uri, { encoding: 'base64' as any }));
+    } catch {
+      // A format the manipulator can't open (HEIC/HEIF, some PNGs with odd colour spaces): send the file as it is — the server and the model both read HEIC.
+      b64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any });
+      mime = /\.hei[cf]$/i.test(uri) ? 'image/heic' : /\.png$/i.test(uri) ? 'image/png' : /\.webp$/i.test(uri) ? 'image/webp' : 'image/jpeg';
+    }
+    const { photo } = await proactiveApi.photoUpload(b64, mime);
     dispatch({ type: 'uploaded', localUri: uri, id: photo.id, kind: photo.kind, private: photo.private });
     haptics.light();
   } catch (e: any) {

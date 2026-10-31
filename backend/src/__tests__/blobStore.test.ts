@@ -44,6 +44,10 @@ describe('sniffImageMime', () => {
     expect(sniffImageMime(png)).toBe('image/png');
     expect(sniffImageMime(gif)).toBe('image/gif');
     expect(sniffImageMime(webp)).toBe('image/webp');
+    // An iPhone original: ftyp box with the heic brand.
+    const heic = Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from('ftypheic'), Buffer.alloc(8)]);
+    expect(sniffImageMime(heic)).toBe('image/heic');
+    expect(contentKey(heic, 'image/heic')).toMatch(/\.heic$/);
   });
 
   it('returns null for non-image and too-short input', () => {

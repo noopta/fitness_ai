@@ -66,12 +66,15 @@ const SIGNED_URL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 /** Re-sign a day early so a cached URL is never handed out near expiry. */
 const SIGNED_URL_CACHE_MS = 6 * 24 * 60 * 60 * 1000;
 
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+// HEIC/HEIF: iPhone originals (chat photos, Oct 2026). Gemini reads them; the phone renders them from a URL.
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif']);
 const EXT_BY_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/gif': 'gif',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
 };
 
 let _storage: Storage | null = null;
@@ -109,6 +112,10 @@ export function sniffImageMime(bytes: Buffer): string | null {
   if (bytes.subarray(0, 4).toString('ascii') === 'RIFF' && bytes.subarray(8, 12).toString('ascii') === 'WEBP') {
     return 'image/webp';
   }
+  // ISO BMFF "ftyp" box with a HEIF brand — an iPhone original.
+  if (bytes.subarray(4, 8).toString('ascii') === 'ftyp' && /^(heic|heix|hevc|hevx|heim|heis|mif1|msf1|heif)$/.test(bytes.subarray(8, 12).toString('ascii'))) {
+    return 'image/heic';
+  }
   return null;
 }
 
@@ -116,7 +123,7 @@ export function sniffImageMime(bytes: Buffer): string | null {
  * Exact shape of a key produced by contentKey(). Anything else (path
  * traversal, another prefix, a client-invented name) is never signed.
  */
-export const IMAGE_KEY_RE = /^img\/([0-9a-f]{2})\/([0-9a-f]{64})\.(jpg|jpeg|png|webp|gif)$/;
+export const IMAGE_KEY_RE = /^img\/([0-9a-f]{2})\/([0-9a-f]{64})\.(jpg|jpeg|png|webp|gif|heic|heif)$/;
 
 export function isValidImageKey(key: unknown): key is string {
   if (typeof key !== 'string') return false;
