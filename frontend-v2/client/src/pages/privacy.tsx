@@ -79,9 +79,22 @@ export default function Privacy() {
           <li><strong>Affiliates:</strong> the referral code in the link you used to sign up (Section 10).</li>
         </List>
         <p className="mt-2">
-          We do <strong>not</strong> collect your precise location, contacts, or data from Apple Health, Google Health Connect or wearables.
+          If you choose to connect Apple Health, we read your sleep, heart rate, heart rate variability, breathing rate, VO2 max, workouts, steps and active energy (see below).
+          We do <strong>not</strong> collect your precise location or contacts, and we read nothing from Apple Health or a wearable unless you connect it.
           We do not perform facial recognition or create biometric identifiers from your video; videos are analysed for movement quality only.
         </p>
+      </Section>
+
+      <Section title="Apple Health and connected wearables">
+        <p>
+          Connecting Apple Health is optional, and we ask for your consent first. We use this data only to give you your own coaching:
+          comparing your recovery with your own usual numbers and fitting your training and nutrition to it.
+        </p>
+        <List>
+          <li><strong>Who sees it:</strong> health values are sent to Anthropic (Claude), which runs Anakin, to write your read and answer your questions. Anthropic processes them for us as a service provider.</li>
+          <li><strong>What we never do:</strong> we do not sell it, use it for advertising or marketing, or send it to analytics providers such as PostHog. We do not use it to diagnose anything.</li>
+          <li><strong>Your control:</strong> you can disconnect in the app at any time and choose to keep or delete what has synced. You can also turn off access in the Health app under Sharing, Apps. Deleting your account deletes this data.</li>
+        </List>
       </Section>
 
       <Section title="3. Why we use it, and our legal bases">

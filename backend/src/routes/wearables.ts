@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { wearablesAvailableFor, wearablesSimulatorFor } from '../services/featureFlags.js';
 import { syncSchema, PROVIDERS, type Provider } from '../services/wearables/types.js';
-import { ingest, disconnect } from '../services/wearables/ingest.js';
+import { ingest, disconnect, recordConsent, recordReadReport } from '../services/wearables/ingest.js';
 import { recoveryFor, watchDays } from '../services/wearables/recovery.js';
 import { runSimulation, SCENARIOS, SCENARIO_LABEL } from '../services/wearables/simulator.js';
 import { todayForTz } from '../services/localDate.js';
@@ -25,10 +25,14 @@ function gate(req: any, res: any, next: any) {
 // GET /api/wearables/status — what's connected and how much data there is.
 router.get('/wearables/status', requireAuth, gate, async (req, res) => {
   const userId = req.user!.id;
+  // Real data counts on its own; simulated rows only count for someone with no real data.
+  const real = { userId, provider: { not: 'simulator' } };
+  const realCount = await prisma.wearableDay.count({ where: real });
+  const where = realCount ? real : { userId };
   const [connections, latest, count] = await Promise.all([
     prisma.wearableConnection.findMany({ where: { userId }, select: { provider: true, status: true, lastSyncAt: true, lastError: true } }),
-    prisma.wearableDay.findFirst({ where: { userId }, orderBy: { date: 'desc' }, select: { date: true } }),
-    prisma.wearableDay.count({ where: { userId } }),
+    prisma.wearableDay.findFirst({ where, orderBy: { date: 'desc' }, select: { date: true } }),
+    prisma.wearableDay.count({ where }),
   ]);
   res.json({ connections, latestDay: latest?.date ?? null, days: count, simulator: wearablesSimulatorFor(userId, req.user!.email) });
 });
@@ -39,7 +43,16 @@ router.post('/wearables/apple/sync', requireAuth, gate, async (req, res) => {
   const parsed = syncSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'That sync batch is malformed.' });
   const result = await ingest(req.user!.id, 'apple_health', parsed.data);
+  if (parsed.data.readReport) await recordReadReport(req.user!.id, 'apple_health', parsed.data.readReport);
   res.json(result);
+});
+
+// POST /api/wearables/apple/consent { version } — they agreed, before Apple's own prompt.
+router.post('/wearables/apple/consent', requireAuth, gate, async (req, res) => {
+  const body = z.object({ version: z.string().min(1).max(20) }).safeParse(req.body);
+  if (!body.success) return res.status(400).json({ error: 'Missing consent version.' });
+  await recordConsent(req.user!.id, 'apple_health', body.data.version);
+  res.json({ ok: true });
 });
 
 // POST /api/wearables/:provider/disconnect { deleteData? }

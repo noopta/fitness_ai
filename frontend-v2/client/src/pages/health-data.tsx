@@ -42,6 +42,7 @@ export default function HealthDataPolicy() {
           <li><strong>Images and video of your body:</strong> form-check and lift-diagnostic videos, and reference stills if you switch them on.</li>
           <li><strong>Voice and text about your health:</strong> voice notes, coach conversations and the coach's notes about you.</li>
           <li><strong>Inferences:</strong> things we derive, such as training level, suggested calorie targets, or that a movement may be aggravating an injury you described.</li>
+          <li><strong>Apple Health and connected wearables, only if you connect them:</strong> sleep, heart rate, heart rate variability, breathing rate, VO2 max, workouts, steps and active energy.</li>
           <li>If you train with a personal trainer, information about you the trainer adds or imports, such as injury notes (see Section 6).</li>
         </List>
         <p className="mt-2">

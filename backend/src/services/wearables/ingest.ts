@@ -87,6 +87,27 @@ export async function ingest(userId: string, provider: Provider, batch: { days?:
   return { days, workouts, skipped };
 }
 
+/**
+ * What the last sync couldn't read, kept on the connection so the Watch page can
+ * say what's missing. Apple never says whether a read was refused: a type with no
+ * data looks the same whether it was denied or nothing records it.
+ */
+export async function recordReadReport(userId: string, provider: Provider, report: { failed: string[]; empty: string[] }) {
+  const gaps = report.failed.length || report.empty.length;
+  await prisma.wearableConnection.updateMany({ where: { userId, provider }, data: { lastError: gaps ? JSON.stringify(report) : null } });
+  if (gaps) console.log('[wearables] read report', JSON.stringify({ userId, provider, ...report }));
+}
+
+/** The consent they gave before connecting: its version and when. Stays with the connection. */
+export async function recordConsent(userId: string, provider: Provider, version: string, at: Date = new Date()) {
+  const scopes = JSON.stringify({ consent: version, at: at.toISOString() });
+  await prisma.wearableConnection.upsert({
+    where: { userId_provider: { userId, provider } },
+    create: { userId, provider, status: 'pending', scopes },
+    update: { scopes },
+  });
+}
+
 /** Disconnect a source; optionally delete everything it sent. */
 export async function disconnect(userId: string, provider: Provider, deleteData: boolean) {
   await prisma.wearableConnection.updateMany({ where: { userId, provider }, data: { status: 'revoked', tokensEnc: null } });

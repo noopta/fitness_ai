@@ -95,6 +95,17 @@ describe('computeRecovery', () => {
     expect(m.get(END)!.provider).toBe('apple_health');
   });
 
+  it('a real source beats the simulator on the same day, even with fewer fields, in either order', () => {
+    const sim = { date: END, provider: 'simulator', restingHr: 53, hrvMs: 58, hrvMethod: 'sdnn', sleepMinutes: 455, steps: 8363, activeKcal: 702 };
+    const real = { date: END, provider: 'apple_health', restingHr: null, hrvMs: null, hrvMethod: null, sleepMinutes: null, steps: 36, activeKcal: 2 };
+    expect(pickDays([sim, real]).get(END)!.provider).toBe('apple_health');
+    expect(pickDays([real, sim]).get(END)!.provider).toBe('apple_health');
+  });
+
+  it('the simulator still fills a day no real source reported', () => {
+    expect(pickDays([{ date: END, provider: 'simulator', restingHr: 53, hrvMs: 58, hrvMethod: 'sdnn', sleepMinutes: 455, steps: 8363, activeKcal: 702 }]).get(END)!.provider).toBe('simulator');
+  });
+
   it('reads sets from logged exercises', () => {
     expect(setsIn(JSON.stringify([{ sets: 3 }, { setEntries: [{}, {}, {}, {}] }, { sets: '2' }]))).toBe(9);
     expect(setsIn('nope')).toBe(0);

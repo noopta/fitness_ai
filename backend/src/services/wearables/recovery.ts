@@ -51,11 +51,17 @@ function shift(d: string, days: number) { const t = new Date(`${d}T12:00:00Z`); 
 /**
  * One row per day when several sources overlap: the one with the most fields.
  * Phone and cloud sources for the same watch would otherwise double-count.
+ * A real source always beats the simulator, even with fewer fields: made-up
+ * numbers must never stand in for what someone's watch actually reported.
  */
 export function pickDays(rows: DayRow[]): Map<string, DayRow> {
   const filled = (r: DayRow) => [r.restingHr, r.hrvMs, r.sleepMinutes, r.steps, r.activeKcal].filter((v) => v != null).length;
   const out = new Map<string, DayRow>();
-  for (const r of rows) { const cur = out.get(r.date); if (!cur || filled(r) > filled(cur)) out.set(r.date, r); }
+  const real = (r: DayRow) => r.provider !== 'simulator';
+  for (const r of rows) {
+    const cur = out.get(r.date);
+    if (!cur || (real(r) && !real(cur)) || (real(r) === real(cur) && filled(r) > filled(cur))) out.set(r.date, r);
+  }
   return out;
 }
 

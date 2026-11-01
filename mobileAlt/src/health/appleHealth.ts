@@ -65,9 +65,12 @@ export async function connectAppleHealth(): Promise<boolean> {
 }
 
 type Day = Record<string, any> & { date: string };
+/** What this sync couldn't read (threw) or read nothing of. Type names only: it goes to the server. */
+type ReadReport = { failed: string[]; empty: string[] };
 
 /** One statistics collection, per local day, into days[date][key]. */
-async function perDay(mod: HK, id: string, stat: 'cumulativeSum' | 'discreteAverage' | 'mostRecent', unit: string, from: Date, to: Date, key: string, days: Map<string, Day>) {
+async function perDay(mod: HK, id: string, stat: 'cumulativeSum' | 'discreteAverage' | 'mostRecent', unit: string, from: Date, to: Date, key: string, days: Map<string, Day>, report: ReadReport) {
+  let found = false;
   try {
     const rows = await mod.queryStatisticsCollectionForQuantity(id as any, [stat], startOfDay(from), { day: 1 }, { filter: { date: { startDate: from, endDate: to } }, unit } as any);
     for (const r of rows) {
@@ -77,16 +80,20 @@ async function perDay(mod: HK, id: string, stat: 'cumulativeSum' | 'discreteAver
       const d = days.get(date) ?? { date };
       d[key] = q.quantity;
       days.set(date, d);
+      found = true;
     }
+    if (!found) report.empty.push(key);
   } catch {
-    // A type the user didn't grant, or the device doesn't record, just stays empty.
+    // Apple returns nothing for a refused type, so an exception is a real failure: say so.
+    report.failed.push(key);
   }
 }
 
 /** Sleep per night, credited to the morning they woke; the source with the most sleep wins. */
-async function sleepNights(mod: HK, from: Date, to: Date, days: Map<string, Day>) {
+async function sleepNights(mod: HK, from: Date, to: Date, days: Map<string, Day>, report: ReadReport) {
   let samples: readonly any[] = [];
-  try { samples = await mod.queryCategorySamples(SLEEP as any, { limit: -1, filter: { date: { startDate: from, endDate: to } } } as any); } catch { return; }
+  try { samples = await mod.queryCategorySamples(SLEEP as any, { limit: -1, filter: { date: { startDate: from, endDate: to } } } as any); } catch { report.failed.push('sleep'); return; }
+  if (!samples.length) report.empty.push('sleep');
   const nights = new Map<string, Map<string, { deep: number; rem: number; core: number; awake: number; start: Date; end: Date }>>();
   for (const s of samples) {
     const start = new Date(s.startDate), end = new Date(s.endDate);
@@ -112,9 +119,10 @@ async function sleepNights(mod: HK, from: Date, to: Date, days: Map<string, Day>
   }
 }
 
-async function workouts(mod: HK, from: Date, to: Date) {
+async function workouts(mod: HK, from: Date, to: Date, report: ReadReport) {
   let ws: readonly any[] = [];
-  try { ws = await mod.queryWorkoutSamples({ limit: -1, filter: { date: { startDate: from, endDate: to } } } as any); } catch { return []; }
+  try { ws = await mod.queryWorkoutSamples({ limit: -1, filter: { date: { startDate: from, endDate: to } } } as any); } catch { report.failed.push('workouts'); return []; }
+  if (!ws.length) report.empty.push('workouts');
   const out = [];
   for (const w of ws) {
     let avgHr: number | undefined, maxHr: number | undefined;
@@ -144,20 +152,23 @@ export async function syncAppleHealth(daysBack?: number): Promise<{ days: number
   const n = daysBack ?? (last ? Math.min(90, Math.ceil((Date.now() - last) / 86_400_000) + RESEND_DAYS) : 60);
   const from = daysAgo(n - 1), to = new Date();
   const days = new Map<string, Day>();
-  await perDay(mod, Q.steps, 'cumulativeSum', 'count', from, to, 'steps', days);
-  await perDay(mod, Q.active, 'cumulativeSum', 'kcal', from, to, 'activeKcal', days);
-  await perDay(mod, Q.rhr, 'discreteAverage', 'count/min', from, to, 'restingHr', days);
-  await perDay(mod, Q.hrv, 'discreteAverage', 'ms', from, to, 'hrvMs', days);
-  await perDay(mod, Q.resp, 'discreteAverage', 'count/min', from, to, 'respiratoryRate', days);
-  await perDay(mod, Q.vo2, 'mostRecent', 'ml/kg*min', from, to, 'vo2max', days);
-  await sleepNights(mod, from, to, days);
+  const report: ReadReport = { failed: [], empty: [] };
+  await perDay(mod, Q.steps, 'cumulativeSum', 'count', from, to, 'steps', days, report);
+  await perDay(mod, Q.active, 'cumulativeSum', 'kcal', from, to, 'activeKcal', days, report);
+  await perDay(mod, Q.rhr, 'discreteAverage', 'count/min', from, to, 'restingHr', days, report);
+  await perDay(mod, Q.hrv, 'discreteAverage', 'ms', from, to, 'hrvMs', days, report);
+  await perDay(mod, Q.resp, 'discreteAverage', 'count/min', from, to, 'respiratoryRate', days, report);
+  await perDay(mod, Q.vo2, 'mostRecent', 'ml/kg*min', from, to, 'vo2max', days, report);
+  await sleepNights(mod, from, to, days, report);
   for (const d of days.values()) if (d.hrvMs != null) d.hrvMethod = 'sdnn';
-  const ws = await workouts(mod, from, to);
+  const ws = await workouts(mod, from, to, report);
   const list = [...days.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
   let stored = { days: 0, workouts: 0 };
   // Batches keep each request small on a slow connection.
   for (let i = 0; i < Math.max(list.length, 1); i += 45) {
-    const r: any = await apiFetch('/wearables/apple/sync', { method: 'POST', body: JSON.stringify({ days: list.slice(i, i + 45), workouts: i === 0 ? ws : [] }) });
+    // The report rides on the last batch: every batch marks the connection healthy, so it has to land after them.
+    const last = i + 45 >= list.length;
+    const r: any = await apiFetch('/wearables/apple/sync', { method: 'POST', body: JSON.stringify({ days: list.slice(i, i + 45), workouts: i === 0 ? ws : [], ...(last ? { readReport: report } : {}) }) });
     stored = { days: stored.days + (r?.days ?? 0), workouts: stored.workouts + (r?.workouts ?? 0) };
   }
   await AsyncStorage.setItem(LAST_SYNC, String(Date.now())).catch(() => {});

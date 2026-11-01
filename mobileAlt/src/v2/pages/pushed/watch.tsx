@@ -3,11 +3,15 @@
 // get the simulator, which works without a watch or the native build.
 
 import React from 'react';
-import { View, Text, Alert, Platform } from 'react-native';
+import { View, Text, Alert, Platform, Linking } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as WebBrowser from 'expo-web-browser';
 import { PushedPage } from '../../shell/Page';
 import { Row } from '../../primitives/Row';
+import { Sheet } from '../../primitives/Sheet';
+import { TextAction } from '../../primitives/TextAction';
+import { HEALTH_CONSENT_VERSION, healthGapNotice } from '@axiom/agent-ui-core';
+import { track } from '../../track';
 import { T } from '../../theme';
 import { apiFetch } from '../../../lib/api';
 import { healthKit, connectAppleHealth, syncAppleHealth, lastAppleSync, forgetAppleSync, seedAppleHealth } from '../../../health/appleHealth';
@@ -24,6 +28,14 @@ const ago = (t: number | string | null | undefined) => {
   const m = Math.round((Date.now() - new Date(t).getTime()) / 60_000);
   return m < 2 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
 };
+
+/** Shown before Apple's own prompt (design C1, with the list matched to READ_TYPES). Wording to be checked against Apple's rules before submission. */
+const CONSENT: [string, string][] = [
+  ['What’s read', 'Sleep, heart rate, HRV, breathing rate, VO2 max, workouts, steps and active energy'],
+  ['Who sees it', 'Anakin runs on Claude, made by Anthropic. Health values are sent to it to write your read. Not used to train models.'],
+  ['What’s never done', 'No diagnosis. No changes without your OK. Never in analytics.'],
+  ['Your control', 'Disconnect any time · keep or delete what synced'],
+];
 
 export function WatchPage() {
   const qc = useQueryClient();
@@ -46,7 +58,16 @@ export function WatchPage() {
     try { await fn(); await refresh(); } catch (e: any) { Alert.alert('That didn’t work', e?.message ?? 'Try again.'); }
     setBusy(null);
   };
-  const connect = () => run('connect', async () => { if (await connectAppleHealth()) await syncAppleHealth(60); });
+  const [consenting, setConsenting] = React.useState(false);
+  const allow = () => {
+    setConsenting(false);
+    track('health_consent', { accepted: true });
+    void run('connect', async () => {
+      await apiFetch('/wearables/apple/consent', { method: 'POST', body: JSON.stringify({ version: HEALTH_CONSENT_VERSION }) });
+      if (await connectAppleHealth()) await syncAppleHealth(60);
+    });
+  };
+  const notNow = () => { setConsenting(false); track('health_consent', { accepted: false }); };
   const syncNow = () => run('sync', () => syncAppleHealth());
   const disconnect = (provider: string, label: string) => Alert.alert(`Disconnect ${label}?`, 'Keep what was already synced, or delete it from Axiom too.', [
     { text: 'Cancel', style: 'cancel' },
@@ -61,6 +82,7 @@ export function WatchPage() {
   const syncFitbit = () => run('fitbitSync', () => apiFetch('/wearables/google/sync', { method: 'POST' }));
   const simulate = (scenario: string) => run(`sim:${scenario}`, () => apiFetch('/wearables/simulate', { method: 'POST', body: JSON.stringify({ scenario, days: 60 }) }));
 
+  const gap = apple ? healthGapNotice(apple.lastError) : null;
   const r = recovery.data;
   const lead = !status.data ? null
     : !status.data.days ? 'Connect a watch and Anakin reads your sleep, heart rate and recovery against your own baselines.'
@@ -76,13 +98,19 @@ export function WatchPage() {
         </View>
       ) : null}
 
+      {gap ? (
+        <View style={{ marginBottom: 24 }}>
+          <Row name={gap.title} sub={gap.sub} onPress={() => void Linking.openURL('x-apple-health://').catch(() => {})} last />
+        </View>
+      ) : null}
+
       <Text style={[T.eyebrow, { marginBottom: 8 }]}>Sources</Text>
       {Platform.OS === 'ios' ? (
         apple ? (<>
           <Row name="Apple Health" sub={`Synced ${ago(lastSync ?? apple.lastSyncAt)}`} value={busy === 'sync' ? 'Syncing…' : 'Sync now'} onPress={hkReady ? () => void syncNow() : undefined} />
           <Row name="Disconnect Apple Health" sub="Also turn off access in the Health app → Sharing → Apps" onPress={() => disconnect('apple_health', 'Apple Health')} />
         </>) : hkReady ? (
-          <Row name="Connect Apple Health" sub="Apple Watch, iPhone and apps that write to Health" value={busy === 'connect' ? 'Connecting…' : undefined} onPress={() => void connect()} />
+          <Row name="Connect Apple Health" sub="Apple Watch, iPhone and apps that write to Health" value={busy === 'connect' ? 'Connecting…' : undefined} onPress={() => setConsenting(true)} />
         ) : (
           <Row name="Apple Health" sub="Needs the next app update from the App Store" />
         )
@@ -97,12 +125,25 @@ export function WatchPage() {
       {status.data?.simulator ? (<>
         <Text style={[T.eyebrow, { marginTop: 32, marginBottom: 8 }]}>Simulator · testers only</Text>
         <Text style={[T.caption, { marginBottom: 8 }]}>Fills 60 days of made-up watch data, ending today, under its own source. Pick a scenario for the last week.</Text>
+        {sim ? <Row name="Remove simulated data" onPress={() => void run('off', () => apiFetch('/wearables/simulator/disconnect', { method: 'POST', body: JSON.stringify({ deleteData: true }) }))} /> : null}
         {SCENARIOS.map(([key, label]) => (
           <Row key={key} name={label} value={busy === `sim:${key}` ? 'Filling…' : undefined} onPress={() => void simulate(key)} />
         ))}
-        {sim ? <Row name="Remove simulated data" onPress={() => void run('off', () => apiFetch('/wearables/simulator/disconnect', { method: 'POST', body: JSON.stringify({ deleteData: true }) }))} last /> : null}
         {hkReady && __DEV__ ? <Row name="Seed Apple Health (dev)" sub="Writes 14 days of sample data into Health on this phone" onPress={() => void run('seed', async () => { await seedAppleHealth(14); await syncAppleHealth(14); })} last /> : null}
       </>) : null}
+
+      <Sheet visible={consenting} onClose={notNow} title="Before Anakin reads your health data">
+        {CONSENT.map(([head, body]) => (
+          <View key={head} style={{ marginTop: 16 }}>
+            <Text style={T.rowStrong}>{head}</Text>
+            <Text style={[T.bodyMuted, { marginTop: 2 }]}>{body}</Text>
+          </View>
+        ))}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24 }}>
+          <TextAction primary onPress={allow}>Allow and connect</TextAction>
+          <TextAction muted arrow={false} size={15} onPress={notNow}>Not now</TextAction>
+        </View>
+      </Sheet>
     </PushedPage>
   );
 }
