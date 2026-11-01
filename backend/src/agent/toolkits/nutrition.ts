@@ -2,6 +2,7 @@
 // the shared meal service (saved-food library, nutrition streak, activity),
 // so a meal logged in chat is identical to one logged in Fuel.
 
+import { portionFromBasis } from '../../services/food/yourFoods.js';
 import { sanitizeMealMacros } from '../../services/nutritionSafety.js';
 import { registerToolkit } from '../registry.js';
 import { defineOp, executeOp, UNDO_DELETE_MS } from '../ops.js';
@@ -318,22 +319,27 @@ export const NUTRITION_TOOLS = [
   }),
   tool({
     name: 'log_saved_food', kind: 'log', fn: 'NUT-06',
-    description: 'Log something the user has had before: a saved food by name, or repeat a past meal ("same breakfast as yesterday" → from=yesterday, mealType=breakfast). servings scales it.',
-    input_schema: schema({ name: { type: 'string' }, fromDate: { type: 'string', description: 'Repeat meals from this date (YYYY-MM-DD).' }, mealType: { type: 'string', enum: SLOTS }, servings: { type: 'number' }, date: { type: 'string' } }),
+    description: 'Log something the user has had before: a saved food by name, or repeat a past meal ("same breakfast as yesterday" → from=yesterday, mealType=breakfast). servings scales it. A food they scanned can be logged by name or barcode at any amount: grams uses its label ("log 123 again, 200 g").',
+    input_schema: schema({ name: { type: 'string' }, barcode: { type: 'string', description: 'A barcode they scanned before.' }, grams: { type: 'number', description: 'Grams eaten, for a scanned food.' }, fromDate: { type: 'string', description: 'Repeat meals from this date (YYYY-MM-DD).' }, mealType: { type: 'string', enum: SLOTS }, servings: { type: 'number' }, date: { type: 'string' } }),
     receipt: (i) => ({ verb: 'Logged', text: str(i.name) || `Same ${str(i.mealType) || 'meal'} again` }),
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const date = /^\d{4}-\d{2}-\d{2}$/.test(str(input.date)) ? str(input.date) : ctx.today;
       const k = numOr(input.servings, 1)!;
       let src: any = null;
-      if (str(input.fromDate) || !str(input.name)) {
+      const code = str(input.barcode).replace(/\s/g, '');
+      if (code) {
+        src = await prisma.savedFood.findFirst({ where: { userId, barcode: code } });
+        if (!src) throw new Error('That barcode isn’t in their foods yet. Ask them to scan it.');
+      }
+      if (!src && (str(input.fromDate) || !str(input.name))) {
         const from = /^\d{4}-\d{2}-\d{2}$/.test(str(input.fromDate)) ? str(input.fromDate) : null;
         src = await prisma.mealEntry.findFirst({ where: { userId, ...(from ? { date: from } : { date: { lt: date } }), ...(str(input.mealType) ? { mealType: str(input.mealType) } : {}), ...(str(input.name) ? { name: { contains: str(input.name) } } : {}) }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }] });
       }
       if (!src && str(input.name)) {
         const foods: any = await callApi(userId, 'GET', `/nutrition/foods?q=${encodeURIComponent(str(input.name))}&limit=5`);
         const f = foods.foods?.[0];
-        if (f) src = { name: f.name, mealType: null, calories: f.calories, proteinG: f.proteinG, carbsG: f.carbsG, fatG: f.fatG, ingredientsJson: f.ingredientsJson, tagsJson: f.tagsJson, nutrientsJson: f.nutrientsJson };
+        if (f) src = { name: f.name, mealType: null, calories: f.calories, proteinG: f.proteinG, carbsG: f.carbsG, fatG: f.fatG, ingredientsJson: f.ingredientsJson, tagsJson: f.tagsJson, nutrientsJson: f.nutrientsJson, basisJson: f.basisJson, barcode: f.barcode };
       }
       if (!src) throw new Error('I couldn’t find that in your history or saved foods.');
       const scale = (v: number) => Math.round(v * k * 10) / 10;
@@ -343,6 +349,14 @@ export const NUTRITION_TOOLS = [
         ingredients: parseJson<string[]>(src.ingredientsJson, []), tags: parseJson<string[]>(src.tagsJson, []), source: 'agent-repeat',
         nutrients: parseJson<any>(src.nutrientsJson, undefined),
       };
+      // Grams come from the remembered label, so every macro and micro follows the amount.
+      const grams = numOr(input.grams, null);
+      if (grams != null) {
+        const at = portionFromBasis(src.basisJson, grams);
+        if (!at) throw new Error(`I don’t have a label for ${src.name}, so I can’t work out ${grams} g. Ask for servings, or have them scan it.`);
+        const item = `${src.name} (${Math.round(grams)} g)`.slice(0, 120);
+        Object.assign(meal, { calories: at.calories, proteinG: at.proteinG, carbsG: at.carbsG, fatG: at.fatG, nutrients: at.nutrients, ingredients: [item], barcode: src.barcode ?? undefined, portion: { grams, unit: 'g', unitLabel: 'g' } });
+      }
       const change = await executeOp(userId, 'meal.create', { input: meal });
       return { logged: change.summary, mealId: (change.result as any).id, _change: change };
     },
@@ -490,7 +504,7 @@ export const NUTRITION_TOOLS = [
     execute: async (input, userId) => {
       const ctx = await ctxOf(userId);
       const r: any = await callApi(userId, 'GET', `/nutrition/foods?limit=12${str(input.q) ? `&q=${encodeURIComponent(str(input.q))}` : ''}`);
-      return { foods: (r.foods ?? []).map((f: any) => ({ id: f.id, name: f.name, calories: f.calories, proteinG: f.proteinG, carbsG: f.carbsG, fatG: f.fatG, useCount: f.useCount })), date: ctx.today, slot: slotOf(null, ctx.tz) };
+      return { foods: (r.foods ?? []).map((f: any) => ({ id: f.id, name: f.name, calories: f.calories, proteinG: f.proteinG, carbsG: f.carbsG, fatG: f.fatG, useCount: f.useCount, barcode: f.barcode ?? undefined, lastGrams: f.lastGrams ?? undefined })), date: ctx.today, slot: slotOf(null, ctx.tz) };
     },
     card: (_i, r) => {
       if (!r.foods.length) return { fn: 'NUT-13', pattern: 'glance', rule: 'show', meta: { label: 'Saved foods' }, empty: 'Foods you log show up here.' };

@@ -39,7 +39,9 @@ import { nutritionApi } from '../../src/lib/api';
 import { todayStr } from '../../src/lib/localDate';
 import { useInvalidate } from '../../src/v2/data';
 import { haptics } from '../../src/v2/haptics';
-import { lookupReceipt, mealSources, barcodeFactor, barcodeAmountLabel, type ReceiptVerb, type BarcodeAmount } from '@axiom/agent-ui-core';
+import { lookupReceipt, mealSources, barcodeFactor, barcodeAmountLabel, basisFromProduct, startingGrams, fmtBarcode, foundText, loggedRead, loggedReceipts, type ReceiptVerb, type BarcodeAmount, type PortionUnitKey } from '@axiom/agent-ui-core';
+import { PortionSheet, type PortionLogged } from '../../src/v2/food/PortionSheet';
+import { ScanOverlay, LoggedStage } from '../../src/v2/food/PortionScan';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NumberSheet } from '../../src/v2/primitives/NumberSheet';
 import { SourceLinks } from '../../src/v2/food/SourceLinks';
@@ -54,6 +56,10 @@ import {
 } from '../../src/components/coach/nutrition/mealItems';
 import { KEYBOARD_DONE_ID } from '../../src/components/ui/KeyboardDoneBar';
 import { track } from '../../src/v2/track';
+
+/** After `Got it.`, the Portion sheet opens on its own. */
+const SHEET_OPEN_MS = 900;
+const SCAN_MODES = [{ key: 'photo', label: 'Snap' }, { key: 'barcode', label: 'Scan' }, { key: 'describe', label: 'Describe' }];
 
 /** Last amount per barcode (servings or grams), so the next scan starts there. */
 const AMOUNT_KEY = 'v2.barcodeAmount.v1';
@@ -117,6 +123,18 @@ function CaptureScreenInner() {
       else if (a?.mode === 'servings' && a.servings > 0) { setAmountMode('servings'); setServings(a.servings); }
     }).catch(() => {});
   }, [product?.code]);
+  // Barcode → Portion sheet (flag barcodePortion): the sheet, its amount across an Undo, and the confirmation.
+  const portionOn = useAuth().getFeatures().barcodePortion === true;
+  const basis = useMemo(() => (portionOn && product?.raw ? basisFromProduct(product.raw, product.code) : null), [portionOn, product]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [reopenAt, setReopenAt] = useState<{ grams: number; unit: PortionUnitKey } | null>(null);
+  const [logged, setLogged] = useState<PortionLogged | null>(null);
+  const [undoing, setUndoing] = useState(false);
+  useEffect(() => {
+    if (!basis) return;
+    const t = setTimeout(() => setSheetOpen(true), SHEET_OPEN_MS);
+    return () => clearTimeout(t);
+  }, [basis]);
   const [busy, setBusy] = useState(false);
   // A branded item is still being looked up: Log and edits wait for it.
   const [lookupPending, setLookupPending] = useState(false);
@@ -160,6 +178,8 @@ function CaptureScreenInner() {
     const f = grams / 100;
     const base = p.per100g ?? p;
     return {
+      // The answer as it came, for the Portion sheet: its own per-gram model reads this.
+      raw: { ...p, per100g: base, source: extra.web ? 'web' : extra.label ? 'user_label_scan' : p.source },
       name: p.name, brand: p.brand ?? null, code, receipts, ...extra,
       servingSize: p.servingSize ?? `${grams} g`, servingGrams: grams,
       calories: Math.round((base.calories ?? 0) * f), proteinG: Math.round((base.proteinG ?? 0) * f), carbsG: Math.round((base.carbsG ?? 0) * f), fatG: Math.round((base.fatG ?? 0) * f),
@@ -218,7 +238,7 @@ function CaptureScreenInner() {
     setProduct(toProduct(r, code, [
       { verb: 'Read', text: `Label${r.servingSize ? ` · per ${r.servingSize}` : ''}` },
       { verb: 'Saved', text: `Barcode ${code}` },
-    ]));
+    ], { label: true }));
     setLabelFor(null); setMode('barcode'); setLog([]);
     haptics.success();
   };
@@ -366,6 +386,32 @@ function CaptureScreenInner() {
     } catch (e: any) { Alert.alert('Couldn\'t log', e?.message ?? ''); }
     setBusy(false);
   };
+  const onPortionLogged = async (r: PortionLogged) => {
+    if (!basis) return;
+    setSheetOpen(false);
+    if (product?.web) void nutritionApi.confirmWebBarcode(product.code).catch(() => {});
+    track('food_logged', { path: 'barcode', amount: r.unit, web: !!product?.web, again: !!basis.lastGrams });
+    await invalidate.afterMeal();
+    // From a chat capture card, the card is the confirmation.
+    if (params.cardId) { captureBus.done(params.cardId, r.mealId ? [r.mealId] : []); router.back(); return; }
+    setLogged(r);
+  };
+  const resetScan = () => { setProduct(null); setSheetOpen(false); setReopenAt(null); setLogged(null); scanned.current = false; setLog([]); };
+  // Undo deletes the meal and reopens the sheet at the same amount.
+  const undoLogged = async () => {
+    if (!logged || undoing) return;
+    setUndoing(true);
+    try {
+      if (logged.mealId) await nutritionApi.deleteMeal(logged.mealId);
+      await invalidate.afterMeal();
+      haptics.light();
+      track('food_log_undone', { path: 'barcode' });
+      setReopenAt({ grams: logged.grams, unit: logged.unit });
+      setLogged(null);
+      setSheetOpen(true);
+    } catch (e: any) { Alert.alert('Couldn\'t undo', e?.message ?? ''); }
+    setUndoing(false);
+  };
   const describe = async () => {
     const t = text.trim(); if (!t || busy) return;
     track('food_describe_started', { length: t.length });
@@ -457,11 +503,24 @@ function CaptureScreenInner() {
   const lineStyle = useAnimatedStyle(() => ({ top: `${12 + scanLine.value * 76}%` }));
   // A code was read and is being looked up (or its result / miss sheet is up): stop scanning until they rescan.
   const barcodeHeld = mode === 'barcode' && (busy || !!missed || !!product);
+  // The new scan: camera full bleed under its own viewfinder, status and modes.
+  const portionScan = portionOn && mode === 'barcode' && !labelFor && hasCam && !!perm.hasPermission;
   const tot = useMemo(() => (items ?? []).reduce((a, i) => ({ calories: a.calories + i.calories, proteinG: a.proteinG + i.proteinG, carbsG: a.carbsG + i.carbsG, fatG: a.fatG + i.fatG }), { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }), [items]);
   const time = new Date();
   const header = `${slot.charAt(0).toUpperCase()}${slot.slice(1)} · ${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
   const cycleSlot = () => { haptics.select(); setSlot((s) => SLOTS[(SLOTS.indexOf(s) + 1) % SLOTS.length]); };
   const editing = editIdx != null && items ? items[editIdx] : null;
+
+  // ── Logged: the confirmation, with Undo ────────────────────────────────
+  if (logged && basis) {
+    return (
+      <>
+        <StatusBar style="dark" />
+        <LoggedStage read={loggedRead(logged.totals, logged.day)} receipts={loggedReceipts(basis, logged.grams, logged.totals)}
+          onBack={() => router.back()} onScanAnother={resetScan} onUndo={() => void undoLogged()} />
+      </>
+    );
+  }
 
   // ── Result: photo / describe identified ────────────────────────────────
   if (items && !addPhotoMode) {
@@ -546,16 +605,16 @@ function CaptureScreenInner() {
         <Pressable onPress={() => (addPhotoMode ? setAddPhotoMode(false) : router.back())} hitSlop={10}><Text style={[T.body, { color: v2.color.darkMuted }]}>{addPhotoMode ? '← Back' : 'Close'}</Text></Pressable>
         <Text style={[T.caption, { color: v2.color.darkMuted }]}>{labelFor ? 'Nutrition label' : mode === 'barcode' ? 'Barcode' : header}</Text>
       </View>
-      <View style={styles.frame}>
+      <View style={portionScan ? styles.frameFull : styles.frame}>
         {hasCam && device && perm.hasPermission && mode !== 'describe' ? (
-          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive={!readingUri && !barcodeHeld} photo={mode === 'photo'} codeScanner={mode === 'barcode' ? codeScanner : undefined} {...(zoom != null ? { zoom } : {})} />
+          <vision.Camera ref={camRef} style={StyleSheet.absoluteFill} device={device} isActive={!readingUri && !(portionOn && mode === 'barcode' ? sheetOpen : barcodeHeld)} photo={mode === 'photo'} codeScanner={mode === 'barcode' ? codeScanner : undefined} {...(zoom != null ? { zoom } : {})} />
         ) : (
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
             {mode === 'describe' ? null : <Text style={[T.body, { color: v2.color.darkMuted, textAlign: 'center' }]}>{hasCam ? 'Camera permission is off. Allow it in Settings, or describe the meal.' : 'This build has no camera module. Describe the meal instead.'}</Text>}
           </View>
         )}
         {readingUri ? <Image source={{ uri: readingUri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityLabel="The photo being read" /> : null}
-        {mode !== 'describe' && !readingUri ? (
+        {mode !== 'describe' && !readingUri && !portionScan ? (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             {[['top', 'left'], ['top', 'right'], ['bottom', 'left'], ['bottom', 'right']].map(([y, x]) => (
               <View key={y + x} style={[styles.corner, { [y]: 18, [x]: 18, [`border${y[0].toUpperCase() + y.slice(1)}Width`]: 1.5, [`border${x[0].toUpperCase() + x.slice(1)}Width`]: 1.5 } as any]} />
@@ -581,9 +640,9 @@ function CaptureScreenInner() {
           </View>
         ) : null}
       </View>
-      {log.length && !product ? <View style={{ marginTop: 14 }}><ReceiptList items={log} tone="dark" liveIndex={busy ? log.length - 1 : -1} /></View> : null}
-      <Text style={[T.caption, { color: v2.color.darkMuted, textAlign: 'center', marginTop: 14 }]}>{labelFor ? 'Fit the nutrition panel, flat and in focus. I\'ll read it.' : mode === 'photo' ? (addPhotoMode ? 'Another angle — sides, drinks, anything cut off.' : photoV2 ? 'Shoot from above · include sides & drinks.' : 'Fit the whole plate. I\'ll find what\'s on it.') : mode === 'barcode' ? 'Line the barcode up inside the frame.' : 'A sentence is enough.'}</Text>
-      {addPhotoMode ? <View style={{ height: 22 }} /> : <View style={styles.modes}>
+      {portionScan ? null : log.length && !product ? <View style={{ marginTop: 14 }}><ReceiptList items={log} tone="dark" liveIndex={busy ? log.length - 1 : -1} /></View> : null}
+      {portionScan ? null : <Text style={[T.caption, { color: v2.color.darkMuted, textAlign: 'center', marginTop: 14 }]}>{labelFor ? 'Fit the nutrition panel, flat and in focus. I\'ll read it.' : mode === 'photo' ? (addPhotoMode ? 'Another angle — sides, drinks, anything cut off.' : photoV2 ? 'Shoot from above · include sides & drinks.' : 'Fit the whole plate. I\'ll find what\'s on it.') : mode === 'barcode' ? 'Line the barcode up inside the frame.' : 'A sentence is enough.'}</Text>}
+      {portionScan ? null : addPhotoMode ? <View style={{ height: 22 }} /> : <View style={styles.modes}>
         {(['photo', 'barcode', 'describe'] as Mode[]).map((m) => (
           <Pressable key={m} onPress={() => { track('food_capture_mode', { mode: m }); setMode(m); setLabelFor(null); scanned.current = false; setLog([]); }} hitSlop={8}>
             <Text style={[T.captionStrong, { color: mode === m ? v2.color.darkInk : v2.color.darkMuted, textTransform: 'capitalize' }]}>{m}</Text>
@@ -611,9 +670,25 @@ function CaptureScreenInner() {
           <Pressable onPress={() => void (addPhotoMode ? snapMore() : snap())} disabled={busy || !hasCam} style={[styles.shutter, { opacity: busy || !hasCam ? 0.4 : 1 }]} accessibilityLabel="Take photo"><View style={styles.shutterInner} /></Pressable>
           <View style={styles.shutterSide} />
         </View>
-      ) : <View style={{ height: 90 }} />}
+      ) : portionScan ? null : <View style={{ height: 90 }} />}
 
-      {product ? (
+      {portionScan ? (
+        <ScanOverlay
+          locked={!!basis}
+          headline={basis ? 'Got it.' : 'Point at a barcode.'}
+          receipts={basis
+            ? [{ verb: 'Read', text: `Barcode ${fmtBarcode(basis.barcode)}` }, { verb: 'Found', text: foundText(basis) }]
+            : busy ? (log.some((l) => l.verb === 'Searched') ? log : [{ verb: 'Reading', text: 'Looking up …' }]) : [{ verb: 'Reading', text: 'Looking for a barcode' }]}
+          live={!basis}
+          modes={SCAN_MODES} activeMode={mode}
+          onMode={(m) => { track('food_capture_mode', { mode: m }); resetScan(); setMode(m as Mode); setLabelFor(null); }}
+          onClose={() => router.back()}
+          onReview={basis && !sheetOpen ? () => setSheetOpen(true) : undefined}
+          onRescan={basis && !sheetOpen ? resetScan : undefined}
+        />
+      ) : null}
+
+      {product && !portionOn ? (
         <Animated.View entering={FadeIn.duration(300)} style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.grabber} />
           <ReceiptList items={product.receipts ?? [{ verb: 'Pulled', text: `Open Food Facts — ${product.code}` }]} animate={false} />
@@ -652,6 +727,10 @@ function CaptureScreenInner() {
         </Animated.View>
       ) : null}
 
+      {sheetOpen && basis ? (
+        <PortionSheet basis={basis} grams={reopenAt?.grams ?? startingGrams(basis)} unit={reopenAt?.unit ?? 'g'} slot={slot} onSlot={setSlot}
+          onClose={(at) => { setReopenAt(at); setSheetOpen(false); }} onLogged={(r) => void onPortionLogged(r)} />
+      ) : null}
       {/* Barcode not found (N-01): three ways forward; whatever gets logged saves the barcode for next time. */}
       <Sheet visible={!!missed} onClose={() => { setMissed(null); scanned.current = false; }} title="I don't know that barcode yet.">
         <ReceiptList items={[{ verb: 'Searched', text: 'Open Food Facts — no match' }]} animate={false} />
@@ -680,6 +759,7 @@ const styles = StyleSheet.create({
   light: { flex: 1, backgroundColor: v2.color.white, paddingHorizontal: v2.space.gutter },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 32 },
   frame: { flex: 1, marginTop: 18, borderRadius: 20, overflow: 'hidden', backgroundColor: '#161618' },
+  frameFull: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, overflow: 'hidden', backgroundColor: v2.color.cameraGround },
   corner: { position: 'absolute', width: 28, height: 28, borderColor: 'rgba(255,255,255,.9)' },
   scanLine: { position: 'absolute', left: 30, right: 30, height: 2, backgroundColor: v2.color.crimson, opacity: 0.9 },
   modes: { flexDirection: 'row', justifyContent: 'center', gap: 32, marginTop: 16 },

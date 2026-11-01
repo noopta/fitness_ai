@@ -297,6 +297,8 @@ model MealEntry {
   // basis: today | said (their words named the day) | context | picked | overruled
   // (the model's date set aside) | client (the app sent it). Null on older rows.
   logTrace String?
+  // A scanned food's amount (Nov 2026), as JSON: {"grams","unit","unitLabel","barcode"}. Null otherwise.
+  portionJson String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
@@ -347,12 +349,19 @@ model SavedFood {
   nutrientsJson   String?
   source          String   @default("manual")
   useCount        Int      @default(1)
+  // Scanned foods (Nov 2026): the code, the lookup answer per 100 g, and the last
+  // amount, so the next scan starts there. Null on everything not scanned.
+  barcode         String?
+  basisJson       String?
+  lastGrams       Float?
+  lastLoggedAt    DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now()) @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, normalizedName])
   @@index([userId, useCount])
+  @@index([userId, barcode])
 }
 
 // ─── Global food library ──────────────────────────────────────────────────────

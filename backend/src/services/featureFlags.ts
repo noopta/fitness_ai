@@ -250,6 +250,13 @@ export const awayDigestAvailableFor = flagFor('AWAY_DIGEST_ENABLED', 'AWAY_DIGES
 export const swapV2AvailableFor = flagFor('SWAP_V2_ENABLED', 'SWAP_V2_USERS');
 
 /**
+ * Barcode scan → Portion sheet (handoff, Nov 2026): ruler, live totals, day impact,
+ * micros, Your foods, Undo. Off = the old servings/grams sheet.
+ * BARCODE_PORTION_ENABLED=1 or the BARCODE_PORTION_USERS allowlist (ids/emails).
+ */
+export const barcodePortionAvailableFor = flagFor('BARCODE_PORTION_ENABLED', 'BARCODE_PORTION_USERS');
+
+/**
  * Research-based rehab programs (Oct 2026): for an athlete cleared by their
  * surgeon or physio, Anakin researches current protocols and builds the rehab
  * program (propose_rehab_program) instead of deferring all of it to the PT.

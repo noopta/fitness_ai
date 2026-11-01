@@ -47,6 +47,7 @@ import { normalizeFoodRegion } from '../services/prompts/regionPrompts.js';
 import { serializeCommunityProduct } from '../services/food/communityProduct.js';
 import { lookupOpenFoodFacts } from '../services/food/openFoodFacts.js';
 import { webLookupBarcode, cachedWebLookup, type WebProduct } from '../services/food/webFoodLookup.js';
+import { yourFoodProduct } from '../services/food/yourFoods.js';
 import { parseJsonArrayColumn } from '../services/jsonColumn.js';
 import { createMealEntry, updateMealEntry, deleteMealEntry } from '../services/mealLogService.js';
 import { rankFoodResults } from '../services/food/foodSearch.js';
@@ -224,6 +225,10 @@ router.get('/nutrition/barcode/:code', requireAuth, async (req, res) => {
   if (!/^[0-9]{6,14}$/.test(code)) {
     return res.status(400).json({ error: 'Invalid barcode format' });
   }
+  // Something this user has scanned before answers first, with their last amount.
+  const mine = await prisma.savedFood.findFirst({ where: { userId: req.user!.id, barcode: code, basisJson: { not: null } }, orderBy: { updatedAt: 'desc' } }).catch(() => null);
+  const remembered = mine ? yourFoodProduct(mine, code) : null;
+  if (remembered) return res.json(remembered);
   // OpenFoodFacts' coverage of Nigerian- and Gambian-manufactured goods is
   // thin, so we keep our own community table of labels users have scanned.
   // Both are queried together: OFF wins when it has the product (it is

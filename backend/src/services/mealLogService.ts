@@ -16,6 +16,7 @@ import { normalizeMicronutrients } from './nutritionEnrichmentService.js';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { recordOverride, singleLookedUpItem } from './food/foodOverrides.js';
 import { dirname as pathDirname, join as pathJoin } from 'node:path';
+import { yourFoodFields } from './food/yourFoods.js';
 
 const prisma = new PrismaClient();
 
@@ -74,6 +75,11 @@ export const mealEntrySchema = z.object({
   // Descriptive labels, NOT gates — an unrecognised value must never reject the
   // meal. See src/validation/descriptiveLabel.ts for why (this broke twice).
   source: descriptiveLabel(KNOWN_MEAL_SOURCES, 'manual'),
+  // A scanned food's amount and label (Portion sheet, Nov 2026). Extras that
+  // remember the food for next time: a bad one is dropped, it never refuses the meal.
+  barcode: z.string().regex(/^[0-9]{6,14}$/).optional().catch(undefined),
+  portion: z.object({ grams: z.number().finite().min(0).max(5000), unit: z.string().max(20), unitLabel: z.string().max(40) }).optional().catch(undefined),
+  foodBasis: z.record(z.string(), z.unknown()).optional().catch(undefined),
   parseConfidence: descriptiveLabel(KNOWN_PARSE_CONFIDENCE, null),
   notes: z.string().max(500).optional(),
   // OPEN nutrient channel — any nutrient keys the parser produced. Not capped
@@ -157,6 +163,7 @@ async function saveMealEntry(userId: string, input: MealEntryInput, trace?: Reco
       data: {
         userId,
         logTrace: JSON.stringify(trace ?? { via: 'app', basis: 'client', sentAt: new Date().toISOString() }),
+        portionJson: data.portion ? JSON.stringify({ ...data.portion, ...(data.barcode ? { barcode: data.barcode } : {}) }) : null,
         date: data.date,
         name: data.name,
         mealType: data.mealType,
@@ -189,9 +196,10 @@ async function saveMealEntry(userId: string, input: MealEntryInput, trace?: Reco
       return { entry, ingredients, tags, nutrients };
     }
     const normalizedName = normalizeFoodName(data.name);
-    const existingFood = await prisma.savedFood.findUnique({
-      where: { userId_normalizedName: { userId, normalizedName } },
-    });
+    // A scanned food is the same food by its barcode, whatever its name says today.
+    const scanned = yourFoodFields(data);
+    const existingFood = (scanned ? await prisma.savedFood.findFirst({ where: { userId, barcode: scanned.barcode } }) : null)
+      ?? await prisma.savedFood.findUnique({ where: { userId_normalizedName: { userId, normalizedName } } });
     if (existingFood) {
       // A macro-only manual/barcode log must not erase micronutrients learned
       // from an earlier rich parse of the same saved food.
@@ -209,6 +217,7 @@ async function saveMealEntry(userId: string, input: MealEntryInput, trace?: Reco
           tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
           ...(incomingHasMicros ? { nutrientsJson: JSON.stringify(nutrients) } : {}),
           source: data.source,
+          ...(scanned ?? {}),
           useCount: { increment: 1 },
         },
       });
@@ -226,6 +235,7 @@ async function saveMealEntry(userId: string, input: MealEntryInput, trace?: Reco
           tagsJson: tags.length > 0 ? JSON.stringify(tags) : null,
           nutrientsJson: JSON.stringify(nutrients),
           source: data.source,
+          ...(scanned ?? {}),
           useCount: 1,
         },
       });
