@@ -340,6 +340,23 @@ describe('conversation persistence', () => {
     ]);
   });
 
+  it('stamps the user message when it was sent and the reply when it finished', async () => {
+    let stored = '[]';
+    mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));
+    mocks.agentConversation.upsert.mockImplementation(async ({ create, update }: any) => {
+      stored = update?.messagesJson ?? create?.messagesJson; return {};
+    });
+    const sentAt = new Date(Date.now() - 20_000).toISOString();
+    await appendTurn(USER, 'plan my week', 'Done.', [], [], sentAt);
+    const [u, a] = JSON.parse(stored);
+    expect(u.at).toBe(sentAt);
+    expect(Date.parse(a.at)).toBeGreaterThan(Date.parse(sentAt));
+    // A send time in the future (bad clock) falls back to the save time.
+    await appendTurn(USER, 'x', 'y', [], [], new Date(Date.now() + 60_000).toISOString());
+    const after = JSON.parse(stored);
+    expect(after[2].at).toBe(after[3].at);
+  });
+
   it('keeps cards out of the reply text and tells the model in a note on the next user message', async () => {
     let stored = '[]';
     mocks.agentConversation.findUnique.mockImplementation(async () => ({ messagesJson: stored }));

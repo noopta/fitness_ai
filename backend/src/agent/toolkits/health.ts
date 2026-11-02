@@ -657,11 +657,18 @@ export const HEALTH_TOOLS = [
   }),
   tool({
     name: 'ask_checkin', kind: 'read', fn: 'WEL-01',
-    description: 'Ask how the user slept as tap choices (before a session when there’s no check-in). Their answer comes back as their next message.',
+    description: 'Ask how the user slept as tap choices (before a session when there’s no check-in). Their answer comes back as their next message. Once a day at most: if they checked in or were already asked today, it returns skipped — don\'t ask in words either.',
     input_schema: schema({}),
     receipt: () => ({ verb: 'Checked', text: 'No check-in today' }),
-    execute: async () => ({ ok: true }),
-    card: () => ({ fn: 'WEL-01', pattern: 'ask', rule: 'show', ask: { q: 'How did you sleep?', options: ['Under 6 hours', '6–7 hours', '7 or more'], typeInstead: true }, why: 'A short night makes today a lighter day, not a test.', pending: { answer: { asMessage: 'I slept {answer} last night.' } } }),
+    execute: async (_input, userId) => {
+      const ctx = await ctxOf(userId);
+      const { markSleepAsked, sleepAskAllowed, sleepAskedOn } = await import('../../services/sleepAsk.js');
+      const [askedOn, last] = await Promise.all([sleepAskedOn(userId), prisma.wellnessCheckin.findFirst({ where: { userId, date: ctx.today }, select: { id: true } })]);
+      if (!sleepAskAllowed(askedOn ? { sleepAskedOn: askedOn } : {}, ctx.today, !!last)) return { skipped: last ? 'They already checked in today.' : 'Already asked about sleep today — don\'t ask again.' };
+      await markSleepAsked(userId, ctx.today);
+      return { ok: true };
+    },
+    card: (_i, r) => r?.skipped ? null : ({ fn: 'WEL-01', pattern: 'ask', rule: 'show', ask: { q: 'How did you sleep?', options: ['Under 6 hours', '6–7 hours', '7 or more'], typeInstead: true }, why: 'A short night makes today a lighter day, not a test.', pending: { answer: { asMessage: 'I slept {answer} last night.' } } }),
   }),
   tool({
     name: 'read_wellness', kind: 'read', core: true, fn: 'WEL-02',

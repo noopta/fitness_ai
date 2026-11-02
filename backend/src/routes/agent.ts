@@ -102,6 +102,7 @@ function afterTurn(userId: string) {
 // tracking it.
 router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, aiLimiter, checkAgentRateLimit, async (req, res) => {
   try {
+    const sentAt = new Date().toISOString();
     const { message, resetConversation, photoIds } = turnSchema.parse(req.body);
     const userId = req.user!.id;
     const mod = await moderateTurn(message, userId);
@@ -129,7 +130,7 @@ router.post('/coach/agent', requireAuth, requireAgentAccess, requireAgentPro, ai
     console.log(`[agent] user=${userId.slice(0,8)} turn=${result.iterations} tools=${JSON.stringify(result.toolsUsed)} hasProposal=${!!result.proposal}`);
 
     // Persist the text transcript for next turn's continuity.
-    await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef), photos.ids);
+    await appendTurn(userId, message, result.reply, (result.cards ?? []).map(cardRef), photos.ids, sentAt);
     afterTurn(userId);
 
     res.json(result);
@@ -194,6 +195,7 @@ router.get('/coach/agent/memory', requireAuth, requireAgentAccess, async (req, r
 // /coach/chat/stream UX (token stream) so the web client doesn't sit on a
 // 5-20s blank wait. Emits: status (thinking/tool), delta (text tokens), done.
 router.post('/coach/agent/stream', requireAuth, requireAgentAccess, requireAgentPro, aiLimiter, checkAgentRateLimit, async (req, res) => {
+  const sentAt = new Date().toISOString();
   let parsed;
   try {
     parsed = turnSchema.parse(req.body);
@@ -232,7 +234,7 @@ router.post('/coach/agent/stream', requireAuth, requireAgentAccess, requireAgent
     const cardContract = req.get('X-Card-Contract') === '2' ? 2 : 1;
     const t0 = Date.now();
     const result = await inRun(run, () => streamAgentTurn(userId, turn.message, send, { history: turn.history, cardContract, systemAddendum: mod.addendum }));
-    await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef), photos.ids);
+    await appendTurn(userId, parsed.message, result.reply, (result.cards ?? []).map(cardRef), photos.ids, sentAt);
     afterTurn(userId);
     console.log(`[agent] stream user=${userId.slice(0, 8)} ms=${Date.now() - t0} tools=${JSON.stringify((result as any).toolsUsed ?? [])}`);
     track(userId, 'agent_turn', { ms: Date.now() - t0, tools: (result as any).toolsUsed ?? [], tool_count: ((result as any).toolsUsed ?? []).length, card_count: (result.cards ?? []).length, stream: true });

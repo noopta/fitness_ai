@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useKeyboardController, useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import * as ScreenCapture from 'expo-screen-capture';
-import { composerMode, latestAgentCards, allCards, signedLayout, type Turn, type Card } from '@axiom/agent-ui-core';
+import { composerMode, latestAgentCards, allCards, signedLayout, awayCardLast, type Turn, type Card } from '@axiom/agent-ui-core';
 import { threadBus } from '../chat/captureBus';
 import { AttachSheet, StagedTray, AttachButton, SendButton } from '../chat/Attach';
 import { formBus } from '../chat/captureBus';
@@ -403,7 +403,7 @@ export function HomePage() {
     shell.setMode('chat');
     if (ask && !askAppended.current) {
       askAppended.current = true;
-      thread.dispatch({ type: 'append_agent', turn: { id: `ask${Date.now().toString(36)}${askSeq++}`, kind: 'agent', text: '', receipts: [{ id: 'r-ask', verb: 'Checked', text: 'Wellness — no check-in today' }], done: true, ask } });
+      void appendAskOncePerDay(() => thread.dispatch({ type: 'append_agent', turn: { id: `ask${Date.now().toString(36)}${askSeq++}`, kind: 'agent', text: '', receipts: [{ id: 'r-ask', verb: 'Checked', text: 'Wellness — no check-in today' }], done: true, ask } }));
     }
   };
   // Tap on the composer in brief: the morph starts now, the keyboard once it lands.
@@ -487,7 +487,9 @@ export function HomePage() {
   useEffect(() => () => clearTimeout(blurTimer.current), []);
   const busy = thread.state.busy;
   // Who signs what, where the time stamps go (signed-turns spec §4).
-  const slots = useMemo(() => signedLayout(thread.state.turns, Date.now()), [thread.state.turns]);
+  // The away card stays the latest thing in chat; turns added after it without a user message render above it.
+  const turns = useMemo(() => awayCardLast(thread.state.turns), [thread.state.turns]);
+  const slots = useMemo(() => signedLayout(turns, Date.now()), [turns]);
   const emptyThread = thread.state.turns.length === 0;
 
   // Tap → first committed chat render, on the JS thread; reported with the frame times.
@@ -537,7 +539,7 @@ export function HomePage() {
                 </Animated.View>
               ) : null}
               <CardHandlersProvider value={handlers}>
-              {thread.state.turns.map((t, i) => {
+              {turns.map((t, i) => {
                 // While you were away (design 3b): its turn is a "Today · h:mm" divider and the card;
                 // the turns it folds stay hidden until a row unfolds one.
                 const awayCard = t.cards?.find((c) => c.fn === 'AWAY-01');
@@ -730,6 +732,20 @@ function sessionLabel(session: NonNullable<BriefSession>): string {
 export function dismissKeyboard() { Keyboard.dismiss(); }
 
 const LAST_OPEN_KEY = 'v2.chat.lastOpenAt';
+const SLEEP_ASK_KEY = 'v2.sleepAsk.shownOn';
+/**
+ * "How did you sleep?" once a day: it used to be appended every time chat
+ * opened without a check-in, so again after each app restart. The phone
+ * remembers the day it showed it, and tells the server (which also stops the
+ * brief and the agent from asking again that day).
+ */
+async function appendAskOncePerDay(append: () => void) {
+  const today = todayStr();
+  try { if ((await AsyncStorage.getItem(SLEEP_ASK_KEY)) === today) return; } catch { /* storage unavailable: the server's marker still holds */ }
+  append();
+  void AsyncStorage.setItem(SLEEP_ASK_KEY, today).catch(() => {});
+  void v2Api.briefAskShown().catch(() => {});
+}
 /** The last time chat was open on this phone: the start of the next absence. */
 function markOpen() { void AsyncStorage.setItem(LAST_OPEN_KEY, new Date().toISOString()).catch(() => {}); }
 

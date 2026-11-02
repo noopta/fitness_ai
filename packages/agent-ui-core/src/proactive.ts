@@ -203,3 +203,20 @@ export function clipRows(assets: LibraryClip[], now = Date.now(), max = 8): Clip
       return { id: a.id, name: `${when} · ${clipLabel(a.duration)}`, sub: [shape, shape === 'landscape' ? 'turn the phone for a side view next time' : null].filter(Boolean).join(' · ') || 'Side view works best', seconds: a.duration };
     });
 }
+
+/**
+ * "While you were away" stays the most recent thing in chat (Nov 2026). Turns
+ * Anakin adds after it without the user saying anything (the sleep ask, a
+ * surfaced suggestion) render above it, so the user lands on the summary of
+ * what happened while they were gone. Once the user writes, order is
+ * chronological again. Pure; returns the same array when nothing moves.
+ */
+export function awayCardLast<T extends { kind: 'user' | 'agent'; cards?: { fn?: string }[] | null }>(turns: T[]): T[] {
+  let away = -1;
+  for (let i = turns.length - 1; i >= 0; i--) {
+    if (turns[i].kind === 'user') break;
+    if (turns[i].cards?.some((c) => c?.fn === 'AWAY-01')) { away = i; break; }
+  }
+  if (away < 0 || away === turns.length - 1) return turns;
+  return [...turns.slice(0, away), ...turns.slice(away + 1), turns[away]];
+}

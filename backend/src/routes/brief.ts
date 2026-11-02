@@ -17,6 +17,7 @@ import { cacheGet, cacheSet } from '../services/cacheService.js';
 import type { Receipt } from '../agent/receipts.js';
 import { sessionMinutes } from '../services/sessionMinutes.js';
 import { requestToday } from '../services/userTimezone.js';
+import { markSleepAsked, sleepAskAllowed, sleepAskedOn } from '../services/sleepAsk.js';
 
 const router = Router();
 
@@ -206,7 +207,9 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
         : ["I can't train tomorrow. Move it?", 'How\'s my deadlift?', 'Log lunch'];
 
     const checkedInToday = ctx.lastWellness?.date === date;
-    const ask = !checkedInToday && session?.isToday
+    // Once a day: not after a check-in, and not again once chat has shown it (POST /coach/brief/ask-shown) or the agent asked.
+    const askedOn = await sleepAskedOn(userId).catch(() => null);
+    const ask = sleepAskAllowed(askedOn ? { sleepAskedOn: askedOn } : {}, date, checkedInToday) && session?.isToday
       ? { key: 'sleep', question: 'How did you sleep?', reason: session.name ? `Under 6 hours makes ${shortSessionName(session.name).toLowerCase()} a deload, not a test.` : 'Under 6 hours makes today a deload, not a test.', options: ['Under 6 hours', '6–7 hours', '7 or more'] }
       : null;
     const brief: Brief = {
@@ -219,6 +222,16 @@ router.get('/coach/brief', requireAuth, async (req, res) => {
   } catch (err: any) {
     console.error('[brief] failed:', err?.message ?? err);
     res.status(500).json({ error: 'Failed to build brief' });
+  }
+});
+
+// The app showed the brief's ask in chat: don't ask again today (here or from the agent).
+router.post('/coach/brief/ask-shown', requireAuth, async (req, res) => {
+  try {
+    await markSleepAsked(req.user!.id, await requestToday(req));
+    res.json({ ok: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message ?? 'Failed to record the ask' });
   }
 });
 

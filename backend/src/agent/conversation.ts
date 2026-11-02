@@ -198,6 +198,8 @@ export async function appendTurn(
   assistantText: string,
   cards: CardRef[] = [],
   photos: string[] = [],
+  /** When the user sent it (the route's start). The reply is stamped when it's saved. */
+  userAt?: string,
 ): Promise<void> {
   const row = await prisma.agentConversation.findUnique({ where: { userId } });
   let history: StoredMessage[] = [];
@@ -207,8 +209,10 @@ export async function appendTurn(
       if (Array.isArray(parsed)) history = parsed;
     } catch { /* start fresh on corruption */ }
   }
+  // Each message keeps its own time: the user's when they sent it, the reply's when it finished (they used to share the reply's).
   const at = new Date().toISOString();
-  history.push({ role: 'user', text: userText, at, ...(photos.length ? { photos } : {}) });
+  const sentAt = userAt && !Number.isNaN(Date.parse(userAt)) && userAt <= at ? userAt : at;
+  history.push({ role: 'user', text: userText, at: sentAt, ...(photos.length ? { photos } : {}) });
   history.push({ role: 'assistant', text: assistantText, at, ...(cards.length ? { cards } : {}) });
   await save(userId, history);
 }

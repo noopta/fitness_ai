@@ -147,6 +147,8 @@ export const v2Api = {
     apiFetch(`/workouts/exercise-alternatives?name=${encodeURIComponent(name)}`),
 
   brief: (): Promise<Brief> => apiFetch('/coach/brief', { timeoutMs: LONG_TIMEOUT_MS }),
+  /** The brief's sleep ask was shown in chat: the server won't ask again today (nor will the agent). */
+  briefAskShown: (): Promise<{ ok: boolean }> => post('/coach/brief/ask-shown', {}),
 
   /** Legacy non-streaming turn — the fallback when the stream can't open. */
   sendTurn: (message: string) =>
