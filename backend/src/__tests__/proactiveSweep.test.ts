@@ -44,10 +44,12 @@ function seed(over: Record<string, any[]> = {}) {
 /** A model that answers like the design's Mark scenario: pick up the due thread, cite real evidence. */
 const complete = async (_system: string, input: string) => {
   expect(input).toMatch(/id=fight \[event\]/);
-  expect(input).toMatch(/streak_days: Checked — 6 hard days in a row/);
+  expect(input).toMatch(/streak_days \[training\]: Checked — 6 hard days in a row/);
   expect(input).toMatch(/energy_low/);
   return JSON.stringify({ candidates: [
     { kind: 'followup', threadId: 'fight', topic: 'the fight date', question: 'Six hard days in a row and your energy is low. When\'s the fight? If it\'s close, I\'ll build a recovery week around it.', primary: 'It\'s soon — I\'ll give the date', evidence: ['streak_days', 'quote_x', 'energy_low'], pushWhyNow: 'Sparring\'s at 9.', area: 'training' },
+    { kind: 'checkin', threadId: null, topic: 'recovery', question: 'Energy has been low. Want me to make tomorrow a lighter recovery day?', primary: 'Yes, lighter', evidence: ['energy_low'], pushWhyNow: 'Sparring\'s at 9.', area: 'training' },
+    // Evidence that isn't about the question is dropped, and with it the item.
     { kind: 'checkin', threadId: null, topic: 'hydration', question: 'Drinking enough?', primary: 'Yes', evidence: ['streak_days'], pushWhyNow: null, area: 'training' },
   ] });
 };
@@ -58,26 +60,30 @@ describe('the morning evaluation', () => {
   it('dry run: records what it would have sent and posts nothing', async () => {
     const r = await sweep.evaluateUser('u1', { now, complete, dryRun: true });
     expect(r?.dryRun).toBe(true);
-    expect(r?.gated.map((g) => [g.candidate.topic, g.allow, g.reason])).toEqual([['the fight date', true, 'ok'], ['hydration', true, 'ok']]);
+    expect(r?.gated.map((g) => [g.candidate.topic, g.allow, g.reason])).toEqual([['the fight date', true, 'ok'], ['recovery', true, 'ok']]);
     expect(db.proactiveEvent.filter((e) => e.channel === 'dryrun')).toHaveLength(2);
     expect(db.agentCard ?? []).toHaveLength(0);
     expect(JSON.parse(db.agentConversation[0].messagesJson)).toHaveLength(4);
   });
-  it('live: one message a day — the due follow-up — as a turn with receipts, an Ask with three exits, and a push because sparring is soon', async () => {
+  it('live: the morning read — the due follow-up first — as a turn with receipts, an Ask with three exits, and a push because sparring is soon', async () => {
     await prefs.setProactivePrefs('u1', { sessionTime: '09:00' });
     const r = await sweep.evaluateUser('u1', { now, complete, dryRun: false });
     expect(r?.delivered?.topic).toBe('the fight date');
     const msgs = JSON.parse(db.agentConversation[0].messagesJson);
-    const last = msgs[msgs.length - 1];
-    expect(last).toMatchObject({ role: 'assistant', origin: 'anakin', receipts: [{ verb: 'Checked', text: '6 hard days in a row' }, { verb: 'Checked', text: 'Energy 2 of 5 at your last 3 check-ins' }] });
+    const first = msgs.find((m: any) => m.origin === 'anakin' && /fight/.test(m.text ?? m.content ?? ''));
+    expect(first).toMatchObject({ role: 'assistant', origin: 'anakin', receipts: [{ verb: 'Read', text: '“Got a fight coming up” · you, Oct 12' }, { verb: 'Checked', text: '6 hard days in a row' }, { verb: 'Checked', text: 'Energy 2 of 5 at your last 3 check-ins' }] });
     const card = JSON.parse(db.agentCard[0].payloadJson);
     expect(card.fn).toBe('PRO-01');
     expect(card.ask.options).toEqual(['It\'s soon — I\'ll give the date', 'Not now', 'Stop asking about this']);
     const { sendPushNotification } = await import('../services/notificationService.js');
     expect(sendPushNotification).toHaveBeenCalledWith(expect.objectContaining({ body: 'Sparring\'s at 9. One quick question about this week before you go.' }));
-    expect(db.proactiveEvent.map((e) => e.channel).sort()).toEqual(['chat', 'push']);
+    expect(db.proactiveEvent.map((e) => e.channel).sort()).toEqual(['chat', 'chat', 'push']);
     expect(db.agentThread[0].raisedCount).toBe(1);
-    // The second candidate waited: Normal is one a day.
+    // The second item goes in chat too (Normal is up to three a morning), but only one push a morning.
+    expect(r?.items.map((c) => c.topic)).toEqual(['the fight date', 'recovery']);
+    expect(db.proactiveEvent.filter((e) => e.channel === 'chat').map((e) => e.topic)).toEqual(['the fight date', 'recovery']);
+    expect(db.proactiveEvent.filter((e) => e.channel === 'push')).toHaveLength(1);
+    expect(sendPushNotification).toHaveBeenCalledTimes(1);
     expect(db.proactiveEvent.some((e) => e.topic === 'hydration')).toBe(false);
   });
   it('a free user gets nothing in chat', async () => {
@@ -100,7 +106,8 @@ describe('the morning evaluation', () => {
 describe('the three exits', () => {
   async function deliverCard() {
     await sweep.evaluateUser('u1', { now, complete, dryRun: false });
-    return db.agentCard[db.agentCard.length - 1].id as string;
+    // The morning read's first item: the follow-up on the fight.
+    return [...db.agentCard].reverse().find((c: any) => /fight/.test(c.payloadJson)).id as string;
   }
   it('the yes option becomes the user\'s message; the event is answered', async () => {
     const id = await deliverCard();

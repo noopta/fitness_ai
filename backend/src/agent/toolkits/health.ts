@@ -789,33 +789,34 @@ HEALTH_TOOLS.push(tool({
     const q = str(input.query);
     const limit = Math.max(1, Math.min(6, numOr(input.limit, 4)!));
     if (!q) return { query: q, count: 0, results: [] };
-    const [{ retrieveRelevantChunks }, { retrievePodcastChunks }] = await Promise.all([
+    const [{ retrieveRelevantChunks }, { retrievePodcastChunks }, rel] = await Promise.all([
       import('../../services/ragService.js'),
       import('../../services/podcast/podcastRagService.js'),
+      import('../../services/research/relevance.js'),
     ]);
-    // Library (embeddings, by meaning) + podcasts + the feed's headlines, in parallel. Each degrades to [] on failure.
-    const words = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3).slice(0, 4);
+    // Library (embeddings, by meaning) + podcasts + feed papers whose titles name the subject. Each degrades to [] on failure.
+    const words = rel.contentWords(q).slice(0, 4);
     const [book, pod, feed] = await Promise.all([
       retrieveRelevantChunks(q, limit).catch(() => []),
       retrievePodcastChunks(q, Math.min(3, limit)).catch(() => []),
-      prisma.feedItem.findMany({
-        where: { OR: [{ title: { contains: q } }, { summary: { contains: q } }, ...words.map((w) => ({ title: { contains: w } })), ...words.map((w) => ({ summary: { contains: w } }))] },
-        orderBy: { fetchedAt: 'desc' }, take: 3, select: { title: true, summary: true, source: true, url: true },
-      }).catch(() => []),
+      words.length ? prisma.feedItem.findMany({
+        where: { AND: [{ OR: words.map((w) => ({ title: { contains: w } })) }, { NOT: { source: { contains: 'ClinicalTrials' } } }] },
+        orderBy: { fetchedAt: 'desc' }, take: 20, select: { title: true, summary: true, source: true, url: true },
+      }).catch(() => []) : Promise.resolve([] as any[]),
     ]);
-    // The two collections use different embedding models, so different floors
-    // (checked 11 Oct 2026: below these the passages were only loosely related).
-    const BOOK_MIN = 0.45, POD_MIN = 0.6;
+    // Floors per collection (different embedding models), checked on real questions in Nov 2026.
     const results = [
-      ...book.filter((c: any) => c.score >= BOOK_MIN).map((c: any) => ({ title: [c.source, c.chapter].filter(Boolean).join(' — '), source: c.source, text: String(c.content).slice(0, 600), url: null as string | null })),
-      ...pod.filter((c: any) => c.score >= POD_MIN).map((c: any) => ({ title: `${c.guestName ?? c.speaker ?? 'Huberman Lab'} — ${c.episodeTitle}`, source: 'Huberman Lab', speaker: c.speaker, text: String(c.content).slice(0, 600), url: c.youtubeUrl })),
-      ...feed.map((x: any) => ({ title: x.title, source: x.source, text: String(x.summary ?? '').slice(0, 400), url: x.url })),
+      ...book.filter((c: any) => c.score >= rel.BOOK_MIN).map((c: any) => ({ title: rel.libraryTitle(c.source, c.chapter), source: c.source, text: String(c.content).slice(0, 600), url: null as string | null })),
+      ...pod.filter((c: any) => c.score >= rel.POD_MIN).map((c: any) => ({ title: `${c.guestName ?? c.speaker ?? 'Huberman Lab'} — ${c.episodeTitle}`, source: 'Huberman Lab', speaker: c.speaker, text: String(c.content).slice(0, 600), url: c.youtubeUrl })),
+      ...feed.filter((x: any) => rel.feedItemRelevant(x, q)).slice(0, 2).map((x: any) => ({ title: x.title, source: x.source, text: String(x.summary ?? '').slice(0, 400), url: x.url })),
     ];
-    return { query: q, count: results.length, results };
+    // Nothing on topic: say so, so the answer doesn't lean on the library.
+    return { query: q, count: results.length, results, ...(results.length ? {} : { note: 'Nothing in the library on this. Use search_web, or say you are answering from general knowledge.' }) };
   },
   card: (_i, r) => r.count ? {
     fn: 'MEM-06', pattern: 'glance', rule: 'show', meta: { label: 'From the library' },
-    rows: r.results.slice(0, 5).map((x: any) => ({ key: x.title.slice(0, 80), sub: x.source })),
+    // One row per source: several passages from the same episode or chapter are one source.
+    rows: r.results.filter((x: any, i: number, all: any[]) => all.findIndex((y: any) => y.title === x.title) === i).slice(0, 5).map((x: any) => ({ key: x.title.slice(0, 80), sub: x.source })),
     actions: r.results.filter((x: any) => x.url).slice(0, 3).map((x: any, i: number) => ({ id: `open${i}`, label: `Open: ${x.title}`.slice(0, 36), kind: 'secondary' as const, client: { action: 'open_url' as const, args: { url: x.url } } })),
   } : null,
 }));
@@ -838,7 +839,8 @@ HEALTH_TOOLS.push(tool({
     const r = await searchWeb(str(input.question));
     console.log(`[web-search] user=${userId.slice(0, 8)} kind=${r.kind} sources=${r.sources.length} ms=${r.ms}`);
     if (r.kind !== 'answered') return { note: r.kind === 'unavailable' ? 'Web search is unavailable right now — say so if it matters, and answer from what you know, flagged as such.' : 'No reliable sources found — say the evidence could not be confirmed online.' };
-    return { answer: r.answer, sources: r.sources };
+    // Sources numbered from 1; claims say which of them backs which sentence — cite those, not the rest.
+    return { answer: r.answer, sources: r.sources.map((s, i) => ({ n: i + 1, ...s })), ...(r.claims?.length ? { claims: r.claims } : {}) };
   },
   card: (_i, r) => r?.sources?.length ? {
     fn: 'MEM-07', pattern: 'glance', rule: 'show', meta: { label: 'Sources' },

@@ -74,6 +74,10 @@ export interface ChatCompleteOptions {
    * straight to the OpenAI (US, no-training API) path.
    */
   sensitive?: boolean;
+  /** The OpenAI model for this call (sensitive or fallback path), e.g. a reasoning model for the proactive coach. */
+  openaiModel?: string;
+  /** reasoning_effort for that model. Sent only with openaiModel. */
+  reasoningEffort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 }
 type StreamingParams = Omit<
   OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming,
@@ -163,10 +167,10 @@ export async function chatComplete(
   const { modelOverride: _ignored, ...fallbackParams } = params;
   const t1 = Date.now();
   const res = await openaiDirect.chat.completions.create(
-    { ...fallbackParams, model: FALLBACK_CHAT_MODEL },
+    { ...fallbackParams, model: opts.openaiModel ?? FALLBACK_CHAT_MODEL, ...(opts.openaiModel && opts.reasoningEffort ? { reasoning_effort: opts.reasoningEffort as any } : {}) },
     reqOpts,
   );
-  if (opts.label) logCall(`${opts.label} (fallback)`, res, t1);
+  if (opts.label) logCall(opts.openaiModel ? opts.label : `${opts.label} (fallback)`, res, t1);
   return res;
 }
 

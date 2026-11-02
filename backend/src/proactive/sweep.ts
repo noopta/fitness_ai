@@ -1,6 +1,7 @@
 // The hourly sweep. For each eligible user whose local clock just turned
 // DELIVER_HOUR it: marks yesterday's unanswered reach-outs ignored, runs due
-// outcome reports, then the reasoner → gate → delivery for ONE message. Every
+// outcome reports, then the reasoner → gate → delivery for the morning read:
+// up to three items in chat, at most one push (Nov 2026; it was one item). Every
 // hour it also expires prepared-work cards, runs the weight-cut check and the
 // photo retention sweep. Everything is per-user try/catch: one bad user never
 // stops the sweep.
@@ -34,7 +35,10 @@ export function localClock(tz: string | null | undefined, now = new Date()): { h
 }
 
 export interface EvaluateResult {
+  /** The first item delivered (kept for callers that count mornings). */
   delivered: Candidate | null;
+  /** Every item in this morning's read, in order. */
+  items: Candidate[];
   outcomes: number;
   gated: { candidate: Candidate; allow: boolean; reason: string }[];
   dryRun: boolean;
@@ -86,7 +90,7 @@ async function runOutcomes(userId: string, ctx: NonNullable<Awaited<ReturnType<t
 
 const addDaysIso = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 
-/** One user's morning: ignored → outcomes → reasoner → gate → one delivery. */
+/** One user's morning: ignored → outcomes → reasoner → gate → the morning read (up to three). */
 export async function evaluateUser(userId: string, opts: { now?: Date; complete?: CompleteFn; dryRun?: boolean } = {}): Promise<EvaluateResult | null> {
   const now = opts.now ?? new Date();
   const dryRun = opts.dryRun ?? proactiveDryRun();
@@ -97,9 +101,10 @@ export async function evaluateUser(userId: string, opts: { now?: Date; complete?
   const outcomes = await runOutcomes(userId, ctx, threads, now, dryRun);
 
   const r = await reasonForUser(userId, { complete: opts.complete, now });
-  if (!r) return { delivered: null, outcomes, gated: [], dryRun };
+  if (!r) return { delivered: null, items: [], outcomes, gated: [], dryRun };
   const gated: EvaluateResult['gated'] = [];
-  let delivered: Candidate | null = null;
+  const items: Candidate[] = [];
+  let pushed = false;
   for (const c of r.candidates) {
     const t = c.threadId ? threads.find((x) => x.id === c.threadId) : null;
     const g: GateInput = {
@@ -110,13 +115,16 @@ export async function evaluateUser(userId: string, opts: { now?: Date; complete?
     const gate = gateCandidate(g, now);
     gated.push({ candidate: c, allow: gate.allow, reason: gate.reason });
     if (gate.closeThread && t) await resolveThread(userId, t.id, 'Closed — no reply twice', 'closed', now);
-    // Live: one message a day. Dry run: record every candidate the gate would have let through.
-    if (!gate.allow || (delivered && !dryRun)) continue;
-    await deliverCandidate(userId, c, r.dossier.evidence, { dryRun, now, localHour: ctx.clock.hour, localMinute: ctx.clock.minute });
-    delivered = delivered ?? c;
+    if (!gate.allow) continue;
+    // The cap counts within this run too (dry-run rows don't count in the gate, so count them here).
+    if (dryRun && items.length >= 3) continue;
+    const d = await deliverCandidate(userId, c, r.dossier.evidence, { dryRun, now, localHour: ctx.clock.hour, localMinute: ctx.clock.minute, allowPush: !pushed });
+    if (!dryRun && !d.posted) continue;
+    pushed = pushed || d.pushed;
+    items.push(c);
     ctx.recent.push({ kind: c.kind, topic: c.topic, threadId: c.threadId, channel: dryRun ? 'dryrun' : 'chat', createdAt: now.toISOString(), outcome: null });
   }
-  return { delivered, outcomes, gated, dryRun };
+  return { delivered: items[0] ?? null, items, outcomes, gated, dryRun };
 }
 
 /** G3 every hour: the weight-cut check for everyone with weigh-ins. Free users get a screen line only (screens.ts reads the flag live). */
@@ -169,7 +177,7 @@ export async function runProactiveHour(now = new Date(), opts: { complete?: Comp
     try {
       const r = await evaluateUser(u.id, { now, complete: opts.complete });
       out.evaluated++;
-      if (r?.delivered) out.delivered++;
+      out.delivered += r?.items.length ?? 0;
       out.outcomes += r?.outcomes ?? 0;
     } catch (err: any) { console.error(`[proactive] evaluate failed for ${u.id.slice(0, 8)}:`, err?.message ?? err); }
   }

@@ -24,14 +24,15 @@ describe('G4 · free users', () => {
 });
 
 describe('F1 · caps, quiet hours, mutes', () => {
-  it('Normal: one a day', () => {
-    const r = gateCandidate({ ...base(), recent: [sent('checkin', 'bench', '2026-10-30T07:00:00Z')] }, now);
-    expect(r).toMatchObject({ allow: false, reason: 'daily_cap' });
+  it('Normal: three a morning; a push row is the same reach-out, not another', () => {
+    const three = [sent('checkin', 'bench', '2026-10-30T07:00:00Z'), sent('followup', 'elbow', '2026-10-30T07:00:01Z'), sent('checkin', 'vitamin d', '2026-10-30T07:00:02Z')];
+    expect(gateCandidate({ ...base(), recent: three.slice(0, 2) }, now).allow).toBe(true);
+    expect(gateCandidate({ ...base(), recent: [...three.slice(0, 2), sent('followup', 'elbow', '2026-10-30T07:00:01Z', null, 'push')] }, now).allow).toBe(true);
+    expect(gateCandidate({ ...base(), recent: three }, now)).toMatchObject({ allow: false, reason: 'daily_cap' });
   });
-  it('Often: two a day; Rarely: two a week', () => {
-    const two = [sent('checkin', 'bench', '2026-10-30T07:00:00Z'), sent('followup', 'elbow', '2026-10-30T07:05:00Z')];
-    expect(gateCandidate({ ...base(), prefs: { ...DEFAULT_PROACTIVE_PREFS, frequency: 'often' }, recent: two.slice(0, 1) }, now).allow).toBe(true);
-    expect(gateCandidate({ ...base(), prefs: { ...DEFAULT_PROACTIVE_PREFS, frequency: 'often' }, recent: two }, now).reason).toBe('daily_cap');
+  it('Rarely: one a day, two a week', () => {
+    const two = [sent('checkin', 'bench', '2026-10-30T07:00:00Z')];
+    expect(gateCandidate({ ...base(), prefs: { ...DEFAULT_PROACTIVE_PREFS, frequency: 'rarely' }, recent: two }, now).reason).toBe('daily_cap');
     const week = [sent('checkin', 'a', '2026-10-27T07:00:00Z'), sent('checkin', 'b', '2026-10-28T07:00:00Z')];
     expect(gateCandidate({ ...base(), prefs: { ...DEFAULT_PROACTIVE_PREFS, frequency: 'rarely' }, recent: week }, now).reason).toBe('weekly_cap');
   });

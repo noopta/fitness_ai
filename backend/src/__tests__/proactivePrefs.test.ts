@@ -23,10 +23,10 @@ describe('F1 · preferences', () => {
     expect(p.sessionTime).toBeNull();
     expect(p.mutedTopics).toEqual([{ topic: 'hydration', until: null, mutedAt: '' }]);
   });
-  it('maps frequency to the caption\'s caps: Rarely 2/wk · Normal 1/day · Often 2/day', () => {
+  it('maps frequency to the caption\'s caps: Rarely 2/wk · Normal 3 a morning, 12/wk · Often 3 every morning', () => {
     expect(FREQUENCY_CAP.rarely).toEqual({ perDay: 1, perWeek: 2 });
-    expect(FREQUENCY_CAP.normal.perDay).toBe(1);
-    expect(FREQUENCY_CAP.often.perDay).toBe(2);
+    expect(FREQUENCY_CAP.normal).toEqual({ perDay: 3, perWeek: 12 });
+    expect(FREQUENCY_CAP.often).toEqual({ perDay: 3, perWeek: 21 });
   });
   it('quiet hours wrap midnight', () => {
     const p = { quietStart: 22, quietEnd: 7 };

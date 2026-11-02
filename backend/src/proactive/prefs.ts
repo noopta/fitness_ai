@@ -40,10 +40,11 @@ export const DEFAULT_PROACTIVE_PREFS: ProactivePrefs = {
 /** Frequency → the cap (F1 caption: Rarely 2/wk · Normal 1/day · Often 2/day). */
 export const FREQUENCY_CAP: Record<Frequency, { perDay: number; perWeek: number }> = {
   rarely: { perDay: 1, perWeek: 2 },
-  normal: { perDay: 1, perWeek: 7 },
-  often: { perDay: 2, perWeek: 14 },
+  // Nov 2026: the morning read carries up to three items (one push at most).
+  normal: { perDay: 3, perWeek: 12 },
+  often: { perDay: 3, perWeek: 21 },
 };
-export const FREQUENCY_LABEL: Record<Frequency, string> = { rarely: 'Up to 2 a week', normal: 'Up to 1 a day', often: 'Up to 2 a day' };
+export const FREQUENCY_LABEL: Record<Frequency, string> = { rarely: 'Up to 2 a week', normal: 'Up to 3 a morning, 12 a week', often: 'Up to 3 every morning' };
 
 const clampHour = (h: unknown, d: number) => { const n = Number(h); return Number.isInteger(n) && n >= 0 && n <= 23 ? n : d; };
 

@@ -98,7 +98,7 @@ export function muteSheetCard(threadTitle: string | null, topic: string, eventId
 
 // ── Delivery ────────────────────────────────────────────────────────────────
 
-export interface DeliverOpts { dryRun?: boolean; now?: Date; localHour?: number; localMinute?: number }
+export interface DeliverOpts { dryRun?: boolean; now?: Date; localHour?: number; localMinute?: number; /** False once this morning's one push has gone. */ allowPush?: boolean }
 
 /** Record, post the turn, maybe push. In dry-run only the record is written (channel 'dryrun'). */
 export async function deliverCandidate(userId: string, c: Candidate, evidence: EvidenceItem[], opts: DeliverOpts = {}): Promise<{ eventId: string; posted: boolean; pushed: boolean; channel: string }> {
@@ -123,7 +123,9 @@ export async function deliverCandidate(userId: string, c: Candidate, evidence: E
   let pushed = false;
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { expoPushToken: true } });
   const prefs = await getProactivePrefs(userId);
-  const d = pushDecision(c, { prefs, localHour: opts.localHour ?? now.getUTCHours(), localMinute: opts.localMinute ?? now.getUTCMinutes(), hasToken: !!u?.expoPushToken });
+  const d = opts.allowPush === false
+    ? { push: false, body: null, reason: 'one push a morning' }
+    : pushDecision(c, { prefs, localHour: opts.localHour ?? now.getUTCHours(), localMinute: opts.localMinute ?? now.getUTCMinutes(), hasToken: !!u?.expoPushToken });
   if (d.push && u?.expoPushToken && d.body) {
     const { moderateText } = await import('../services/moderationService.js');
     const verdict = await moderateText(d.body, 'push_body', userId).catch(() => null);

@@ -78,9 +78,9 @@ export function gateCandidate(i: GateInput, now = new Date()): GateResult {
     && e.outcome === 'ignored' && t - Date.parse(e.createdAt) < TOPIC_COOLDOWN_DAYS * DAY);
   if (ignoredRecently) return { allow: false, reason: 'topic_cooldown' };
 
-  // F1 — the cap. Safety never counts toward it.
+  // F1 — the cap. Safety never counts toward it. Each reach-out has one chat row; its push row is the same reach-out.
   const cap = FREQUENCY_CAP[i.prefs.frequency];
-  const sent = i.recent.filter((e) => delivered(e) && e.kind !== 'safety');
+  const sent = i.recent.filter((e) => e.channel === 'chat' && e.kind !== 'safety');
   const today = sent.filter((e) => e.createdAt.slice(0, 10) === i.localDate).length;
   if (today >= cap.perDay) return { allow: false, reason: 'daily_cap' };
   const week = sent.filter((e) => t - Date.parse(e.createdAt) < 7 * DAY).length;

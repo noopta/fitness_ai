@@ -57,7 +57,7 @@ describe('lifts, protein, weight, events', () => {
   it('a lift sat at the same top set for 4 sessions', () => {
     const lifts = [{ name: 'Bench Press', sessions: [1, 2, 3, 4, 5].map((i) => ({ date: `2026-10-${30 - i}`, weightKg: 61.23, reps: 5 })) }, { name: 'Squat', sessions: [{ date: '2026-10-29', weightKg: 100, reps: 5 }, { date: '2026-10-27', weightKg: 97.5, reps: 5 }, { date: '2026-10-25', weightKg: 95, reps: 5 }, { date: '2026-10-23', weightKg: 95, reps: 5 }] }];
     const out = E.stalledLiftEvidence(lifts, 'lb');
-    expect(out).toEqual([{ id: 'stalled_bench_press', verb: 'Checked', text: 'Bench Press · 135 × 5 for the last 5 sessions', topics: ['plateau', 'bench press', 'progression'] }]);
+    expect(out).toEqual([{ id: 'stalled_bench_press', verb: 'Checked', text: 'Bench Press · 135 × 5 for the last 5 sessions', topics: ['plateau', 'bench press', 'progression', 'stalled'], area: 'training' }]);
   });
   it('protein short on 3 of the logged days (80% of target)', () => {
     const days = [['24', 180], ['25', 120], ['26', 100], ['27', 190], ['28', 130]].map(([d, p]) => ({ date: `2026-10-${d}`, proteinG: Number(p), kcal: 2000 }));
@@ -66,7 +66,7 @@ describe('lifts, protein, weight, events', () => {
   });
   it('weigh-ins this week; an open event with its date', () => {
     expect(E.weighInEvidence([{ date: '2026-10-24', weightKg: 80 }, { date: '2026-10-27', weightKg: 79 }, { date: '2026-10-30', weightKg: 78 }], today)?.text).toBe('Weight · 3 weigh-ins this week');
-    expect(E.eventEvidence([{ kind: 'event', title: 'Amateur fight · Nov 22', eventDate: '2026-11-22', status: 'open' }, { kind: 'event', title: 'Old meet', eventDate: '2026-10-01', status: 'open' }], today)).toEqual([{ id: 'event_2026-11-22', verb: 'Checked', text: 'Amateur fight · Nov 22', topics: ['event', 'the fight', 'peaking', 'cut'] }]);
+    expect(E.eventEvidence([{ kind: 'event', title: 'Amateur fight · Nov 22', eventDate: '2026-11-22', status: 'open' }, { kind: 'event', title: 'Old meet', eventDate: '2026-10-01', status: 'open' }], today)).toEqual([{ id: 'event_2026-11-22', verb: 'Checked', text: 'Amateur fight · Nov 22', topics: ['event', 'the fight', 'peaking', 'cut', 'amateur', 'fight'], area: 'training' }]);
   });
   it('the catalog has no HRV or soreness line', () => {
     const items = E.buildEvidence({ today, workouts: ['25', '26', '27', '28', '29', '30'].map((d) => w(`2026-10-${d}`, 'MMA')), checkins: [], messages: [], mealDays: [], proteinTarget: null, weighIns: [], threads: [], lifts: [] });
