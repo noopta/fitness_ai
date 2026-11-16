@@ -7,6 +7,7 @@ export * from './cards';
 export * from './signed';
 export * from './portion';
 export * from './foodBasis';
+export * from './healthGap';
 export * from './logger';
 export * from './training';
 export * from './fuel';

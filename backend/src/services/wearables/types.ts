@@ -56,6 +56,8 @@ export type WorkoutInput = z.input<typeof workoutInputSchema>;
 export const syncSchema = z.object({
   days: z.array(dayInputSchema).max(400).default([]),
   workouts: z.array(workoutInputSchema).max(2000).default([]),
+  /** What the phone couldn't read, or read nothing of. Type names only, never values. A bad one is dropped. */
+  readReport: z.object({ failed: z.array(z.string().max(30)).max(12), empty: z.array(z.string().max(30)).max(12) }).optional().catch(undefined),
 });
 
 /**
