@@ -2,7 +2,7 @@
   "expo": {
     "name": "Axiom",
     "slug": "axiom-mobile",
-    "version": "3.2.0",
+    "version": "3.2.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,12 +16,7 @@
       "url": "https://u.expo.dev/f9c4fa25-f804-4a57-abfe-5db4a8bfcf72",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0,
-      "codeSigningCertificate": "./certs/certificate.pem",
-      "codeSigningMetadata": {
-        "keyid": "main",
-        "alg": "rsa-v1_5-sha256"
-      }
+      "fallbackToCacheTimeout": 0
     },
     "runtimeVersion": "3.2.0",
     "plugins": [

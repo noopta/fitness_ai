@@ -1,10 +1,8 @@
-# EAS Update code signing
+# EAS Update code signing — removed in 3.2.2 (Nov 2026)
 
-`certificate.pem` is public and ships in `app.json`. A build made with it only accepts updates signed by the matching private key.
+Code-signed updates need the EAS Production plan ($199/mo); the account is on Starter, so EAS refused every signed publish and, while the `EXPO_UPDATES_PRIVATE_KEY` GitHub secret existed, every OTA failed. Signing was removed:
 
-- The private key is not in this repo: it's in `secure-backups/eas-codesigning/keys/` on the server, and in the GitHub secret `EXPO_UPDATES_PRIVATE_KEY`.
-- CI signs every OTA when that secret is set (`.github/workflows/mobile.yml`). Without it, CI publishes unsigned updates, and any build carrying the certificate ignores them.
-- Builds made before 2026-10-16 have no certificate and accept any update from the channel.
-- Changing the key means a new certificate, and builds with the old one stop receiving updates. Push the new certificate to `main` before changing the secret: a key that doesn't match the certificate can stop OTAs for everyone.
-
-GitHub never shows a secret's value after saving, so an empty edit box doesn't mean it's unset. To check it, look at the OTA job: a malformed key fails with `Invalid PEM formatted message`.
+- `app.json` no longer has `codeSigningCertificate` / `codeSigningMetadata`, and `.github/workflows/mobile.yml` publishes unsigned updates.
+- Builds from 3.2.2 on, and builds made before 2026-10-16 (App Store 171), accept unsigned updates.
+- TestFlight build 173 (3.2.1) was made with the certificate and only accepts signed updates, so it gets none. Replace it with a 3.2.2+ build.
+- `certificate.pem` is kept here so signing can be turned back on if the plan changes; the private key is in `secure-backups/eas-codesigning/keys/` on the server. Turning it back on means adding the two keys to `app.json`, restoring the signing step in CI and a new native build.
