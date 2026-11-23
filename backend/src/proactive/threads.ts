@@ -214,8 +214,12 @@ export async function markWrong(userId: string, id: string, now = new Date()): P
   return true;
 }
 
+/** Raised in chat: the check-back moves 3 days out, so a due thread isn't raised again the next morning (Nov 2026: one was raised 7 days running). */
 export async function noteRaised(id: string, now = new Date()): Promise<void> {
-  await prisma.agentThread.update({ where: { id }, data: { raisedCount: { increment: 1 }, lastRaisedAt: now } }).catch(() => {});
+  const next = new Date(now.getTime() + 3 * DAY).toISOString().slice(0, 10);
+  const t = await prisma.agentThread.findUnique({ where: { id }, select: { checkBackAt: true } }).catch(() => null);
+  const checkBackAt = t?.checkBackAt && t.checkBackAt > next ? t.checkBackAt : next;
+  await prisma.agentThread.update({ where: { id }, data: { raisedCount: { increment: 1 }, lastRaisedAt: now, checkBackAt } }).catch(() => {});
 }
 export async function noteIgnored(id: string): Promise<void> {
   await prisma.agentThread.update({ where: { id }, data: { ignoredCount: { increment: 1 } } }).catch(() => {});
@@ -230,7 +234,7 @@ const EXTRACT_PROMPT = `You keep a coach's list of open threads from a chat with
 - question: something they asked that wasn't answered yet, or that the coach promised to come back to
 - goal: a concrete target ("225 bench by March")
 Not threads: questions about the app itself (sharing, screenshots, the snap button, usernames, login, billing, "restart the intake"), a planned or scheduled training session ("Saturday arms" is not an event), one-off logs, and anything already answered in the messages.
-Rules: sourceQuote must be the client's or coach's EXACT words copied from the messages (short). title ≤ 8 words, plain. read: one short sentence on where it stands (optional). checkBackAt: a YYYY-MM-DD when a follow-up makes sense (optional; events get the week before). Skip chit-chat, one-off logs, and anything already in EXISTING THREADS unless the messages change it. Reply with JSON: {"threads":[{"kind","title","sourceQuote","read","checkBackAt","eventDate","affects":[]}]}. Nothing to add → {"threads":[]}.`;
+Rules: sourceQuote must be the client's or coach's EXACT words copied from the messages (short). title ≤ 8 words, plain. read: one short sentence on where it stands (optional). checkBackAt: a YYYY-MM-DD when a follow-up makes sense (optional; events get the week before). Skip chit-chat, one-off logs, and anything already in EXISTING THREADS unless the messages change it. Also list EXISTING THREADS the new messages settle — answered, cleared by a clinician, healed, done, no longer relevant, or the same thing as another open thread — as "resolved": [{"id": the thread id, "quote": the EXACT words from the messages that settle it}]. Reply with JSON: {"threads":[{"kind","title","sourceQuote","read","checkBackAt","eventDate","affects":[]}],"resolved":[{"id","quote"}]}. Nothing to add → {"threads":[],"resolved":[]}.`;
 
 export type ExtractFn = (prompt: string, input: string) => Promise<string>;
 
@@ -278,7 +282,7 @@ export async function extractThreads(userId: string, opts: { extract?: ExtractFn
   const transcript = fresh.map((m) => stripAppNotes(m.text));
   const input = [
     `TODAY: ${now.toISOString().slice(0, 10)}`,
-    `EXISTING THREADS:\n${existing.map((t) => `- [${t.kind}] ${t.title}${t.checkBackAt ? ` (check back ${t.checkBackAt})` : ''}`).join('\n') || '(none)'}`,
+    `EXISTING THREADS:\n${existing.map((t) => `- id=${t.id} [${t.kind}] ${t.title}${t.checkBackAt ? ` (check back ${t.checkBackAt})` : ''}`).join('\n') || '(none)'}`,
     Array.isArray(blob.threadNegatives) && blob.threadNegatives.length ? `THE USER SAID THESE WERE WRONG (don't repeat them):\n${blob.threadNegatives.slice(-8).map((n: any) => `- [${n.kind}] ${n.title}`).join('\n')}` : '',
     `NEW MESSAGES:\n${fresh.map((m) => `[${(m.at ?? '').slice(0, 16).replace('T', ' ')}] ${m.role === 'user' ? 'Client' : 'Coach'}: ${stripAppNotes(m.text).slice(0, 1500)}`).join('\n')}`,
   ].filter(Boolean).join('\n\n');
@@ -291,8 +295,29 @@ export async function extractThreads(userId: string, opts: { extract?: ExtractFn
     await createThread(userId, { ...e, sourceAt: src?.at ? new Date(src.at) : now, sourceRole: src?.role ?? 'user' }, now);
   }
   for (const u2 of update) await updateThread(userId, u2.id, u2.patch);
+  // Threads the new messages settled ("my surgeon cleared it", "healed now") close, with the words that settled them.
+  const resolved = pickResolved(raw, existing, transcript);
+  for (const r of resolved) await resolveThread(userId, r.id, `Settled in chat: “${r.quote.slice(0, 90)}”`, 'resolved', now);
   await mergeBlobKeys(userId, { threadsExtractedThrough: fresh[fresh.length - 1].at });
-  return { created: create.length, updated: update.length };
+  return { created: create.length, updated: update.length + resolved.length };
+}
+
+/**
+ * Pure: the "resolved" entries the model returned that point at an open thread
+ * and quote words really in the new messages. A resolution without evidence
+ * is dropped, the same rule as a new thread's source quote.
+ */
+export function pickResolved(raw: string, existing: Pick<ThreadRow, 'id' | 'status'>[], transcript: string[]): { id: string; quote: string }[] {
+  let list: any[] = [];
+  try { const p = JSON.parse(String(raw).match(/\{[\s\S]*\}/)?.[0] ?? '{}'); list = Array.isArray(p?.resolved) ? p.resolved : []; } catch { return []; }
+  const open = new Set(existing.filter(isOpen).map((t) => t.id));
+  const out: { id: string; quote: string }[] = [];
+  for (const r of list) {
+    const id = typeof r?.id === 'string' ? r.id : ''; const quote = typeof r?.quote === 'string' ? r.quote.trim() : '';
+    if (!open.has(id) || quote.length < 3 || !quoteInTranscript(quote, transcript) || out.some((o) => o.id === id)) continue;
+    out.push({ id, quote });
+  }
+  return out;
 }
 
 /** Fire-and-forget after a turn: never blocks or fails the reply. */

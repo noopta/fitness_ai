@@ -14,6 +14,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { readProfile } from '../agent/profile/coachProfile.js';
+import { stripAppNotes } from '../agent/conversation.js';
 import { resolveTargets } from '../services/nutritionTargets.js';
 import { todayForTz } from '../services/localDate.js';
 import { buildEvidence, loadEvidenceInput, type EvidenceItem, type EvidenceInput } from './evidence.js';
@@ -51,7 +52,11 @@ export interface Dossier {
   sessions: { date: string; title: string }[];
   mealDays: { date: string; kcal: number; proteinG: number }[];
   checkins: { date: string; energy: number | null; sleepHours: number | null }[];
-  recent: { kind: string; topic: string; outcome: string | null; createdAt: string }[];
+  recent: { kind: string; topic: string; outcome: string | null; createdAt: string; text?: string }[];
+  /** Profile fields that are filled in (names only) — never ask for these. */
+  onFile?: string[];
+  /** What the client said in chat lately, newest last. */
+  recentChat?: { at: string; text: string }[];
   sessionCount: number;
   mealDayCount: number;
   negatives: string[];
@@ -74,7 +79,9 @@ Rules:
 - primary: the label of the one "yes" option, ≤ 5 words. (The app adds "Not now" and "Stop asking about this".)
 - topic: a short key for muting ("achilles", "the fight date", "vitamin d", "bench").
 - area: "fuel" for food and nutrients, otherwise "training".
-- Don't repeat a topic the client ignored or muted recently (see RECENT), or anything in THE CLIENT SAID THESE WERE WRONG.
+- Don't repeat a topic the client ignored or muted recently (see RECENT), or anything in THE CLIENT SAID THESE WERE WRONG. Never send something close to a reach-out already in RECENT REACH-OUTS.
+- Read WHAT THE CLIENT SAID first. If they already answered, settled or updated something (a clinician cleared it, it healed, they logged it, they gave the number), don't ask about it again — build on what they said ("97 lb now — up from 80 last week"). A milestone they're proud of is news to acknowledge, not a symptom to check on.
+- Never ask for anything ON FILE.
 
 Reply with JSON only: {"candidates":[{"kind":"followup"|"checkin","threadId":string|null,"topic":string,"question":string,"primary":string,"evidence":[ids],"pushWhyNow":string|null,"area":"training"|"fuel"}]}. At most 3, most important first. Nothing worth raising → {"candidates":[]}.`;
 
@@ -89,7 +96,9 @@ export function renderDossier(d: Dossier): string {
     `SESSIONS, last 14 days (${d.sessionCount} logged all time):\n${line(d.sessions.map((s) => `- ${s.date} ${s.title}`))}`,
     `MEALS, last 7 logged days (${d.mealDayCount} days all time):\n${line(d.mealDays.map((m) => `- ${m.date} ${Math.round(m.kcal)} kcal · ${Math.round(m.proteinG)} g protein`))}`,
     `CHECK-INS, newest first:\n${line(d.checkins.map((c) => `- ${c.date} energy ${c.energy ?? '–'}/5 · sleep ${c.sleepHours ?? '–'} h`))}`,
-    `RECENT REACH-OUTS, last 14 days:\n${line(d.recent.map((r) => `- ${r.createdAt.slice(0, 10)} ${r.kind} · ${r.topic} → ${r.outcome ?? 'no reply yet'}`))}`,
+    d.onFile?.length ? `ON FILE (already known — never ask for these): ${d.onFile.join(', ')}` : '',
+    `WHAT THE CLIENT SAID IN CHAT, last 10 days (newest last):\n${line((d.recentChat ?? []).map((m) => `- ${m.at.slice(0, 10)}: "${m.text}"`))}`,
+    `RECENT REACH-OUTS, last 14 days:\n${line(d.recent.map((r) => `- ${r.createdAt.slice(0, 10)} ${r.kind} · ${r.topic} → ${r.outcome ?? 'no reply yet'}${r.text ? ` — "${r.text.slice(0, 120)}"` : ''}`))}`,
     d.negatives.length ? `THE CLIENT SAID THESE WERE WRONG — don't raise them:\n${line(d.negatives.map((n) => `- ${n}`))}` : '',
   ].filter(Boolean).join('\n\n');
 }
@@ -139,7 +148,7 @@ export function symptomFallback(t: Pick<ThreadRow, 'id' | 'title'>, evidence: Ev
  * whose thread is open — then order them by the fixed priority. Model prose
  * never becomes a receipt.
  */
-export function verifyCandidates(raw: unknown, evidence: EvidenceItem[], threads: ThreadLite[], opts: { due?: Pick<ThreadRow, 'id' | 'kind' | 'title'>[] } = {}): Candidate[] {
+export function verifyCandidates(raw: unknown, evidence: EvidenceItem[], threads: ThreadLite[], opts: { due?: (Pick<ThreadRow, 'id' | 'kind' | 'title'> & Partial<Pick<ThreadRow, 'lastRaisedAt' | 'raisedCount'>>)[]; now?: Date } = {}): Candidate[] {
   let list: any[] = [];
   try {
     const p = typeof raw === 'string' ? JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? raw) : raw;
@@ -171,8 +180,11 @@ export function verifyCandidates(raw: unknown, evidence: EvidenceItem[], threads
   const dueIds = new Set((opts.due ?? []).map((t) => t.id));
   // One fallback at most, and only when nothing in the read already covers their body (one symptom is often several threads).
   if (!out.some((o) => candidateRank(o, threads, dueIds) <= 1)) {
+    const now = (opts.now ?? new Date()).getTime();
     for (const t of opts.due ?? []) {
       if (t.kind !== 'symptom' || !open.has(t.id)) continue;
+      // The fallback asks once a week at most, and twice per thread in all (Nov 2026: it asked about one thread 7 mornings running).
+      if ((t.raisedCount ?? 0) >= 2 || (t.lastRaisedAt && now - new Date(t.lastRaisedAt).getTime() < 7 * 86_400_000)) continue;
       const fb = symptomFallback(t, evidence);
       if (fb) { out.push(fb); break; }
     }
@@ -234,7 +246,11 @@ export async function buildDossier(userId: string, now = new Date()): Promise<(D
   const profileLines: string[] = [];
   if (profile?.values) for (const [k, v] of Object.entries(profile.values as Record<string, unknown>)) if (v != null && v !== '' && !/weight|height|age|gender|sex/i.test(k)) profileLines.push(`${k}: ${Array.isArray(v) ? v.join(', ') : String(v)}`.slice(0, 120));
   if (Array.isArray(profile?.injuries) && profile.injuries.length) profileLines.push(`injuries: ${profile.injuries.map((i: any) => i.text ?? i.area ?? JSON.stringify(i)).join('; ')}`.slice(0, 200));
-  const recentRows = await prisma.proactiveEvent.findMany({ where: { userId, createdAt: { gte: new Date(now.getTime() - 14 * 86_400_000) }, channel: { in: ['chat', 'push'] } }, orderBy: { createdAt: 'desc' }, take: 20 });
+  const recentRows = await prisma.proactiveEvent.findMany({ where: { userId, createdAt: { gte: new Date(now.getTime() - 14 * 86_400_000) }, channel: 'chat' }, orderBy: { createdAt: 'desc' }, take: 20 });
+  const known = await prisma.user.findUnique({ where: { id: userId }, select: { heightCm: true, weightKg: true, dateOfBirth: true } }).catch(() => null) as any;
+  const onFile = [known?.heightCm && 'height', known?.weightKg && 'body weight', known?.dateOfBirth && 'age', ...(profile?.values ? Object.entries(profile.values as Record<string, unknown>).filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && !v.length)).map(([k]) => k) : [])].filter(Boolean) as string[];
+  const since10 = new Date(now.getTime() - 10 * 86_400_000).toISOString();
+  const recentChat = input.messages.filter((m) => m.role === 'user' && m.at && m.at >= since10).slice(-25).map((m) => ({ at: m.at!, text: stripAppNotes(m.text).replace(/\s+/g, ' ').trim().slice(0, 200) })).filter((m) => m.text);
   const blob = (() => { try { return JSON.parse(u.coachProfile ?? '{}'); } catch { return {}; } })();
   const since14 = input.workouts.filter((w) => w.date >= new Date(now.getTime() - 14 * 86_400_000).toISOString().slice(0, 10));
   return {
@@ -242,7 +258,8 @@ export async function buildDossier(userId: string, now = new Date()): Promise<(D
     sessions: since14.map((w) => ({ date: w.date, title: w.title ?? 'Workout' })).slice(-14),
     mealDays: [...input.mealDays].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7).reverse(),
     checkins: input.checkins.slice(0, 5).map((c) => ({ date: c.date, energy: c.energy, sleepHours: c.sleepHours })),
-    recent: recentRows.map((r) => ({ kind: r.kind, topic: r.topic, outcome: r.outcome, createdAt: r.createdAt.toISOString() })),
+    recent: recentRows.map((r) => ({ kind: r.kind, topic: r.topic, outcome: r.outcome, createdAt: r.createdAt.toISOString(), text: r.text ?? undefined })),
+    onFile: [...new Set(onFile)], recentChat,
     sessionCount: input.sessionCount, mealDayCount: input.mealDayCount,
     negatives: Array.isArray(blob.threadNegatives) ? blob.threadNegatives.slice(-8).map((n: any) => String(n.title)) : [],
     input,
@@ -267,7 +284,7 @@ export async function reasonForUser(userId: string, opts: { complete?: CompleteF
   // Nothing to cite and nothing due → don't spend a model call.
   if (!dossier.evidence.length && !dossier.due.length) return { dossier, candidates: [] };
   const raw = await (opts.complete ?? defaultComplete)(REASONER_PROMPT, renderDossier(dossier));
-  return { dossier, candidates: verifyCandidates(raw, dossier.evidence, dossier.threads, { due: dossier.due }) };
+  return { dossier, candidates: verifyCandidates(raw, dossier.evidence, dossier.threads, { due: dossier.due, now: opts.now }) };
 }
 
 export const threadAffects = (t: ThreadRow) => parseList(t.affectsJson);

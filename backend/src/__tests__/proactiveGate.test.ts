@@ -96,3 +96,13 @@ describe('G3 · safety', () => {
     expect(gateCandidate({ ...base(), kind: 'safety', localHour: 23, acute: true }, now).allow).toBe(true);
   });
 });
+
+describe('per-person back-off', () => {
+  it('three ignored in a row pause reach-outs for a week after the last; an answer resets it', () => {
+    const ig = (d: string) => sent('checkin', `t${d}`, `2026-10-${d}T07:00:00Z`, 'ignored');
+    expect(gateCandidate({ ...base(), recent: [ig('26'), ig('27'), ig('28')] }, now)).toMatchObject({ allow: false, reason: 'user_backoff' });
+    expect(gateCandidate({ ...base(), recent: [ig('26'), ig('27'), sent('checkin', 'x', '2026-10-28T07:00:00Z', 'answered')] }, now).allow).toBe(true);
+    expect(gateCandidate({ ...base(), recent: [ig('19'), ig('20'), ig('21')] }, now).allow).toBe(true);
+    expect(gateCandidate({ ...base(), kind: 'safety', recent: [ig('26'), ig('27'), ig('28')] }, now).allow).toBe(true);
+  });
+});

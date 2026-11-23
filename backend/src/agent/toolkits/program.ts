@@ -168,13 +168,25 @@ function findDay(phase: any, label: string): any | null {
   const l = norm(label);
   return days.find((d: any) => norm(d.day ?? '') === l) ?? days.find((d: any) => norm(d.day ?? '').includes(l) || l.includes(norm(d.day ?? ''))) ?? days.find((d: any) => norm(d.focus ?? '').includes(l)) ?? null;
 }
-function findEx(day: any, name: string): number {
+/**
+ * The exercise an edit names on one day: the exact name, else the one
+ * exercise whose name contains it (or is contained in it). Two or more such
+ * candidates is ambiguous and matches nothing (Nov 2026: "Single arm tricep
+ * pushdown" fell back to "Tricep Pushdown" on another day and overwrote it).
+ */
+function findEx(day: any, name: string, opts: { exactOnly?: boolean } = {}): number {
   const exs = day?.exercises ?? [];
   const n = norm(name);
-  let i = exs.findIndex((e: any) => norm(exName(e)) === n);
-  if (i < 0) i = exs.findIndex((e: any) => norm(exName(e)).includes(n) || n.includes(norm(exName(e))));
-  return i;
+  const i = exs.findIndex((e: any) => norm(exName(e)) === n);
+  if (i >= 0 || opts.exactOnly) return i;
+  const partial = exs.map((e: any, k: number) => (norm(exName(e)).includes(n) || n.includes(norm(exName(e))) ? k : -1)).filter((k: number) => k >= 0);
+  return partial.length === 1 ? partial[0] : -1;
 }
+
+/** Pure: does any day of the phase have an exercise named exactly this? */
+const hasExactSomewhere = (phase: any, name: string) => (phase?.trainingDays ?? []).some((d: any) => (d.exercises ?? []).some((e: any) => norm(exName(e)) === norm(name)));
+
+const fmtKg = (kg: number) => String(Math.round(kg * 10) / 10);
 
 /** Apply edit ops to the current phase (or all phases) of a program copy. Returns the copy and diff rows. */
 export function applyProgramEdits(program: any, edits: EditOp[], opts: { phaseIndex: number; allPhases?: boolean }): { program: any; diff: { key: string; from?: string; to: string; removed?: boolean }[] } {
@@ -222,12 +234,18 @@ export function applyProgramEdits(program: any, edits: EditOp[], opts: { phaseIn
         if (first) diff.push({ key: `Focus · ${day.day}`, from: before, to: e.focus });
       } else if (e.type === 'set_target') {
         const targetDays = e.day ? [findDay(phase, e.day)].filter(Boolean) : phase.trainingDays;
-        for (const d of targetDays) {
-          const i = findEx(d, e.exercise); if (i < 0) continue;
+        // Without a day the edit covers every day the lift is on — by its exact
+        // name when it has one anywhere, so it never lands on a similarly named lift.
+        const exactOnly = !e.day && hasExactSomewhere(phase, e.exercise);
+        const hits = targetDays.map((d: any) => ({ d, i: findEx(d, e.exercise, { exactOnly }) })).filter((h: any) => h.i >= 0);
+        for (const { d, i } of hits) {
           const ex = d.exercises[i];
-          if (first && !touched) diff.push({ key: `${exName(ex)} target`, from: ex.targetWeightKg ? `${Math.round(ex.targetWeightKg)} kg` : 'None', to: `${Math.round(e.targetWeightKg)} kg` });
-          ex.targetWeightKg = e.targetWeightKg; ex.targetBasis = 'set in chat'; ex.targetSetAt = new Date().toISOString();
           touched = true;
+          const before = Number(ex.targetWeightKg) || 0;
+          if (Math.abs(before - e.targetWeightKg) < 0.05) continue;
+          // One row per exercise actually changed (by day when the lift is on several), so the card shows exactly what Apply saves.
+          if (first) diff.push({ key: `${exName(ex)} target${hits.length > 1 ? ` · ${d.day}` : ''}`, from: before ? `${fmtKg(before)} kg` : 'None', to: `${fmtKg(e.targetWeightKg)} kg` });
+          ex.targetWeightKg = e.targetWeightKg; ex.targetBasis = 'set in chat'; ex.targetSetAt = new Date().toISOString();
         }
         continue;
       }
@@ -604,6 +622,8 @@ export const PROGRAM_TOOLS = [
       if (!edits.length) throw new Error('Say what to change.');
       const { program: next, diff } = applyProgramEdits(program, edits, { phaseIndex: await currentPhaseIndex(userId, program), allPhases: !!input.allPhases });
       const kinds = new Set(edits.map((e) => e.type));
+      // Re-asked for targets that are already set (Tarek tapped it twice): say so instead of an empty card.
+      if (!diff.length) throw new Error('Those targets are already set in the program — nothing to change. Tell them what is set now (read_program) instead of proposing again.');
       const summary = diff.map((d) => d.key).join('; ');
       // _proposal/updatedProgram: the classic app renders this as its program diff card.
       return { diff, why: str(input.why), fn: kinds.has('set_target') ? 'PRG-15' : kinds.has('add') || kinds.has('remove') || kinds.has('add_day') || kinds.has('remove_day') || kinds.has('set_days_per_week') ? 'PRG-06' : kinds.has('reorder') || kinds.has('focus') ? 'PRG-08' : 'PRG-05', _programNext: next, summary,
@@ -611,7 +631,7 @@ export const PROGRAM_TOOLS = [
     },
     card: (_i, r, ctx) => ({
       fn: r.fn, pattern: 'proposal', rule: 'propose', meta: { label: 'Proposed · program', open: { page: 'training' } },
-      diff: r.diff.map((d: any) => r.fn === 'PRG-15' ? { ...d, from: d.from?.replace(/(\d+) kg/, (_m: string, kg: string) => weight(ctx.unit, Number(kg))), to: d.to.replace(/(\d+) kg/, (_m: string, kg: string) => weight(ctx.unit, Number(kg))) } : d),
+      diff: r.diff.map((d: any) => r.fn === 'PRG-15' ? { ...d, from: d.from?.replace(/(\d+(?:\.\d+)?) kg/g, (_m: string, kg: string) => weight(ctx.unit, Number(kg))), to: d.to.replace(/(\d+(?:\.\d+)?) kg/g, (_m: string, kg: string) => weight(ctx.unit, Number(kg))) } : d),
       ...(r.why ? { why: r.why } : {}),
       actions: [{ id: 'apply', label: 'Apply', kind: 'primary' }, { id: 'keep', label: 'Keep', kind: 'secondary' }],
       pending: { actions: { apply: { op: 'program.replace', args: { program: r._programNext, summary: `Program · ${r.summary}` } }, keep: { kind: 'keep' } } },

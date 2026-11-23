@@ -22,12 +22,12 @@ const BURIED_AFTER_MS = 48 * 3600_000;
 const forProposal = (id: string) => (pending: any) => pending?.actions?.apply?.args?.id === id;
 
 async function shownSuggestions(userId: string, now: number): Promise<ShownCard[]> {
-  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: ADAPT_FNS }, createdAt: { gte: new Date(now - SHOWN_WINDOW_MS) } }, select: { payloadJson: true, pendingJson: true, createdAt: true } }).catch(() => []);
+  const rows = await prisma.agentCard.findMany({ where: { userId, fn: { in: ADAPT_FNS }, createdAt: { gte: new Date(now - SHOWN_WINDOW_MS) } }, select: { payloadJson: true, pendingJson: true, status: true, createdAt: true } }).catch(() => []);
   return rows.map((r) => {
     let title = ''; let proposalId: string | null = null;
     try { title = JSON.parse(r.payloadJson)?.meta?.label ?? ''; } catch { /* skip */ }
     try { proposalId = (r.pendingJson ? JSON.parse(r.pendingJson) : null)?.actions?.apply?.args?.id ?? null; } catch { /* skip */ }
-    return { proposalId, title, at: new Date(r.createdAt).getTime() };
+    return { proposalId, title, at: new Date(r.createdAt).getTime(), status: (r as any).status };
   });
 }
 

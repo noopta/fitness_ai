@@ -45,6 +45,8 @@ export const MIN_MEAL_DAYS = 3;
 export const BACKOFF_IGNORES = 2;
 /** The same topic, ignored, isn't raised again inside this many days. */
 export const TOPIC_COOLDOWN_DAYS = 14;
+export const USER_BACKOFF_RUN = 3;
+export const USER_BACKOFF_DAYS = 7;
 
 const DAY = 86_400_000;
 const isPro = (tier: string) => tier === 'pro' || tier === 'enterprise';
@@ -77,6 +79,11 @@ export function gateCandidate(i: GateInput, now = new Date()): GateResult {
   const ignoredRecently = i.recent.some((e) => delivered(e) && e.topic.toLowerCase() === i.topic.toLowerCase()
     && e.outcome === 'ignored' && t - Date.parse(e.createdAt) < TOPIC_COOLDOWN_DAYS * DAY);
   if (ignoredRecently) return { allow: false, reason: 'topic_cooldown' };
+
+  // Back-off per person (Nov 2026: one user got 17 reach-outs with no reply). Three ignored in a row
+  // → nothing more for a week after the last one; then one try, and the same again if that's ignored.
+  const lastThree = i.recent.filter((e) => e.channel === 'chat' && e.kind !== 'safety').sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, USER_BACKOFF_RUN);
+  if (lastThree.length === USER_BACKOFF_RUN && lastThree.every((e) => e.outcome === 'ignored') && t - Date.parse(lastThree[0].createdAt) < USER_BACKOFF_DAYS * DAY) return { allow: false, reason: 'user_backoff' };
 
   // F1 — the cap. Safety never counts toward it. Each reach-out has one chat row; its push row is the same reach-out.
   const cap = FREQUENCY_CAP[i.prefs.frequency];

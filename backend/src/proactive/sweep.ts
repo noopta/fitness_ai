@@ -18,7 +18,10 @@ import { gateCandidate, type GateInput } from './gate.js';
 import { getProactivePrefs } from './prefs.js';
 import { reasonForUser, type CompleteFn, type Candidate } from './reasoner.js';
 import { deliverCandidate, markUnansweredIgnored } from './deliver.js';
-import { dueThreads, openThreads, resolveThread, updateThread, type ThreadRow } from './threads.js';
+import { dueThreads, openThreads, resolveThread, titleSimilarity, updateThread, type ThreadRow } from './threads.js';
+
+/** Word overlap at which a new reach-out counts as the same as one sent this week. */
+export const REPEAT_SIMILARITY = 0.6;
 import { buildOutcomeInput, classifyOutcome, outcomeCard, outcomeHeadline, outcomeReceipts } from './outcome.js';
 import { currentWeightCutFlag, safetyCard, safetyReceipts } from './safety.js';
 
@@ -52,7 +55,7 @@ async function gateContext(userId: string, now: Date) {
   const clock = localClock(tz, now);
   const [prefs, recentRows, sessions, mealDays] = await Promise.all([
     getProactivePrefs(userId),
-    prisma.proactiveEvent.findMany({ where: { userId, createdAt: { gte: new Date(now.getTime() - 14 * 86_400_000) } }, select: { kind: true, topic: true, threadId: true, channel: true, createdAt: true, outcome: true } }),
+    prisma.proactiveEvent.findMany({ where: { userId, createdAt: { gte: new Date(now.getTime() - 14 * 86_400_000) } }, select: { kind: true, topic: true, threadId: true, channel: true, createdAt: true, outcome: true, text: true } }),
     prisma.workoutLog.count({ where: { userId } }),
     prisma.mealEntry.findMany({ where: { userId }, select: { date: true }, distinct: ['date'] }).then((r) => r.length),
   ]);
@@ -112,7 +115,9 @@ export async function evaluateUser(userId: string, opts: { now?: Date; complete?
       thread: t ? { ignoredCount: t.ignoredCount, mutedUntil: t.mutedUntil?.toISOString() ?? null, status: t.status } : null,
       prefs: ctx.prefs, tier: ctx.user.tier, localHour: ctx.clock.hour, localDate: ctx.today, recent: ctx.recent, sessions: ctx.sessions, mealDays: ctx.mealDays,
     };
-    const gate = gateCandidate(g, now);
+    // Never the same words twice in a week (Nov 2026: "Checking in on … How is it today?" went out 7 mornings running).
+    const repeat = (ctx.recent as any[]).some((e) => e.text && e.channel === 'chat' && now.getTime() - Date.parse(e.createdAt) < 7 * 86_400_000 && titleSimilarity(e.text, c.question) >= REPEAT_SIMILARITY);
+    const gate = repeat ? { allow: false, reason: 'repeat', closeThread: false } : gateCandidate(g, now);
     gated.push({ candidate: c, allow: gate.allow, reason: gate.reason });
     if (gate.closeThread && t) await resolveThread(userId, t.id, 'Closed — no reply twice', 'closed', now);
     if (!gate.allow) continue;
@@ -122,7 +127,7 @@ export async function evaluateUser(userId: string, opts: { now?: Date; complete?
     if (!dryRun && !d.posted) continue;
     pushed = pushed || d.pushed;
     items.push(c);
-    ctx.recent.push({ kind: c.kind, topic: c.topic, threadId: c.threadId, channel: dryRun ? 'dryrun' : 'chat', createdAt: now.toISOString(), outcome: null });
+    ctx.recent.push({ kind: c.kind, topic: c.topic, threadId: c.threadId, channel: dryRun ? 'dryrun' : 'chat', createdAt: now.toISOString(), outcome: null, text: c.question } as any);
   }
   return { delivered: items[0] ?? null, items, outcomes, gated, dryRun };
 }

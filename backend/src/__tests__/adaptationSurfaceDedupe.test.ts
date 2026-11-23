@@ -22,8 +22,14 @@ describe('pickToSurface', () => {
     expect(pickToSurface([p('x', 'Bench press: add 5 lb')], shown, now, { force: true }).map((x) => x.id)).toEqual(['x']);
   });
   it('old showings fall out of the window', () => {
-    const shown = [1, 2].map((i) => ({ proposalId: `o${i}`, title: 'Deload week', at: h(24 * (15 + i)) }));
+    const shown = [1, 2].map((i) => ({ proposalId: `o${i}`, title: 'Deload week', at: h(24 * (60 + i)) }));
     expect(pickToSurface([p('d', 'Deload week')], shown, now).map((x) => x.id)).toEqual(['d']);
+  });
+  it('four suggestion cards in a row with no answer pause suggestions for a week', () => {
+    const ignored = [1, 2, 3, 4].map((i) => ({ proposalId: `x${i}`, title: `Thing ${i}`, at: h(24 * i + 1), status: 'replaced' }));
+    expect(pickToSurface([p('n', 'New one')], ignored, now)).toEqual([]);
+    expect(pickToSurface([p('n', 'New one')], ignored.map((x) => ({ ...x, at: x.at - h(24 * 7) })), now).map((x) => x.id)).toEqual(['n']);
+    expect(pickToSurface([p('n', 'New one')], [{ ...ignored[0], status: 'applied' }, ...ignored.slice(1)], now).map((x) => x.id)).toEqual(['n']);
   });
   it('signature ignores the card prefix and punctuation', () => {
     expect(suggestionSig('Proposed · Your Lateral Raise is ahead of plan!')).toBe(suggestionSig('your lateral raise is ahead of plan'));

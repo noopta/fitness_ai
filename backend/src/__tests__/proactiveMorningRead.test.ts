@@ -110,3 +110,21 @@ describe('thread receipts order and voice', () => {
     expect(out[1].text).toBe('“q ask” · I asked');
   });
 });
+
+describe('Nov 2026 repeat fixes', () => {
+  it('the symptom fallback waits a week after raising a thread, and stops after two raises', () => {
+    const now = new Date('2026-11-20T12:00:00Z');
+    const dueRaised = [{ id: 'ach', kind: 'symptom', title: 'Achilles stiffness', lastRaisedAt: new Date('2026-11-17T12:00:00Z'), raisedCount: 1 }];
+    expect(R.verifyCandidates({ candidates: [] }, evidence, threads, { due: dueRaised as any, now })).toEqual([]);
+    const twice = [{ ...dueRaised[0], lastRaisedAt: new Date('2026-11-01T12:00:00Z'), raisedCount: 2 }];
+    expect(R.verifyCandidates({ candidates: [] }, evidence, threads, { due: twice as any, now })).toEqual([]);
+    const weekAgo = [{ ...dueRaised[0], lastRaisedAt: new Date('2026-11-10T12:00:00Z'), raisedCount: 1 }];
+    expect(R.verifyCandidates({ candidates: [] }, evidence, threads, { due: weekAgo as any, now }).map((c) => c.threadId)).toEqual(['ach']);
+  });
+  it('the dossier shows what is on file and what the client said', () => {
+    const text = R.renderDossier({ today, tz: 'UTC', tier: 'pro', profile: [], threads: [], due: [], evidence: [], sessions: [], mealDays: [], checkins: [], recent: [{ kind: 'checkin', topic: 'height', outcome: 'ignored', createdAt: '2026-11-01T12:00:00Z', text: 'What is your height?' }], sessionCount: 0, mealDayCount: 0, negatives: [], onFile: ['height', 'body weight'], recentChat: [{ at: '2026-11-01T09:00:00Z', text: 'surgeon cleared it' }] } as any);
+    expect(text).toMatch(/ON FILE \(already known — never ask for these\): height, body weight/);
+    expect(text).toMatch(/2026-11-01: "surgeon cleared it"/);
+    expect(text).toMatch(/— "What is your height\?"/);
+  });
+});

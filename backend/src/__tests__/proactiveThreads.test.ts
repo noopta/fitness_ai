@@ -98,3 +98,13 @@ describe('due and rows', () => {
     expect(closed).toEqual([expect.objectContaining({ id: 'done', sub: 'Resolved · Kept · rows +6%, fits', value: 'Oct 30' })]);
   });
 });
+
+describe('threads settled in chat', () => {
+  it('only resolves open threads, with a quote that is really in the messages', async () => {
+    const { pickResolved } = await import('../proactive/threads.js');
+    const existing = [{ id: 'a', status: 'open' }, { id: 'b', status: 'resolved' }];
+    const raw = JSON.stringify({ threads: [], resolved: [{ id: 'a', quote: 'my surgeon cleared it' }, { id: 'b', quote: 'my surgeon cleared it' }, { id: 'a', quote: 'never said' }, { id: 'zz', quote: 'my surgeon cleared it' }] });
+    expect(pickResolved(raw, existing as any, ['Good news, my surgeon cleared it this morning'])).toEqual([{ id: 'a', quote: 'my surgeon cleared it' }]);
+    expect(pickResolved('garbage', existing as any, ['x'])).toEqual([]);
+  });
+});
